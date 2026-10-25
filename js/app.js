@@ -473,8 +473,10 @@ function drawChart() {
   $('chart').setAttribute('aria-labelledby', 'tab-' + state.view);
   const readCode = readingProvince();
   const kind = readCode ? 'district' : 'province';
-  // One scope for every view: the province being read (its districts), else the whole country.
-  const scope = readCode ? state.scopeRows.filter(r => rowProvince(r) === readCode) : state.scopeRows;
+  // One scope for every view, and the caption counts exactly what the views draw: venues with a
+  // point inside a district of the province being read (else of the country). Rows without a point
+  // are not in any bar; the panel names them ("อีก N แห่งยังระบุเขตไม่ได้") and the table lists them.
+  const scope = state.scopeRows.filter(r => hasPoint(r) && r.districtCode && (!readCode || state.districts.get(r.districtCode)?.province === readCode));
   $('chart-scope').textContent = `${num(scope.length)} แห่ง · ${readCode ? `ทุก${districtWord(readCode)}ใน${provinceShort(readCode)}` : 'ทุกจังหวัด'}`;
   $('tab-rank').querySelector('.tab-label').textContent = readCode ? `${districtWord(readCode)}ที่แน่นที่สุด` : 'จังหวัด';
   if ($('insight-content').hidden) return;
@@ -513,7 +515,7 @@ function renderTable() {
     return `<tr><td><button type="button" class="row-name venue-table-row" data-id="${esc(r.id)}">${venueLogoMarkup(r.id, {name: r.name, size: 'sm'}) || groupSwatch(g)}<span>${esc(r.name)}</span></button><small>${esc(r.nameEn && r.nameEn !== r.name ? r.nameEn : '')}</small></td>
       <td>${groupSwatch(g)} ${esc(g.th)}</td>
       <td>${r.operatorLabel ? esc(r.operatorLabel) : '<span class="hint">ยังไม่มีข้อมูล</span>'}</td>
-      <td>${d ? esc(districtLabel(d)) : '<span class="hint">ยังไม่มีพิกัด</span>'}<small>${esc(provinceByCode(rowProvince(r))?.th || r.addrProvince || '')}</small></td>
+      <td>${d ? esc(districtLabel(d)) : `<span class="hint">${hasPoint(r) ? 'หมุดอยู่นอกเส้นเขต' : 'ยังไม่มีพิกัด'}</span>`}<small>${esc(provinceByCode(rowProvince(r))?.th || r.addrProvince || '')}</small></td>
       <td>${statusPill(r)}</td>
       <td class="data-number">${r.storeCount ? num(r.storeCount) : '<span class="hint">—</span>'}</td>
       <td><small class="data-number">${esc(r.id)}</small></td></tr>`;

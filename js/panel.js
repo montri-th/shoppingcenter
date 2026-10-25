@@ -167,7 +167,8 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
         <span class="rank-track" aria-hidden="true"><span class="rank-fill" style="width:${Math.max(3, Math.round((a.density / max) * 100))}%;background:${esc(a.fill)}"></span></span>
         <span class="rank-value data-number" aria-hidden="true">${esc(formatDensity(a.density))}</span></button></li>`).join('')}</ol></section>`;
   }
-  const unlocated = model.unlocated.length ? `<p class="hint">อีก ${num(model.unlocated.length)} แห่งยังไม่มีพิกัด · <button type="button" class="link-button" data-action="open-table">ดูในตาราง</button></p>` : '';
+  // Rows that no district holds (no point, or a point outside every boundary line): named once, listed in the table.
+  const unlocated = model.unlocated.length ? `<p class="hint">อีก ${num(model.unlocated.length)} แห่งยังระบุ${readCode ? unitWord(readCode) : 'เขต/อำเภอ'}ไม่ได้ · <button type="button" class="link-button" data-action="open-table">ดูในตาราง</button></p>` : '';
   return `${aha}${metrics}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf)}`;
 }
 
@@ -249,7 +250,7 @@ function evidenceRows(row, d, {buildingNote = ''} = {}) {
   if ((row.children || []).length) note('การนับ', 'นับครั้งเดียว ไม่บวกพื้นที่ย่อย');
   item('สถานะ', operationReading(row.operationGroup), ev.operation?.url);
   if (d?.hours && hoursScope(d.hoursScope)) note('เวลาเปิด', esc(hoursScope(d.hoursScope)));
-  if (d?.yearOpened) note('เปิดเมื่อ', 'ปีที่แหล่งรายงาน');
+  if (d?.yearOpened || d?.openedDate) note('เปิดเมื่อ', d.openedDate ? 'วันที่แหล่งรายงาน' : 'ปีที่แหล่งรายงาน');
   const legacy = d?.size?.legacy;
   if (legacy && (legacy.gla || legacy.gfa)) note('ขนาด', `ค่าประมาณจากทะเบียนเดิม ไม่ใช่ GLA ทางการ · วิธี: ${esc(legacyBasis(legacy.basis))}${legacy.basis ? ` <code>${esc(legacy.basis)}</code>` : ''}`);
   if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url);
@@ -290,7 +291,8 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
   const hours = d?.hours ? esc(d.hours) : '';
   const address = d?.address ? `${esc(d.address)}${p.addressDiffers ? ` <span class="hint">(จุดอยู่ใน${esc(p.province?.th || '')})</span>` : ''}` : '';
   const coords = hasPoint(r) ? `<span class="data-number">${r.lat.toFixed(6)}, ${r.lon.toFixed(6)}</span>` : '<span class="hint">ยังไม่มีพิกัด</span>';
-  const opened = d?.yearOpened ? `${esc(d.yearOpened + 543)}${d.openedDate ? ` · ${esc(thaiDate(d.openedDate))}` : ''}` : '';
+  // The exact date when the source gives it, else the year (Buddhist era).
+  const opened = d?.openedDate ? esc(thaiDate(d.openedDate)) : d?.yearOpened ? esc(d.yearOpened + 543) : '';
   const stores = d?.stores || {confirmed: r.storeCount || 0, datasets: []};
   const luxury = d?.luxuryPlace ? link(`${LUXURY_SITE}?place=${encodeURIComponent(d.luxuryPlace)}`, 'ดูแบรนด์หรูที่นี่ใน Luxury Brands', 'source-link strong-link') : '';
   const storeBlock = stores.confirmed

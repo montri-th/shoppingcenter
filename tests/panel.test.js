@@ -4,13 +4,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, readdirSync} from 'node:fs';
-import {filterVenues, prepareRows, summarize, tierReading, hasPoint} from '../js/model.js';
+import {filterVenues, prepareRows, summarize, tierReading, hasPoint, rowProvince} from '../js/model.js';
 import {hierarchyReading} from '../js/evidence.js';
 import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.js';
 import {summarizeAreaInsight} from '../js/area-insight.js';
 import {buildDistrictModel} from '../js/map-layers.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from '../js/profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, PRODUCT_TITLE} from '../js/panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, thaiDate, PRODUCT_TITLE} from '../js/panel.js';
 import {rankAreas, groupMatrix} from '../js/chart-model.js';
 
 const read = p => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
@@ -40,6 +40,22 @@ test('overview: Aha numbers, metrics and provenance come from the rows', () => {
   assert.ok(Math.abs(ratio - (insight.count / insight.areaKm2) / (insight.total / insight.provinceAreaKm2)) < 1e-9, 'share ÷ area share = density ratio');
   if (ratio >= 2) assert.ok(html.includes(`แน่นกว่าค่าเฉลี่ยของ`) && html.includes(`>${Math.round(ratio)}<`));
   assert.equal(overview.summary.venues, focusRows.length);
+});
+
+test('overview: the venues in districts and the ones no district holds add up to the whole scope', () => {
+  // Country: every row is either inside a district (what the charts and the map fills count) or named
+  // in the "ยังระบุเขต/อำเภอไม่ได้" line — no point, or a point outside every boundary line.
+  const country = buildOverviewModel({rows: supply, scopeRows: supply, areas: []});
+  const inDistricts = supply.filter(r => hasPoint(r) && r.districtCode).length;
+  assert.equal(inDistricts + country.unlocated.length, supply.length);
+  assert.ok(country.unlocated.some(r => hasPoint(r)), 'fixture: a point outside the boundary lines is in this snapshot');
+  const html = renderOverview({insight: summarizeAreaInsight(supply, districts), model: country, focusMode: 'none', asOf});
+  assert.ok(html.includes(`อีก ${country.unlocated.length.toLocaleString('th-TH')} แห่งยังระบุเขต/อำเภอไม่ได้`));
+  // Bangkok: the panel's denominator and the not-placed line cover the province's rows.
+  const insight = summarizeAreaInsight(supply, districts, {province: 'BKK'});
+  const bkk = buildOverviewModel({rows: supply, scopeRows: supply, areas: [], readCode: 'BKK'});
+  const bkkRows = supply.filter(r => rowProvince(r) === 'BKK');
+  assert.equal(insight.total + bkk.unlocated.length, bkkRows.length);
 });
 
 test('district profile: rank among districts with venues, venue list, measured zero is “0 แห่ง”', () => {
@@ -167,4 +183,15 @@ test('the venue panel names the building it draws: validated host, the building 
   assert.equal(buildingReading(plain, [], undefined).text, '', 'not read yet → nothing said');
   const html = renderVenue(buildVenueProfile({row: plain, detail: details.get(plain.id), byId, districts}), {asOf, buildings: [pinFeature], pinState: 'inside'});
   assert.ok(html.includes('อาคารที่หมุดตั้งอยู่') && html.includes('OpenStreetMap'));
+});
+
+test('opening: the exact date once when the source gives it, else the year', () => {
+  const dated = rows.find(r => details.get(r.id)?.openedDate && r.countable);
+  const d = details.get(dated.id);
+  const html = renderVenue(buildVenueProfile({row: dated, detail: d, byId, districts}), {asOf});
+  const date = thaiDate(d.openedDate);
+  assert.ok(html.includes(date), date);
+  assert.ok(!html.includes(`${d.yearOpened + 543} · ${date}`), 'the year is not repeated before the date');
+  const yearOnly = rows.find(r => { const x = details.get(r.id); return x?.yearOpened && !x.openedDate && r.countable; });
+  if (yearOnly) assert.ok(renderVenue(buildVenueProfile({row: yearOnly, detail: details.get(yearOnly.id), byId, districts}), {asOf}).includes(String(details.get(yearOnly.id).yearOpened + 543)));
 });

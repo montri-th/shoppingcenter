@@ -22,7 +22,8 @@ export function buildOverviewModel({rows, scopeRows, areas = [], kind = 'distric
   const summary = summarize(rows);
   const scope = summarize(scopeRows);
   const ranking = rankAreas(areas, {kind}).filter(a => a.count > 0);
-  const unlocated = scopeRows.filter(r => !hasPoint(r) && (!readCode || rowProvince(r) === readCode));
+  // Not in any district: no selected point, or a point outside every boundary line (coast, border).
+  const unlocated = scopeRows.filter(r => !(hasPoint(r) && r.districtCode) && (!readCode || rowProvince(r) === readCode));
   return {
     summary, scope, ranking, kind,
     groups: groupMix(rows),
