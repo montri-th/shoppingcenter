@@ -12,7 +12,7 @@ Playwright + Chromium (SwiftShader WebGL) against `python3 -m http.server`, with
 
 | Scenario | URL | Result |
 |---|---|---|
-| Desktop light / dark 1280×800 | `/` | 3D city preset (pitch 56) on ปทุมวัน · บางรัก · ราชเทวี; panel “18% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้”, 32 จาก 181 แห่ง, 1.2%; 32 focus pins; legend 5 classes; no console errors; no horizontal overflow |
+| Desktop light / dark 1280×800 | `/` | 3D city preset (pitch 56, zoom 13.1 so the city massing is drawn) on the venues of ปทุมวัน · บางรัก · ราชเทวี; panel “18% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้”, 32 จาก 181 แห่ง, 1.2%; 32 focus pins; legend 5 classes; no console errors; no horizontal overflow |
 | Mobile light / dark 390×844 | `/` | same finding in the compact map card; legend readable; no horizontal overflow |
 | Country | `?areas=all` | province frames, `count` legend 5 classes (1 · 2 · 3–4 · 5–8 · > 8), 483 pins, province chips |
 | Bangkok all districts | `?province=BKK&areas=all` | 2D province fit, district chips, 5-class density legend |

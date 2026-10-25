@@ -552,12 +552,15 @@ function fitArea(feature, {instant = false} = {}) {
   fitPitched(state.map, featureBounds(feature, maplibregl.LngLatBounds), {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom: 16.5, minZoom: 7, animate: animate() && !instant, points: vertices([feature]), shift: mobilePortrait() ? -0.08 : null});
 }
 
-function fitBounds(b, {instant = false, points = null, maxZoom = 15} = {}) {
+function fitBounds(b, {instant = false, points = null, maxZoom = 15, apply = true} = {}) {
   const wide = b.getNorth() - b.getSouth() > 0.3 || b.getEast() - b.getWest() > 0.3;
   const preset = wide ? 'plan' : cameraPreset();
   const pitched = preset !== 'plan' && !mobilePortrait();
-  fitPitched(state.map, b, {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom, minZoom: 4.5, animate: animate() && !instant, points: wide ? null : points, shift: mobilePortrait() && !wide ? -0.12 : null});
+  return fitPitched(state.map, b, {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom, minZoom: 4.5, animate: animate() && !instant, points: wide ? null : points, shift: mobilePortrait() && !wide ? -0.12 : null, apply});
 }
+
+/** City massing (OpenMapTiles buildings) exists from zoom 13; the 3D focus view needs it to read as a city. */
+const MASSING_VIEW_ZOOM = 13.1;   // below the quiet-label zoom (13.2) so the first view keeps only the focus labels
 
 function fitMap({instant = false} = {}) {
   if (!state.loaded) return;
@@ -572,7 +575,19 @@ function fitMap({instant = false} = {}) {
   if (focus.length) {
     const b = new LB();
     for (const x of focus) featureBounds(x.feature, LB).toArray().forEach(p => b.extend(p));
-    fitBounds(b, {instant, points: vertices(focus.map(x => x.feature))});
+    const options = {instant, points: vertices(focus.map(x => x.feature))};
+    // Dense city districts that fit just below the massing zoom: frame their venues at that zoom instead,
+    // so the first view shows the 3D city (the district fills still read around the venues).
+    const target = fitBounds(b, {...options, apply: false});
+    const venues = detailRows().filter(hasPoint);
+    if (target && target.pitch > 0 && target.zoom >= 11.8 && target.zoom < MASSING_VIEW_ZOOM && venues.length) {
+      const vb = new LB();
+      venues.forEach(r => vb.extend([r.lon, r.lat]));
+      const camera = {...target, center: vb.getCenter(), zoom: MASSING_VIEW_ZOOM};
+      if (animate() && !instant) state.map.easeTo({...camera, duration: 650}); else state.map.jumpTo(camera);
+      return;
+    }
+    fitBounds(b, options);
     return;
   }
   const readCode = readingProvince();
