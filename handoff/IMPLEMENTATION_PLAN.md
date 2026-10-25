@@ -96,7 +96,7 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 | S01 | Pipeline สถานที่ | `scripts/build-data.py` → `venues.json`, `details/`, `pending.json`, `build-report.json`; counts 565/545/541/488 และ D1 36/185 ตรงกับ `meta.checks.aha` ด้วย test (ก่อน D6: 540/536/483 และ 32/181) · `npm run data:refresh` รันใหม่ด้วยคำสั่งเดียว | done |
 | S02 | ขอบเขต + รหัส production | provinces 77 / districts 928 simplified; ทุก `id` ตรง production lv0/lv1 (remap `4026` → `4029` บันทึกใน meta) | done |
 | S03 | อาคารของสถานที่ | 127 รูปทรงของ 74 สถานที่ (parts 10 · footprint 64); parent ที่มี parts เป็น outline; ความสูงไม่รู้คง `null` + display fallback 3 ม. | done |
-| S04 | โลโก้สถานที่ | ไฟล์ตรง SHA-256 ของทะเบียน; ไม่มีลิงก์ Drive · จำนวนไฟล์ที่ตรวจแล้วอยู่ใน `data/venue-logos.json` `meta.status` (รุ่นนี้ 95 จาก 113 — ที่เหลือแสดงชื่อโดยไม่มีโลโก้) | partial |
+| S04 | โลโก้สถานที่ | ไฟล์ตรง SHA-256 ของทะเบียน; ไม่มีลิงก์ Drive · จำนวนไฟล์ที่ตรวจแล้วอยู่ใน `data/venue-logos.json` `meta.status` (ครบ 113 จาก 113 · ผูกกับ 104 สถานที่ที่นับได้) | done |
 | S05 | Model + ตัวกรอง + Aha | `model.js`, `areas.js`, `area-insight.js` + unit tests บนข้อมูลจริง | done |
 | S06 | แผนที่ | choropleth เขต/จังหวัด, หมุดรูปทรง, จุด GPU ของรายการรอตรวจและบริบท, อาคาร, มวลอาคาร focus (ทั้งเขตเมื่อ ≤ 40 ตร.กม. ไม่เช่นนั้นวงรัศมี 420 ม. รอบสถานที่ในโฟกัส ≤ 60 แห่ง) | done |
 | S07 | แผง + breadcrumb + URL | ทุกโหมดใน §6; crumbs 4 ระดับ; permalink คืนสถานะ | done |

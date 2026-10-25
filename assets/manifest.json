@@ -148,8 +148,8 @@
     },
     {
       "path": "assets/venue-logos-manifest.json",
-      "sha256": "4b4fcc157ce284ee6b619545839202579ab089ad3849d9049a1431327a07e965",
-      "bytes": 29382
+      "sha256": "8b05dd59ea0befdf2b06a027dd0900905b61ce587c571df2afc66f325461748d",
+      "bytes": 29767
     },
     {
       "path": "assets/venue-logos/center-one.jpg",
@@ -175,6 +175,11 @@
       "path": "assets/venue-logos/central-chanthaburi.png",
       "sha256": "8f1f55871709826c729d1368f4b52550cd9d835eecdd21a523b08eb8abdedac5",
       "bytes": 10259
+    },
+    {
+      "path": "assets/venue-logos/central-chiangmai-airport.png",
+      "sha256": "fa30b03f8494a74504243e21e7f6b49aa43c04b6feae91deb8e43faa895c00f7",
+      "bytes": 11969
     },
     {
       "path": "assets/venue-logos/central-chiangmai.png",
@@ -212,6 +217,11 @@
       "bytes": 8329
     },
     {
+      "path": "assets/venue-logos/central-khonkaen.png",
+      "sha256": "ec32d46869918c895019ca46b8d380ae0d74f63e1aad9b7a58bf5773d5f0d1f1",
+      "bytes": 10328
+    },
+    {
       "path": "assets/venue-logos/central-korat.png",
       "sha256": "cdd4538ef0e0aaeda92e6ddc2152942aadc8caf6bdbd331a6d0167f9543a2238",
       "bytes": 10366
@@ -235,6 +245,11 @@
       "path": "assets/venue-logos/central-mahachai.png",
       "sha256": "59179ce7e39f1837d9fe065b753e765af20558fb9eb9f9402f30fecbd96fd1e3",
       "bytes": 10255
+    },
+    {
+      "path": "assets/venue-logos/central-nakhon-pathom.svg",
+      "sha256": "abf7da9ebfec600ada11a96c696445fd52250ca16b060b027f6607312755ab5a",
+      "bytes": 10545
     },
     {
       "path": "assets/venue-logos/central-nakhon-sawan.svg",
@@ -280,6 +295,11 @@
       "path": "assets/venue-logos/central-rama-9.png",
       "sha256": "70d16b7422c4464d33fa551e71b382ca15559440219ca4679be753a70c01f358",
       "bytes": 11641
+    },
+    {
+      "path": "assets/venue-logos/central-ramindra.png",
+      "sha256": "8d31b8c822586880c4d61872dab4bb4f7f53e833e82ecdc5b16c14a6d353953a",
+      "bytes": 10754
     },
     {
       "path": "assets/venue-logos/central-rayong.png",
@@ -372,6 +392,11 @@
       "bytes": 21363
     },
     {
+      "path": "assets/venue-logos/fortune-town.png",
+      "sha256": "e70eeac4cb1c2d24b4116b30f32f3b93edc1c36c51299d9f8cbf828a11198c47",
+      "bytes": 3324
+    },
+    {
       "path": "assets/venue-logos/gateway-bangsue.jpg",
       "sha256": "bf90f7f1cb1bdc94cd91af69685554c53d0f697d3af0d01fc6320bfa6da86e82",
       "bytes": 4517
@@ -387,6 +412,11 @@
       "bytes": 9711
     },
     {
+      "path": "assets/venue-logos/habito.jpg",
+      "sha256": "79f49229288f0dbd46bec9a34e292d050afab730f788d14b107316fa6a3aa513",
+      "bytes": 24667
+    },
+    {
       "path": "assets/venue-logos/iconsiam.svg",
       "sha256": "a3085cf548599caecc3c82c1452678ec404c678dbbcc0f40e15553c064f02011",
       "bytes": 11159
@@ -395,6 +425,11 @@
       "path": "assets/venue-logos/im-park.png",
       "sha256": "ec7493582578cecc3d7b21d79a4342d92ade102c4dc760ce6a22e98d522a6965",
       "bytes": 5294
+    },
+    {
+      "path": "assets/venue-logos/it-square-laksi.jpg",
+      "sha256": "87829648ac540f2b2a325155e4fbf76d7fb724e9b35e6224b17bc2f4ccf66b58",
+      "bytes": 21583
     },
     {
       "path": "assets/venue-logos/jas-green-village-bang-bua-thong.jpg",
@@ -462,6 +497,16 @@
       "bytes": 9208
     },
     {
+      "path": "assets/venue-logos/mbk-center.svg",
+      "sha256": "e58054ac6d586e5d8b7817feee71405d65b1332574e8250f1a031c731f325937",
+      "bytes": 7183
+    },
+    {
+      "path": "assets/venue-logos/mega-plaza.jpg",
+      "sha256": "9808c758e1e8ff2a9f38a626575f00b1ca1db87e6bcb930995609e9a08ab0e57",
+      "bytes": 35780
+    },
+    {
       "path": "assets/venue-logos/megabangna.png",
       "sha256": "c17dd33ce8df782c1725b4d774195d77b1cd371a37ea155fda8b9340d5d5b469",
       "bytes": 4886
@@ -497,9 +542,19 @@
       "bytes": 8446
     },
     {
+      "path": "assets/venue-logos/paradise-park.svg",
+      "sha256": "c1aa205e740f0d7e6d0ebd578809dda056da9f22855345e914af093d3671650a",
+      "bytes": 53035
+    },
+    {
       "path": "assets/venue-logos/parc-bangna-owner-logo.png",
       "sha256": "aec3daf50bb5aa943abba31f791792878a463769fe1c75d16621937511861b2c",
       "bytes": 29905
+    },
+    {
+      "path": "assets/venue-logos/park-silom.png",
+      "sha256": "d4cd92657354d209a9f113598db0e1eb3725016dcc6da19ac600a5a8da47ac0d",
+      "bytes": 8202
     },
     {
       "path": "assets/venue-logos/platinum-mall.png",
@@ -515,6 +570,11 @@
       "path": "assets/venue-logos/porto-chino.png",
       "sha256": "464c1895d1ebbcd7e19d8fa6b09b9c5a5a7467faa0894ee01fea223119005af1",
       "bytes": 19026
+    },
+    {
+      "path": "assets/venue-logos/porto-go-bang-pa-in.png",
+      "sha256": "d5a17dcbe045dd06a261cf57e2721893f0485987784d380a02b2774b00b51dce",
+      "bytes": 24100
     },
     {
       "path": "assets/venue-logos/porto-go-tha-chin.png",
@@ -540,6 +600,11 @@
       "path": "assets/venue-logos/seasons-fb.jpg",
       "sha256": "221ca8261545d31200a3085e1c5bbe8ccc1998124f7704196115725af646897b",
       "bytes": 26455
+    },
+    {
+      "path": "assets/venue-logos/sena-fest.jpg",
+      "sha256": "1565e75bdbd67dc49038451cee20ca3618b79cabc732f8bfd3445093b7f5a683",
+      "bytes": 3227
     },
     {
       "path": "assets/venue-logos/siam-center.png",
@@ -572,6 +637,11 @@
       "bytes": 1964
     },
     {
+      "path": "assets/venue-logos/silom-edge.png",
+      "sha256": "df59be36733d23835348152ed05289100dc69f1c7c80dd2ef8c249879219904c",
+      "bytes": 14334
+    },
+    {
       "path": "assets/venue-logos/summer-hill.png",
       "sha256": "d9a51d4c03f95332cc6718914ec92d71e4e52ad7ec8b14d58ff28a52acc142eb",
       "bytes": 4414
@@ -585,6 +655,11 @@
       "path": "assets/venue-logos/terminal21-asok.png",
       "sha256": "8e348311ce7f2c40025ff11c1f9fc8bdaaa36668261a337bebe58893edb5a2e0",
       "bytes": 7237
+    },
+    {
+      "path": "assets/venue-logos/terminal21-korat.png",
+      "sha256": "acef56ffd907acfaaed37ba1d10162ed36abbc798a03df769e806fd73e4590f4",
+      "bytes": 9013
     },
     {
       "path": "assets/venue-logos/terminal21-pattaya.png",
@@ -602,6 +677,11 @@
       "bytes": 30327
     },
     {
+      "path": "assets/venue-logos/the-bright-rama2.png",
+      "sha256": "f509602fdacc7221ada7c9c19abfc3aa6fa65bc85149266ee48c9e62c3a6fdb2",
+      "bytes": 3934
+    },
+    {
       "path": "assets/venue-logos/the-circle-ratchaphruek.png",
       "sha256": "c912f33c179598d80993a27063507fea46769ca06f750774fb61e990509fcec0",
       "bytes": 1081594
@@ -610,6 +690,11 @@
       "path": "assets/venue-logos/the-crystal-sb-ratchaphruek.webp",
       "sha256": "4242edf7b179953dbe7a0c6098788fc3379cfa8ff5cb27d5c41190d8b3bd0909",
       "bytes": 8088
+    },
+    {
+      "path": "assets/venue-logos/the-promenade.png",
+      "sha256": "6369e2e564920e0d57301d5c07ea602503cf6ae52c8e70407e2afc0d1bf880c7",
+      "bytes": 5164
     },
     {
       "path": "assets/venue-logos/the-scene-town-in-town.png",
@@ -627,6 +712,11 @@
       "bytes": 22832
     },
     {
+      "path": "assets/venue-logos/union-mall.png",
+      "sha256": "120ac8d74a86a0123b4a39b29110fc9ee128dcf6d1f154db424f5264c91e6598",
+      "bytes": 4206
+    },
+    {
       "path": "data/districts.geojson",
       "sha256": "6655496f25bc08740888522fde4c922859b63a7530726356ed98ba32c62ad89a",
       "bytes": 558494
@@ -638,8 +728,8 @@
     },
     {
       "path": "data/venue-logos.json",
-      "sha256": "4d0b21c347d0e7c9c104b92daa6f11c786291c02446dafba1c52e9ba62ed74de",
-      "bytes": 54082
+      "sha256": "b69db30253a77eb29f9894bb1567b684f99b2ec3b33927fc1831ea222df6bd7c",
+      "bytes": 57654
     }
   ]
 }

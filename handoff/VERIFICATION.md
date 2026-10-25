@@ -36,4 +36,6 @@ GitHub Pages, branch `main`, folder `/` (enabled 25 Oct 2026).
   - Venue `?venue=SC-001244`: architect's view of สยามพารากอน, host building in the map role colour drawn over see-through massing, logo label, full panel. Its link “ดูแบรนด์หรูที่นี่ใน Luxury Brands” opens `luxurybrands/?place=49b5afdc-…` on Siam Paragon (breadcrumb ประเทศไทย › กรุงเทพมหานคร › สยาม › Siam Paragon).
   - Light theme `?province=CMI`: paper basemap, district fills, labels on their own districts; no console errors. Theme set back to Auto afterwards.
   - After a push, browsers may keep modules for up to 10 minutes (GitHub Pages `max-age=600`); entry points carry `?v=` (now `20261025-r2`) and inner modules follow on the next cache expiry.
+- **Owner decision D6 (commit `a0832e6`):** `verify:live` 207/207; live page `?venue=SC-001304` shows สามย่านมิตรทาวน์ counted with “นับเป็นสถานที่ · โครงการแม่ยังไม่อยู่ในชุดที่ผ่านนิยาม”, ปทุมวัน 22 and บางรัก 7 on the map labels.
+- **Logos:** the registry is complete — 113 of 113 files, each SHA-256 equal to `10_VENUE_LOGOS`; a contact sheet of all 113 rendered in Chromium with no broken image and a readable backplate for each.
 - **Not checked on live:** a real phone; narrow width was checked in the container harness with the same bytes.

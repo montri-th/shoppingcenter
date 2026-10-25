@@ -1,175 +1,12 @@
 {
  "meta": {
   "asOf": "2026-10-23",
-  "count": 95,
+  "count": 113,
   "expected": 113,
   "folder": "assets/venue-logos/",
   "registry": "CityMETER Shopping Centers & Retail Venues — Research Master, tab 10_VENUE_LOGOS",
-  "status": "partial: 95 of 113 files verified; 18 pending transfer (venues keep their name, no logo shown)",
-  "pending": [
-   {
-    "file": "park-silom.png",
-    "logoKey": "VL-d4cd92657354d209",
-    "reason": "transfer_pending",
-    "sheetSha256": "d4cd92657354d209a9f113598db0e1eb3725016dcc6da19ac600a5a8da47ac0d",
-    "venues": [
-     "SC-001052"
-    ]
-   },
-   {
-    "file": "central-chiangmai-airport.png",
-    "logoKey": "BVL-fa30b03f8494a745",
-    "reason": "transfer_pending",
-    "sheetSha256": "fa30b03f8494a74504243e21e7f6b49aa43c04b6feae91deb8e43faa895c00f7",
-    "venues": [
-     "SC-015770"
-    ]
-   },
-   {
-    "file": "central-khonkaen.png",
-    "logoKey": "BVL-ec32d46869918c89",
-    "reason": "transfer_pending",
-    "sheetSha256": "ec32d46869918c895019ca46b8d380ae0d74f63e1aad9b7a58bf5773d5f0d1f1",
-    "venues": [
-     "SC-002835"
-    ]
-   },
-   {
-    "file": "central-nakhon-pathom.svg",
-    "logoKey": "VL-abf7da9ebfec600a",
-    "reason": "transfer_pending",
-    "sheetSha256": "abf7da9ebfec600ada11a96c696445fd52250ca16b060b027f6607312755ab5a",
-    "venues": [
-     "SC-005210"
-    ]
-   },
-   {
-    "file": "central-ramindra.png",
-    "logoKey": "VL-8d31b8c822586880",
-    "reason": "transfer_pending",
-    "sheetSha256": "8d31b8c822586880c4d61872dab4bb4f7f53e833e82ecdc5b16c14a6d353953a",
-    "venues": [
-     "SC-001109"
-    ]
-   },
-   {
-    "file": "fortune-town.png",
-    "logoKey": "VL-e70eeac4cb1c2d24",
-    "reason": "transfer_pending",
-    "sheetSha256": "e70eeac4cb1c2d24b4116b30f32f3b93edc1c36c51299d9f8cbf828a11198c47",
-    "venues": [
-     "SC-000573"
-    ]
-   },
-   {
-    "file": "it-square-laksi.jpg",
-    "logoKey": "VL-87829648ac540f2b",
-    "reason": "transfer_pending",
-    "sheetSha256": "87829648ac540f2b2a325155e4fbf76d7fb724e9b35e6224b17bc2f4ccf66b58",
-    "venues": [
-     "SC-002006"
-    ]
-   },
-   {
-    "file": "mbk-center.svg",
-    "logoKey": "VL-e58054ac6d586e5d",
-    "reason": "transfer_pending",
-    "sheetSha256": "e58054ac6d586e5d8b7817feee71405d65b1332574e8250f1a031c731f325937",
-    "venues": [
-     "SC-001299"
-    ]
-   },
-   {
-    "file": "paradise-park.svg",
-    "logoKey": "VL-c1aa205e740f0d7e",
-    "reason": "transfer_pending",
-    "sheetSha256": "c1aa205e740f0d7e6d0ebd578809dda056da9f22855345e914af093d3671650a",
-    "venues": [
-     "SC-001340"
-    ]
-   },
-   {
-    "file": "sena-fest.jpg",
-    "logoKey": "VL-1565e75bdbd67dc4",
-    "reason": "transfer_pending",
-    "sheetSha256": "1565e75bdbd67dc49038451cee20ca3618b79cabc732f8bfd3445093b7f5a683",
-    "venues": [
-     "SC-000218"
-    ]
-   },
-   {
-    "file": "terminal21-korat.png",
-    "logoKey": "VL-acef56ffd907acfa",
-    "reason": "transfer_pending",
-    "sheetSha256": "acef56ffd907acfaaed37ba1d10162ed36abbc798a03df769e806fd73e4590f4",
-    "venues": [
-     "SC-C0221"
-    ]
-   },
-   {
-    "file": "the-bright-rama2.png",
-    "logoKey": "VL-f509602fdacc7221",
-    "reason": "transfer_pending",
-    "sheetSha256": "f509602fdacc7221ada7c9c19abfc3aa6fa65bc85149266ee48c9e62c3a6fdb2",
-    "venues": [
-     "SC-C0403"
-    ]
-   },
-   {
-    "file": "the-promenade.png",
-    "logoKey": "VL-6369e2e564920e0d",
-    "reason": "transfer_pending",
-    "sheetSha256": "6369e2e564920e0d57301d5c07ea602503cf6ae52c8e70407e2afc0d1bf880c7",
-    "venues": [
-     "SC-000327"
-    ]
-   },
-   {
-    "file": "porto-go-bang-pa-in.png",
-    "logoKey": "VL-d5a17dcbe045dd06",
-    "reason": "transfer_pending",
-    "sheetSha256": "d5a17dcbe045dd06a261cf57e2721893f0485987784d380a02b2774b00b51dce",
-    "venues": [
-     "VN-f9c5ad25f10363"
-    ]
-   },
-   {
-    "file": "habito.jpg",
-    "logoKey": "VL-79f49229288f0dbd",
-    "reason": "transfer_pending",
-    "sheetSha256": "79f49229288f0dbd46bec9a34e292d050afab730f788d14b107316fa6a3aa513",
-    "venues": [
-     "SC-001787"
-    ]
-   },
-   {
-    "file": "mega-plaza.jpg",
-    "logoKey": "VL-9808c758e1e8ff2a",
-    "reason": "transfer_pending",
-    "sheetSha256": "9808c758e1e8ff2a9f38a626575f00b1ca1db87e6bcb930995609e9a08ab0e57",
-    "venues": [
-     "SC-001430"
-    ]
-   },
-   {
-    "file": "silom-edge.png",
-    "logoKey": "VL-df59be36733d2383",
-    "reason": "transfer_pending",
-    "sheetSha256": "df59be36733d23835348152ed05289100dc69f1c7c80dd2ef8c249879219904c",
-    "venues": [
-     "SC-001077"
-    ]
-   },
-   {
-    "file": "union-mall.png",
-    "logoKey": "VL-120ac8d74a86a012",
-    "reason": "transfer_pending",
-    "sheetSha256": "120ac8d74a86a0123b4a39b29110fc9ee128dcf6d1f154db424f5264c91e6598",
-    "venues": [
-     "SC-000426"
-    ]
-   }
-  ],
+  "status": "complete",
+  "pending": [],
   "roles": {
    "venue_specific": "โลโก้ของสถานที่โดยตรง",
    "parent_complex": "โลโก้โครงการแม่",
@@ -728,6 +565,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-d4cd92657354d209",
+   "file": "assets/venue-logos/park-silom.png",
+   "mime": "image/png",
+   "bytes": 8202,
+   "sha256": "d4cd92657354d209a9f113598db0e1eb3725016dcc6da19ac600a5a8da47ac0d",
+   "width": 531,
+   "height": 64,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-88b809400ca1deec",
    "file": "assets/venue-logos/center-one.jpg",
    "mime": "image/jpeg",
@@ -767,6 +617,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "BVL-fa30b03f8494a745",
+   "file": "assets/venue-logos/central-chiangmai-airport.png",
+   "mime": "image/png",
+   "bytes": 11969,
+   "sha256": "fa30b03f8494a74504243e21e7f6b49aa43c04b6feae91deb8e43faa895c00f7",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "BVL-aa091822ffce94a3",
    "file": "assets/venue-logos/central-chiangrai.png",
    "mime": "image/png",
@@ -798,6 +661,19 @@
    "mime": "image/png",
    "bytes": 8329,
    "sha256": "bce9861b01941e1e5e5f780aad85c9f82ccb013ec7716a379d60aae2e73cbfa9",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "BVL-ec32d46869918c89",
+   "file": "assets/venue-logos/central-khonkaen.png",
+   "mime": "image/png",
+   "bytes": 10328,
+   "sha256": "ec32d46869918c895019ca46b8d380ae0d74f63e1aad9b7a58bf5773d5f0d1f1",
    "width": 800,
    "height": 251,
    "background": "#182327",
@@ -845,6 +721,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-abf7da9ebfec600a",
+   "file": "assets/venue-logos/central-nakhon-pathom.svg",
+   "mime": "image/svg+xml",
+   "bytes": 10545,
+   "sha256": "abf7da9ebfec600ada11a96c696445fd52250ca16b060b027f6607312755ab5a",
+   "width": 388,
+   "height": 66,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-2b255adc23d3247f",
    "file": "assets/venue-logos/central-nakhon-sawan.svg",
    "mime": "image/svg+xml",
@@ -876,6 +765,19 @@
    "mime": "image/png",
    "bytes": 9332,
    "sha256": "7e4917bb38535b17762639ece16922705ac90b1c581fa495fe240bcae90b7663",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-8d31b8c822586880",
+   "file": "assets/venue-logos/central-ramindra.png",
+   "mime": "image/png",
+   "bytes": 10754,
+   "sha256": "8d31b8c822586880c4d61872dab4bb4f7f53e833e82ecdc5b16c14a6d353953a",
    "width": 800,
    "height": 251,
    "background": "#182327",
@@ -923,6 +825,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-e70eeac4cb1c2d24",
+   "file": "assets/venue-logos/fortune-town.png",
+   "mime": "image/png",
+   "bytes": 3324,
+   "sha256": "e70eeac4cb1c2d24b4116b30f32f3b93edc1c36c51299d9f8cbf828a11198c47",
+   "width": 297,
+   "height": 51,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-bf90f7f1cb1bdc94",
    "file": "assets/venue-logos/gateway-bangsue.jpg",
    "mime": "image/jpeg",
@@ -962,6 +877,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-87829648ac540f2b",
+   "file": "assets/venue-logos/it-square-laksi.jpg",
+   "mime": "image/jpeg",
+   "bytes": 21583,
+   "sha256": "87829648ac540f2b2a325155e4fbf76d7fb724e9b35e6224b17bc2f4ccf66b58",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-6ed78593afda9ebd",
    "file": "assets/venue-logos/jj-mall.png",
    "mime": "image/png",
@@ -995,6 +923,19 @@
    "sha256": "95274cfe17bc2888524462bc177170b4040cb67ba6c293f8aa4513a8e01cdc9e",
    "width": 70,
    "height": 98,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-e58054ac6d586e5d",
+   "file": "assets/venue-logos/mbk-center.svg",
+   "mime": "image/svg+xml",
+   "bytes": 7183,
+   "sha256": "e58054ac6d586e5d8b7817feee71405d65b1332574e8250f1a031c731f325937",
+   "width": 300,
+   "height": 57,
    "background": "#E5E9E6",
    "sourcePage": null,
    "assetURL": null,
@@ -1040,6 +981,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-c1aa205e740f0d7e",
+   "file": "assets/venue-logos/paradise-park.svg",
+   "mime": "image/svg+xml",
+   "bytes": 53035,
+   "sha256": "c1aa205e740f0d7e6d0ebd578809dda056da9f22855345e914af093d3671650a",
+   "width": 244,
+   "height": 150,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-464c1895d1ebbcd7",
    "file": "assets/venue-logos/porto-chino.png",
    "mime": "image/png",
@@ -1079,6 +1033,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-1565e75bdbd67dc4",
+   "file": "assets/venue-logos/sena-fest.jpg",
+   "mime": "image/jpeg",
+   "bytes": 3227,
+   "sha256": "1565e75bdbd67dc49038451cee20ca3618b79cabc732f8bfd3445093b7f5a683",
+   "width": 220,
+   "height": 100,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-d9a51d4c03f95332",
    "file": "assets/venue-logos/summer-hill.png",
    "mime": "image/png",
@@ -1112,6 +1079,19 @@
    "sha256": "8e348311ce7f2c40025ff11c1f9fc8bdaaa36668261a337bebe58893edb5a2e0",
    "width": 384,
    "height": 105,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-acef56ffd907acfa",
+   "file": "assets/venue-logos/terminal21-korat.png",
+   "mime": "image/png",
+   "bytes": 9013,
+   "sha256": "acef56ffd907acfaaed37ba1d10162ed36abbc798a03df769e806fd73e4590f4",
+   "width": 500,
+   "height": 142,
    "background": "#E5E9E6",
    "sourcePage": null,
    "assetURL": null,
@@ -1157,6 +1137,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-f509602fdacc7221",
+   "file": "assets/venue-logos/the-bright-rama2.png",
+   "mime": "image/png",
+   "bytes": 3934,
+   "sha256": "f509602fdacc7221ada7c9c19abfc3aa6fa65bc85149266ee48c9e62c3a6fdb2",
+   "width": 240,
+   "height": 55,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-c912f33c179598d8",
    "file": "assets/venue-logos/the-circle-ratchaphruek.png",
    "mime": "image/png",
@@ -1196,6 +1189,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-6369e2e564920e0d",
+   "file": "assets/venue-logos/the-promenade.png",
+   "mime": "image/png",
+   "bytes": 5164,
+   "sha256": "6369e2e564920e0d57301d5c07ea602503cf6ae52c8e70407e2afc0d1bf880c7",
+   "width": 400,
+   "height": 155,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-7d4863b7859f9ea9",
    "file": "assets/venue-logos/the-scene-town-in-town.png",
    "mime": "image/png",
@@ -1229,6 +1235,19 @@
    "sha256": "a82673189beba9de88bca8a37ab06d4d666e6fc1265beed137b0c2e820c815c8",
    "width": 456,
    "height": 156,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-d5a17dcbe045dd06",
+   "file": "assets/venue-logos/porto-go-bang-pa-in.png",
+   "mime": "image/png",
+   "bytes": 24100,
+   "sha256": "d5a17dcbe045dd06a261cf57e2721893f0485987784d380a02b2774b00b51dce",
+   "width": 535,
+   "height": 196,
    "background": "#E5E9E6",
    "sourcePage": null,
    "assetURL": null,
@@ -1274,6 +1293,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-79f49229288f0dbd",
+   "file": "assets/venue-logos/habito.jpg",
+   "mime": "image/jpeg",
+   "bytes": 24667,
+   "sha256": "79f49229288f0dbd46bec9a34e292d050afab730f788d14b107316fa6a3aa513",
+   "width": 957,
+   "height": 957,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-dea31312c027b099",
    "file": "assets/venue-logos/jc-mall.jpg",
    "mime": "image/jpeg",
@@ -1305,6 +1337,19 @@
    "mime": "image/jpeg",
    "bytes": 27834,
    "sha256": "e5a1daa40afc724d11efff53ced7eb51a34367af66c03e14db8a9426d01b079c",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-9808c758e1e8ff2a",
+   "file": "assets/venue-logos/mega-plaza.jpg",
+   "mime": "image/jpeg",
+   "bytes": 35780,
+   "sha256": "9808c758e1e8ff2a9f38a626575f00b1ca1db87e6bcb930995609e9a08ab0e57",
    "width": 720,
    "height": 720,
    "background": "#FFFFFF",
@@ -1352,6 +1397,19 @@
    "checkedOn": "2026-10-22"
   },
   {
+   "key": "VL-df59be36733d2383",
+   "file": "assets/venue-logos/silom-edge.png",
+   "mime": "image/png",
+   "bytes": 14334,
+   "sha256": "df59be36733d23835348152ed05289100dc69f1c7c80dd2ef8c249879219904c",
+   "width": 1086,
+   "height": 435,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
    "key": "VL-48cc1ab9b18e83f3",
    "file": "assets/venue-logos/old-siam.webp",
    "mime": "image/webp",
@@ -1386,6 +1444,19 @@
    "width": 720,
    "height": 720,
    "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-120ac8d74a86a012",
+   "file": "assets/venue-logos/union-mall.png",
+   "mime": "image/png",
+   "bytes": 4206,
+   "sha256": "120ac8d74a86a0123b4a39b29110fc9ee128dcf6d1f154db424f5264c91e6598",
+   "width": 197,
+   "height": 56,
+   "background": "#E5E9E6",
    "sourcePage": null,
    "assetURL": null,
    "checkedOn": "2026-10-22"
@@ -1649,6 +1720,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-001052",
+   "key": "VL-d4cd92657354d209",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-001554",
    "key": "VL-88b809400ca1deec",
    "role": "venue_specific"
@@ -1661,6 +1737,11 @@
   {
    "id": "SC-003076",
    "key": "VL-8f1f55871709826c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-015770",
+   "key": "BVL-fa30b03f8494a745",
    "role": "venue_specific"
   },
   {
@@ -1679,6 +1760,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-002835",
+   "key": "BVL-ec32d46869918c89",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-000067",
    "key": "VL-b30c3d3f340a25ed",
    "role": "venue_specific"
@@ -1691,6 +1777,11 @@
   {
    "id": "SC-012645",
    "key": "VL-59179ce7e39f1837",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-005210",
+   "key": "VL-abf7da9ebfec600a",
    "role": "venue_specific"
   },
   {
@@ -1709,6 +1800,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-001109",
+   "key": "VL-8d31b8c822586880",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-010265",
    "key": "BVL-65108860287355cd",
    "role": "venue_specific"
@@ -1721,6 +1817,11 @@
   {
    "id": "SC-013641",
    "key": "BVL-27d8f3562a7d8e4c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000573",
+   "key": "VL-e70eeac4cb1c2d24",
    "role": "venue_specific"
   },
   {
@@ -1739,6 +1840,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-002006",
+   "key": "VL-87829648ac540f2b",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-000369",
    "key": "VL-6ed78593afda9ebd",
    "role": "venue_specific"
@@ -1751,6 +1857,11 @@
   {
    "id": "SC-000269",
    "key": "VL-95274cfe17bc2888",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001299",
+   "key": "VL-e58054ac6d586e5d",
    "role": "venue_specific"
   },
   {
@@ -1769,6 +1880,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-001340",
+   "key": "VL-c1aa205e740f0d7e",
+   "role": "venue_specific"
+  },
+  {
    "id": "VN-7a1719654a5a17",
    "key": "VL-464c1895d1ebbcd7",
    "role": "venue_specific"
@@ -1781,6 +1897,11 @@
   {
    "id": "SC-001469",
    "key": "VL-97c53ca279a2aea1",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000218",
+   "key": "VL-1565e75bdbd67dc4",
    "role": "venue_specific"
   },
   {
@@ -1799,6 +1920,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-C0221",
+   "key": "VL-acef56ffd907acfa",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-C0355",
    "key": "VL-2c74555b81bc3894",
    "role": "venue_specific"
@@ -1811,6 +1937,11 @@
   {
    "id": "SC-C0264",
    "key": "VL-617f4ed621e61594",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0403",
+   "key": "VL-f509602fdacc7221",
    "role": "venue_specific"
   },
   {
@@ -1829,6 +1960,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-000327",
+   "key": "VL-6369e2e564920e0d",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-C0999",
    "key": "VL-7d4863b7859f9ea9",
    "role": "venue_specific"
@@ -1841,6 +1977,11 @@
   {
    "id": "SC-001667",
    "key": "VL-a82673189beba9de",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-f9c5ad25f10363",
+   "key": "VL-d5a17dcbe045dd06",
    "role": "venue_specific"
   },
   {
@@ -1859,6 +2000,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-001787",
+   "key": "VL-79f49229288f0dbd",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-001194",
    "key": "VL-dea31312c027b099",
    "role": "venue_specific"
@@ -1871,6 +2017,11 @@
   {
    "id": "SC-001701",
    "key": "VL-e5a1daa40afc724d",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001430",
+   "key": "VL-9808c758e1e8ff2a",
    "role": "venue_specific"
   },
   {
@@ -1889,6 +2040,11 @@
    "role": "venue_specific"
   },
   {
+   "id": "SC-001077",
+   "key": "VL-df59be36733d2383",
+   "role": "venue_specific"
+  },
+  {
    "id": "SC-001421",
    "key": "VL-48cc1ab9b18e83f3",
    "role": "venue_specific"
@@ -1901,6 +2057,11 @@
   {
    "id": "SC-001384",
    "key": "VL-221ca8261545d312",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000426",
+   "key": "VL-120ac8d74a86a012",
    "role": "venue_specific"
   },
   {
