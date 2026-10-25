@@ -162,3 +162,7 @@ npm run verify:live
 ใน container ของงานนี้ tile/glyph ของ OpenFreeMap ถูก proxy ปฏิเสธ — ตรวจ layout, แผง, กราฟ และชั้นข้อมูลด้วย Playwright + MapLibre จาก npm โดยตอบ tile ว่าง (ทั้งกับไฟล์ local และกับ live URL) แล้วยืนยันรูปลักษณ์จริง (basemap, มวลอาคาร, อาคารที่หมุดตั้งอยู่, 3D) บน live ผ่าน Chrome ของเจ้าของ ห้ามรายงานว่าเผยแพร่แล้วจากผลในเครื่อง
 
 Repository `montri-th/shoppingcenter` · branch `main` · Pages แบบ branch deploy · ใส่ attribution ของ OpenFreeMap/OpenMapTiles/OpenStreetMap และ OpenGISData-Thailand (CC BY 4.0) · ไม่รวม raw internal sources หรือ governed LDS package ใน repository
+
+## D19 — Tenant roster, release 0.1.1
+
+Only the venue-panel tenant section changes. Optional fixed-32 shards load on selection, session state guards stale requests and retains increments of ten through panel repaints. More never runs venue selection or camera fitting. Names survive missing/failed logos; verified original logo bytes load lazily. Editorial role priority uses sourced centre positioning where available; equal roles sort deterministically. Current roster counts belong only to the selected panel; core/map/card/area aggregate files remain unchanged. Public export preserves source roles, raw status, public URLs/dates, source-qualified IDs and unresolved multiple-card identity. See DATA_METHOD §9.1 and data/tenants/build-report.json. Verify pagination, stale selection, optional failures, keyboard focus, desktop/390px light/dark and live file parity before declaring delivery.

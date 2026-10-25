@@ -200,7 +200,9 @@ function publicTextFiles(dir = new URL('../', import.meta.url), out = []) {
 test('nothing in the public repository names an internal Drive or Sheets file', () => {
   const hits = [];
   for (const url of publicTextFiles()) {
-    const text = readFileSync(url, 'utf8');
+    // Original logo SVGs may embed PNG/JPEG/GIF/WebP bytes. Random base64 substrings
+    // are not document references; still scan every SVG attribute and actual text.
+    const text = readFileSync(url, 'utf8').replace(/data:(?:image|img)\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+/=\s]+/gi, 'embedded-raster');
     for (const m of text.matchAll(DRIVE_ID)) if (looksRandom(m[0])) hits.push(`${url.pathname.split('/shoppingcenter/').pop()}: ${m[0].slice(0, 6)}…`);
   }
   assert.deepEqual(hits, []);

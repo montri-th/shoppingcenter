@@ -22,6 +22,7 @@ import {formatDensity} from './scales.js';
 import {cueSVG} from './cues.js';
 import {nameBasis, typeEvidence, operationReading, statusTone, coordinateReading, hoursScope, legacyBasis, storeDataset, hierarchyReading} from './evidence.js';
 import {buildingHeightLabel} from './buildings.js';
+import {rankTenants, tenantRole, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE} from './tenants.js';
 
 const NUMBER = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0});
 const PCT = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 1});
@@ -254,7 +255,7 @@ function phoneLink(phone) {
   return first.replace(/\D/g, '').length >= 6 ? `<a class="chip-link" href="tel:${esc(first)}">${icon('contact')}${esc(text)}</a>` : (text ? `<span class="chip-link is-text">${icon('contact')}${esc(text)}</span>` : '');
 }
 
-function evidenceRows(row, d, {buildingNote = '', addressNote = ''} = {}) {
+function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null} = {}) {
   const ev = d?.ev || {};
   const rowsHtml = [];
   const item = (label, text, url, date, extra = '') => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${esc(text || 'ตามแหล่งที่บันทึก')}${date ? ` · ${esc(thaiDate(date))}` : ''}${extra}</span>${url ? link(url, 'แหล่ง') : '<span class="hint">ไม่มีลิงก์สาธารณะ</span>'}</li>`);
@@ -275,8 +276,42 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = ''} = {}) {
   else item('พิกัด', 'ยังไม่มีพิกัด', '');
   if (buildingNote) note('อาคาร', buildingNote);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
+  if (tenants?.roster) {
+    note('รายชื่อร้าน', `รายการที่เชื่อมสถานที่แล้วจากชุดข้อมูลในทะเบียน · ตรวจทะเบียน ${esc(thaiDate(tenants.roster.meta?.asOf || ''))} · รายชื่ออาจยังไม่ครบทั้งศูนย์และไม่ได้ยืนยันว่าทุกร้านเปิดอยู่วันนี้ ลิงก์ข้างชื่อร้านเปิดหลักฐานต้นทางตามวันที่ของแต่ละรายการ`);
+    note('ลำดับร้าน', 'ประเมินบทบาทต่อศูนย์: ร้านหลักที่แหล่งระบุ → ร้านที่ตรงกับเอกลักษณ์หรือรูปแบบศูนย์ → ห้างและความบันเทิง ซูเปอร์มาร์เก็ต ร้านปลายทาง อาหาร และบริการ ตามบริบทของศูนย์ บทบาทเดียวกันเรียงตามชื่อ ไม่ใช่อันดับจากยอดขายหรือจำนวนผู้เข้าชม โลโก้ไม่เพิ่มลำดับ');
+    const profile = tenants.roster.profile;
+    if (profile?.sourceUrl) item('เอกลักษณ์ศูนย์', profile.label, profile.sourceUrl, profile.checkedOn);
+    if (d.stores?.confirmed !== tenants.roster.items?.length) note('ขอบเขตรายชื่อ', `ตัวเลขและรายชื่อในแผงนี้ใช้รายการร้านที่เชื่อมไว้ล่าสุด ส่วนตัวเลขรวมของแผนที่ยังใช้ชุดความสัมพันธ์เดิม${d.stores?.confirmed ? ` (${num(d.stores.confirmed)} รายการสำหรับสถานที่นี้)` : ''} บัตรต้นทางที่ยังแยกตัวตนสาขาไม่ได้เก็บรวมภายใต้รายการเดียว`);
+  }
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
   return rowsHtml.join('');
+}
+
+/** Ten names at a time. The complete roster and the historical aggregate are separate populations. */
+export function renderTenantList(row, selection) {
+  if (selection?.error) return `<p class="hint">โหลดรายชื่อร้านไม่สำเร็จ <button type="button" class="link-button" data-action="retry-tenants" data-id="${esc(row.id)}">ลองอีกครั้ง</button></p>`;
+  if (!selection?.roster) return '<p class="hint" role="status">กำลังโหลดรายชื่อร้าน…</p>';
+  const items = rankTenants(selection.roster.items || [], row, selection.roster.profile);
+  if (!items.length) return '<p class="hint">ยังไม่มีรายชื่อร้านในข้อมูลที่เชื่อมไว้</p>';
+  const limit = Math.max(TENANT_PAGE_SIZE, selection.limit || TENANT_PAGE_SIZE);
+  const shown = items.slice(0, limit);
+  const logoMarkup = item => {
+    const logo = item.logo;
+    const valid = logo && /^assets\/tenant-logos\/[A-Za-z0-9._-]+\.(svg|png|jpe?g|webp|gif)$/i.test(logo.file || '') && /^[a-f0-9]{64}$/.test(logo.sha256 || '');
+    const backing = /^#[0-9a-f]{6}$/i.test(logo?.background || '') ? logo.background : '#E5E9E6';
+    return `<span class="tenant-logo" aria-hidden="true"${valid ? ` style="--tenant-logo-bg:${esc(backing)}"` : ''}>${icon('store')}${valid ? `<img src="${esc(logo.file)}" alt="" loading="lazy" decoding="async"${logo.width > 0 && logo.height > 0 ? ` width="${Math.round(logo.width)}" height="${Math.round(logo.height)}"` : ''}>` : ''}</span>`;
+  };
+  return `<p class="hint tenant-order">เรียงตามบทบาทต่อศูนย์</p>
+    <ol class="tenant-list" aria-label="ร้านข้างใน ${esc(row.name)}">${shown.map((item, index) => {
+      const name = item.displayName || item.brand || item.name;
+      const position = item.unitFloor && !/ชั้น|ห้อง|floor|unit/i.test(item.unitFloor) ? `ตำแหน่ง ${item.unitFloor}` : item.unitFloor;
+      const sub = [TENANT_ROLE_LABELS[tenantRole(item)], item.displayQualifier, position || item.branch].filter(Boolean).filter(value => value !== name);
+      const status = /closure_conflict/.test(item.status || '') ? 'สถานะขัดกัน' : /status_recheck_required/.test(item.status || '') ? 'สถานะรอตรวจ' : ['closed_source_evidence', 'permanently_closed'].includes(item.status) ? 'ปิดตามหลักฐาน' : '';
+      const source = safeURL(item.sourceUrl);
+      const checked = item.checkedOn ? ` · ตรวจ ${thaiDate(item.checkedOn)}` : '';
+      return `<li class="tenant-row" data-tenant-index="${index}" data-tenant-id="${esc(item.id)}" tabindex="-1">${logoMarkup(item)}<span class="tenant-name"><strong>${esc(name)}</strong><small>${sub.map(esc).join(' · ')}${status ? ` · ${esc(status)}` : ''}</small></span>${source ? `<a class="source-link tenant-source" href="${esc(source)}" target="_blank" rel="noopener" title="${esc(name + checked)}" aria-label="${esc('หลักฐาน ' + name + checked)}">แหล่ง</a>` : ''}</li>`;
+    }).join('')}</ol>
+    <div class="tenant-pagination"><span class="hint">แสดง ${num(shown.length)} จาก ${num(items.length)} ร้าน</span>${shown.length < items.length ? `<button type="button" class="btn" data-action="more-tenants" data-id="${esc(row.id)}" aria-label="ดูเพิ่มอีก ${num(Math.min(TENANT_PAGE_SIZE, items.length - shown.length))} ร้านใน ${esc(row.name)}">ดูเพิ่ม ${num(Math.min(TENANT_PAGE_SIZE, items.length - shown.length))} ร้าน</button>` : ''}</div>`;
 }
 
 /**
@@ -302,7 +337,7 @@ export function buildingReading(row, buildings = [], pinState) {
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError = false} = {}) {
+export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError = false, tenants = null} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -310,20 +345,22 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
   const area = p.district ? `<button type="button" class="link-button" data-action="select-district" data-id="${esc(p.district.code)}">${esc(word)}${esc(p.district.th)}</button>` : '';
   const hierarchy = hierarchyReading(r);
   const stores = d?.stores || {confirmed: r.storeCount || 0, datasets: []};
+  const listedStores = tenants?.roster ? tenants.roster.items?.length || 0 : stores.confirmed;
   const size = d?.size || null;
   // Key figures: reported values only (the D3 estimate stays a fact line that reads “ราว”).
   // Opening: the exact date when the source gives it, else the year (Buddhist era).
   const opened = d?.openedDate ? thaiDate(d.openedDate) : d?.yearOpened ? String(d.yearOpened + 543) : '';
   const shown = [];
   const tiles = [];
-  if (stores.confirmed) tiles.push(metricTile(stores.confirmed, 'ร้านข้างใน', 'store'));
+  if (listedStores) tiles.push(metricTile(listedStores, 'ร้านข้างใน', 'store'));
   if (size?.glaReported) { tiles.push(metricTile(size.glaReported, 'ตร.ม. พื้นที่เช่า', 'gla')); shown.push('gla'); }
   if (size?.floorsReported && tiles.length < 3) { tiles.push(metricTile(size.floorsReported, 'ชั้น', 'building')); shown.push('floors'); }
   if (opened && tiles.length < 3) tiles.push(metricTile(opened, 'เปิด', 'opened'));
   const links = [d ? link(d.website, 'เว็บไซต์', 'chip-link') : '', d ? link(d.directory, 'รายชื่อร้าน', 'chip-link') : '', d?.phone ? phoneLink(d.phone) : ''].filter(Boolean);
   const luxury = d?.luxuryPlace ? link(`${LUXURY_SITE}?place=${encodeURIComponent(d.luxuryPlace)}`, 'ดูแบรนด์หรูที่นี่ใน Luxury Brands', 'source-link strong-link') : '';
-  const storeSources = stores.confirmed && stores.datasets.length ? stores.datasets.map(x => esc(storeDataset(x))).join(' · ') : '';
-  const storeBlock = storeSources || luxury ? `<section class="panel-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${stores.confirmed ? `<span class="hint">${num(stores.confirmed)} ร้าน</span>` : ''}</div>${storeSources ? `<p class="subtle">${storeSources}</p>` : ''}${luxury ? `<p class="links">${luxury}</p>` : ''}</section>` : '';
+  const datasetIds = tenants?.roster ? [...new Set((tenants.roster.items || []).map(item => item.dataset))].sort() : stores.datasets;
+  const storeSources = listedStores && datasetIds.length ? datasetIds.map(x => esc(storeDataset(x))).join(' · ') : '';
+  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury ? `<p class="links">${luxury}</p>` : ''}</section>`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
   const building = buildingReading(r, buildings, pinState);
@@ -352,7 +389,7 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
     </section>
     ${storeBlock}
     ${children}
-    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote}) : ''}</ul>
+    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
     ${dataLine(asOf)}`;
 }

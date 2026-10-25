@@ -82,3 +82,13 @@ npm test         # Node ≥ 20
 โลโก้สถานที่มาจากทะเบียน `10_VENUE_LOGOS` ของ Research Master: ครบ 113 ไฟล์ที่ตรวจ SHA-256 ตรงกับทะเบียนแล้ว ผูกกับ 108 สถานที่ที่นับได้ ([data/venue-logos.json](data/venue-logos.json)) สถานที่ที่ไม่มีโลโก้ในทะเบียนแสดงชื่อแทน ใช้ไฟล์ต้นฉบับไม่แก้สีหรือสัดส่วน ค้นด้วย `venue_id` เท่านั้น การรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า สิทธิ์ยังเป็นของเจ้าของ
 
 ทุกแถวในทะเบียนยังมี `release_status` แบบ hold (ตัวตน รูปทรง สิทธิ์ และฟิลด์ที่เหลือ) หน้านี้จึงเป็น research demo ที่เจ้าของให้เผยแพร่ ยังต้องมีกระบวนการอัปเดต สิทธิ์ข้อมูล และ field validation ก่อนยกระดับเป็น production dataset
+
+## รายชื่อร้านในแผงสถานที่ — รุ่น 0.1.1 (`20261025-r9a`)
+
+ปรับเฉพาะ “ร้านข้างใน”: แสดงชื่อร้านและโลโก้เมื่อมี เริ่ม 10 รายการ กดดูเพิ่มครั้งละไม่เกิน 10 จนครบ การโหลดรายชื่อเป็นส่วนเสริมหลังเลือกสถานที่ ไม่ขวางแผนที่ และการดูเพิ่มไม่ขยับกล้อง
+
+เทียบ registry และ stable outlet IDs ล่าสุด 25 ต.ค. 2569: แสดง 2,230 รายการใน 461 สถานที่ จาก 2,232 source observations; 1,609 รายการมีโลโก้จากไฟล์เดิมที่ตรวจ SHA-256 แล้ว 178 ไฟล์ รายชื่อประกอบด้วย primary links เดิม 1,579 รายการที่อยู่ในชุดเผยแพร่ บวก official chain named-host 644 รายการ และ Grocery parent/tenant locatives 7 รายการ รวม Big C Foodplace ที่ PARC Bangna ไม่รวม candidate, ร้านใกล้เคียง หรือ venue ที่ยังไม่ผ่านนิยาม รายชื่อยังไม่ใช่ tenant census ทุกศูนย์หรือคำยืนยันการเปิดวันนี้
+
+ลำดับเป็นการประเมินบทบาทต่อศูนย์จากร้านหลัก รูปแบบศูนย์และ positioning ทางการที่มีหลักฐาน (11 ศูนย์) ไม่ใช่อันดับยอดเข้าชมหรือยอดขาย บทบาทเท่ากันเรียงชื่ออย่างคงที่ วิธีและขอบเขตอยู่ในหลักฐานรายช่องและ [DATA_METHOD.md](DATA_METHOD.md) §9 จำนวนในแผงใช้ roster ล่าสุด; ตัวเลขรวมของแผนที่/การ์ด/ย่าน/กราฟยังใช้ snapshot เดิมเพื่อคงพฤติกรรมเดิมตามขอบเขตงาน
+
+ไฟล์ที่เกี่ยวข้อง: `js/tenants.js`, `data/tenants/`, `data/tenant-profiles.json`, `assets/tenant-logos-manifest.json`, `scripts/build-tenant-data.py` และ tests ของ tenant build/interaction ผลการสร้างอยู่ใน `data/tenants/build-report.json` สร้างซ้ำจาก reviewed interchange ด้วย `python3 scripts/build-tenant-data.py --observations <reviewed-tenant-observations.json> --logos assets/tenant-logos-manifest.json` โดยเก็บไฟล์วิจัยต้นทางไว้ภายใน

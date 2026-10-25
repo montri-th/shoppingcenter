@@ -1,0 +1,1477 @@
+{
+  "asOf": "2026-10-25",
+  "inputObservations": 2241,
+  "eligibleSourceObservations": 2241,
+  "publishedVenueHosts": 461,
+  "publishedObservations": 2230,
+  "publishedItems": 2230,
+  "publishedSourceObservations": 2232,
+  "datasets": {
+    "research.TH.bank": 218,
+    "research.TH.camera": 184,
+    "research.TH.gold": 322,
+    "research.TH.grocery": 60,
+    "research.TH.luxury": 295,
+    "research.TH.optical": 409,
+    "research.TH.pharmacy": 97,
+    "research.TH.restaurants": 645
+  },
+  "statuses": {
+    "association_listed_not_field_verified": 19,
+    "closure_conflict_review": 4,
+    "listed_on_official_booking_directory_not_field_verified": 1,
+    "listed_on_official_locator_not_field_verified": 174,
+    "listed_on_official_website_not_field_verified": 1,
+    "not_field_verified": 97,
+    "not_revalidated": 60,
+    "official_locator_and_bot_registry_listed_not_field_verified": 39,
+    "source_filtered_operational_not_revalidated": 1,
+    "source_listed": 291,
+    "source_listed_current_operation_not_independently_verified": 644,
+    "source_listed_not_field_verified": 896,
+    "status_recheck_required_after_temporary_notice": 3
+  },
+  "sourceRoles": {
+    "official_chain_exact_named_host_listing": 644,
+    "official_grocery_explicit_parent_host_listing": 7,
+    "registry_accepted_primary": 1579
+  },
+  "withLogo": 1609,
+  "retailerIdentity": {
+    "manufacturerLogosSuppressed": 8,
+    "monoBrandRetailerNames": 4,
+    "publicSourceCorrections": 2,
+    "scope": "retailer identity display only; source IDs and source-observation counts retained"
+  },
+  "omitted": {
+    "host_outside_public_qualified_population": 11
+  },
+  "summaryDifferences": [
+    {
+      "venueId": "SC-000067",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-000229",
+      "summaryObservations": 42,
+      "rosterObservations": 46
+    },
+    {
+      "venueId": "SC-000288",
+      "summaryObservations": 23,
+      "rosterObservations": 25
+    },
+    {
+      "venueId": "SC-000327",
+      "summaryObservations": 2,
+      "rosterObservations": 8
+    },
+    {
+      "venueId": "SC-000337",
+      "summaryObservations": 28,
+      "rosterObservations": 34
+    },
+    {
+      "venueId": "SC-000369",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-000401",
+      "summaryObservations": 16,
+      "rosterObservations": 24
+    },
+    {
+      "venueId": "SC-000426",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-000445",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-000534",
+      "summaryObservations": 3,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-000573",
+      "summaryObservations": 19,
+      "rosterObservations": 20
+    },
+    {
+      "venueId": "SC-000631",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-000660",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-000710",
+      "summaryObservations": 8,
+      "rosterObservations": 16
+    },
+    {
+      "venueId": "SC-000717",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-000761",
+      "summaryObservations": 20,
+      "rosterObservations": 29
+    },
+    {
+      "venueId": "SC-000799",
+      "summaryObservations": 19,
+      "rosterObservations": 27
+    },
+    {
+      "venueId": "SC-000802",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-000808",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-000887",
+      "summaryObservations": 17,
+      "rosterObservations": 26
+    },
+    {
+      "venueId": "SC-000934",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-000976",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-000977",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-000992",
+      "summaryObservations": 14,
+      "rosterObservations": 22
+    },
+    {
+      "venueId": "SC-001065",
+      "summaryObservations": 2,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-001066",
+      "summaryObservations": 5,
+      "rosterObservations": 8
+    },
+    {
+      "venueId": "SC-001069",
+      "summaryObservations": 9,
+      "rosterObservations": 12
+    },
+    {
+      "venueId": "SC-001086",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001092",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-001109",
+      "summaryObservations": 7,
+      "rosterObservations": 12
+    },
+    {
+      "venueId": "SC-001123",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-001164",
+      "summaryObservations": 15,
+      "rosterObservations": 24
+    },
+    {
+      "venueId": "SC-001179",
+      "summaryObservations": 2,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001223",
+      "summaryObservations": 2,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-001237",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-001242",
+      "summaryObservations": 2,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-001244",
+      "summaryObservations": 73,
+      "rosterObservations": 82
+    },
+    {
+      "venueId": "SC-001245",
+      "summaryObservations": 37,
+      "rosterObservations": 41
+    },
+    {
+      "venueId": "SC-001260",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-001262",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-001282",
+      "summaryObservations": 23,
+      "rosterObservations": 24
+    },
+    {
+      "venueId": "SC-001283",
+      "summaryObservations": 29,
+      "rosterObservations": 31
+    },
+    {
+      "venueId": "SC-001299",
+      "summaryObservations": 8,
+      "rosterObservations": 11
+    },
+    {
+      "venueId": "SC-001304",
+      "summaryObservations": 2,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-001313",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-001340",
+      "summaryObservations": 10,
+      "rosterObservations": 15
+    },
+    {
+      "venueId": "SC-001360",
+      "summaryObservations": 16,
+      "rosterObservations": 18
+    },
+    {
+      "venueId": "SC-001370",
+      "summaryObservations": 1,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001421",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001431",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-001440",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-001469",
+      "summaryObservations": 18,
+      "rosterObservations": 24
+    },
+    {
+      "venueId": "SC-001528",
+      "summaryObservations": 1,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001536",
+      "summaryObservations": 15,
+      "rosterObservations": 22
+    },
+    {
+      "venueId": "SC-001554",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-001569",
+      "summaryObservations": 2,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001664",
+      "summaryObservations": 13,
+      "rosterObservations": 15
+    },
+    {
+      "venueId": "SC-001701",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-001702",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-001765",
+      "summaryObservations": 17,
+      "rosterObservations": 22
+    },
+    {
+      "venueId": "SC-001783",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-001904",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-002060",
+      "summaryObservations": 14,
+      "rosterObservations": 23
+    },
+    {
+      "venueId": "SC-002835",
+      "summaryObservations": 13,
+      "rosterObservations": 19
+    },
+    {
+      "venueId": "SC-003076",
+      "summaryObservations": 7,
+      "rosterObservations": 10
+    },
+    {
+      "venueId": "SC-003680",
+      "summaryObservations": 9,
+      "rosterObservations": 14
+    },
+    {
+      "venueId": "SC-003895",
+      "summaryObservations": 11,
+      "rosterObservations": 20
+    },
+    {
+      "venueId": "SC-005123",
+      "summaryObservations": 9,
+      "rosterObservations": 14
+    },
+    {
+      "venueId": "SC-005210",
+      "summaryObservations": 9,
+      "rosterObservations": 13
+    },
+    {
+      "venueId": "SC-005483",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-005612",
+      "summaryObservations": 8,
+      "rosterObservations": 17
+    },
+    {
+      "venueId": "SC-005645",
+      "summaryObservations": 7,
+      "rosterObservations": 11
+    },
+    {
+      "venueId": "SC-006188",
+      "summaryObservations": 11,
+      "rosterObservations": 15
+    },
+    {
+      "venueId": "SC-006255",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-006426",
+      "summaryObservations": 20,
+      "rosterObservations": 26
+    },
+    {
+      "venueId": "SC-006469",
+      "summaryObservations": 16,
+      "rosterObservations": 24
+    },
+    {
+      "venueId": "SC-006489",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-006510",
+      "summaryObservations": 10,
+      "rosterObservations": 13
+    },
+    {
+      "venueId": "SC-006549",
+      "summaryObservations": 5,
+      "rosterObservations": 10
+    },
+    {
+      "venueId": "SC-006551",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-006590",
+      "summaryObservations": 17,
+      "rosterObservations": 25
+    },
+    {
+      "venueId": "SC-007223",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-007290",
+      "summaryObservations": 14,
+      "rosterObservations": 18
+    },
+    {
+      "venueId": "SC-007325",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-007333",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-008030",
+      "summaryObservations": 11,
+      "rosterObservations": 12
+    },
+    {
+      "venueId": "SC-008039",
+      "summaryObservations": 11,
+      "rosterObservations": 16
+    },
+    {
+      "venueId": "SC-008636",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-008771",
+      "summaryObservations": 7,
+      "rosterObservations": 14
+    },
+    {
+      "venueId": "SC-009298",
+      "summaryObservations": 10,
+      "rosterObservations": 16
+    },
+    {
+      "venueId": "SC-009446",
+      "summaryObservations": 5,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-010265",
+      "summaryObservations": 9,
+      "rosterObservations": 15
+    },
+    {
+      "venueId": "SC-011214",
+      "summaryObservations": 7,
+      "rosterObservations": 10
+    },
+    {
+      "venueId": "SC-011757",
+      "summaryObservations": 12,
+      "rosterObservations": 13
+    },
+    {
+      "venueId": "SC-012142",
+      "summaryObservations": 7,
+      "rosterObservations": 11
+    },
+    {
+      "venueId": "SC-012178",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-012204",
+      "summaryObservations": 22,
+      "rosterObservations": 30
+    },
+    {
+      "venueId": "SC-012208",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-012309",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-012645",
+      "summaryObservations": 11,
+      "rosterObservations": 14
+    },
+    {
+      "venueId": "SC-013641",
+      "summaryObservations": 6,
+      "rosterObservations": 11
+    },
+    {
+      "venueId": "SC-015253",
+      "summaryObservations": 13,
+      "rosterObservations": 17
+    },
+    {
+      "venueId": "SC-015609",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-015770",
+      "summaryObservations": 7,
+      "rosterObservations": 9
+    },
+    {
+      "venueId": "SC-015800",
+      "summaryObservations": 22,
+      "rosterObservations": 29
+    },
+    {
+      "venueId": "SC-016126",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-016195",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0015",
+      "summaryObservations": 14,
+      "rosterObservations": 32
+    },
+    {
+      "venueId": "SC-C0025",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0039",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-C0055",
+      "summaryObservations": 12,
+      "rosterObservations": 18
+    },
+    {
+      "venueId": "SC-C0057",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0063",
+      "summaryObservations": 7,
+      "rosterObservations": 8
+    },
+    {
+      "venueId": "SC-C0129",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0221",
+      "summaryObservations": 6,
+      "rosterObservations": 9
+    },
+    {
+      "venueId": "SC-C0242",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0262",
+      "summaryObservations": 9,
+      "rosterObservations": 12
+    },
+    {
+      "venueId": "SC-C0264",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0316",
+      "summaryObservations": 5,
+      "rosterObservations": 8
+    },
+    {
+      "venueId": "SC-C0355",
+      "summaryObservations": 8,
+      "rosterObservations": 11
+    },
+    {
+      "venueId": "SC-C0390",
+      "summaryObservations": 7,
+      "rosterObservations": 10
+    },
+    {
+      "venueId": "SC-C0398",
+      "summaryObservations": 5,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-C0403",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0450",
+      "summaryObservations": 10,
+      "rosterObservations": 15
+    },
+    {
+      "venueId": "SC-C0514",
+      "summaryObservations": 2,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-C0543",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0590",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0596",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-C0645",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0670",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0857",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0991",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0999",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-C1005",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C1489",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C2261",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C2584",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C3031",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04121",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04177",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04178",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04181",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04182",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04184",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04187",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04188",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04189",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04190",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04191",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04192",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04193",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04194",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04195",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04199",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04200",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04203",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04207",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04208",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04215",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04221",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04230",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04238",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04244",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04245",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04248",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04249",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04251",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04253",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04257",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04262",
+      "summaryObservations": 2,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04263",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04265",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04267",
+      "summaryObservations": 3,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04269",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04271",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04274",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04276",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04278",
+      "summaryObservations": 2,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04279",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04280",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04282",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04283",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04286",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04287",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04288",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04290",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04292",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04293",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04294",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04295",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04299",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04300",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04303",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04304",
+      "summaryObservations": 5,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04306",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04311",
+      "summaryObservations": 2,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04315",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04316",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04317",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04318",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04319",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04322",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04323",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04324",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04326",
+      "summaryObservations": 2,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04327",
+      "summaryObservations": 1,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04328",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04331",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04332",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04333",
+      "summaryObservations": 3,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04335",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04336",
+      "summaryObservations": 3,
+      "rosterObservations": 7
+    },
+    {
+      "venueId": "SC-SM-04337",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04338",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04339",
+      "summaryObservations": 2,
+      "rosterObservations": 7
+    },
+    {
+      "venueId": "SC-SM-04340",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04341",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04342",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04344",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04345",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04346",
+      "summaryObservations": 2,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04347",
+      "summaryObservations": 1,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04348",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04350",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04351",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04352",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-04354",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04355",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04356",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04357",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04358",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04359",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04360",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04361",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04362",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-SM-04363",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04364",
+      "summaryObservations": 7,
+      "rosterObservations": 8
+    },
+    {
+      "venueId": "SC-SM-04365",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04366",
+      "summaryObservations": 1,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04367",
+      "summaryObservations": 4,
+      "rosterObservations": 8
+    },
+    {
+      "venueId": "SC-SM-04369",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-SM-04371",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04372",
+      "summaryObservations": 3,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04374",
+      "summaryObservations": 4,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-SM-04375",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04376",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-SM-04377",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04378",
+      "summaryObservations": 2,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "SC-SM-04379",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-18695d62a83507",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-217e02824eb151",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-26c7ef3ce0ab83",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-2a4f9db4d5d60d",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-2bb67a05adf4bc",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-3321e200e1c19c",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-3c18a1e8488e18",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-4560c3316ef093",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-4b7077aa455e9d",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-4da8ba8f00d94b",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-50cab0329e87fd",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-53076260c099e4",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-62a21463715a3a",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-66b09e7dfaab6e",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "VN-794a723a07bbce",
+      "summaryObservations": 0,
+      "rosterObservations": 3
+    },
+    {
+      "venueId": "VN-7e2155ac67fe96",
+      "summaryObservations": 0,
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "VN-7e2e2b9558eca4",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-84a8274b3cff4c",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-9715417f177ff3",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-9a24815cf0f8d5",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-b320a7935f03ab",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-b32d6d7fc5e230",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-b5cfabac579ede",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-c35311e456ef98",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "VN-ca15ade8db7e2f",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-d21092cf23784a",
+      "summaryObservations": 3,
+      "rosterObservations": 7
+    },
+    {
+      "venueId": "VN-d3da5fe183261a",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-d4c6f72513a3db",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-d68c41c0b6fb3a",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-dc970c0b1ab411",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-dce6effc5268f8",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-e08c399f3164d8",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-e5e930bbc56485",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-ff8c5fa64ad519",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    }
+  ],
+  "shards": 32,
+  "scope": "verified_registry_tenant_observations",
+  "limits": [
+    "Source observations are a partial roster, not a current tenant census.",
+    "Source-listed status and closure conflicts remain separate from host identity.",
+    "Ranking is a contextual editorial priority, not measured visits, sales or footfall.",
+    "Venue core rows and aggregate store counts are not rewritten by this build."
+  ],
+  "inputSha256": "2be81bfdbf982859f7e1728e7cb46057ee107d40ec79d41dc5bf677d5f48eb10",
+  "venueCoreSha256": "a7e1d51e0ee00903cad5ed59ef073fa6df32e128feca6be07a634d3f23b7d0cb",
+  "logoManifestSha256": "4a31f55d848d4f5cc1c034bbfb3a40f645675857ab9f98a384676f5ba958eec0"
+}

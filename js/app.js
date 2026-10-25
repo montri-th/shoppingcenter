@@ -47,6 +47,7 @@ import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing} from './camera.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
+import {createTenantSelection} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 
@@ -74,6 +75,9 @@ const state = {
   framed: null, userCamera: false,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
 };
+const tenantSelection = createTenantSelection({changed: selection => {
+  if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel();
+}});
 
 /* ---------- helpers ---------- */
 const values = () => Object.fromEntries(FIELDS.map(k => [k, $(k).value]));
@@ -252,7 +256,7 @@ function renderPanel() {
     const v = currentVenue();
     const detail = state.detail?.id === v?.id ? state.detail : cachedDetail(v?.id, state.data.meta?.detail?.shards);
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
-    html = renderVenue(profile, {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError});
+    html = renderVenue(profile, {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants: tenantSelection.state.id === v?.id ? tenantSelection.state : null});
     cardHtml = mapCardVenue(profile); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -330,6 +334,7 @@ function selectDistrict(code, {fromMap = false} = {}) {
 }
 
 function openVenueDetail(id) {
+  tenantSelection.select(id);
   state.detail = cachedDetail(id, state.data.meta?.detail?.shards);
   state.detailError = false;
   if (state.detail) return;
@@ -497,6 +502,21 @@ function onPanelAction(event) {
     case 'open-charts': openInsights(true); closeMobilePanel(); break;
     case 'open-table': $('results').hidden = false; closeMobilePanel(); $('toggle-table').focus({preventScroll: true}); break;
     case 'open-panel': openMobilePanel(); break;
+    case 'more-tenants': {
+      if (state.panel.mode !== 'venue' || state.panel.id !== id) break;
+      const firstNew = tenantSelection.state.limit;
+      if (tenantSelection.more(id)) {
+        const row = $('panel-view').querySelector(`[data-tenant-index="${firstNew}"]`);
+        row?.focus({preventScroll: true});
+        row?.scrollIntoView({block: 'nearest'});
+        const total = tenantSelection.state.roster.items.length;
+        announce(`แสดงร้าน ${num(Math.min(total, tenantSelection.state.limit))} จาก ${num(total)} ร้าน`);
+      }
+      break;
+    }
+    case 'retry-tenants':
+      if (state.panel.mode === 'venue' && state.panel.id === id) { tenantSelection.select(id, {retry: true}); renderPanel(); }
+      break;
     case 'clear-filter': clearFilter(id); break;
     case 'set-group': $('group').value = id; state.panel = state.panel.mode === 'district' ? state.panel : overviewPanel(); update({fit: state.panel.mode === 'overview'}); break;
     case 'crumb-country': $('province').value = ''; showCountry(); break;
@@ -1001,6 +1021,11 @@ function restoreFromURL() {
 }
 
 function wireEvents() {
+  // An unavailable logo keeps the shop name and the neutral shop symbol readable.
+  $('panel-view').addEventListener('error', event => {
+    const image = event.target;
+    if (image.matches?.('.tenant-logo img')) image.hidden = true;
+  }, true);
   let timer;
   for (const f of FIELDS) $(f).addEventListener(f === 'search' ? 'input' : 'change', () => {
     clearTimeout(timer);

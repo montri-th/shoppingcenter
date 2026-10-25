@@ -1,4 +1,4 @@
-# Verification — release 0.1.0
+# Verification — releases 0.1.0 and 0.1.1
 
 What was checked, where, and what it does not prove. Local results are not proof of the live release; live checks are recorded separately below.
 
@@ -80,3 +80,15 @@ Owner's Chrome, dark theme, fresh URLs: all 29 modules in `js/` loaded at `20261
 - **Logos (`dd8348a`):** 113 of 113 files equal `10_VENUE_LOGOS` by SHA-256; `?venue=SC-001299` shows the MBK Center logo in the panel and on the map.
 - **15:06 data refresh + 41-sample ramp (`fcff6b1`):** “6% … 49 จาก 838 แห่ง”, เมืองเชียงใหม่ 96 แห่ง, context toggle 4,941; `?venue=SC-000500` (ตลาดสำเพ็ง) reads the owner rule “ตลาด”.
 - **Not checked on live:** a real phone (the live URL was checked at phone size in the container harness, without basemap tiles), so the two-point fit over real pin buildings on a phone screen is checked on desktop only.
+
+## Release 0.1.1 — tenant roster (`20261025-r9a`)
+
+Local validation on 25 Oct 2026: **114 tests passed, 0 failed**. New coverage verifies 10/20/final-page pagination, 14-shop and 21-shop boundaries, stale selections, cached/failed optional requests, retry, centre-specific role ordering, source-grain/category safeguards, escaping, verified lazy logos, all 32 exported shards, source-qualified identities, counts, unchanged primary totals, source corrections and retailer-vs-manufacturer display identities.
+
+Actual Chrome checks: desktop 1300px and 390×844, light and dark; no document or tenant-row horizontal overflow. Central Bangna expands 10 → 20 → 22 and removes More at the end. Expanded rows survive theme/map repaint. Enter on More focuses the first new row (index 10). Phones retain map-first / ดูรายละเอียด. Siam Paragon and Central Embassy use their sourced character order; BVLGARI boutique and SHH Pendulum remain separate actual stores with different unit/source evidence. Available logos remain legible on their recorded backings; missing images retain the shop name and symbol. A mixed local test cache was cleared by the final unified r9a entry/import-map tag; the final tag loads successfully.
+
+Data readback: **2,230 display entries / 2,232 source observations / 461 venues**, with **1,609 logo-bearing entries** and 178 original asset files. Original 1,589 accepted primary observations remain intact in the research graph; 1,579 belong to qualified hosts on this page. Newly reviewed published relationships: 644 official restaurant-chain locatives and 7 grocery parent/tenant locatives. Four ambiguous additions are held; Mahatun remains outside the existing qualified population. No core venue, pending, detail, boundary, geometry, existing venue-logo or aggregate-count files changed. Manufacturer stock at a named multi-brand retailer is labelled as that actual retailer and never given the manufacturer's logo as the retailer's identity.
+
+The public-file privacy scan ignores opaque embedded raster base64 payloads in source SVGs, while continuing to scan all surrounding text/attributes for internal document IDs. Asset hashes still cover complete original bytes. LDS package integrity passed 9,768 checks; the whole-page static artifact scanner still reports existing theme/compositing findings, outside this requested change. New list styles reuse existing semantic tokens. These checks do not assert full LDS certification or a native-device test. Physical iPhone and 200% native browser zoom were not attested.
+
+Deployment is a separate gate: build the tracked-file handoff manifest after commit, wait for the exact Pages source commit to succeed, run `npm run verify:live`, and inspect the live tenant list. The generated manifest and live attestation receipt record actual source/hash results; local screenshots alone are not deployment evidence.

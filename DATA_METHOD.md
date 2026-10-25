@@ -173,6 +173,25 @@
 - **ร้านที่อยู่ข้างใน:** นับเฉพาะลิงก์ที่ชุดข้อมูลร้านค้าของ CityMETER ยืนยันแล้ว แยกตามชุดข้อมูลต้นทาง candidate ไม่นับ ลิงก์ไป Luxury Brands แสดงเมื่อ CityMETER id ของสถานที่อยู่ในข้อมูลที่หน้านั้นเปิดได้
 - **รหัส:** `venue_id` (join key) · Shopping Center id (`mall_external_id`) · CityMETER id (`citymeter_venue_id`) พร้อมลิงก์บันทึกใน production เมื่อมี
 
+### 9.1 รายชื่อร้านและลำดับ — D19 (25 ต.ค. 2569)
+
+`data/tenants/NN.json` เป็นรายชื่อแบบ lazy ใช้ FNV-1a UTF-8 ของ venue ID mod **32** คงที่ แยกจาก detail shards โหลดเมื่อเลือกสถานที่ แสดง 10 รายการแล้วดูเพิ่มไม่เกิน 10 จนครบ คงจำนวนที่ขยายเมื่อแผงวาดใหม่ ปุ่มดูเพิ่มไม่ผ่านทางเดินกล้อง โหลดผิดพลาดลองใหม่ได้ ชื่อยังอ่านได้เมื่อไม่มี/โหลดโลโก้ไม่สำเร็จ
+
+รายชื่อเผยแพร่ 2,230 รายการใน 461 venue จาก 2,232 source observations: primary graph เดิม 1,579 (อีก 10 อยู่กับ host นอกชุด qualified ที่หน้าเว็บแสดง) + official restaurant chain ที่ตรวจ exact named host 644 + Grocery locatives ที่ตรง parent relationship เดิม 7 แยก `sourceRole` และ `relationshipBasis` ชัดเจน ไม่ใช้ spatial/name candidates ที่ยังไม่ผ่าน ไม่เขียนกลับความสัมพันธ์ต้นทางหรือเปลี่ยน core data โดยอัตโนมัติ พัก Greyhound The Crystal และ Pizza Hut/Taco Bell Pantip Chiang Mai เพราะ canonical venue ID กำกวม; Mahatun Plaza อยู่นอกชุด qualified จึงคงเป็น omitted source item
+
+ตัวเลขและรายชื่อในแผงสถานที่ใช้ roster ล่าสุด ส่วนแผนที่ การ์ด ย่าน กราฟ และตารางคง primary-link snapshot เดิม รายชื่อเป็นการสังเกตตามแหล่ง/วันที่ ไม่ใช่ tenant census ทั้งศูนย์หรือคำยืนยันว่าทุกร้านเปิดวันนี้ `sourceUrl` เป็นหลักฐานรายรายการ (เก็บหลายลิงก์ใน `sourceUrls`); `checkedOn`/`sourceDate`/สถานะต้นทางคงแยกกัน สถานะขัดกันแสดงข้างชื่อ
+
+คงสาขาที่ native ID/โทรศัพท์ต่างกัน เช่น MK M111/M206 ที่เดอะมอลล์งามวงศ์วาน บัตร Dairy Queen สองศูนย์ที่ยังแยกหน้าร้านไม่ได้เก็บเป็นรายการเดียวต่อ brand/host พร้อม `sourceObservations`, `sourceObservationCount` และ `identityStatus`; source observations จึงมากกว่ารายการแสดงผลสองรายการ
+
+ลำดับ `venue-role-v1`: ร้านหลักที่มีหลักฐาน → ร้านหลักซึ่งตรงชื่อศูนย์ → บทบาทจาก positioning ทางการใน `data/tenant-profiles.json` (11 ศูนย์) → specialty/รูปแบบศูนย์ → บทบาททั่วไป โดยบทบาทเท่ากันเรียงชื่อ สาขา และ ID คงที่ Community/hoststore/market เน้นของใช้และอาหาร; สถานีบริการเน้นอาหาร เครื่องดื่มและร้านสะดวกซื้อ; ศูนย์แฟชั่นหรูหรือไอทีที่มี positioning ใช้บทบาทนั้นนำ เป็นการประเมินของ CityMETER ไม่มีคะแนนจากขนาดเครือ โลโก้ GLA เดิม ยอดขาย หรือ footfall ไม่ใช่อิทธิพลที่วัดจริง เคาน์เตอร์ในห้างไม่ถูกอ่านเป็นห้างทั้งแห่ง และหมวดผสม restaurant/cafe ใช้ “อาหารและเครื่องดื่ม” โดยไม่เดาประเภทย่อย
+
+โลโก้ 1,609 รายการใช้ไฟล์เดิม 178 ไฟล์ จับคู่ `dataset|brandId` และตรวจ SHA-256 กับ `assets/tenant-logos-manifest.json`; ไม่มี fuzzy matching โหลดภาพ lazy เฉพาะรายการที่แสดง ใช้พื้นรองตาม asset ให้เห็นทั้งสองธีม การรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า
+
+สร้างซ้ำด้วย `python3 scripts/build-tenant-data.py --observations <reviewed-tenant-observations.json> --logos assets/tenant-logos-manifest.json` โดย input ที่ตรวจแล้วเก็บในงานวิจัยภายใน เผยแพร่เฉพาะ input hash และผลรวมใน `data/tenants/build-report.json` ไม่เผยแพร่รหัสไฟล์ภายใน
+
+ตัวแทนจำหน่ายหลายแบรนด์ 8 รายการใช้ชื่อร้านจริงและไม่ใช้โลโก้ของผู้ผลิตแทนโลโก้ร้าน; สาขา mono-brand ที่มีชื่อร้าน/ผู้ดำเนินการชัดเจนคงชื่อเต็มจากต้นทางและโลโก้แบรนด์ของ boutique แยก BVLGARI boutique กับ SHH Pendulum ที่สยามพารากอนคนละยูนิตและใช้หลักฐานสาขาทางการที่ตรวจแก้แล้ว โดยไม่แก้ master ต้นทางอัตโนมัติ
+
+
 ## 10. รายการที่ยังไม่ผ่านนิยาม (Owner decision D4)
 
 รายการที่ยังไม่ผ่านนิยามมีสองสถานะ: **รอตรวจ** (รอบนี้ 0 — คิวปิดครบ) และ **ยังยืนยันไม่ได้** (4,869 — `reviewed_definition_unconfirmed`; ไม่ใช่การสรุปว่าไม่ใช่สถานที่ค้าปลีก) ที่มีพิกัด 4,851 รายการ อยู่ใน `data/pending.json` แบบ columnar (`id, name, lon, lat, provinceCode, districtCode, group, state`; `state = "reviewed"` สำหรับที่ยังยืนยันไม่ได้ — รอบนี้ทุกจุด) โหลดหลังภาพแรก วาดเป็นจุดเทาเล็กด้วย GPU layer ที่ zoom ≥ 11 ไม่มีโลโก้ ไม่อยู่ใน tab order ซ่อนได้จากคำอธิบายแผนที่ (“ยังยืนยันไม่ได้ 4,851”, `?pending=0`) ค้นหาได้พร้อมป้ายสถานะและคำว่าไม่นับ และกดแล้วได้การ์ดย่อ “ยังยืนยันไม่ได้ · ไม่นับ” ไม่เข้าตัวเลข สี หรือกราฟใด ๆ ถ้าโหลดไม่ได้ ตัวเลขทั้งหมดไม่เปลี่ยน

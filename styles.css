@@ -310,6 +310,22 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .outlet-list .brand-row { width: 100%; border: 0; background: none; padding: 8px 4px; white-space: normal; text-align: left; min-height: 48px; border-radius: 0; }
 .outlet-list .brand-row:hover { background: var(--surface-alt); }
 
+/* Venue tenant roster only: incremental rows, neutral backing for unchanged brand artwork. */
+.tenant-list { list-style: none; padding: 0; margin: 8px 0; display: grid; }
+.tenant-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 54px; padding: 10px 0; border-bottom: 1px solid var(--border-hairline); }
+.tenant-row:focus { outline: 2px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.tenant-logo { display: flex; align-items: center; justify-content: center; position: relative; width: 56px; height: 36px; border: 1px solid var(--border-hairline); border-radius: 4px; background: var(--surface-soft); color: var(--text-metadata); overflow: hidden; }
+.tenant-logo .pictogram { font-size: 20px; }
+.tenant-logo img { position: absolute; inset: 0; box-sizing: border-box; width: 100%; height: 100%; padding: 4px; object-fit: contain; background: var(--tenant-logo-bg, var(--surface-soft)); }
+.tenant-logo img[hidden] { display: none; }
+.tenant-name { min-width: 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.tenant-name strong { font-weight: 600; }
+.tenant-name small { display: block; color: var(--text-metadata); font-size: 11px; line-height: 1.5; }
+.tenant-source { font-size: 11px; padding: 8px 0 8px 4px; }
+.tenant-pagination { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.tenant-pagination .btn { min-height: 40px; }
+.tenant-datasets { margin-top: 12px; font-size: 11px; }
+
 /* Brand chips */
 .chip-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .brand-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 3px 10px 3px 6px; font-size: 12px; border-radius: 999px; background: var(--surface-raised); white-space: normal; text-align: left; }

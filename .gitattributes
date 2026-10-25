@@ -1,0 +1,3 @@
+# Third-party logo bytes are retained exactly as verified by the source manifest.
+# Preserve their original line endings and whitespace so recorded hashes remain valid.
+assets/tenant-logos/*.svg -whitespace -text

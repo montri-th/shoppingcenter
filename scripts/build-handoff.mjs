@@ -34,6 +34,7 @@ const walk = dir => readdirSync(join(root, dir), {withFileTypes: true}).flatMap(
 const assetPaths = [
   'assets/theme.css', ...walk('assets/lds'), ...walk('assets/icons'),
   'data/venue-logos.json', 'assets/venue-logos-manifest.json', ...walk('assets/venue-logos'),
+  'assets/tenant-logos-manifest.json', ...walk('assets/tenant-logos'),
   'data/provinces.geojson', 'data/districts.geojson',
 ].filter(path => existsSync(join(root, path))).sort();
 const assetManifest = {

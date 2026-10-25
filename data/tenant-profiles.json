@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "asOf": "2026-10-25",
+    "policy": "venue-character-curation-v1",
+    "basis": "Editorial order of tenant roles informed by official venue or operator descriptions. These descriptions establish positioning; the role order is a CityMETER judgement, not a measured ranking of visits, sales or influence. Only already accepted tenant relationships are eligible."
+  },
+  "venues": {
+    "SC-001244": {
+      "label": "แฟชั่นและแบรนด์หรู พร้อมอาหารและความบันเทิง",
+      "roleOrder": [
+        "destination",
+        "department",
+        "entertainment",
+        "dining",
+        "food",
+        "cafe",
+        "grocery"
+      ],
+      "sourceUrl": "https://www.siamparagon.co.th/about",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-000229": {
+      "label": "แบรนด์หรู อาหาร และประสบการณ์ริมแม่น้ำ",
+      "roleOrder": [
+        "destination",
+        "department",
+        "dining",
+        "food",
+        "entertainment",
+        "cafe",
+        "grocery"
+      ],
+      "sourceUrl": "https://tourist.onesiam.com/en/about/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-001283": {
+      "label": "แฟชั่นและแบรนด์หรู พร้อมร้านอาหาร",
+      "roleOrder": [
+        "destination",
+        "dining",
+        "food",
+        "entertainment",
+        "cafe",
+        "department",
+        "grocery"
+      ],
+      "sourceUrl": "https://www.centralembassy.com/directory/central-embassy/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-C1138": {
+      "label": "แฟชั่น เครื่องประดับ และร้านอาหาร",
+      "roleOrder": [
+        "destination",
+        "dining",
+        "food",
+        "cafe",
+        "shop",
+        "gold",
+        "pharmacy",
+        "department",
+        "grocery"
+      ],
+      "sourceUrl": "https://gaysornproperty.com/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-000288": {
+      "label": "แบรนด์หรูและห้างสรรพสินค้า",
+      "roleOrder": [
+        "destination",
+        "department",
+        "dining",
+        "food",
+        "grocery",
+        "cafe",
+        "entertainment"
+      ],
+      "sourceUrl": "https://emdistrict.com/tourist/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-001765": {
+      "label": "แฟชั่นร่วมสมัย อาหาร และไลฟ์สไตล์",
+      "roleOrder": [
+        "destination",
+        "department",
+        "dining",
+        "food",
+        "cafe",
+        "technology",
+        "grocery",
+        "entertainment"
+      ],
+      "sourceUrl": "https://emdistrict.com/tourist/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-000289": {
+      "label": "ความบันเทิง ร้านอาหาร และไลฟ์สไตล์",
+      "roleOrder": [
+        "entertainment",
+        "dining",
+        "food",
+        "cafe",
+        "shop",
+        "grocery",
+        "destination",
+        "department"
+      ],
+      "sourceUrl": "https://emsphere.co.th/en/about-us/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-000573": {
+      "label": "ไอที กล้อง และอุปกรณ์",
+      "roleOrder": [
+        "technology",
+        "camera",
+        "shop",
+        "dining",
+        "food",
+        "cafe",
+        "grocery",
+        "convenience",
+        "bank"
+      ],
+      "sourceUrl": "https://fortunetown.co.th/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-001299": {
+      "label": "มือถือ ไอที อาหาร และแฟชั่น",
+      "roleOrder": [
+        "technology",
+        "camera",
+        "shop",
+        "dining",
+        "food",
+        "cafe",
+        "destination",
+        "entertainment",
+        "grocery"
+      ],
+      "sourceUrl": "https://www.mbk-center.co.th/en/about-us/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-C0015": {
+      "label": "แฟชั่น อาหาร และไลฟ์สไตล์หลายโซน",
+      "roleOrder": [
+        "destination",
+        "dining",
+        "food",
+        "entertainment",
+        "grocery",
+        "cafe",
+        "technology",
+        "department",
+        "shop"
+      ],
+      "sourceUrl": "https://www.onebangkok.com/en/blog/luxury-lifestyle-destination-bangkok/",
+      "checkedOn": "2026-10-25"
+    },
+    "SC-001783": {
+      "label": "แฟชั่น อาหาร และภาพยนตร์",
+      "roleOrder": [
+        "shop",
+        "destination",
+        "dining",
+        "food",
+        "entertainment",
+        "cafe",
+        "grocery",
+        "department"
+      ],
+      "sourceUrl": "https://www.terminal21.co.th/asok/aboutus/th",
+      "checkedOn": "2026-10-25"
+    }
+  }
+}
