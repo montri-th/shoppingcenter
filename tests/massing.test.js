@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseVectorTile, tileToLonLat} from '../js/mvt.js';
 import {pointInRing, signedArea} from '../js/geometry.js';
-import {shapeTile, tilesForRegions, roundingRadiusM, encloseOffsetM, outerRings, installMassing, HEIGHT_LIFT_M, MAX_TILES, CITY_LAYER, FOCUS_LAYER, FOCUS_SOURCE, OCCLUDER_LAYER, SCENE, FADE_NEAR_M, FADE_FAR_M} from '../js/massing.js';
+import {shapeTile, sameBuilding, tilesForRegions, roundingRadiusM, encloseOffsetM, outerRings, installMassing, HEIGHT_LIFT_M, MAX_TILES, CITY_LAYER, FOCUS_LAYER, FOCUS_SOURCE, OCCLUDER_LAYER, SCENE, FADE_NEAR_M, FADE_FAR_M} from '../js/massing.js';
 
 const tile = {z: 14, x: 12767, y: 7560};
 const layer = parseVectorTile(readFileSync(new URL('./fixtures/mvt-sample.pbf', import.meta.url))).layers.building;
@@ -71,7 +71,7 @@ function fakeMap() {
     removeLayer(id) { layers.delete(id); }, removeSource(id) { sources.delete(id); },
     setFilter(id, f) { this.filters[id] = f; }, setLayoutProperty(id, k, v) { this.visibility[id] = v; },
     paint: {}, setPaintProperty(id, k, v) { (this.paint[id] ||= {})[k] = v; },
-    getZoom: () => 15.5, getPitch: () => 82, on(e, h) { handlers[e] = h; }, off(e) { delete handlers[e]; }, fire(e) { handlers[e]?.(); },
+    getZoom: () => 15.5, getPitch: () => 82, on(e, h) { (handlers[e] ||= []).push(h); }, off(e, h) { handlers[e] = (handlers[e] || []).filter(x => x !== h); }, fire(e) { (handlers[e] || []).forEach(h => h()); },
     // Screen projection stand-in for a camera looking north: x grows with longitude, y grows as latitude DEcreases (south = nearer the camera = lower on screen).
     project: ([lon, lat]) => ({x: (lon - 100.5) * 4e5, y: (13.75 - lat) * 4e5}),
     // City-tier buildings in "loaded tiles" and the feature-state they receive.
@@ -185,5 +185,54 @@ test('city tier fades with distance from the focus anchors: near → quiet tone,
   massing.setAnchors([[lon0, lat0 + metres(5000)]]);
   assert.equal(map.featureState[3].fade, 0, 'the far building is now next to the anchor');
   assert.equal(map.featureState[1].fade, 1);
+  massing.dispose();
+});
+
+test('a merged multi-part feature loses only the overlapping polygon and is never hidden by id', () => {
+  // Fixture feature 103 is one feature with two polygons (OpenFreeMap merges equal-height buildings).
+  const polys = layer.features.find(x => x.id === 103).rings().map(r => r.map(([px, py]) => tileToLonLat(px, py, tile)));
+  const r = roundingRadiusM(16), d = encloseOffsetM(r);
+  const out = shapeTile(tile, layer, {regions: [whole], hosts: [polys[0]], radiusM: r, offsetM: d});
+  assert.equal(out.features.filter(f => f.id === 103).length, 1, 'the other polygon of 103 stays in the focus tier');
+  assert.ok(!out.hiddenIds.has(103), 'a multi-part id is not hidden from the city tier');
+  assert.equal(out.dropped, 1);
+});
+
+test('pin buildings drop exactly the same tile building from the focus tier; a neighbour sharing a wall stays', () => {
+  const ring101 = layer.features.find(x => x.id === 101).rings()[0].map(([px, py]) => tileToLonLat(px, py, tile));
+  const r = roundingRadiusM(16), d = encloseOffsetM(r);
+  const out = shapeTile(tile, layer, {regions: [whole], pins: [ring101], radiusM: r, offsetM: d});
+  assert.ok(!out.features.some(f => f.id === 101));
+  assert.ok(out.hiddenIds.has(101), 'single-part twin hidden in the city tier');
+  const a = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]];
+  const wall = [[10, 0], [20, 0], [20, 10], [10, 10], [10, 0]];
+  const twin = [[0.2, 0.1], [9.8, 0.1], [9.9, 9.9], [0.1, 9.8], [0.2, 0.1]];
+  assert.equal(sameBuilding(a, wall), false, 'shared wall is not the same building');
+  assert.equal(sameBuilding(a, twin), true);
+  assert.equal(sameBuilding(a, [[30, 30], [31, 30], [31, 31], [30, 30]]), false);
+});
+
+test('city fade of a merged feature comes from its nearest part, and the camera centre is an anchor', async () => {
+  const map = fakeMap();
+  const lon0 = 100.5347, lat0 = 13.7466;
+  const metres = m => m / 111320;
+  const square = dy => [[[lon0, lat0 + metres(dy)], [lon0, lat0 + metres(dy + 20)], [lon0 + 0.0001, lat0 + metres(dy + 20)], [lon0, lat0 + metres(dy)]]];
+  map.cityFeatures = [{id: 7, geometry: {type: 'MultiPolygon', coordinates: [square(6000), square(50)]}}];
+  let centre = {lng: lon0, lat: lat0 + metres(9000)};
+  map.getCenter = () => centre;
+  const massing = installMassing(map, {beforeId: null, colors: {}, tileUrl: () => '', fetchImpl: async () => ({ok: false, status: 404})});
+  await massing.update({regions: [], hosts: [], anchors: [[lon0, lat0]], zoom: 14, enabled: true, city: true, latitude: 13.75});
+  assert.equal(map.featureState[7].fade, 0, 'one part next to the anchor keeps the merged feature visible');
+  massing.setAnchors([]);
+  // No focus: the camera centre (moveend) is the only anchor.
+  map.cityFeatures = [{id: 8, geometry: {type: 'Polygon', coordinates: square(9010)}}];
+  map.fire('moveend');
+  await new Promise(r => setTimeout(r, 200));
+  assert.equal(map.featureState[8]?.fade, 0, 'building at the camera centre is visible');
+  assert.equal(massing.anchors.length, 1);
+  centre = {lng: lon0, lat: lat0 + metres(9100)}; // < CAMERA_ANCHOR_STEP_M: no re-anchor
+  map.fire('moveend');
+  await new Promise(r => setTimeout(r, 200));
+  assert.deepEqual(massing.anchors[0], [lon0, lat0 + metres(9000)]);
   massing.dispose();
 });

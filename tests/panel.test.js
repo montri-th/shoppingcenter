@@ -4,13 +4,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, readdirSync} from 'node:fs';
-import {filterVenues, prepareRows, summarize, tierReading} from '../js/model.js';
+import {filterVenues, prepareRows, summarize, tierReading, hasPoint} from '../js/model.js';
 import {hierarchyReading} from '../js/evidence.js';
 import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.js';
 import {summarizeAreaInsight} from '../js/area-insight.js';
 import {buildDistrictModel} from '../js/map-layers.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from '../js/profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine} from '../js/panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, PRODUCT_TITLE} from '../js/panel.js';
 import {rankAreas, groupMatrix} from '../js/chart-model.js';
 
 const read = p => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
@@ -34,7 +34,11 @@ test('overview: Aha numbers, metrics and provenance come from the rows', () => {
   assert.ok(html.includes(`>${insight.count}<`) && html.includes(`จาก ${insight.total.toLocaleString('th-TH')} แห่ง`));
   for (const d of insight.districts) assert.ok(html.includes(`data-id="${d.code}"`));
   assert.ok(html.includes(dataLine(asOf)), 'dataset · source · date · boundary line');
-  assert.ok(!/caveat|ข้อจำกัด/.test(html), 'no caveat banner on the first view');
+  for (const part of [PRODUCT_TITLE, 'CityMETER research', 'ตรวจถึง', 'OpenGISData-Thailand']) assert.ok(dataLine(asOf).includes(part), part);
+  assert.ok(!/caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน/.test(html), 'no caveat on the first view');
+  const ratio = densityRatio(insight);
+  assert.ok(Math.abs(ratio - (insight.count / insight.areaKm2) / (insight.total / insight.provinceAreaKm2)) < 1e-9, 'share ÷ area share = density ratio');
+  if (ratio >= 2) assert.ok(html.includes(`แน่นกว่าค่าเฉลี่ยของ`) && html.includes(`>${Math.round(ratio)}<`));
   assert.equal(overview.summary.venues, focusRows.length);
 });
 
@@ -62,6 +66,10 @@ test('venue panel: field evidence, legacy size only with its method, missing is 
   assert.ok(html.includes('ค่าประมาณจากทะเบียนเดิม ไม่ใช่ GLA ทางการ'));
   assert.ok(html.includes('วิธี:'));
   assert.ok(html.includes('หลักฐานรายช่อง'));
+  // Method, basis and limits sit in the collapsed evidence list, never on the visible panel.
+  const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
+  assert.ok(!/ไม่ใช่|ยังไม่ตรวจภาคสนาม|ค่าประมาณจาก|วิธี:/.test(visible), 'no caveat outside the evidence list');
+  assert.ok(visible.includes('ราว'), 'an estimate reads as an estimate');
   const noOperator = rows.find(r => !r.operatorLabel && details.get(r.id));
   const h2 = renderVenue(buildVenueProfile({row: noOperator, detail: details.get(noOperator.id), byId, districts}), {asOf});
   assert.ok(h2.includes('ยังไม่มีข้อมูล'));
@@ -101,25 +109,28 @@ test('search finds qualified venues, components and pending records without fuzz
   const p = searchAll(somePending[0], {rows, pending});
   assert.ok(p.pending.includes(0));
   const html = renderSearch(p, {pending, districts, asOf});
-  assert.ok(html.includes('รายการที่ยังไม่ผ่านนิยาม') && html.includes('ไม่นับ'));
-  assert.ok(html.includes(somePending[7] === 'reviewed' ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รอตรวจนิยาม'));
+  assert.ok(html.includes('ยังยืนยันไม่ได้') && html.includes('ไม่นับ'));
+  assert.ok(html.includes(somePending[7] === 'reviewed' ? 'ยังยืนยันไม่ได้' : 'รอตรวจ'));
   assert.equal(searchAll('zzzz-not-a-venue', {rows, pending}).qualifiedTotal, 0);
 });
 
 test('context card says the record is not counted, and whether it awaits review or closed unconfirmed', () => {
-  const awaiting = pending.rows.findIndex(r => r[7] !== 'reviewed');
   const reviewed = pending.rows.findIndex(r => r[7] === 'reviewed');
-  assert.ok(awaiting >= 0 && reviewed >= 0, 'this snapshot has both states');
-  const a = buildPendingCard(pending, awaiting, districts);
-  assert.equal(a.id, pending.rows[awaiting][0]);
+  assert.ok(reviewed >= 0, 'this snapshot has reviewed records');
+  // The 2026-10-25 16:39 export closed every review; an awaiting record is built from a reviewed one.
+  let awaiting = pending.rows.findIndex(r => r[7] !== 'reviewed');
+  let source = pending;
+  if (awaiting < 0) { source = {...pending, rows: [pending.rows[reviewed].slice(0, 7), ...pending.rows]}; awaiting = 0; }
+  const a = buildPendingCard(source, awaiting, districts);
+  assert.equal(a.id, source.rows[awaiting][0]);
   assert.equal(a.reviewed, false);
   const ha = renderPending(a, {asOf});
-  assert.ok(ha.includes('รายการรอตรวจนิยาม') && ha.includes('ยังไม่นับในตัวเลขใด ๆ'));
+  assert.ok(ha.includes('รอตรวจ · ไม่นับ'));
   const b = buildPendingCard(pending, reviewed, districts);
   assert.equal(b.reviewed, true);
   const hb = renderPending(b, {asOf});
-  assert.ok(hb.includes('ตรวจแล้ว ยังยืนยันนิยามไม่ได้') && hb.includes('จึงไม่นับในตัวเลขใด ๆ'));
-  assert.ok(!hb.includes('รายการรอตรวจนิยาม'));
+  assert.ok(hb.includes('ยังยืนยันไม่ได้ · ไม่นับ'));
+  assert.ok(!hb.includes('รอตรวจ ·'));
   assert.equal(buildPendingCard(pending, -1, districts), null);
 });
 
@@ -134,12 +145,26 @@ test('the venue panel says how a venue passed: source evidence or an owner categ
   const html = renderVenue(buildVenueProfile({row: owner, detail: details.get(owner.id), byId, districts}), {asOf});
   assert.ok(html.includes('ผ่านนิยามตามกฎที่เจ้าของข้อมูลยอมรับ · ตลาด'));
   const held = rows.find(r => r.countHold === 'count-review');
-  if (held) assert.equal(hierarchyReading(held), 'ผ่านนิยามแล้ว แต่การนับแยกยังรอตรวจ จึงยังไม่นับ');
+  if (held) assert.equal(hierarchyReading(held), 'รอตรวจการนับ · ยังไม่นับ');
   const dup = rows.find(r => r.countHold === 'duplicate');
-  if (dup) assert.equal(hierarchyReading(dup), 'อาจซ้ำกับรายการอื่น ไม่นับแยกจนกว่าจะตรวจ');
+  if (dup) assert.equal(hierarchyReading(dup), 'อาจซ้ำ · ไม่นับแยก');
+  assert.equal(hierarchyReading({countable: true, countBasis: 'component-without-qualified-parent'}), '', 'a counted venue carries no caveat pill');
 });
 
 test('summaries in panels never count components', () => {
   const all = summarize(rows.filter(r => r.countable));
   assert.equal(all.venues, venues.meta.counts.countable);
+});
+
+test('the venue panel names the building it draws: validated host, the building the pin stands in, or none found', () => {
+  const host = rows.find(r => r.hasBuilding && r.countable);
+  const plain = rows.find(r => !r.hasBuilding && r.countable && hasPoint(r));
+  assert.match(buildingReading(host, [], undefined).text, /อาคารของสถานที่/);
+  const pinFeature = {properties: {geometry_role: 'pin_building_basemap', height_status: 'basemap_render_height'}};
+  assert.match(buildingReading(plain, [pinFeature], 'inside').text, /อาคารที่หมุดตั้งอยู่/);
+  assert.match(buildingReading(plain, [pinFeature], 'edge').note, /ไม่เกิน 3 ม\./);
+  assert.equal(buildingReading(plain, [], null).text, 'ยังไม่พบอาคารที่ตำแหน่งหมุด');
+  assert.equal(buildingReading(plain, [], undefined).text, '', 'not read yet → nothing said');
+  const html = renderVenue(buildVenueProfile({row: plain, detail: details.get(plain.id), byId, districts}), {asOf, buildings: [pinFeature], pinState: 'inside'});
+  assert.ok(html.includes('อาคารที่หมุดตั้งอยู่') && html.includes('OpenStreetMap'));
 });

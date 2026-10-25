@@ -31,11 +31,11 @@ export const groupById = id => GROUP_MAP.get(id) || GROUP_MAP.get('other');
 /** Operation status of a countable venue (operation_group): supply is what every count uses. */
 export const STATUSES = Object.freeze({
   supply: 'เปิดอยู่หรือรอยืนยันสถานะ',
-  planned: 'โครงการที่กำลังมา',
-  closed: 'ปิดตามหลักฐาน',
+  planned: 'กำลังจะเปิด',
+  closed: 'ปิดแล้ว',
 });
 /** Status filter values. '' = supply (default). */
-export const STATUS_FILTERS = Object.freeze({'': 'เปิดอยู่หรือรอยืนยัน', planned: 'โครงการที่กำลังมา', closed: 'ปิดตามหลักฐาน', all: 'ทุกสถานะ'});
+export const STATUS_FILTERS = Object.freeze({'': 'เปิดอยู่หรือรอยืนยัน', planned: 'กำลังจะเปิด', closed: 'ปิดแล้ว', all: 'ทุกสถานะ'});
 
 export const TIERS = Object.freeze({
   supported: 'ผ่านนิยามด้วยหลักฐานปัจจุบัน',
@@ -57,10 +57,12 @@ export const OWNER_RULES = Object.freeze({
   foodland_plus_tooklaedee: 'ฟู้ดแลนด์ที่มีร้านถูกและดี',
   project_source_common_management_inferred: 'แหล่งข้อมูลโครงการบ่งชี้ผู้บริหารร่วม',
   confirmed_managed_retail_component: 'พื้นที่ค้าปลีกที่บริหารร่วม',
+  exact_inside_multiple_businesses: 'มีหลายกิจการอยู่ภายในที่เดียวกัน',
+  foodland_tooklaedee: 'ฟู้ดแลนด์ที่มีร้านถูกและดี',
 });
 
 /** Short state of a context record (pending.json), as shown next to its name; never counted. */
-export const contextState = reviewed => (reviewed ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รอตรวจนิยาม');
+export const contextState = reviewed => (reviewed ? 'ยังยืนยันไม่ได้' : 'รอตรวจ');
 
 /** How a qualified row passed the definition, in words (venue panel evidence list). */
 export function tierReading(row) {

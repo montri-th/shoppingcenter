@@ -28,7 +28,7 @@
   e.public.href=publicTarget.href;
   e.public.textContent=publicTarget.href;
   if(phase==='file'){
-   e.title.textContent='กำลังเปิดเว็บศูนย์การค้าและสถานที่ค้าปลีก';
+   e.title.textContent='กำลังเปิดเว็บศูนย์การค้า';
    e.message.textContent='หน้านี้เปิดจากไฟล์ในเครื่อง กำลังพาไปเว็บสาธารณะเพื่อโหลดข้อมูลและแผนที่ หากหน้าไม่เปลี่ยน ให้กดลิงก์ด้านล่าง';
   }else if(phase==='error'){
    e.title.textContent='ยังโหลดข้อมูลไม่สำเร็จ';
@@ -59,7 +59,7 @@
   if(isFile){
    redirectTimer=window.setTimeout(()=>{
     try{window.location.replace(publicTarget.href);}catch{
-     elements.title.textContent='เปิดเว็บศูนย์การค้าและสถานที่ค้าปลีก';
+     elements.title.textContent='เปิดเว็บศูนย์การค้า';
      elements.message.textContent='ไม่สามารถเปลี่ยนหน้าอัตโนมัติได้ กรุณากดลิงก์เว็บสาธารณะด้านล่าง';
     }
    },800);

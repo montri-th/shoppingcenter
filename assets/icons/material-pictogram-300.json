@@ -1,10 +1,10 @@
 {
   "family": "LDS Material Symbols Rounded Pictogram",
   "file": "material-pictogram-300.woff2",
-  "bytes": 1732,
-  "sha256": "33d9084bbd26b976d5c42002a0c669618573c21123567247816e9e694671c7b0",
+  "bytes": 4496,
+  "sha256": "ab4a8142c9d6856b1583c5d634805e0babf62c41c77447be800c8c4a43f9d363",
   "source": "google/material-design-icons variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
-  "sourceSha256": "32e4011709e055596eb8d2dd0f7cb547b47c1d40ac9ecb8fad54f7f7eac202e7",
+  "sourceSha256": "7e74e36533ccee12c2b81e75bfcf3ccf123d3bb7e7e46d65d94445f23db0c97c",
   "license": "Apache-2.0 (assets/icons/material-symbols-Apache-2.0.txt)",
   "axes": {
     "FILL": 0,
@@ -44,7 +44,135 @@
     "segment": {
       "name": "category",
       "codepoint": "U+E72C"
+    },
+    "country": {
+      "name": "public",
+      "codepoint": "U+E80B"
+    },
+    "view3d": {
+      "name": "view_in_ar",
+      "codepoint": "U+EFC9"
+    },
+    "architect": {
+      "name": "architecture",
+      "codepoint": "U+EA3B"
+    },
+    "help": {
+      "name": "help",
+      "codepoint": "U+E8FD"
+    },
+    "info": {
+      "name": "info",
+      "codepoint": "U+E88E"
+    },
+    "chart": {
+      "name": "bar_chart",
+      "codepoint": "U+E26B"
+    },
+    "rank": {
+      "name": "leaderboard",
+      "codepoint": "U+F20C"
+    },
+    "mix": {
+      "name": "stacked_bar_chart",
+      "codepoint": "U+E9E6"
+    },
+    "operator": {
+      "name": "domain",
+      "codepoint": "U+E7EE"
+    },
+    "table": {
+      "name": "table_rows",
+      "codepoint": "U+F101"
+    },
+    "search": {
+      "name": "search",
+      "codepoint": "U+EF7A"
+    },
+    "filter": {
+      "name": "tune",
+      "codepoint": "U+E429"
+    },
+    "back": {
+      "name": "arrow_back",
+      "codepoint": "U+E5C4"
+    },
+    "expand": {
+      "name": "expand_more",
+      "codepoint": "U+E5CF"
+    },
+    "collapse": {
+      "name": "expand_less",
+      "codepoint": "U+E5CE"
+    },
+    "contact": {
+      "name": "call",
+      "codepoint": "U+F0D4"
+    },
+    "hours": {
+      "name": "schedule",
+      "codepoint": "U+EFD6"
+    },
+    "opened": {
+      "name": "calendar_month",
+      "codepoint": "U+EBCC"
+    },
+    "address": {
+      "name": "location_on",
+      "codepoint": "U+F1DB"
+    },
+    "coordinate": {
+      "name": "my_location",
+      "codepoint": "U+E55C"
+    },
+    "checked": {
+      "name": "event_available",
+      "codepoint": "U+E614"
+    },
+    "building": {
+      "name": "apartment",
+      "codepoint": "U+EA40"
+    },
+    "evidence": {
+      "name": "fact_check",
+      "codepoint": "U+F0C5"
+    },
+    "upcoming": {
+      "name": "event_upcoming",
+      "codepoint": "U+F238"
+    },
+    "closed": {
+      "name": "do_not_disturb_on",
+      "codepoint": "U+F08F"
+    },
+    "idea": {
+      "name": "lightbulb",
+      "codepoint": "U+E90F"
+    },
+    "layers": {
+      "name": "layers",
+      "codepoint": "U+E53B"
+    },
+    "prev": {
+      "name": "chevron_left",
+      "codepoint": "U+E5CB"
+    },
+    "next": {
+      "name": "chevron_right",
+      "codepoint": "U+E5CC"
+    },
+    "palette": {
+      "name": "palette",
+      "codepoint": "U+E40A"
+    },
+    "route": {
+      "name": "route",
+      "codepoint": "U+EACD"
+    },
+    "touch": {
+      "name": "touch_app",
+      "codepoint": "U+E913"
     }
   },
-  "status": "test exception to LDS nav-7 (owner 2026-10-22); nav-7 subset unchanged"
+  "status": "test exception to LDS nav-7: metric tiles owner 2026-10-22, UI roles owner 2026-10-25; nav-7 subset unchanged"
 }

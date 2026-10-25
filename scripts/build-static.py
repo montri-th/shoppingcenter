@@ -39,11 +39,11 @@ def main():
     as_of = meta['asOf']
     lines = [
         '<div class="static-summary">',
-        f'<p>ศูนย์การค้าและสถานที่ค้าปลีกที่ผ่านนิยามและเปิดอยู่หรือรอยืนยันสถานะ {len(supply):,} แห่ง '
-        f'(ระบุตำแหน่งได้ {len(located):,} แห่งใน {len(per)} จังหวัด) · ข้อมูลตรวจถึง {thai_date(as_of)} · '
+        f'<p>ศูนย์การค้า ตลาด และสถานที่ค้าปลีกที่เปิดอยู่หรือรอยืนยันสถานะ {len(supply):,} แห่ง '
+        f'(มีพิกัด {len(located):,} แห่งใน {len(per)} จังหวัด) · ข้อมูลตรวจถึง {thai_date(as_of)} · '
         f'ขอบเขตจังหวัดจาก OpenGISData-Thailand (กรมการปกครอง)</p>',
         f'<p>ข้อค้นพบแรก: {aha["count"]} จาก {aha["total"]} แห่งของ{provinces.get(aha["province"], aha["province"])} '
-        f'({aha["count"] / aha["total"] * 100:.0f}%) อยู่ใน 3 เขตที่หนาแน่นที่สุด</p>',
+        f'({aha["count"] / aha["total"] * 100:.0f}%) อยู่ใน 3 เขตที่แน่นที่สุด</p>',
         '<table><caption>จำนวนสถานที่ต่อจังหวัด</caption><thead><tr><th scope="col">จังหวัด</th><th scope="col">แห่ง</th></tr></thead><tbody>',
         *[f'<tr><td>{provinces.get(code, code)}</td><td>{n:,}</td></tr>' for code, n in per.most_common()],
         '</tbody></table>',
@@ -51,11 +51,11 @@ def main():
     ]
     ld = {
         '@context': 'https://schema.org', '@type': 'Dataset',
-        'name': 'ศูนย์การค้าและสถานที่ค้าปลีก: จำนวน ประเภท และผู้บริหาร (CityMETER)',
-        'alternateName': 'CityMETER Shopping Centers & Retail Venues Thailand',
-        'description': 'สถานที่ค้าปลีกของไทยที่ผ่านนิยาม (หลายกิจการขายผู้บริโภคและมีผู้บริหารพื้นที่ร่วมรายเดียว '
+        'name': 'ศูนย์การค้า (CityMETER)',
+        'alternateName': ['Shopping centers (CityMETER)', 'ศูนย์การค้าและสถานที่ค้าปลีก: จำนวน ประเภท และผู้บริหาร'],
+        'description': 'ศูนย์การค้า ตลาด และสถานที่ค้าปลีกของไทยที่ผ่านนิยาม (หลายกิจการขายผู้บริโภคและมีผู้บริหารพื้นที่ร่วมรายเดียว '
                        'หรือเข้ากฎรายประเภทที่เจ้าของข้อมูลยอมรับ เช่น ตลาด และสถานีบริการน้ำมันที่มีร้านค้า) '
-                       'แยกประเภทและผู้บริหาร พร้อมหลักฐานรายช่อง ไม่ใช่สำมะโน ไม่ใช่ footfall ยอดขาย ค่าเช่า หรืออัตราว่าง',
+                       'แยกประเภทและผู้บริหาร พร้อมหลักฐานรายช่อง · นับจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง',
         'url': SITE, 'inLanguage': 'th', 'dateModified': as_of,
         'creator': {'@type': 'Organization', 'name': 'Landometer · CityMETER'},
         'spatialCoverage': {'@type': 'Place', 'name': 'Thailand'},

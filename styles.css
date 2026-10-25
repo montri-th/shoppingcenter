@@ -49,7 +49,6 @@ button:disabled { opacity: .4; cursor: default; }
 .btn.primary:hover { background: var(--text-secondary); border-color: var(--text-secondary); }
 .btn.quiet { background: transparent; }
 .btn.quiet:hover { background: var(--surface-alt); }
-.btn.back::before { content: "←"; font-weight: 400; }
 .link-button { display: inline; border: 0; background: none; padding: 0; min-height: 0; border-radius: 2px; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: normal; text-align: left; }
 .link-button:hover { background: var(--surface-alt); }
 input, select { min-height: 44px; width: 100%; border: 1px solid var(--border-default); border-radius: var(--radius-sm); background: var(--surface-raised); padding: 8px 12px; }
@@ -136,15 +135,13 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 /* Pictograms — Material Symbols Rounded subset (FILL 0 / wght 300 / GRAD 0 / opsz 24), Apache-2.0.
    Test exception to the LDS nav-7 rule approved by the owner 2026-10-22; nav-7 bytes unchanged.
    The glyph is decorative (aria-hidden); the text label carries the meaning. Hidden until the font loads. */
+/* pictogram-glyphs:start (scripts/build-pictogram-font.py) */
 @font-face {
   font-family: "LDS Material Symbols Rounded Pictogram";
-  src: url("assets/icons/material-pictogram-300.woff2") format("woff2");
+  src: url("assets/icons/material-pictogram-300.woff2?v=ab4a8142c9d6") format("woff2");
   font-style: normal; font-weight: 300; font-display: block;
-  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C;
+  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913;
 }
-.pictogram { display: inline-block; width: 20px; height: 20px; font: 300 20px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; letter-spacing: normal; text-transform: none; font-synthesis: none; vertical-align: -4px; visibility: hidden; color: var(--text-secondary); }
-.pictograms-ready .pictogram { visibility: visible; }
-.pictograms-unavailable .pictogram { display: none; }
 .pic-brand::before { content: "\EAD5"; }
 .pic-store::before { content: "\EA12"; }
 .pic-venue::before { content: "\E54C"; }
@@ -153,6 +150,42 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .pic-exclusive::before { content: "\F09A"; }
 .pic-gla::before { content: "\EA49"; }
 .pic-segment::before { content: "\E72C"; }
+.pic-country::before { content: "\E80B"; }
+.pic-view3d::before { content: "\EFC9"; }
+.pic-architect::before { content: "\EA3B"; }
+.pic-help::before { content: "\E8FD"; }
+.pic-info::before { content: "\E88E"; }
+.pic-chart::before { content: "\E26B"; }
+.pic-rank::before { content: "\F20C"; }
+.pic-mix::before { content: "\E9E6"; }
+.pic-operator::before { content: "\E7EE"; }
+.pic-table::before { content: "\F101"; }
+.pic-search::before { content: "\EF7A"; }
+.pic-filter::before { content: "\E429"; }
+.pic-back::before { content: "\E5C4"; }
+.pic-expand::before { content: "\E5CF"; }
+.pic-collapse::before { content: "\E5CE"; }
+.pic-contact::before { content: "\F0D4"; }
+.pic-hours::before { content: "\EFD6"; }
+.pic-opened::before { content: "\EBCC"; }
+.pic-address::before { content: "\F1DB"; }
+.pic-coordinate::before { content: "\E55C"; }
+.pic-checked::before { content: "\E614"; }
+.pic-building::before { content: "\EA40"; }
+.pic-evidence::before { content: "\F0C5"; }
+.pic-upcoming::before { content: "\F238"; }
+.pic-closed::before { content: "\F08F"; }
+.pic-idea::before { content: "\E90F"; }
+.pic-layers::before { content: "\E53B"; }
+.pic-prev::before { content: "\E5CB"; }
+.pic-next::before { content: "\E5CC"; }
+.pic-palette::before { content: "\E40A"; }
+.pic-route::before { content: "\EACD"; }
+.pic-touch::before { content: "\E913"; }
+/* pictogram-glyphs:end */
+.pictogram { display: inline-block; width: 20px; height: 20px; font: 300 20px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; letter-spacing: normal; text-transform: none; font-synthesis: none; vertical-align: -4px; visibility: hidden; color: var(--text-secondary); }
+.pictograms-ready .pictogram { visibility: visible; }
+.pictograms-unavailable .pictogram { display: none; }
 .pic-plain { display: none; }
 /* Pictogram colour follows the mark it stands for: store = pin, venue = host building, exclusive = series 7. */
 .pic-store { color: var(--series-1-fill); }
@@ -529,4 +562,41 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 @media (max-width: 760px) and (orientation: portrait) { .map-panel.is-detail-zoom .map-legend { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0s !important; transition-duration: 0s !important; }
+}
+
+/* LDS icons next to labels (owner instruction 2026-10-25: icon styling per LDS to keep labels short).
+   Material Symbols Rounded subset, FILL 0 / wght 300; decorative, the text carries the meaning. */
+.map-toolbar button, .insight-heading button, .tabs button, .pagination button, .results-heading button { display: inline-flex; align-items: center; gap: 6px; }
+.map-toolbar .pictogram, .insight-heading .pictogram, .tabs .pictogram, .btn .pictogram, .pagination .pictogram, .results-heading .pictogram { width: 18px; height: 18px; font-size: 18px; vertical-align: 0; flex: 0 0 18px; color: currentColor; }
+.insight-heading h2 { display: inline-flex; align-items: center; gap: 6px; }
+.insight-heading h2 .pictogram { color: var(--text-secondary); }
+.search-field { position: relative; display: block; }
+.search-field .pictogram { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; font-size: 18px; pointer-events: none; }
+.search-field input { padding-left: 38px; }
+.filter-details summary .pictogram { width: 18px; height: 18px; font-size: 18px; vertical-align: 0; }
+.eyebrow .pictogram { width: 16px; height: 16px; font-size: 16px; margin-right: 5px; vertical-align: -3px; color: currentColor; }
+.facts dt { display: flex; align-items: flex-start; gap: 6px; }
+.facts dt .pictogram { width: 16px; height: 16px; font-size: 16px; flex: 0 0 16px; vertical-align: 0; margin-top: 1px; }
+.evidence summary .pictogram { width: 18px; height: 18px; font-size: 18px; margin-right: 6px; vertical-align: -4px; }
+.help-steps strong { display: inline-flex; align-items: center; gap: 6px; }
+.help-steps strong .pictogram { width: 18px; height: 18px; font-size: 18px; vertical-align: 0; }
+.store-number { font-size: 20px; }
+.metric-operator .metric-symbol, .pic-operator { color: var(--text-secondary); }
+
+/* amCharts views (vendor/amcharts5, free licence: the amCharts logo stays) */
+.chart-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.chart-head .chart-caption { margin: 0; }
+.chart-controls, .chart-key { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.chart-key { margin: 2px 0 6px; }
+.chip-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 3px 10px; font-size: 12px; border: 1px solid var(--border-default); border-radius: 999px; background: transparent; color: var(--text-secondary); }
+.chip-toggle[aria-pressed="true"] { background: var(--surface-alt); color: var(--text-primary); font-weight: 600; }
+.chip-toggle.key-item[aria-pressed="false"] { color: var(--text-metadata); text-decoration: line-through; text-decoration-color: var(--text-muted); }
+.chip-toggle.key-item[aria-pressed="false"] .cue-swatch { opacity: .35; }
+.chip-toggle:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.am-chart { width: 100%; min-height: 160px; }
+.chart-note { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 3px 4px; font-size: 12px; color: var(--text-metadata); }
+.am-chart [role="button"]:focus-visible, .am-chart [tabindex]:focus-visible, .am5-focus-container [tabindex]:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+@media (max-width: 760px) and (orientation: portrait) {
+  .map-toolbar button#open-help span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tabs .tab-label { font-size: 12px; }
 }

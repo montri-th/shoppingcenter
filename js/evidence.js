@@ -100,22 +100,19 @@ export const STORE_DATASETS = Object.freeze({
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 
-/** Why a qualified row is not counted (row.countHold from the pipeline; countRole for older data). */
+/** Why a qualified row is not counted (row.countHold from the pipeline; countRole for older data) — a short pill. */
 const HOLD_READINGS = Object.freeze({
-  duplicate: 'อาจซ้ำกับรายการอื่น ไม่นับแยกจนกว่าจะตรวจ',
-  'count-review': 'ผ่านนิยามแล้ว แต่การนับแยกยังรอตรวจ จึงยังไม่นับ',
-  context: 'เป็นบริบทของหลายสถานที่ ไม่นับเป็นสถานที่เดียว',
-  unclassified: 'บทบาทการนับยังไม่จัดประเภท จึงยังไม่นับ',
+  duplicate: 'อาจซ้ำ · ไม่นับแยก',
+  'count-review': 'รอตรวจการนับ · ยังไม่นับ',
+  context: 'บริบทของหลายสถานที่ · ไม่นับ',
+  unclassified: 'ยังไม่นับ',
 });
 
+/** Pill for rows that are not counted on their own; counted rows get none (no caveat on screen). */
 export function hierarchyReading(row) {
   if (!row) return '';
   if (!row.countable && HOLD_READINGS[row.countHold]) return HOLD_READINGS[row.countHold];
   if (row.countRole === 'duplicate_candidate_hold') return HOLD_READINGS.duplicate;
-  if (!row.countable) return 'พื้นที่ย่อยในโครงการ ไม่นับแยก';
-  if (row.countBasis === 'component-without-qualified-parent') return (row.children || []).length
-    ? 'นับเป็นสถานที่ ไม่บวกพื้นที่ย่อย · โครงการแม่ยังไม่อยู่ในชุดที่ผ่านนิยาม'
-    : 'นับเป็นสถานที่ · โครงการแม่ยังไม่อยู่ในชุดที่ผ่านนิยาม';
-  if ((row.children || []).length) return 'โครงการแม่ นับครั้งเดียว ไม่บวกพื้นที่ย่อย';
+  if (!row.countable) return 'พื้นที่ย่อย · ไม่นับแยก';
   return '';
 }

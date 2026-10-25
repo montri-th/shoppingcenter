@@ -63,6 +63,7 @@ OWNER_SHOPPING_CENTRES = {
 COUNTED_ROLES = {
     'venue_site', 'venue_site_candidate', 'parent_complex', 'managed_site_parent',
     'pending_scope_boundary_review', 'retail_scope_pending_terminal_boundary',
+    'retail_component_scope_not_entire_hotel_tower',
 }
 COMPONENT_ROLES = {
     'child_zone', 'child_venue', 'retail_component_within_managed_site',
@@ -148,11 +149,19 @@ LEGACY_GROUP = {
     'walking_street': 'market',
     'gas_station_retail': 'fuel', 'terminal_duty_free': 'component',
 }
-# Evidence types added at the 25 Oct 2026 refresh, after reviewing the keyword placement of each (the owner's
-# category rules brought markets, fuel stations and grocery anchors into the qualified set).
+# Evidence types added at the 25 Oct 2026 refreshes (15:06 and 16:39 exports), after reviewing the keyword placement
+# of each (the owner's category rules brought markets, fuel stations, grocery anchors and small plazas into the set);
+# Y Square Food Mall and RK Avenue (food-court plazas) read as community malls, not "other".
 TYPE_GROUP_ADDED_2026_10_25 = {
+    'mall': {
+        'department_store_or_plaza_scope_pending', 'shopping_plaza_consumer_services_common_manager_pending'
+    },
     'community': {
-        'community_retail_property_historical_source'
+        'community_retail_hub', 'community_retail_precinct', 'community_retail_property_historical_source',
+        'community_shopping_and_nightlife_project_current_boundary_pending',
+        'food_and_dining_retail_complex_scope_pending', 'managed_food_court_and_event_space_scope_pending',
+        'mixed_commercial_retail_and_service_project_scope_pending',
+        'retail_and_dining_complex_common_management_pending'
     },
     'hoststore': {
         'grocery_anchor_with_food_retail_counter_component', 'grocery_anchor_with_restaurant_component',
@@ -166,27 +175,39 @@ TYPE_GROUP_ADDED_2026_10_25 = {
         'wholesale_store_with_derived_retail_component_scope'
     },
     'market': {
-        'agricultural_wholesale_market', 'community_walking_street_market', 'covered_market_source_reported',
+        'agricultural_wholesale_market', 'canal_community_weekend_market', 'community_cultural_market',
+        'community_food_and_service_market_scope_pending', 'community_market_and_food_court_scope_pending',
+        'community_market_retail_scope', 'community_walking_street_market', 'covered_market_source_reported',
         'craft_retail_market_cluster', 'farmers_market', 'floating_market_multizone',
-        'food_market_common_management_unconfirmed', 'fresh_evening_market', 'fruit_market', 'historic_food_market',
-        'historic_market_district_retail_scope_pending', 'historic_riverside_market', 'market', 'market_district',
+        'food_and_goods_market_scope_pending', 'food_market_common_management_unconfirmed', 'fresh_evening_market',
+        'fruit_market', 'historic_food_market', 'historic_market_district_retail_scope_pending',
+        'historic_riverside_market', 'market', 'market_and_retail_service_plaza_scope_pending',
+        'market_bazaar_current_scope_unknown', 'market_bazaar_plaza_scope_pending', 'market_district',
         'market_precinct', 'marketplace', 'morning_fresh_food_street_market', 'morning_fresh_market',
-        'municipal_market', 'night_market_and_retail_complex', 'periodic_heritage_market', 'railway_market_subarea',
-        'reported_market_source_vintage_disclosed', 'riverside_market', 'riverside_periodic_walking_street_market',
-        'roadside_morning_market', 'roadside_retail_market', 'street_market_identity_scope_pending',
-        'street_market_multiple_plot_management_scope_pending', 'sunday_periodic_market_identity_perimeter_pending',
-        'temple_retail_market', 'walking_street_market', 'walking_street_market_scope_pending',
-        'weekend_community_market'
+        'municipal_market', 'night_market_and_retail_complex', 'periodic_community_market',
+        'periodic_community_market_scope_pending', 'periodic_cultural_walking_street_market',
+        'periodic_heritage_market', 'railway_market_subarea', 'reported_market_source_vintage_disclosed',
+        'retail_market_project_scope_pending', 'riverside_market', 'riverside_night_market',
+        'riverside_periodic_walking_street_market', 'roadside_morning_market', 'roadside_retail_market',
+        'street_market_identity_scope_pending', 'street_market_multiple_plot_management_scope_pending',
+        'sunday_periodic_market_identity_perimeter_pending', 'temple_periodic_market', 'temple_retail_market',
+        'walking_street_market', 'walking_street_market_scope_pending', 'weekend_community_market',
+        'weekend_food_market'
     },
     'other': {
-        'historic_retail_district', 'historic_retail_district_walking_street', 'retail_food_district'
+        'historic_retail_district', 'historic_retail_district_walking_street', 'retail_entertainment_building',
+        'retail_food_district'
     },
     'fuel': {
         'fuel_station_with_historical_retail_component', 'fuel_station_with_retail_component',
         'fuel_station_with_source_listed_retail_component'
     },
     'component': {
-        'community_market_otop_component', 'seafood_market_component', 'shopping_center_retail_component'
+        'community_market_otop_component', 'farmers_market_retail_component',
+        'hospital_green_market_component_scope_pending',
+        'industrial_estate_commercial_plaza_retail_and_service_component', 'retail_and_service_component',
+        'seafood_market_component', 'shopping_center_retail_component', 'shopping_mall_retail_component',
+        'shopping_plaza_and_market_component_boundary_pending'
     },
 }
 for _group, _types in TYPE_GROUP_ADDED_2026_10_25.items():
@@ -320,7 +341,10 @@ def qualification_rule(s):
         return 'planned', 'planned_*'
     if s.startswith('historical_') or s == 'definition_supported_historically_current_operation_separate':
         return 'historical', 'historical_*'
-    if s.startswith('definition_supported') or s.startswith('qualified_') or s == 'parent_context_retail_child_qualified_separately':
+    if s.startswith('parent_context_'):
+        # The registry closed the parent as context: its retail child is the qualified venue (sheet 2026-10-25).
+        return 'excluded', 'parent context (retail child qualified separately)'
+    if s.startswith('definition_supported') or s.startswith('qualified_'):
         return 'supported', 'definition_supported_* / qualified_*'
     if s.startswith(('pending_', 'definition_pending')):
         return 'pending', 'pending_*'

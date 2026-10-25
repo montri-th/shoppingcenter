@@ -1,14 +1,19 @@
 /**
- * Host buildings of qualified retail venues: original building footprints and CityMETER
- * building parts from the qualified host-geometry handoff (2026-10-23), joined to venues by
- * the registry's own link table (13_BUILDING_LINKS) — never by proximity or name.
- * A parent footprint that has qualified parts renders as an outline, not an extra solid;
- * unknown or disputed height keeps height_m null and uses a 3 m display fallback.
- * Source semantics: CityMETER production CmDatasetBuilding3dPlugin (baseM/topM;
- * 3 m display fallback), https://landometer.com/api/v2/citymeter-v3/building.
- * Original polygons © OpenStreetMap contributors, ODbL 1.0:
- * https://www.openstreetmap.org/copyright
- * No generated footprints, nearest-building joins, sales or measured-height claims.
+ * Venue buildings on the 3D map, one source, two kinds:
+ *
+ *  1. Host buildings of qualified venues: original building footprints and CityMETER building
+ *     parts from the qualified host-geometry handoff (2026-10-23), joined to venues by the
+ *     registry's own link table (13_BUILDING_LINKS). A parent footprint that has qualified parts
+ *     renders as an outline, not an extra solid; unknown or disputed height keeps height_m null
+ *     and uses a 3 m display fallback. Source semantics: CityMETER production
+ *     CmDatasetBuilding3dPlugin (baseM/topM; 3 m display fallback),
+ *     https://landometer.com/api/v2/citymeter-v3/building.
+ *  2. Pin buildings (pin-buildings.js, owner instruction 2026-10-25): for a counted venue
+ *     without host geometry, the basemap building its pin stands in. Drawn the same blue; the
+ *     panel names which kind it is.
+ *
+ * Original polygons © OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/copyright
+ * No generated footprints, name joins, sales or measured-height claims.
  */
 const SOURCE = 'venue-buildings';
 const EXTRUSION = 'venue-buildings-3d';
@@ -40,6 +45,9 @@ function colors(theme) {
 }
 
 export function buildingHeightLabel(properties = {}) {
+  if (properties.height_status === 'basemap_render_height') {
+    return 'อาคารที่หมุดตั้งอยู่ · รูปทรงจาก OpenStreetMap';
+  }
   if (properties.height_status === 'model_height_review') {
     return 'ความสูงแบบจำลองรอตรวจ · 3 ม. เพื่อแสดงรูปทรง';
   }
@@ -73,6 +81,7 @@ export function installVenueBuildings(map, geojson, options = {}) {
   let theme = options.theme || 'light';
   let disposed = false;
   let displayed = [];
+  let pins = [];
   let coverage;
   const onSelect = typeof options.onSelect === 'function' ? options.onSelect : null;
   const before = options.beforeId && map.getLayer(options.beforeId) ? options.beforeId : undefined;
@@ -132,18 +141,30 @@ export function installVenueBuildings(map, geojson, options = {}) {
         height_label: buildingHeightLabel(properties),
       }});
     }
-    const unmatchedRows = currentRows.filter(r => !matched.has(String(r.id)));
+    // Pin buildings only for venues without host geometry (host geometry always wins).
+    const pinVenues = new Set();
+    let pinParts = 0;
+    for (const feature of pins) {
+      const ids = list(feature.properties?.venue_ids).map(String).filter(id => byId.has(id) && !matched.has(id));
+      if (!ids.length) continue;
+      ids.forEach(id => pinVenues.add(id));
+      pinParts++;
+      const {_ring, ...plain} = feature;
+      displayed.push({...plain, properties: {...feature.properties, selected_venue_ids: ids, height_label: buildingHeightLabel(feature.properties)}, _ring});
+    }
+    const unmatchedRows = currentRows.filter(r => !matched.has(String(r.id)) && !pinVenues.has(String(r.id)));
     coverage = {
       totalRows: byId.size, matchedRows: matched.size, unmatchedRows: unmatchedRows.length,
       matchedVenues: venues.size, unmatchedVenues: unmatchedRows.length,
       hostBuildings: hosts.size, features: displayed.length,
       unknownHeightBuildings: unknownHosts.size, estimatedHeightBuildings: estimatedHosts.size,
       disputedHeightBuildings: disputedHosts.size,
+      pinVenues: pinVenues.size, pinParts,
       unmatchedRowIds: unmatchedRows.map(r => r.id), enabled,
       geometryRole: 'host_building_not_shop_unit', fallbackHeightM: 3,
     };
     const source = map.getSource(SOURCE);
-    if (source) source.setData({type: 'FeatureCollection', features: displayed});
+    if (source) source.setData({type: 'FeatureCollection', features: displayed.map(({_ring, ...f}) => f)});
     const palette = colors(theme);
     if (map.getLayer(EXTRUSION)) {
       map.setLayoutProperty(EXTRUSION, 'visibility', enabled ? 'visible' : 'none');
@@ -187,7 +208,9 @@ export function installVenueBuildings(map, geojson, options = {}) {
   }
   /** Features currently drawn (hosts of the passed rows) — used to keep OSM massing from swallowing them. */
   function displayedFeatures() { return disposed || !enabled ? [] : displayed.slice(); }
-  const controller = {update, getCoverage, displayedFeatures, dispose};
+  /** Replace the pin buildings (features from pin-buildings.js) and redraw. */
+  function setPinFeatures(features) { pins = Array.isArray(features) ? features : []; return update(); }
+  const controller = {update, getCoverage, displayedFeatures, setPinFeatures, dispose};
   active.set(map, controller);
   update();
   return controller;

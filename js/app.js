@@ -1,5 +1,5 @@
 /**
- * CityMETER · Shopping Centers & Retail Venues — application orchestration.
+ * CityMETER · ศูนย์การค้า (Shopping centers) — application orchestration.
  *
  * One committed selection drives everything. Three row scopes, named as in Luxury Brands:
  *   scopeRows — countable venues after the filters (status, group, operator, province,
@@ -26,7 +26,7 @@
  * view3d, cam — restored on load. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
-import {GROUPS, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, operatorRanking, districtWord, groupById, BANGKOK} from './model.js';
+import {GROUPS, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, operatorRanking, districtWord, groupById, contextState, BANGKOK} from './model.js';
 import {indexDistricts, summarizeDistricts, districtsInScope, districtLabel} from './areas.js';
 import {summarizeAreaInsight, filterDistrictRows} from './area-insight.js';
 import {renderInsightChart} from './charts.js';
@@ -35,12 +35,13 @@ import {loadMapLibrary} from './vendors.js';
 import {installVenuePins, MAX_DOM_PINS} from './pins.js';
 import {installVenuePoints, POINT_LAYERS} from './venue-points.js';
 import {installVenueBuildings, HOST_LAYERS} from './buildings.js';
+import {installPinBuildings} from './pin-buildings.js';
 import {installVenueXray} from './venue-xray.js';
 import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
 import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBounds, FILL_MAX_ZOOM} from './map-layers.js';
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch} from './panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint} from './camera.js';
@@ -68,7 +69,7 @@ const state = {
   showPending: true,
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', lastPreset: '',
   view3d: true, twoPoint: true,
-  pins: null, points: null, buildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
+  pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
 };
 
 /* ---------- helpers ---------- */
@@ -88,7 +89,7 @@ const currentVenue = () => (state.panel.mode === 'venue' ? state.byId.get(state.
 const selectedDistrict = () => (state.panel.mode === 'district' ? state.districts.get(state.panel.id) || null : null);
 const pendingCard = () => (state.panel.mode === 'pending' ? buildPendingCard(state.pending, Number(state.panel.id), state.districts) : null);
 const asList = value => Array.isArray(value) ? value : (typeof value === 'string' ? (() => { try { const x = JSON.parse(value); return Array.isArray(x) ? x : []; } catch { return []; } })() : []);
-const subjectWord = () => { const g = values().group; return g ? groupById(g).th : 'ศูนย์การค้าและสถานที่ค้าปลีก'; };
+const subjectWord = () => { const g = values().group; return g ? groupById(g).th : SUBJECT; };
 
 /** The province whose districts are drawn and ranked ('' = the whole country). */
 function readingProvince() {
@@ -126,6 +127,7 @@ function applyTheme() {
   if (state.map && next !== state.mapTheme) {
     state.loaded = false;
     state.xray?.dispose(); state.xray = null;
+    state.pinBuildings?.dispose(); state.pinBuildings = null;
     state.buildings?.dispose(); state.buildings = null;
     state.massing?.dispose(); state.massing = null;
     state.points = null; state.districtLayers = null; state.provinceLayers = null;
@@ -214,7 +216,7 @@ function renderCrumbs() {
   const province = values().province || (v ? rowProvince(v) : '') || c?.province?.code || (focusMode() !== 'none' && !values().search ? state.insight?.province : '') || '';
   const crumbs = buildBreadcrumb({province, district, venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : null});
   $('crumbs').innerHTML = renderBreadcrumb(crumbs);
-  document.title = `${breadcrumbText(crumbs)} · ศูนย์การค้าและสถานที่ค้าปลีก · CityMETER`;
+  document.title = `${breadcrumbText(crumbs)} · ${PRODUCT_TITLE} · CityMETER`;
   return crumbs;
 }
 
@@ -245,7 +247,7 @@ function renderPanel() {
   } else if (mode === 'venue') {
     const v = currentVenue();
     const detail = state.detail?.id === v?.id ? state.detail : cachedDetail(v?.id, state.data.meta?.detail?.shards);
-    html = renderVenue(buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts}), {asOf, buildings: venueHostFeatures(), detailError: state.detailError});
+    html = renderVenue(buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts}), {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError});
   } else if (mode === 'pending') {
     html = renderPending(pendingCard(), {asOf});
   }
@@ -278,10 +280,10 @@ function renderMapAha(insight) {
   const word = districtWord(insight.province);
   const crumb = `<p class="map-aha-crumb">ประเทศไทย › ${esc(provinceByCode(insight.province)?.th || '')}</p>`;
   el.innerHTML = mode === 'explicit'
-    ? `<div>${crumb}<h2>กำลังสำรวจ ${num(insight.districts.length)} ${word}</h2><p>${num(insight.count)} แห่ง</p></div><button type="button" class="btn" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
+    ? `<div>${crumb}<h2>กำลังดู ${num(insight.districts.length)} ${word}</h2><p>${num(insight.count)} แห่ง</p></div><button type="button" class="btn" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
     : `<div>${crumb}<h2>${num(Math.round(insight.share))}% ของ${esc(subjectWord())}ใน${esc(provinceShort(insight.province))} อยู่ใน ${num(insight.districts.length)} ${word}</h2><p>${insight.districts.map(d => esc(d.th)).join(' · ')}</p></div>${mode === 'auto'
       ? `<button type="button" class="btn" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
-      : '<button type="button" class="btn primary" data-action="explore-top">โฟกัส</button>'}`;
+      : `<button type="button" class="btn primary" data-action="explore-top">ดู ${num(insight.districts.length)} ${word}นี้</button>`}`;
 }
 
 function pushHistory() { state.history.push({...state.panel}); if (state.history.length > 20) state.history.shift(); }
@@ -339,7 +341,7 @@ function selectPending(index, {fromMap = false} = {}) {
   update({camera: false});
   if (state.loaded) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: sheetOffset(), animate: animate()}); state.lastPreset = cameraPreset(); }
   if (!fromMap || mobilePortrait()) openMobilePanel();
-  announce(`${c.reviewed ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รายการรอตรวจนิยาม'} ${c.name}`);
+  announce(`${contextState(c.reviewed)} ${c.name}`);
 }
 
 /** Frame a venue on its host building(s) when it has qualified geometry, else on its point. */
@@ -456,7 +458,7 @@ function togglePending() {
   updatePins();
   renderLegend();
   saveURL();
-  announce(state.showPending ? 'แสดงรายการที่ยังไม่ผ่านนิยาม' : 'ซ่อนรายการที่ยังไม่ผ่านนิยาม');
+  announce(state.showPending ? 'แสดงรายการที่ยังยืนยันไม่ได้' : 'ซ่อนรายการที่ยังยืนยันไม่ได้');
 }
 
 /* ---------- charts ---------- */
@@ -471,8 +473,8 @@ function drawChart() {
   $('chart').setAttribute('aria-labelledby', 'tab-' + state.view);
   const readCode = readingProvince();
   const kind = readCode ? 'district' : 'province';
-  $('chart-scope').textContent = `${num(state.scopeRows.length)} แห่งในตัวกรอง · ${readCode ? `ทุก${districtWord(readCode)}ใน${provinceShort(readCode)}` : 'ทุกจังหวัด'}`;
-  $('tab-rank').textContent = readCode ? `${districtWord(readCode)}หนาแน่น` : 'จังหวัด';
+  $('chart-scope').textContent = `${num(state.scopeRows.length)} แห่ง · ${readCode ? `ทุก${districtWord(readCode)}ใน${provinceShort(readCode)}` : 'ทุกจังหวัด'}`;
+  $('tab-rank').querySelector('.tab-label').textContent = readCode ? `${districtWord(readCode)}ที่แน่นที่สุด` : 'จังหวัด';
   if ($('insight-content').hidden) return;
   const areas = kind === 'district' ? state.districtModel.areas : provinceAreas(state.scopeRows, state.provinceModel);
   chartDispose = renderInsightChart({
@@ -489,7 +491,7 @@ function openInsights(open) {
   $('insight-content').hidden = !open;
   $('insights').classList.toggle('is-collapsed', !open);
   $('toggle-insights').setAttribute('aria-expanded', String(open));
-  $('toggle-insights').textContent = open ? 'ย่อกราฟ' : 'เปิดกราฟ';
+  $('toggle-insights').innerHTML = `${icon(open ? 'expand' : 'collapse')}<span>${open ? 'ย่อกราฟ' : 'เปิดกราฟ'}</span>`;
   requestAnimationFrame(() => { syncBottomPanel(); drawChart(); });
 }
 
@@ -614,23 +616,53 @@ function updateSpatialLayers() {
   state.districtLabels?.update(labelAreas, {selectedId: d?.code || '', visible: true, LngLatBounds: maplibregl.LngLatBounds, unit: 'แห่ง', minZoom: readCode ? 9.2 : 10, quietMinZoom: 13.2});
   renderLegend();
   const detail = detailRows();
+  state.pinBuildings?.update({rows: detail.filter(r => r.countable && hasPoint(r)), enabled: true});
   state.buildings?.update({rows: detail, enabled: true, theme: theme()});
+  refreshMassing(detail);
+  updatePendingMarker();
+  state.pins?.layout();
+}
+
+/**
+ * Massing input for the current view. The focus follows what the user opened: the venue
+ * (a ring round it), the district (whole when small, rings round its central venues when
+ * large) or the first-Aha districts. Fade anchors are venue points of that focus (the camera
+ * centre is added by massing.js), never a boundary vertex.
+ */
+function focusGeometry(detail) {
+  const venues = detail.filter(hasPoint);
+  const v = currentVenue();
+  if (v && hasPoint(v)) return {regions: circleRegions([v], 650), anchors: [[v.lon, v.lat]]};
+  const d = selectedDistrict();
+  const districts = d ? [d] : state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
+  if (!districts.length) return {regions: [], anchors: []};
+  const labels = districts.map(x => {
+    const p = x.feature?.properties || {};
+    return Number.isFinite(p.labelLon) && Number.isFinite(p.labelLat) ? [p.labelLon, p.labelLat] : null;
+  }).filter(Boolean);
+  const centre = labels[0] || (venues[0] ? [venues[0].lon, venues[0].lat] : null);
+  const near = centre ? [...venues].sort((a, b) => Math.hypot(a.lon - centre[0], a.lat - centre[1]) - Math.hypot(b.lon - centre[0], b.lat - centre[1])) : venues;
+  const small = districts.reduce((sum, x) => sum + x.areaKm2, 0) <= 40;
+  const regions = small ? districts.flatMap(x => outerRings(x.feature)) : circleRegions(near.slice(0, 24));
+  return {regions, anchors: [...labels, ...near.slice(0, 60).map(r => [r.lon, r.lat])]};
+}
+
+/** Host + pin buildings into the massing tiers, the eye-view scene and the x-ray. */
+function refreshMassing(detail = detailRows()) {
+  const map = state.map;
+  if (!map || !state.loaded) return;
   const hostFeatures = state.buildings?.displayedFeatures() || [];
-  // Focus massing: small districts are decoded whole; large ones only around their venues (bounded tile budget).
-  const focusDistricts = d ? [d] : state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
-  const smallArea = focusDistricts.length && focusDistricts.reduce((s, x) => s + x.areaKm2, 0) <= 40;
-  const regions = smallArea ? focusDistricts.flatMap(x => outerRings(x.feature)) : circleRegions(detail.filter(hasPoint).slice(0, 60));
-  const anchors = regions.length ? regions.map(ring => ring[0]) : detail.filter(hasPoint).slice(0, 60).map(r => [r.lon, r.lat]);
+  const pinRings = hostFeatures.filter(f => f._ring).map(f => f._ring);
+  const hosts = hostFeatures.filter(f => !f._ring).flatMap(outerRings);
+  const {regions, anchors} = focusGeometry(detail);
   state.massing?.update({
-    regions, hosts: hostFeatures.flatMap(outerRings), anchors,
+    regions, hosts, pins: pinRings, anchors,
     enabled: true, city: state.view3d, zoom: map.getZoom(), latitude: map.getCenter().lat,
   })?.catch(e => console.warn('Massing', e));
   state.massing?.setScene(cameraPreset() === 'eye' ? 'eye' : 'default', venueTargets(hostFeatures));
   const hostColors = () => { const s = getComputedStyle(document.documentElement); return {fill: s.getPropertyValue('--map-active-layer').trim(), stroke: s.getPropertyValue('--map-selected-stroke').trim()}; };
   state.xray?.update(venueLevel() ? venueHostFeatures(hostFeatures).filter(f => f.properties?.render_as === 'extrusion') : [], {colors: hostColors()});
   state.xray?.setEnabled(state.view3d);
-  updatePendingMarker();
-  state.pins?.layout();
 }
 
 /** 24-gon rings of radius r metres around points (focus massing for large districts). */
@@ -704,6 +736,14 @@ function installSpatialLayers() {
   state.districtLayers = state.districtGeo?.features?.length ? installDistrictLayers(map) : null;
   // Draw order is depth order in MapLibre's 3D pass: the host (data) layer first, massing inserted BEFORE it.
   state.buildings = installVenueBuildings(map, state.buildingData, {rows: detailRows(), enabled: true, theme: theme(), beforeId: MASSING_BEFORE});
+  // Pin buildings: the basemap building each counted pin stands in (owner instruction 2026-10-25).
+  state.pinBuildings = installPinBuildings(map, {
+    onChange: ({features}) => {
+      state.buildings?.setPinFeatures(features);
+      refreshMassing();
+      if (venueLevel()) renderPanel();
+    },
+  });
   state.massing = installMassing(map, {
     beforeId: map.getLayer(HOST_LAYERS.extrusion) ? HOST_LAYERS.extrusion : MASSING_BEFORE, colors: {quiet: palette.massingQuiet, focus: palette.massingFocus, ground: palette.ground},
     tileUrl: t => (state.tileTemplate ? state.tileTemplate.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y) : ''),
@@ -740,8 +780,8 @@ function initMap() {
     fetch(TILEJSON_URL).then(r => r.json()).then(j => { state.tileTemplate = j.tiles?.[0] || ''; if (state.loaded) updateSpatialLayers(); }).catch(e => console.warn('TileJSON', e));
   } catch (e) {
     state.loaded = false; state.initialCameraDone = false;
-    for (const cleanup of [() => state.pins?.dispose(), () => state.districtLabels?.dispose(), () => state.provinceLabels?.dispose(), () => state.xray?.dispose(), () => state.buildings?.dispose(), () => state.massing?.dispose(), () => state.map?.remove()]) { try { cleanup(); } catch (err) { console.warn('Map cleanup', err); } }
-    state.map = null; state.pins = null; state.districtLabels = null; state.provinceLabels = null; state.buildings = null; state.massing = null; state.xray = null; state.points = null; state.districtLayers = null; state.provinceLayers = null;
+    for (const cleanup of [() => state.pins?.dispose(), () => state.districtLabels?.dispose(), () => state.provinceLabels?.dispose(), () => state.xray?.dispose(), () => state.pinBuildings?.dispose(), () => state.buildings?.dispose(), () => state.massing?.dispose(), () => state.map?.remove()]) { try { cleanup(); } catch (err) { console.warn('Map cleanup', err); } }
+    state.map = null; state.pins = null; state.districtLabels = null; state.provinceLabels = null; state.buildings = null; state.pinBuildings = null; state.massing = null; state.xray = null; state.points = null; state.districtLayers = null; state.provinceLayers = null;
     throw e;
   }
 }
