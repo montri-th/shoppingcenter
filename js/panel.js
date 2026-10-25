@@ -3,8 +3,9 @@
  *
  * Every actionable element carries data-action (and data-id) and the app binds one delegated
  * click handler. Actions: select-district · select-venue · select-pending · select-province ·
- * back · explore-top · all-districts · country · open-charts · open-table · clear-filter ·
- * set-group · set-status · toggle-pending
+ * back · explore-top · all-districts · country · open-charts · open-table · open-panel ·
+ * clear-filter · set-group · set-status · toggle-pending. The back button of a detail view lives
+ * in the panel's top row (index.html #panel-back), next to the breadcrumb.
  *
  * Copy (owner instruction 2026-10-25): Aha first, no caveats on screen, natural Thai in the
  * words of the people the product serves — ผู้เช่าและทีมขยายสาขา, ทีม leasing, นักลงทุน
@@ -199,7 +200,6 @@ export function renderDistrict(p, {asOf = ''} = {}) {
   if (!p) return '';
   const word = unitWord(p.province);
   return `<section class="detail-head">
-      <button type="button" class="btn quiet back" data-action="back">${icon('back')}กลับ</button>
       <p class="eyebrow">${esc(word)}${p.rank ? ` · แน่นอันดับ ${num(p.rank)} จาก ${num(p.of)} ของ${esc(provinceShort(p.province))}` : ''}</p>
       <h2>${esc(p.label)}</h2><p class="subtle">${esc(p.provinceName)} · ${esc(formatDensity(p.areaKm2))} ตร.กม.</p>
       <div class="metrics compact">${metricTile(p.summary.venues, 'แห่ง', 'venue')}${metricTile(formatDensity(p.density), 'แห่ง/ตร.กม.', 'area')}${metricTile(p.summary.operators, 'ผู้บริหาร', 'operator')}${metricTile(p.summary.stores, 'ร้านข้างใน', 'store')}</div>
@@ -219,27 +219,45 @@ function fact(role, label, value) {
 }
 const missing = '<span class="hint">ยังไม่มีข้อมูล</span>';
 
-/** Size as figures only (decision D3: estimates stay in this panel); the method sits in the evidence list. */
-function sizeFacts(size) {
+/**
+ * Size as figures only (decision D3: estimates stay in this panel); the method sits in the
+ * evidence list. `shown` lists the reported figures already drawn as key-figure tiles.
+ */
+function sizeFacts(size, {shown = []} = {}) {
   if (!size) return '';
   const out = [];
   const m2 = v => `${num(v)} ตร.ม.`;
-  if (size.glaReported) out.push(`พื้นที่เช่า ${m2(size.glaReported)}`);
+  const reported = size.glaReported || size.gfaReported || size.siteAreaReported || size.floorsReported || size.tenantsReported;
+  if (size.glaReported && !shown.includes('gla')) out.push(`พื้นที่เช่า ${m2(size.glaReported)}`);
   if (size.gfaReported) out.push(`พื้นที่อาคาร ${m2(size.gfaReported)}`);
   if (size.siteAreaReported) out.push(`ที่ดิน ${m2(size.siteAreaReported)}`);
-  if (size.floorsReported) out.push(`${num(size.floorsReported)} ชั้น`);
+  if (size.floorsReported && !shown.includes('floors')) out.push(`${num(size.floorsReported)} ชั้น`);
   if (size.tenantsReported) out.push(`ร้านในไดเรกทอรี ${num(size.tenantsReported)} ร้าน${size.tenantsDate ? ` (${esc(thaiDate(size.tenantsDate))})` : ''}`);
-  if (!out.length && size.legacy && (size.legacy.gla || size.legacy.gfa)) {
+  if (!reported && size.legacy && (size.legacy.gla || size.legacy.gfa)) {
     const parts = [size.legacy.gla ? `พื้นที่เช่าราว ${m2(size.legacy.gla)}` : '', size.legacy.gfa ? `พื้นที่อาคารราว ${m2(size.legacy.gfa)}` : ''].filter(Boolean).join(' · ');
     out.push(`<span class="estimate">${parts}</span>`);
   }
   return out.map(x => `<span class="size-line">${x}</span>`).join('');
 }
 
-function evidenceRows(row, d, {buildingNote = ''} = {}) {
+/** Opening hours without a trailing source note in brackets; the full text stays in the evidence list. */
+export function hoursShort(text) {
+  const full = String(text || '').trim();
+  const short = full.replace(/\s*\([^()]*\)\s*$/, '').trim();
+  return /\d/.test(short) ? short : full;
+}
+
+/** tel: link for the first phone number in a field (visible text unchanged). */
+function phoneLink(phone) {
+  const text = String(phone || '').trim();
+  const first = text.split(/[,;/]| หรือ /)[0].replace(/[^\d+]/g, '');
+  return first.replace(/\D/g, '').length >= 6 ? `<a class="chip-link" href="tel:${esc(first)}">${icon('contact')}${esc(text)}</a>` : (text ? `<span class="chip-link is-text">${icon('contact')}${esc(text)}</span>` : '');
+}
+
+function evidenceRows(row, d, {buildingNote = '', addressNote = ''} = {}) {
   const ev = d?.ev || {};
   const rowsHtml = [];
-  const item = (label, text, url, date) => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${esc(text || 'ตามแหล่งที่บันทึก')}${date ? ` · ${esc(thaiDate(date))}` : ''}</span>${url ? link(url, 'แหล่ง') : '<span class="hint">ไม่มีลิงก์สาธารณะ</span>'}</li>`);
+  const item = (label, text, url, date, extra = '') => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${esc(text || 'ตามแหล่งที่บันทึก')}${date ? ` · ${esc(thaiDate(date))}` : ''}${extra}</span>${url ? link(url, 'แหล่ง') : '<span class="hint">ไม่มีลิงก์สาธารณะ</span>'}</li>`);
   const note = (label, text) => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${text}</span></li>`);
   item('ชื่อไทย', nameBasis(ev.nameTh?.basis), ev.nameTh?.url);
   if (d?.nameEn && d.nameEn !== d.nameTh) item('ชื่ออังกฤษ', nameBasis(ev.nameEn?.basis), ev.nameEn?.url);
@@ -249,11 +267,12 @@ function evidenceRows(row, d, {buildingNote = ''} = {}) {
   if (row.countBasis === 'component-without-qualified-parent') note('การนับ', 'นับเป็นสถานที่ของตัวเอง · โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม');
   if ((row.children || []).length) note('การนับ', 'นับครั้งเดียว ไม่บวกพื้นที่ย่อย');
   item('สถานะ', operationReading(row.operationGroup), ev.operation?.url);
-  if (d?.hours && hoursScope(d.hoursScope)) note('เวลาเปิด', esc(hoursScope(d.hoursScope)));
+  if (d?.hours && (hoursScope(d.hoursScope) || hoursShort(d.hours) !== String(d.hours).trim())) note('เวลาเปิด', [hoursShort(d.hours) !== String(d.hours).trim() ? esc(d.hours) : '', esc(hoursScope(d.hoursScope))].filter(Boolean).join(' · '));
   if (d?.yearOpened || d?.openedDate) note('เปิดเมื่อ', d.openedDate ? 'วันที่แหล่งรายงาน' : 'ปีที่แหล่งรายงาน');
   const legacy = d?.size?.legacy;
   if (legacy && (legacy.gla || legacy.gfa)) note('ขนาด', `ค่าประมาณจากทะเบียนเดิม ไม่ใช่ GLA ทางการ · วิธี: ${esc(legacyBasis(legacy.basis))}${legacy.basis ? ` <code>${esc(legacy.basis)}</code>` : ''}`);
-  if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url);
+  if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url, '', ` · <span class="data-number">${row.lat.toFixed(6)}, ${row.lon.toFixed(6)}</span>${addressNote}`);
+  else item('พิกัด', 'ยังไม่มีพิกัด', '');
   if (buildingNote) note('อาคาร', buildingNote);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
@@ -278,6 +297,10 @@ export function buildingReading(row, buildings = [], pinState) {
 /**
  * Venue panel. profile from buildVenueProfile; detail may still be loading (null).
  * buildings: host or pin features drawn for this venue; pinState from pin-buildings.js.
+ *
+ * Name and logo first (owner instruction 2026-10-25 18:49), then the key figures, contact
+ * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
+ * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
 export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError = false} = {}) {
   if (!p) return '';
@@ -286,43 +309,50 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
   const word = p.district ? unitWord(p.district.province) : '';
   const area = p.district ? `<button type="button" class="link-button" data-action="select-district" data-id="${esc(p.district.code)}">${esc(word)}${esc(p.district.th)}</button>` : '';
   const hierarchy = hierarchyReading(r);
-  const website = d ? link(d.website, 'เว็บไซต์') : '';
-  const directory = d ? link(d.directory, 'รายชื่อร้าน') : '';
-  const hours = d?.hours ? esc(d.hours) : '';
-  const address = d?.address ? `${esc(d.address)}${p.addressDiffers ? ` <span class="hint">(จุดอยู่ใน${esc(p.province?.th || '')})</span>` : ''}` : '';
-  const coords = hasPoint(r) ? `<span class="data-number">${r.lat.toFixed(6)}, ${r.lon.toFixed(6)}</span>` : '<span class="hint">ยังไม่มีพิกัด</span>';
-  // The exact date when the source gives it, else the year (Buddhist era).
-  const opened = d?.openedDate ? esc(thaiDate(d.openedDate)) : d?.yearOpened ? esc(d.yearOpened + 543) : '';
   const stores = d?.stores || {confirmed: r.storeCount || 0, datasets: []};
+  const size = d?.size || null;
+  // Key figures: reported values only (the D3 estimate stays a fact line that reads “ราว”).
+  // Opening: the exact date when the source gives it, else the year (Buddhist era).
+  const opened = d?.openedDate ? thaiDate(d.openedDate) : d?.yearOpened ? String(d.yearOpened + 543) : '';
+  const shown = [];
+  const tiles = [];
+  if (stores.confirmed) tiles.push(metricTile(stores.confirmed, 'ร้านข้างใน', 'store'));
+  if (size?.glaReported) { tiles.push(metricTile(size.glaReported, 'ตร.ม. พื้นที่เช่า', 'gla')); shown.push('gla'); }
+  if (size?.floorsReported && tiles.length < 3) { tiles.push(metricTile(size.floorsReported, 'ชั้น', 'building')); shown.push('floors'); }
+  if (opened && tiles.length < 3) tiles.push(metricTile(opened, 'เปิด', 'opened'));
+  const links = [d ? link(d.website, 'เว็บไซต์', 'chip-link') : '', d ? link(d.directory, 'รายชื่อร้าน', 'chip-link') : '', d?.phone ? phoneLink(d.phone) : ''].filter(Boolean);
   const luxury = d?.luxuryPlace ? link(`${LUXURY_SITE}?place=${encodeURIComponent(d.luxuryPlace)}`, 'ดูแบรนด์หรูที่นี่ใน Luxury Brands', 'source-link strong-link') : '';
-  const storeBlock = stores.confirmed
-    ? `<p><strong class="data-number store-number">${num(stores.confirmed)}</strong> ร้าน${stores.datasets.length ? ` · ${stores.datasets.map(x => esc(storeDataset(x))).join(' · ')}` : ''}</p>${luxury ? `<p class="links">${luxury}</p>` : ''}`
-    : `<p class="hint">ยังไม่มีข้อมูลร้าน</p>${luxury ? `<p class="links">${luxury}</p>` : ''}`;
+  const storeSources = stores.confirmed && stores.datasets.length ? stores.datasets.map(x => esc(storeDataset(x))).join(' · ') : '';
+  const storeBlock = storeSources || luxury ? `<section class="panel-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${stores.confirmed ? `<span class="hint">${num(stores.confirmed)} ร้าน</span>` : ''}</div>${storeSources ? `<p class="subtle">${storeSources}</p>` : ''}${luxury ? `<p class="links">${luxury}</p>` : ''}</section>` : '';
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
   const building = buildingReading(r, buildings, pinState);
+  const drawn = building.text && building.text !== 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? building.text.split(' · ')[0] : '';
+  const addressNote = p.addressDiffers ? ` · ที่อยู่อยู่ใน${esc(p.addressProvince || '')} จุดอยู่ใน${esc(p.province?.th || '')}` : '';
   return `<section class="detail-head venue${logo ? ' has-venue-logo' : ''}">
-      <button type="button" class="btn quiet back" data-action="back">${icon('back')}กลับ</button>
-      ${logo ? venueLogoMarkup(r.id, {name: r.name, size: 'lg', className: 'detail-venue-logo', decorative: false}) : ''}
-      <p class="eyebrow">${groupSwatch(g)} ${esc(g.th)}${area ? ` · ${area}` : ''}${logo?.roleLabel ? ` · <span class="venue-logo-role">${esc(logo.roleLabel)}</span>` : ''}</p>
-      <h2>${esc(r.name)}</h2>${r.nameEn && r.nameEn !== r.name ? `<p class="subtle">${esc(r.nameEn)}</p>` : ''}
-      <p class="store-status">${statusPill(r)}${hierarchy ? `<span class="status-pill tone-neutral">${esc(hierarchy)}</span>` : ''}</p>
+      <div class="venue-hero">
+        ${logo ? venueLogoMarkup(r.id, {name: r.name, size: 'lg', className: 'detail-venue-logo', decorative: false}) : `<span class="venue-hero-mark">${groupSwatch(g)}</span>`}
+        <div class="venue-title">
+          <p class="eyebrow">${logo ? `${groupSwatch(g)} ` : ''}${esc(g.th)}${area ? ` · ${area}` : ''}</p>
+          <h2>${esc(r.name)}</h2>${r.nameEn && r.nameEn !== r.name ? `<p class="subtle">${esc(r.nameEn)}</p>` : ''}
+        </div>
+      </div>
+      <p class="store-status">${statusPill(r)}${hierarchy ? `<span class="status-pill tone-neutral">${esc(hierarchy)}</span>` : ''}${logo?.roleLabel ? `<span class="venue-logo-role">${esc(logo.roleLabel)}</span>` : ''}</p>
       ${parent}
+      ${tiles.length ? `<div class="metrics compact venue-metrics">${tiles.join('')}</div>` : ''}
+      ${links.length ? `<p class="venue-links">${links.join('')}</p>` : ''}
       <dl class="facts">
         ${fact('operator', 'ผู้บริหาร', r.operatorLabel ? esc(r.operatorLabel) : missing)}
-        ${fact('contact', 'ติดต่อ', [website, directory, d?.phone ? esc(d.phone) : ''].filter(Boolean).join(' · '))}
-        ${fact('hours', 'เวลาเปิด', hours)}
-        ${fact('opened', 'เปิดเมื่อ', opened)}
-        ${fact('gla', 'ขนาด', sizeFacts(d?.size))}
-        ${fact('address', 'ที่อยู่', address)}
-        ${fact('coordinate', 'พิกัด', coords)}
+        ${fact('hours', 'เวลาเปิด', d?.hours ? esc(hoursShort(d.hours)) : '')}
+        ${fact('gla', 'ขนาด', sizeFacts(size, {shown}))}
+        ${fact('address', 'ที่อยู่', d?.address ? esc(d.address) : '')}
+        ${fact('building', 'อาคาร', drawn ? esc(drawn) : '')}
       </dl>
       ${!d && !detailError ? '<p class="hint">กำลังโหลดรายละเอียด…</p>' : ''}${detailError ? '<p class="hint">โหลดรายละเอียดไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</p>' : ''}
     </section>
-    <section class="panel-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}</div>${storeBlock}</section>
+    ${storeBlock}
     ${children}
-    ${building.text ? `<section class="panel-section"><div class="section-heading">${heading('building', 'อาคาร')}</div><p${building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? ' class="hint"' : ''}>${esc(building.text)}</p></section>` : ''}
-    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: building.note}) : ''}</ul>
+    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
     ${dataLine(asOf)}`;
 }
@@ -333,12 +363,60 @@ export function renderPending(c, {asOf = ''} = {}) {
   if (!c) return '';
   const word = c.district ? unitWord(c.district.province) : '';
   return `<section class="detail-head pending">
-      <button type="button" class="btn quiet back" data-action="back">${icon('back')}กลับ</button>
       <p class="eyebrow"><i class="pending-swatch" aria-hidden="true"></i> ${esc(contextState(c.reviewed))} · ไม่นับ</p>
       <h2>${esc(c.name)}</h2>
       <p class="subtle">${esc(c.group.th)}${c.district ? ` · <button type="button" class="link-button" data-action="select-district" data-id="${esc(c.district.code)}">${esc(word)}${esc(c.district.th)}</button>` : ''}${c.province ? ` · ${esc(c.province.th)}` : ''}</p>
       <dl class="facts">${fact('coordinate', 'พิกัด', `<span class="data-number">${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}</span>`)}${fact('evidence', 'รหัส', `<code>${esc(c.id)}</code>`)}</dl>
     </section>${dataLine(asOf)}`;
+}
+
+/* ---------- Map card (phones: the map first, the details one tap away) ---------- */
+
+const cardOpen = (label = 'ดูรายละเอียด') => `<button type="button" class="btn primary" data-action="open-panel">${icon('collapse')}${esc(label)}</button>`;
+const cardBack = `<button type="button" class="btn quiet" data-action="back">${icon('back')}กลับ</button>`;
+const card = ({mark = '', crumb = '', title = '', line = '', actions = ''}) =>
+  `<div class="map-card-main">${mark}<div class="map-card-text">${crumb ? `<p class="map-aha-crumb">${crumb}</p>` : ''}<h2>${title}</h2>${line ? `<p>${line}</p>` : ''}</div></div><div class="map-card-actions">${actions}</div>`;
+
+/** First-view card: the Aha in one line, the area action and the button that opens the panel. */
+export function mapCardAha(insight, {mode = 'auto', subject = SUBJECT} = {}) {
+  if (!insight?.districts?.length) return '';
+  const word = unitWord(insight.province);
+  const crumb = `ประเทศไทย › ${esc(provinceByCode(insight.province)?.th || '')}`;
+  if (mode === 'explicit') return card({crumb, title: `กำลังดู ${num(insight.districts.length)} ${word}`, line: `${num(insight.count)} แห่ง`, actions: `<button type="button" class="btn quiet" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>${cardOpen()}`});
+  const area = mode === 'auto'
+    ? `<button type="button" class="btn quiet" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
+    : `<button type="button" class="btn quiet" data-action="explore-top">ดู ${num(insight.districts.length)} ${word}นี้</button>`;
+  return card({crumb, title: `${num(Math.round(insight.share))}% ของ${esc(subject)}ใน${esc(provinceShort(insight.province))} อยู่ใน ${num(insight.districts.length)} ${word}`, line: insight.districts.map(x => esc(x.th)).join(' · '), actions: `${area}${cardOpen()}`});
+}
+
+/** Venue card: logo, name, type · area and the strongest figure. */
+export function mapCardVenue(p) {
+  if (!p) return '';
+  const r = p.row, g = p.group;
+  const logo = getVenueLogo(r.id, r.name);
+  const where = [esc(g.th), p.district ? `${esc(unitWord(p.district.province))}${esc(p.district.th)}` : ''].filter(Boolean).join(' · ');
+  const stores = p.detail?.stores?.confirmed || r.storeCount || 0;
+  const line = [stores ? `ร้านข้างใน ${num(stores)} ร้าน` : '', r.operatorLabel ? esc(r.operatorLabel) : ''].filter(Boolean).join(' · ');
+  return card({mark: logo ? venueLogoMarkup(r.id, {name: r.name, size: 'md'}) : groupSwatch(g), crumb: where, title: esc(r.name), line, actions: `${cardBack}${cardOpen()}`});
+}
+
+/** District card: rank, venues and density. */
+export function mapCardDistrict(p) {
+  if (!p) return '';
+  const word = unitWord(p.province);
+  return card({crumb: `${esc(word)}${p.rank ? ` · แน่นอันดับ ${num(p.rank)} จาก ${num(p.of)}` : ''}`, title: esc(p.label), line: `${num(p.summary.venues)} แห่ง · ${esc(formatDensity(p.density))} แห่ง/ตร.กม.`, actions: `${cardBack}${cardOpen()}`});
+}
+
+/** Context record card (not counted). */
+export function mapCardPending(c) {
+  if (!c) return '';
+  return card({mark: '<i class="pending-swatch" aria-hidden="true"></i>', crumb: `${esc(contextState(c.reviewed))} · ไม่นับ`, title: esc(c.name), line: esc(c.group.th), actions: `${cardBack}${cardOpen()}`});
+}
+
+/** Search card: the query, how many places, and the list. */
+export function mapCardSearch(results) {
+  if (!results) return '';
+  return card({crumb: 'ผลค้นหา', title: `“${esc(results.query)}”`, line: results.qualifiedTotal ? `${num(results.qualifiedTotal)} แห่ง` : 'ไม่พบชื่อหรือรหัสนี้', actions: `<button type="button" class="btn quiet" data-action="clear-filter" data-id="search">ล้างคำค้น</button>${cardOpen('ดูรายการ')}`});
 }
 
 /* ---------- Active filter chips ---------- */

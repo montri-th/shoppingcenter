@@ -56,7 +56,9 @@ const TITLES = {
   'fit-map': 'ดูทั้งประเทศ: ทุกจังหวัด ไม่มีโฟกัส',
   'bangkok-map': 'ไปที่กรุงเทพฯ และ 3 เขตที่หนาแน่นที่สุด',
   'toggle-3d': 'สลับมุมมอง 3 มิติ (อาคารทั้งเมือง) กับแผนผัง 2 มิติ',
-  'toggle-eye': 'มุมสถาปนิก: มองสถานที่จากระดับถนน อาคารรอบข้างจางลง',
+  'toggle-eye': 'มุมสถาปนิก: จัดภาพอาคารของสถานที่ใหม่ มองเฉียงมุมแบบ 2 จุดลับตา เต็มจอ',
+  'panel-back': 'กลับไปหน้าก่อน',
+  'close-mobile-panel': 'ปิดแผงข้อมูล กลับไปแผนที่',
   'mobile-panel': 'เปิดแผงข้อมูลและตัวกรอง',
   'open-help': 'เปิดวิธีใช้',
   'toggle-insights': 'เปิดหรือย่อกราฟเทียบพื้นที่',
@@ -82,7 +84,7 @@ function decorateNavigation() {
   byId('toggle-table', 'close');
   const mode = document.getElementById('theme');
   if (mode) decorate(mode.closest('label'), mode.value === 'dark' ? 'dark_mode' : mode.value === 'light' ? 'light_mode' : 'contrast');
-  for (const anchor of document.querySelectorAll('.source-link[target="_blank"], .usage-dialog a[target="_blank"], .top-actions a[target="_blank"], .links a[target="_blank"]')) {
+  for (const anchor of document.querySelectorAll('.source-link[target="_blank"], .chip-link[target="_blank"], .usage-dialog a[target="_blank"], .top-actions a[target="_blank"], .links a[target="_blank"]')) {
     // This glyph only marks destinations that really open a new browsing context.
     decorate(anchor, 'open_in_new');
   }

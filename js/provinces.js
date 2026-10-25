@@ -16,7 +16,7 @@
 import {PROVINCES, provinceByCode} from './model.js';
 import {summarizeProvinces} from './areas.js';
 import {buildRamp, classify} from './scales.js';
-import {featureBounds, firstLineLayerId} from './map-layers.js';
+import {featureBounds, firstLineLayerId, GEOJSON_MAXZOOM} from './map-layers.js';
 
 export const PROVINCE_FILL_MAX_ZOOM = 9;
 export const PROVINCE_OUTLINE_MAX_ZOOM = 12;
@@ -46,7 +46,7 @@ export function buildProvinceModel(rows, geojson) {
 
 export function installProvinceLayers(map, geojson, {onSelect} = {}) {
   const beforeId = firstLineLayerId(map);
-  map.addSource(SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, promoteId: 'code',
+  map.addSource(SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM, promoteId: 'code',
     attribution: 'ขอบเขตจังหวัด: <a href="https://github.com/chingchai/OpenGISData-Thailand" target="_blank" rel="noopener">OpenGISData-Thailand</a> (CC BY 4.0)'});
   const outlineColor = () => ['case', ['==', ['get', 'quiet'], 1], cssVar('--border-default', '#C9D0CB'), cssVar('--border-emphasis', '#7D877F')];
   map.addLayer({

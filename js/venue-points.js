@@ -15,6 +15,7 @@
  */
 import {GROUPS, hasPoint} from './model.js';
 import {cueImage} from './cues.js';
+import {GEOJSON_MAXZOOM} from './map-layers.js';
 
 export const POINT_LAYERS = Object.freeze({pending: 'pending-points', context: 'venue-context', focus: 'venue-focus'});
 const SOURCES = {venues: 'venue-points', pending: 'pending-points'};
@@ -58,8 +59,8 @@ export function pendingFeatures(pending) {
 
 export function installVenuePoints(map, {onSelect, onSelectPending} = {}) {
   addIcons(map);
-  map.addSource(SOURCES.pending, {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
-  map.addSource(SOURCES.venues, {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+  map.addSource(SOURCES.pending, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM});
+  map.addSource(SOURCES.venues, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM});
   map.addLayer({
     id: POINT_LAYERS.pending, type: 'circle', source: SOURCES.pending, minzoom: PENDING_MIN_ZOOM,
     paint: {

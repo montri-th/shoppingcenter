@@ -15,6 +15,15 @@
 import {buildRamp, classify} from './scales.js';
 import {pointInRing} from './geometry.js';
 
+/**
+ * maxzoom of every GeoJSON source the page adds. MapLibre 5.6.2 throws in SourceCache._updateRetainedTiles
+ * (“reading 'key'”) when a pitched camera sits between maxzoom − 1 and maxzoom of a GeoJSON source and a
+ * near tile of the level-of-detail cover reaches maxzoom before it has data (seen 2026-10-25 with the
+ * two-point venue camera at zoom 17.7 and the default maxzoom 18). Every venue camera zoom (≤ 19.5)
+ * stays two levels below 22.
+ */
+export const GEOJSON_MAXZOOM = 22;
+
 /** Outer-ring containment for a Polygon / MultiPolygon feature (labels only; holes are ignored). */
 function featureContains(feature, lngLat) {
   const g = feature?.geometry;
@@ -60,7 +69,7 @@ export function buildDistrictModel(summaries) {
 
 export function installDistrictLayers(map, {onSelect} = {}) {
   const beforeId = firstLineLayerId(map);
-  map.addSource(SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, promoteId: 'id',
+  map.addSource(SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM, promoteId: 'id',
     attribution: 'ขอบเขตเขต/อำเภอ: <a href="https://github.com/chingchai/OpenGISData-Thailand" target="_blank" rel="noopener">OpenGISData-Thailand</a> (CC BY 4.0)'});
   const outlineColor = () => ['case', ['==', ['get', 'quiet'], 1], cssVar('--border-default', '#C9D0CB'), cssVar('--border-emphasis', '#7D877F')];
   map.addLayer({

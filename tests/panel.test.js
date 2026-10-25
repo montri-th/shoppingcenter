@@ -10,7 +10,8 @@ import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.
 import {summarizeAreaInsight} from '../js/area-insight.js';
 import {buildDistrictModel} from '../js/map-layers.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from '../js/profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, thaiDate, PRODUCT_TITLE} from '../js/panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, thaiDate, hoursShort, mapCardAha, mapCardVenue, mapCardDistrict, mapCardSearch, PRODUCT_TITLE} from '../js/panel.js';
+import {configureVenueLogos, getVenueLogo} from '../js/venue-logos.js';
 import {rankAreas, groupMatrix} from '../js/chart-model.js';
 
 const read = p => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
@@ -194,4 +195,61 @@ test('opening: the exact date once when the source gives it, else the year', () 
   assert.ok(!html.includes(`${d.yearOpened + 543} · ${date}`), 'the year is not repeated before the date');
   const yearOnly = rows.find(r => { const x = details.get(r.id); return x?.yearOpened && !x.openedDate && r.countable; });
   if (yearOnly) assert.ok(renderVenue(buildVenueProfile({row: yearOnly, detail: details.get(yearOnly.id), byId, districts}), {asOf}).includes(String(details.get(yearOnly.id).yearOpened + 543)));
+});
+
+test('venue panel: name and logo first, key figures from reported values, contact chips, qualifiers in the evidence list', () => {
+  configureVenueLogos(read('data/venue-logos.json'));
+  const branded = rows.find(r => r.countable && getVenueLogo(r.id, r.name) && details.get(r.id)?.stores?.confirmed);
+  assert.ok(branded, 'fixture: a counted venue with a logo and confirmed stores');
+  const d = details.get(branded.id);
+  const html = renderVenue(buildVenueProfile({row: branded, detail: d, byId, districts}), {asOf});
+  const at = needle => html.indexOf(needle);
+  assert.ok(at('detail-venue-logo') > -1 && at('detail-venue-logo') < at('<h2>'), 'logo before the name');
+  assert.ok(at('<h2>') < at('venue-metrics') && at('venue-metrics') < at('<dl class="facts">'), 'name → key figures → facts');
+  assert.ok(!html.includes('data-action="back"'), 'the back button lives in the panel top row, not in the view');
+  assert.ok(html.includes(`>${d.stores.confirmed.toLocaleString('th-TH')}<`) && html.includes('ร้านข้างใน'));
+  // A legacy estimate is never a key figure: tiles carry reported values only.
+  const legacyOnly = rows.find(r => { const x = details.get(r.id); return r.countable && x?.size?.legacy?.gla && !x.size.glaReported; });
+  if (legacyOnly) {
+    const h = renderVenue(buildVenueProfile({row: legacyOnly, detail: details.get(legacyOnly.id), byId, districts}), {asOf});
+    const tiles = (h.match(/<div class="metrics compact venue-metrics">([\s\S]*?)<\/div><\/div>/) || [''])[0];
+    assert.ok(!/ตร\.ม\./.test(tiles), 'no estimated area in the figures');
+    assert.ok(h.includes('พื้นที่เช่าราว'), 'the estimate stays a fact line that reads ราว');
+  }
+  // Coordinates, the full opening-hours note and the building source sit in the collapsed evidence list.
+  const visible = html.replace(/<details[\s\S]*?<\/details>/g, '');
+  assert.ok(!/\d+\.\d{6}, \d+\.\d{6}/.test(visible), 'no raw coordinates on the visible panel');
+  assert.ok(/\d+\.\d{6}, \d+\.\d{6}/.test(html), 'coordinates in the evidence list');
+});
+
+test('opening hours: the source note in brackets moves to the evidence list, the times stay', () => {
+  assert.equal(hoursShort('10:00–20:00 (Gaysorn Village property account; operating days not specified)'), '10:00–20:00');
+  assert.equal(hoursShort('Daily 10:00–22:00'), 'Daily 10:00–22:00');
+  assert.equal(hoursShort('(ตามประกาศ)'), '(ตามประกาศ)', 'nothing but a note: kept as is');
+  const noted = rows.find(r => /\)\s*$/.test(details.get(r.id)?.hours || '') && /\d/.test(hoursShort(details.get(r.id).hours)));
+  if (noted) {
+    const d = details.get(noted.id);
+    const html = renderVenue(buildVenueProfile({row: noted, detail: d, byId, districts}), {asOf});
+    const visible = html.replace(/<details[\s\S]*?<\/details>/g, '');
+    assert.ok(visible.includes(hoursShort(d.hours).replace(/&/g, '&amp;')) && !visible.includes(d.hours.replace(/&/g, '&amp;')));
+    assert.ok(html.includes(d.hours.replace(/&/g, '&amp;')), 'the full text is kept in the evidence list');
+  }
+});
+
+test('phone map cards: the reading of each level with one primary button that opens the panel', () => {
+  configureVenueLogos(read('data/venue-logos.json'));
+  const insight = summarizeAreaInsight(supply, districts);
+  const aha = mapCardAha(insight, {mode: 'auto'});
+  assert.ok(aha.includes(`${Math.round(insight.share)}%`) && aha.includes('data-action="open-panel"') && aha.includes('data-action="all-districts"'));
+  const branded = rows.find(r => r.countable && getVenueLogo(r.id, r.name) && r.storeCount);
+  const venue = mapCardVenue(buildVenueProfile({row: branded, detail: null, byId, districts}));
+  assert.ok(venue.includes(branded.name.replace(/&/g, '&amp;')) && venue.includes('venue-logo') && venue.includes(`ร้านข้างใน ${branded.storeCount.toLocaleString('th-TH')} ร้าน`));
+  assert.equal((venue.match(/class="btn primary"/g) || []).length, 1, 'one emphasised button');
+  assert.ok(venue.includes('data-action="open-panel"') && venue.includes('data-action="back"'));
+  const model = buildDistrictModel(summarizeDistricts(supply, districtsInScope(districts, 'BKK')));
+  const top = rankAreas(model.areas, {kind: 'district'}).filter(a => a.count > 0)[0];
+  const district = mapCardDistrict(buildDistrictProfile({area: top, rows: supply.filter(r => r.districtCode === top.id), rank: 1, of: 50}));
+  assert.ok(district.includes('แน่นอันดับ 1 จาก 50') && district.includes(`${top.count.toLocaleString('th-TH')} แห่ง`));
+  const search = mapCardSearch(searchAll('เซ็นทรัล', {rows, pending}));
+  assert.ok(search.includes('ดูรายการ') && search.includes('data-id="search"'));
 });

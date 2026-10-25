@@ -22,6 +22,14 @@
  * Fitting a pitched camera to a bounding box: MapLibre's cameraForBounds assumes
  * a flat view, so fitPitched starts from that answer and zooms out in 0.1 steps
  * until every corner of the box projects inside the padded viewport.
+ *
+ * Venue view (owner instruction 2026-10-25 18:49: “tap a pin or a building → the 3D building
+ * in two-point perspective, zoomed to fit the viewport, always”): fitBuilding turns the eye
+ * camera corner-on to the building — bearing = dominant wall direction + 45°, so two faces and
+ * two vanishing points show — and re-centres and zooms until the projected box of every
+ * footprint and roof vertex fills the free part of the map (below the toolbar, above the
+ * bottom card or sheet, clear of the zoom control). Padding stays zero so the principal point
+ * is the canvas centre and the horizon stays outside the frame (75° + 24°/2 < 90°).
  */
 export const DEFAULT_FOV = 36.87;
 
@@ -128,6 +136,156 @@ export function fitPitched(map, bounds, {preset = 'city', padding = {top: 24, bo
   const target = {center: map.getCenter(), zoom, pitch: p.pitch, bearing: p.bearing, padding: view};
   if (!apply) { map.jumpTo(start); return target; }
   if (animate) { map.jumpTo(start); map.easeTo({...target, duration}); } else map.jumpTo(target);
+  return target;
+}
+
+/* ---------- two-point view of one building ---------- */
+
+const RAD = Math.PI / 180;
+const norm180 = deg => { const d = ((deg % 360) + 540) % 360 - 180; return d === -180 ? 180 : d; };
+
+/**
+ * Compass azimuth (degrees in [0, 90)) of the dominant wall direction of footprint rings
+ * ([[lng, lat]…]), weighting each edge by its length; walls 90° apart count as one direction
+ * (angles ×4 on the circle). null when the rings have no edge.
+ */
+export function wallAzimuth(rings) {
+  let c = 0, s = 0;
+  for (const ring of rings || []) {
+    if (!Array.isArray(ring) || ring.length < 2) continue;
+    const kx = 111320 * Math.cos((ring[0][1] || 0) * RAD), ky = 110574; // metres per degree
+    for (let i = 0; i < ring.length - 1; i++) {
+      const dx = (ring[i + 1][0] - ring[i][0]) * kx, dy = (ring[i + 1][1] - ring[i][1]) * ky;
+      const len = Math.hypot(dx, dy);
+      if (!len) continue;
+      const a = Math.atan2(dx, dy); // clockwise from north
+      c += len * Math.cos(4 * a); s += len * Math.sin(4 * a);
+    }
+  }
+  if (Math.hypot(c, s) < 1e-9) return null;
+  const deg = Math.atan2(s, c) / 4 / RAD;
+  return ((deg % 90) + 90) % 90;
+}
+
+/**
+ * How much of the target the drawn buildings in `obstacles` ([{ring, height}]) would hide when the
+ * camera looks along `bearing` under the eye pitch: an obstacle counts when it stands between the
+ * camera and the target, overlaps it sideways and rises above the sight line to the target's foot
+ * (tan(90° − pitch) per metre of gap). Ground metres round the target's first vertex.
+ */
+export function occlusionScore(rings, obstacles, bearing, pitch = CAMERA.eye.pitch) {
+  const all = (rings || []).flat();
+  if (!all.length || !obstacles?.length) return 0;
+  const [lon0, lat0] = all[0];
+  const kx = 111320 * Math.cos(lat0 * RAD), ky = 110574;
+  const b = bearing * RAD, fwd = [Math.sin(b), Math.cos(b)], right = [Math.cos(b), -Math.sin(b)];
+  const along = ([lng, lat]) => {
+    const e = (lng - lon0) * kx, n = (lat - lat0) * ky;
+    return [e * right[0] + n * right[1], e * fwd[0] + n * fwd[1]];
+  };
+  const extent = pts => pts.map(along).reduce((m, [x, y]) => [Math.min(m[0], x), Math.max(m[1], x), Math.min(m[2], y), Math.max(m[3], y)], [Infinity, -Infinity, Infinity, -Infinity]);
+  const [x0, x1, y0] = extent(all);
+  const slope = Math.tan((90 - pitch) * RAD);
+  let score = 0;
+  for (const o of obstacles) {
+    if (!Array.isArray(o?.ring) || o.ring.length < 3) continue;
+    const [ox0, ox1, , oy1] = extent(o.ring);
+    if (oy1 > y0 + 1) continue; // not in front of the target
+    const overlap = Math.min(x1, ox1) - Math.max(x0, ox0);
+    if (overlap <= 0) continue;
+    const rise = (Number(o.height) || 3) - slope * (y0 - oy1);
+    if (rise > 0) score += overlap * rise;
+  }
+  return score;
+}
+
+/**
+ * Bearing for a two-point (corner-on) view of rings: the dominant wall direction + 45°. Of the four
+ * diagonals, the one where the other drawn buildings (`obstacles`) hide least of the target wins;
+ * ties go to the one nearest `current`, so the camera turns as little as possible.
+ */
+export function twoPointBearing(rings, current = 0, obstacles = []) {
+  const wall = wallAzimuth(rings);
+  if (wall == null) return norm180(current);
+  const candidates = [0, 1, 2, 3].map(k => {
+    const b = norm180(wall + 45 + k * 90);
+    return {b, turn: Math.abs(norm180(b - current)), hidden: occlusionScore(rings, obstacles, b)};
+  });
+  const least = Math.min(...candidates.map(c => c.hidden));
+  const best = candidates.filter(c => c.hidden <= least * 1.05 + 1).sort((a, c) => a.turn - c.turn)[0];
+  return Math.round(best.b * 10) / 10;
+}
+
+/** Screen box of [lng, lat, altitude] points under the current camera; null when one is behind the camera. */
+export function screenBounds(map, points, project = projectPoint) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const q of points) {
+    const p = q[2] ? project(map, q) : map.project([q[0], q[1]]);
+    if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) return null;
+    if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+  }
+  return Number.isFinite(minX) ? {minX, minY, maxX, maxY} : null;
+}
+
+/** Ground metres per pixel at zoom z (512-px tiles). */
+const metresPerPixel = (lat, z) => (40075016.686 * Math.cos(lat * RAD)) / (512 * 2 ** z);
+
+/**
+ * Fit 3D points (a building's footprint and roof vertices, [lng, lat, altitude m]) into `box`
+ * ({left, top, right, bottom}, map-container pixels) under the eye preset at `bearing`. The
+ * camera is panned (the ground point under the box's offset becomes the anchor's place — exact
+ * for ground points) and zoomed (log2 of the size ratio) until the projected box of every point
+ * fills `fill` of the box. Computes with instant jumps, restores the start camera, then animates
+ * (flyTo when the target is far). `project` is injectable for tests. Returns the target camera.
+ */
+export function fitBuilding(map, points, {box, bearing = 0, preset = 'eye', minZoom = 14, maxZoom = 19.5, fill = 0.94, animate = true, duration = 900, apply = true, project = projectPoint} = {}) {
+  if (!points?.length || !box) return null;
+  const p = CAMERA[preset] || CAMERA.eye;
+  const start = {center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), padding: map.getPadding()};
+  setFov(map, p.fov);
+  const zero = {top: 0, bottom: 0, left: 0, right: 0};
+  const ground = points.filter(q => !q[2]);
+  const base = ground.length ? ground : points;
+  const anchor = [base.reduce((s, q) => s + q[0], 0) / base.length, base.reduce((s, q) => s + q[1], 0) / base.length];
+  const tw = Math.max(40, (box.right - box.left) * fill), th = Math.max(40, (box.bottom - box.top) * fill);
+  const tx = (box.left + box.right) / 2, ty = (box.top + box.bottom) / 2;
+  // Start from the footprint's size: metres per pixel that would fit its larger side.
+  const kx = Math.cos(anchor[1] * RAD);
+  const span = Math.max(20, ...base.map(q => Math.hypot((q[0] - anchor[0]) * 111320 * kx, (q[1] - anchor[1]) * 110574) * 2));
+  const clampZ = z => Math.min(maxZoom, Math.max(minZoom, z));
+  let zoom = clampZ(Math.log2((40075016.686 * kx * Math.min(tw, th)) / (512 * span)) - 0.4);
+  map.jumpTo({center: anchor, zoom, pitch: p.pitch, bearing, padding: zero});
+  const pan = b => {
+    const dx = tx - (b.minX + b.maxX) / 2, dy = ty - (b.minY + b.maxY) / 2;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return 0;
+    const pa = map.project(anchor), g = map.unproject([pa.x + dx, pa.y + dy]), c = map.getCenter();
+    map.jumpTo({center: [c.lng + anchor[0] - g.lng, c.lat + anchor[1] - g.lat]});
+    return Math.hypot(dx, dy);
+  };
+  for (let i = 0; i < 30; i++) {
+    let b = screenBounds(map, points, project);
+    if (!b) { zoom = clampZ(zoom - 0.5); map.jumpTo({zoom}); continue; }
+    const moved = pan(b);
+    b = screenBounds(map, points, project);
+    if (!b) { zoom = clampZ(zoom - 0.5); map.jumpTo({zoom}); continue; }
+    const scale = Math.min(tw / Math.max(1, b.maxX - b.minX), th / Math.max(1, b.maxY - b.minY));
+    const next = clampZ(zoom + Math.log2(scale));
+    const dz = next - zoom;
+    zoom = next; map.jumpTo({zoom});
+    if (Math.abs(dz) < 0.004 && moved < 1) break;
+  }
+  const last = screenBounds(map, points, project);
+  if (last) pan(last);
+  const target = {center: map.getCenter(), zoom: Math.round(map.getZoom() * 1000) / 1000, pitch: p.pitch, bearing, padding: zero};
+  map.jumpTo(start);
+  if (!apply) return target;
+  if (!animate) { map.jumpTo(target); return target; }
+  // Far (another part of the city or a big zoom change): flyTo arcs out and back in; near: a plain ease.
+  const distance = Math.hypot((start.center.lng - target.center.lng) * kx * 111320, (start.center.lat - target.center.lat) * 110574);
+  const far = Math.abs(start.zoom - target.zoom) > 2.5 || distance > metresPerPixel(anchor[1], start.zoom) * 1500;
+  if (far) map.flyTo({...target, duration: Math.max(duration, 1400), essential: false});
+  else map.easeTo({...target, duration});
   return target;
 }
 

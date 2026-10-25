@@ -15,6 +15,7 @@
  * Original polygons © OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/copyright
  * No generated footprints, name joins, sales or measured-height claims.
  */
+import {GEOJSON_MAXZOOM} from './map-layers.js';
 const SOURCE = 'venue-buildings';
 const EXTRUSION = 'venue-buildings-3d';
 const OUTLINE = 'venue-buildings-outline';
@@ -87,7 +88,7 @@ export function installVenueBuildings(map, geojson, options = {}) {
   const before = options.beforeId && map.getLayer(options.beforeId) ? options.beforeId : undefined;
 
   map.addSource(SOURCE, {
-    type: 'geojson', data: {type: 'FeatureCollection', features: []},
+    type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM,
     attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> · CityMETER',
   });
   const palette = colors(theme);

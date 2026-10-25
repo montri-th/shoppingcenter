@@ -65,7 +65,7 @@ export function buildVenueProfile({row, detail = null, byId, districts}) {
   return {
     row, detail, group: groupById(row.group), district, parent, children,
     province, addressProvince,
-    // A boundary assignment that differs from the written address is shown, not hidden.
+    // A boundary assignment that differs from the written address is named (venue evidence list), never hidden.
     addressDiffers: Boolean(province && addressProvince && addressProvince.replace(/^จังหวัด/, '') !== province.th),
     areaLabel: district ? `${districtWord(district.province)}${district.th}` : '',
   };

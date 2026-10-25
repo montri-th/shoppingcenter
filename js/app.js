@@ -41,10 +41,10 @@ import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
 import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBounds, FILL_MAX_ZOOM} from './map-layers.js';
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT} from './panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
-import {presetFor, applyPreset, fitPitched, framePoint} from './camera.js';
+import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing} from './camera.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
@@ -68,7 +68,10 @@ const state = {
   detail: null, detailError: false,
   showPending: true,
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', lastPreset: '',
-  view3d: true, twoPoint: true,
+  view3d: true,
+  // Venue camera (two-point fit): what was framed, how often it was re-framed as buildings arrived, and
+  // whether the user has moved the camera since (then a late building never moves it again).
+  framed: null, userCamera: false,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
 };
 
@@ -77,13 +80,13 @@ const values = () => Object.fromEntries(FIELDS.map(k => [k, $(k).value]));
 const bottomSpace = () => $('insights').getBoundingClientRect().height + 12;
 const activeFilterCount = f => FIELDS.filter(k => f[k]).length;
 const overviewPanel = () => ({mode: 'overview', id: ''});
-const sheetOffset = () => (mobilePortrait() ? [0, -Math.round(window.innerHeight * 0.2)] : [0, 0]);
 const announce = text => { $('announcement').textContent = text; };
 const theme = () => document.documentElement.dataset.theme;
 const focusMode = () => (state.focusAreaIds.length ? 'explicit' : state.focusIds.length ? 'auto' : 'none');
 const sheetOpen = () => mobilePortrait() && $('panel').classList.contains('is-open');
 const venueLevel = () => state.panel.mode === 'venue';
-const cameraPreset = () => presetFor({view3d: state.view3d, mode: state.panel.mode === 'overview' ? 'overview' : 'detail', twoPoint: state.twoPoint && venueLevel() && !sheetOpen()});
+// Venue level always uses the two-point eye camera when 3D is on (owner instruction 2026-10-25 18:49).
+const cameraPreset = () => presetFor({view3d: state.view3d, mode: state.panel.mode === 'overview' ? 'overview' : 'detail', twoPoint: venueLevel()});
 const animate = () => !reduced();
 const currentVenue = () => (state.panel.mode === 'venue' ? state.byId.get(state.panel.id) || null : null);
 const selectedDistrict = () => (state.panel.mode === 'district' ? state.districts.get(state.panel.id) || null : null);
@@ -114,7 +117,6 @@ function saveURL() {
   if (!state.showPending) p.set('pending', '0');
   if (state.view !== 'rank') p.set('view', state.view);
   if (!state.view3d) p.set('view3d', '0');
-  if (!state.twoPoint) p.set('cam', 'model');
   history.replaceState(null, '', location.pathname + (p.size ? '?' + p : ''));
 }
 
@@ -236,24 +238,31 @@ function renderPanel() {
   const asOf = state.data.meta?.asOf || '';
   renderCrumbs();
   syncEyeToggle();
-  let html = '';
+  let html = '', cardHtml = '', cardLabel = 'ข้อค้นพบแรก';
   const f = values();
   if (mode === 'district') {
     const d = selectedDistrict();
     const ranked = [...state.districtModel.areas].filter(a => a.count > 0).sort((a, b) => b.density - a.density || b.count - a.count);
     const area = state.districtModel.areas.find(a => a.id === d.code) || {...d, count: 0, density: 0};
     const rank = ranked.findIndex(a => a.id === d.code) + 1;
-    html = renderDistrict(buildDistrictProfile({area, rows: state.baseRows, rank, of: ranked.length, ...statusRows({district: d.code, province: ''})}), {asOf});
+    const profile = buildDistrictProfile({area, rows: state.baseRows, rank, of: ranked.length, ...statusRows({district: d.code, province: ''})});
+    html = renderDistrict(profile, {asOf});
+    cardHtml = mapCardDistrict(profile); cardLabel = 'เขตที่เลือก';
   } else if (mode === 'venue') {
     const v = currentVenue();
     const detail = state.detail?.id === v?.id ? state.detail : cachedDetail(v?.id, state.data.meta?.detail?.shards);
-    html = renderVenue(buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts}), {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError});
+    const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
+    html = renderVenue(profile, {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError});
+    cardHtml = mapCardVenue(profile); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
-    html = renderPending(pendingCard(), {asOf});
+    const c = pendingCard();
+    html = renderPending(c, {asOf});
+    cardHtml = mapCardPending(c); cardLabel = 'รายการที่เลือก';
   }
   if (!html && f.search) {
-    html = renderSearch(searchAll(f.search, {rows: state.all, pending: state.pending}), {pending: state.pending, districts: state.districts, asOf});
-    $('map-aha').hidden = true;
+    const results = searchAll(f.search, {rows: state.all, pending: state.pending});
+    html = renderSearch(results, {pending: state.pending, districts: state.districts, asOf});
+    cardHtml = mapCardSearch(results); cardLabel = 'ผลค้นหา';
   } else if (!html) {
     const readCode = readingProvince();
     const insight = state.insight;
@@ -261,29 +270,41 @@ function renderPanel() {
     const model = buildOverviewModel({rows: state.rows, scopeRows: state.scopeRows, areas, kind: 'district', readCode, ...statusRows({province: readCode || f.province})});
     const provinces = (state.provinceModel?.provinces || []).filter(p => p.count > 0).sort((a, b) => b.count - a.count);
     html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces});
-    renderMapAha(insight);
-  } else {
-    $('map-aha').hidden = true;
+    cardHtml = mapCardAha(insight, {mode: focusMode(), subject: subjectWord()});
   }
   view.innerHTML = html;
   view.dataset.mode = mode;
+  // Detail views (district, venue, record) put their heading first: the dataset title, search and
+  // filters step aside, and the back button joins the breadcrumb row.
+  const detail = mode !== 'overview';
+  $('panel').classList.toggle('is-detail', detail);
+  $('panel-back').hidden = !detail;
+  renderMapCard(cardHtml, cardLabel, mode === 'overview' ? (f.search ? 'search' : 'aha') : mode);
   const key = `${mode}:${state.panel.id}:${f.province}:${f.search}`;
   if (key !== renderPanel.lastKey) $('panel').scrollTop = 0;
   renderPanel.lastKey = key;
 }
 
-function renderMapAha(insight) {
+/**
+ * Phones: the map comes first (owner instruction 2026-10-25 18:49). A compact card over the map
+ * carries the reading of the current level — the Aha, the venue (logo, name, strongest figure),
+ * the district or the record — with one emphasised button that opens the panel.
+ * Desktop hides the card (the side panel is always there).
+ */
+function renderMapCard(html, label, kind) {
   const el = $('map-aha');
-  if (!insight.districts.length) { el.hidden = true; return; }
-  const mode = focusMode();
-  el.hidden = $('panel').classList.contains('is-open');
-  const word = districtWord(insight.province);
-  const crumb = `<p class="map-aha-crumb">ประเทศไทย › ${esc(provinceByCode(insight.province)?.th || '')}</p>`;
-  el.innerHTML = mode === 'explicit'
-    ? `<div>${crumb}<h2>กำลังดู ${num(insight.districts.length)} ${word}</h2><p>${num(insight.count)} แห่ง</p></div><button type="button" class="btn" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
-    : `<div>${crumb}<h2>${num(Math.round(insight.share))}% ของ${esc(subjectWord())}ใน${esc(provinceShort(insight.province))} อยู่ใน ${num(insight.districts.length)} ${word}</h2><p>${insight.districts.map(d => esc(d.th)).join(' · ')}</p></div>${mode === 'auto'
-      ? `<button type="button" class="btn" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
-      : `<button type="button" class="btn primary" data-action="explore-top">ดู ${num(insight.districts.length)} ${word}นี้</button>`}`;
+  el.innerHTML = html;
+  el.setAttribute('aria-label', label);
+  el.dataset.kind = kind;
+  document.querySelector('.map-panel').dataset.card = html ? kind : '';
+  el.hidden = !html || $('panel').classList.contains('is-open');
+  syncCardSpace();
+}
+/** Height the phone map card takes over the map bottom: the map attribution moves above it, never under it. */
+function syncCardSpace() {
+  const el = $('map-aha');
+  const space = mobilePortrait() && !el.hidden ? el.offsetHeight + 8 : 0;
+  document.documentElement.style.setProperty('--map-card-space', `${space}px`);
 }
 
 function pushHistory() { state.history.push({...state.panel}); if (state.history.length > 20) state.history.shift(); }
@@ -302,8 +323,8 @@ function selectDistrict(code, {fromMap = false} = {}) {
   if (state.panel.mode !== 'district' || state.panel.id !== code) pushHistory();
   state.focusAreaIds = [];
   state.panel = {mode: 'district', id: code};
+  closeMobilePanel({refit: false, focus: false}); // phones: the map first, the card opens the details
   update({camera: false});
-  if (!fromMap) openMobilePanel();
   if (state.loaded) { fitArea(d.feature); state.lastPreset = cameraPreset(); }
   announce(`${districtLabel(d)} ${num(state.baseRows.length)} แห่ง`);
 }
@@ -321,15 +342,17 @@ function openVenueDetail(id) {
   });
 }
 
+// Every way in (pin, building, dot, list, search, URL) takes the same path; fromMap is kept for callers.
 function selectVenue(id, {fromMap = false} = {}) {
   const r = state.byId.get(id);
   if (!r) return;
   if (state.panel.mode !== 'venue' || state.panel.id !== id) pushHistory();
   state.panel = {mode: 'venue', id};
   openVenueDetail(id);
+  closeMobilePanel({refit: false, focus: false}); // phones: the map first, the card opens the details
   update({camera: false});
+  state.framed = null;
   if (state.loaded) { frameVenue(r); state.lastPreset = cameraPreset(); }
-  if (!fromMap || mobilePortrait()) openMobilePanel();
   announce(`เลือก ${r.name}`);
 }
 
@@ -338,28 +361,82 @@ function selectPending(index, {fromMap = false} = {}) {
   if (!c) return;
   pushHistory();
   state.panel = {mode: 'pending', id: String(index)};
+  closeMobilePanel({refit: false, focus: false});
   update({camera: false});
-  if (state.loaded) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: sheetOffset(), animate: animate()}); state.lastPreset = cameraPreset(); }
-  if (!fromMap || mobilePortrait()) openMobilePanel();
+  if (state.loaded) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: boxOffset(), animate: animate()}); state.lastPreset = cameraPreset(); }
   announce(`${contextState(c.reviewed)} ${c.name}`);
 }
 
-/** Frame a venue on its host building(s) when it has qualified geometry, else on its point. */
+/**
+ * The free part of the map in container pixels: below the toolbar, above whatever covers the
+ * bottom (map card, legend, charts bar, open table, open phone sheet), left of the zoom control.
+ */
+function visibleBox() {
+  const el = $('map'), r = el.getBoundingClientRect();
+  const W = el.clientWidth, H = el.clientHeight;
+  const shown = x => x && !x.hidden && x.offsetHeight > 0 && getComputedStyle(x).display !== 'none';
+  let top = document.querySelector('.map-toolbar').getBoundingClientRect().bottom - r.top + 10;
+  let bottom = H - 10;
+  for (const x of [$('insights'), $('results'), $('map-legend'), $('map-aha')]) if (shown(x)) bottom = Math.min(bottom, x.getBoundingClientRect().top - r.top - 10);
+  if (sheetOpen()) bottom = Math.min(bottom, window.innerHeight - $('panel').offsetHeight - r.top - 10);
+  let right = W - 12;
+  const nav = el.querySelector('.maplibregl-ctrl-top-right');
+  if (nav?.offsetWidth) right = Math.min(right, nav.getBoundingClientRect().left - r.left - 8);
+  const left = 12;
+  if (bottom - top < 140) top = Math.max(4, bottom - 140); // very short screens borrow the toolbar strip
+  return {left, top, right: Math.max(left + 120, right), bottom: Math.max(top + 120, bottom)};
+}
+/** Offset that puts a framed point in the middle of the free box (MapLibre flyTo `offset`). */
+function boxOffset() {
+  const b = visibleBox(), el = $('map');
+  return [Math.round((b.left + b.right - el.clientWidth) / 2), Math.round((b.top + b.bottom - el.clientHeight) / 2)];
+}
+
+/** Footprint and roof vertices of the venue's buildings, or a 90 m box round the pin while no building is known. */
+function venuePoints(row, targets) {
+  if (targets.length) return targets.flatMap(t => t.ring.flatMap(([lng, lat]) => [[lng, lat, 0], [lng, lat, t.height]]));
+  if (!hasPoint(row)) return [];
+  const dLat = 45 / 110574, dLng = 45 / (111320 * Math.cos((row.lat * Math.PI) / 180));
+  return [[-1, -1], [1, -1], [1, 1], [-1, 1]].flatMap(([a, b]) => [[row.lon + a * dLng, row.lat + b * dLat, 0], [row.lon + a * dLng, row.lat + b * dLat, 12]]);
+}
+const targetsKey = targets => targets.map(t => `${t.ring.length}:${t.ring[0][0].toFixed(6)},${t.ring[0][1].toFixed(6)}:${t.height}`).sort().join('|');
+
+/**
+ * Venue camera (owner instruction 2026-10-25 18:49: “tap a pin or a building → the 3D building
+ * in two-point perspective, zoom to fit the viewport, always”). The eye camera turns corner-on to
+ * the building and fills the free part of the map with every footprint and roof vertex. Until the
+ * pin's building is known the pin is framed the same way; the camera turns to the building when it
+ * arrives (at most twice, never after the user has moved the map). 3D off: the same box, flat.
+ */
 function frameVenue(row, {instant = false} = {}) {
-  const map = state.map, preset = cameraPreset();
+  const map = state.map;
+  if (!map || !row) return;
   const targets = venueTargets();
-  if (targets.length && preset !== 'plan' && !mobilePortrait()) {
-    const ground = targets.flatMap(t => t.ring.map(([lng, lat]) => [lng, lat, 0]));
-    const roof = targets.flatMap(t => t.ring.map(([lng, lat]) => [lng, lat, t.height]));
-    const bounds = ground.reduce((b, p) => b.extend([p[0], p[1]]), new maplibregl.LngLatBounds([ground[0][0], ground[0][1]], [ground[0][0], ground[0][1]]));
-    const h = map.getContainer().clientHeight;
-    const padding = {top: Math.round(h * (preset === 'eye' ? 0.12 : 0.1)), bottom: 48, left: 48, right: 48};
-    const foot = fitPitched(map, bounds, {preset, points: ground, padding, maxZoom: 17.6, minZoom: 14.5, apply: false});
-    const minZoom = Math.max(14.5, (foot?.zoom ?? 17.6) - 1);
-    fitPitched(map, bounds, {preset, points: [...ground, ...roof], padding, maxZoom: 17.6, minZoom, animate: animate() && !instant});
+  const points = venuePoints(row, targets);
+  if (!points.length) return;
+  const box = visibleBox();
+  state.userCamera = false;
+  state.framed = {id: row.id, key: targetsKey(targets), refits: state.framed?.id === row.id ? state.framed.refits : 0};
+  if (!state.view3d) {
+    const b = points.reduce((acc, q) => acc.extend([q[0], q[1]]), new maplibregl.LngLatBounds([points[0][0], points[0][1]], [points[0][0], points[0][1]]));
+    const W = map.getContainer().clientWidth, H = map.getContainer().clientHeight;
+    fitPitched(map, b, {preset: 'plan', padding: {top: box.top, left: box.left, right: W - box.right, bottom: H - box.bottom}, maxZoom: 18.5, minZoom: 14, animate: animate() && !instant});
     return;
   }
-  if (hasPoint(row)) framePoint(map, [row.lon, row.lat], {preset, zoom: 16, offset: sheetOffset(), animate: animate() && !instant});
+  // Other drawn buildings (the venue's parent or components) should not stand between the camera and the venue.
+  const others = (state.buildings?.displayedFeatures() || []).filter(f => !asList(f.properties?.venue_ids).includes(row.id) && f.properties?.render_as === 'extrusion')
+    .flatMap(f => outerRings(f).map(ring => ({ring, height: Number(f.properties?.display_height_m) || 3})));
+  const bearing = targets.length ? twoPointBearing(targets.map(t => t.ring), map.getBearing(), others) : map.getBearing();
+  fitBuilding(map, points, {box, bearing, maxZoom: targets.length ? 19.5 : 18, animate: animate() && !instant});
+}
+
+/** The pin's building arrived (or changed) after the venue was framed: turn to it, unless the user moved the map. */
+function refitVenueOnNewBuilding() {
+  const v = currentVenue();
+  if (!v || !state.framed || state.framed.id !== v.id || state.userCamera || state.framed.refits >= 2) return;
+  if (targetsKey(venueTargets()) === state.framed.key) return;
+  state.framed.refits++;
+  frameVenue(v);
 }
 
 /** Focus the first-Aha districts of the current reading (auto mode; URL stays clean). */
@@ -419,6 +496,7 @@ function onPanelAction(event) {
     case 'country': showCountry(); break;
     case 'open-charts': openInsights(true); closeMobilePanel(); break;
     case 'open-table': $('results').hidden = false; closeMobilePanel(); $('toggle-table').focus({preventScroll: true}); break;
+    case 'open-panel': openMobilePanel(); break;
     case 'clear-filter': clearFilter(id); break;
     case 'set-group': $('group').value = id; state.panel = state.panel.mode === 'district' ? state.panel : overviewPanel(); update({fit: state.panel.mode === 'overview'}); break;
     case 'crumb-country': $('province').value = ''; showCountry(); break;
@@ -574,7 +652,7 @@ function fitMap({instant = false} = {}) {
   const v = currentVenue();
   if (v) { frameVenue(v, {instant}); return; }
   const c = pendingCard();
-  if (c) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, animate: animate() && !instant}); return; }
+  if (c) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: boxOffset(), animate: animate() && !instant}); return; }
   const LB = maplibregl.LngLatBounds;
   const focus = state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
   if (focus.length) {
@@ -704,7 +782,8 @@ function updatePendingMarker() {
 /** One router for map clicks: venue solid → venue dots → pending dots → host buildings → district → province. */
 function routeClick(e) {
   const map = state.map;
-  if (state.xray?.hitTest([e.point.x, e.point.y])) { const v = currentVenue(); if (v && state.panel.mode !== 'venue') selectVenue(v.id, {fromMap: true}); return; }
+  // Tapping the venue's own building frames it again (two-point view, every time).
+  if (state.xray?.hitTest([e.point.x, e.point.y])) { const v = currentVenue(); if (v) selectVenue(v.id, {fromMap: true}); return; }
   const box = [[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]];
   const has = id => map.getLayer(id);
   const pick = (layers, at = box) => { const ls = layers.filter(has); return ls.length ? map.queryRenderedFeatures(at, {layers: ls})[0] : null; };
@@ -745,7 +824,7 @@ function installSpatialLayers() {
     onChange: ({features}) => {
       state.buildings?.setPinFeatures(features);
       refreshMassing();
-      if (venueLevel()) renderPanel();
+      if (venueLevel()) { renderPanel(); refitVenueOnNewBuilding(); }
     },
   });
   state.massing = installMassing(map, {
@@ -772,6 +851,8 @@ function initMap() {
       avoid: () => state.pinPoints, onLayout: () => state.pins?.layout()});
     state.provinceLabels = installAreaLabels(state.map, $('map'), {className: 'province-label', hostId: 'province-labels', hostLabel: 'จังหวัดบนแผนที่', minZoom: 0, maxZoom: PROVINCE_LABEL_MAX_ZOOM, verb: 'กดเพื่อดูจังหวัด', detailZoomClass: false, onSelect: code => selectProvince(code), reservedBottom: bottomSpace});
     state.map.on('zoomend', () => { if (state.loaded) renderLegend(); });
+    // A camera move started by the user (drag, pinch, wheel, keys) — a building found later never moves the camera again.
+    state.map.on('movestart', e => { if (e.originalEvent) state.userCamera = true; });
     state.pins = installVenuePins(state.map, $('map'), {
       reservedBottom: bottomSpace,
       onSelect: r => selectVenue(r.id, {fromMap: true}),
@@ -808,44 +889,53 @@ function toggle3d() {
   renderLegend();
   renderPanel();
   updateSpatialLayers();
-  if (state.map) { applyPreset(state.map, cameraPreset(), {animate: animate()}); state.lastPreset = cameraPreset(); }
+  if (state.map) {
+    if (venueLevel()) frameVenue(currentVenue()); else applyPreset(state.map, cameraPreset(), {animate: animate()});
+    state.lastPreset = cameraPreset();
+  }
   saveURL();
 }
 
-function toggleTwoPoint() {
-  state.twoPoint = !state.twoPoint;
-  syncEyeToggle();
-  if (state.map && state.view3d) {
-    const v = currentVenue();
-    if (v) frameVenue(v); else applyPreset(state.map, cameraPreset(), {animate: animate()});
-    state.lastPreset = cameraPreset();
-  }
-  updateSpatialLayers();
-  saveURL();
+/** “มุมสถาปนิก”: frame the venue's building again in two-point perspective after the user moved the map. */
+function reframeVenue() {
+  const v = currentVenue();
+  if (!v || !state.map) return;
+  state.framed = null;
+  frameVenue(v);
 }
 function syncEyeToggle() {
-  const b = $('toggle-eye');
-  b.setAttribute('aria-pressed', String(state.twoPoint));
-  b.disabled = !state.view3d || !venueLevel();
+  $('toggle-eye').disabled = !state.view3d || !venueLevel();
 }
 
 /* ---------- mobile sheet ---------- */
+// Phones show the map first (owner instruction 2026-10-25 18:49): every selection keeps the sheet
+// closed and the map card offers “ดูรายละเอียด”. Opening the sheet keeps the venue's building in
+// view above it; closing re-frames it in the larger map.
 function openMobilePanel() {
   if (!mobilePortrait()) return;
+  const wasOpen = $('panel').classList.contains('is-open');
   $('panel').classList.add('is-open');
   $('mobile-panel').setAttribute('aria-expanded', 'true');
   $('map-aha').hidden = true;
+  syncCardSpace();
+  if (wasOpen) return;
+  // Keyboard and screen-reader users land inside the sheet.
+  ($('panel-back').hidden ? $('close-mobile-panel') : $('panel-back')).focus({preventScroll: true});
+  if (!state.loaded) return;
+  if (venueLevel()) frameVenue(currentVenue());
+  else if (state.panel.mode === 'district') fitMap();
 }
-function closeMobilePanel() {
+function closeMobilePanel({refit = true, focus = true} = {}) {
   const wasOpen = $('panel').classList.contains('is-open');
   $('panel').classList.remove('is-open');
   $('mobile-panel').setAttribute('aria-expanded', 'false');
-  if (mobilePortrait()) {
-    $('mobile-panel').focus({preventScroll: true});
-    if (state.panel.mode === 'overview') renderPanel();
-    else if (wasOpen && state.loaded) fitMap();
-    updateSpatialLayers();
-  }
+  if (!mobilePortrait()) return;
+  if ($('map-aha').innerHTML.trim()) $('map-aha').hidden = false;
+  syncCardSpace();
+  if (!wasOpen) return;
+  if (focus) $('mobile-panel').focus({preventScroll: true});
+  if (refit && state.loaded && state.panel.mode !== 'overview') fitMap();
+  updateSpatialLayers();
 }
 
 /* ---------- data loading ---------- */
@@ -904,7 +994,6 @@ function restoreFromURL() {
   if (areas === 'all') { state.autoFocus = false; state.focusAreaIds = []; }
   else state.focusAreaIds = [...new Set(areas.split(','))].filter(id => state.districts.has(id)).slice(0, 6);
   state.view3d = p.get('view3d') !== '0';
-  state.twoPoint = p.get('cam') !== 'model';
   state.showPending = p.get('pending') !== '0';
   if (p.get('venue') && state.byId.has(p.get('venue'))) { state.panel = {mode: 'venue', id: p.get('venue')}; openVenueDetail(state.panel.id); }
   else if (p.get('district') && state.districts.has(p.get('district'))) state.panel = {mode: 'district', id: p.get('district')};
@@ -941,10 +1030,11 @@ function wireEvents() {
   $('fit-map').onclick = () => showCountry();
   $('bangkok-map').onclick = () => selectProvince(BANGKOK);
   $('toggle-3d').onclick = toggle3d;
-  $('toggle-eye').onclick = toggleTwoPoint;
+  $('toggle-eye').onclick = reframeVenue;
   $('mobile-panel').onclick = () => { $('panel').classList.contains('is-open') ? closeMobilePanel() : openMobilePanel(); };
-  $('close-mobile-panel').onclick = closeMobilePanel;
-  document.querySelector('.skip').onclick = () => { openMobilePanel(); $('dataset-title').focus(); };
+  $('close-mobile-panel').onclick = () => closeMobilePanel();
+  $('panel-back').onclick = goBack;
+  document.querySelector('.skip').onclick = () => { openMobilePanel(); (state.panel.mode === 'overview' ? $('dataset-title') : $('panel-back')).focus(); };
   $('toggle-insights').onclick = () => openInsights($('insight-content').hidden);
   if (typeof ResizeObserver === 'function') new ResizeObserver(syncBottomPanel).observe($('insights')); else window.addEventListener('resize', syncBottomPanel);
   $('open-table').onclick = () => { $('results').hidden = false; closeMobilePanel(); $('toggle-table').focus(); };
@@ -1004,7 +1094,6 @@ async function init() {
     applyTheme();
     wireEvents();
     update();
-    if (state.panel.mode !== 'overview') openMobilePanel();
     window.dispatchEvent(new CustomEvent('citymeter:ready'));
     startMap();
     loadPending();
@@ -1015,6 +1104,6 @@ async function init() {
 }
 
 // Developer hook for live tuning in a browser console (not an API; may change without notice).
-window.__citymeter = {state, get map() { return state.map; }, update, fitMap, updateSpatialLayers, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding, buildMapStyle, formatDensity, cueSVG};
+window.__citymeter = {state, get map() { return state.map; }, update, fitMap, updateSpatialLayers, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding, visibleBox, venueTargets: () => venueTargets(), buildMapStyle, formatDensity, cueSVG};
 
 init();

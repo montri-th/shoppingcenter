@@ -34,6 +34,7 @@
  */
 import {parseVectorTile, tileToLonLat, lonLatToTileUnits, tilesForBBox, metresPerTileUnit} from './mvt.js';
 import {clipRingToBox, offsetRing, roundRing, isClockwise, ringsIntersect, cleanRing, signedArea, pointInRing, ringBBox} from './geometry.js';
+import {GEOJSON_MAXZOOM} from './map-layers.js';
 
 export const CITY_LAYER = 'city-massing';
 export const FOCUS_SOURCE = 'focus-massing';
@@ -197,7 +198,7 @@ export function installMassing(map, {sourceId = 'openmaptiles', beforeId, colors
       },
     }, before);
   }
-  map.addSource(FOCUS_SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+  map.addSource(FOCUS_SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM});
   let occluderIds = [], scene = 'default', targets = [];
   map.addLayer({
     id: FOCUS_LAYER, type: 'fill-extrusion', source: FOCUS_SOURCE, minzoom: 13,
