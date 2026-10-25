@@ -68,7 +68,7 @@
 | จุดพักรถและสถานีบริการ | `fuel_station_retail_scope_unconfirmed`, `multi_tenant_travel_retail_stop`, `highway_retail_rest_stop` | `gas_station_retail` |
 | อื่น ๆ | `managed_retail_entertainment_precinct`, `retail_precinct`, `heritage_retail_destination_under_redevelopment`, `retail_food_and_wholesale_mixed_destination` | — |
 
-**กฎคำสำหรับประเภทใหม่** (ลำดับแรกที่ตรงชนะ, `meta.groupMapping.keywords`): `fuel` / `rest_stop` / `travel_retail` → จุดพักรถ · `store_or_host_component` / `retailer_multibusiness` / `store_multibusiness` / `factory_outlet` / `single_retail` / `showroom` / `retail_store` → ไฮเปอร์/ซูเปอร์มาร์เก็ต · `component` / `podium` → ในโครงการ · `market` / `bazaar` → ตลาด · `outlet_center` / `outlet_shopping` / `outlet_village` → เอาท์เล็ต · `community` → คอมมูนิตี้มอลล์ · `shopping_center` / `shopping_mall` / `department_store` / `plaza` / `mall` → ศูนย์การค้า · ไม่ตรงคำใด → อื่น ๆ
+**กฎคำสำหรับประเภทใหม่** (ลำดับแรกที่ตรงชนะ, `meta.groupMapping.keywords`): `fuel` / `rest_stop` / `travel_retail` → จุดพักรถ · `store_or_host_component` / `retailer_multibusiness` / `store_multibusiness` / `factory_outlet` / `single_retail` / `showroom` / `retail_store` / `supermarket` / `hypermarket` / `grocery` / `wholesale_store` → ไฮเปอร์/ซูเปอร์มาร์เก็ต · `component` / `podium` → ในโครงการ · `market` / `bazaar` → ตลาด · `outlet_center` / `outlet_shopping` / `outlet_village` → เอาท์เล็ต · `community` / `retail_and_dining` / `retail_and_service` → คอมมูนิตี้มอลล์ · `shopping_center` / `shopping_mall` / `department_store` / `plaza` / `mall` → ศูนย์การค้า · ไม่ตรงคำใด → อื่น ๆ
 
 ## 4. ผู้บริหาร (Inference)
 

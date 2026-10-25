@@ -236,11 +236,11 @@ def qualification_tier(s):
 TYPE_KEYWORDS = [
     ('fuel', ('fuel', 'rest_stop', 'travel_retail')),
     ('hoststore', ('store_or_host_component', 'retailer_multibusiness', 'store_multibusiness', 'factory_outlet',
-                   'single_retail', 'showroom', 'retail_store')),
+                   'single_retail', 'showroom', 'retail_store', 'supermarket', 'hypermarket', 'grocery', 'wholesale_store')),
     ('component', ('component', 'podium')),
     ('market', ('market', 'bazaar')),
     ('outlet', ('outlet_center', 'outlet_shopping', 'outlet_village')),
-    ('community', ('community',)),
+    ('community', ('community', 'retail_and_dining', 'retail_and_service')),
     ('mall', ('shopping_center', 'shopping_mall', 'department_store', 'plaza', 'mall')),
 ]
 

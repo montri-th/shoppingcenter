@@ -580,7 +580,7 @@ function fitMap({instant = false} = {}) {
     // so the first view shows the 3D city (the district fills still read around the venues).
     const target = fitBounds(b, {...options, apply: false});
     const venues = detailRows().filter(hasPoint);
-    if (target && target.pitch > 0 && target.zoom >= 11.8 && target.zoom < MASSING_VIEW_ZOOM && venues.length) {
+    if (target && target.pitch > 0 && target.zoom >= 11.5 && target.zoom < MASSING_VIEW_ZOOM && venues.length) {
       const vb = new LB();
       venues.forEach(r => vb.extend([r.lon, r.lat]));
       const camera = {...target, center: vb.getCenter(), zoom: MASSING_VIEW_ZOOM};
