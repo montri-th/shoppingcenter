@@ -1954,5 +1954,122 @@
   "sourceUrl": "https://corporate.tops.co.th/th/",
   "assetUrl": "https://corporate.tops.co.th/wp-content/uploads/2026/04/topslogo.svg",
   "checkedOn": "2026-10-22"
+ },
+ "research.MLA.PARC|mla.PARC:BR-000010": {
+  "file": "assets/tenant-logos/a0beac08ab821284b326.jpg",
+  "sha256": "a0beac08ab821284b3261de69fdb63bdae00c1d214952c80f7cd38289ba92641",
+  "mime": "image/jpeg",
+  "width": 1252,
+  "height": 1252,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://page.line.me/sushirothailand"
+ },
+ "research.MLA.PARC|mla.PARC:BR-000013": {
+  "file": "assets/tenant-logos/07dfde17b10ff470f43a.png",
+  "sha256": "07dfde17b10ff470f43a3de0b10bee7358b65562e9031103dd55a0555bae4244",
+  "mime": "image/png",
+  "width": 600,
+  "height": 300,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.mega-bangna.com/en/store/After-You/441"
+ },
+ "research.MLA.PARC|mla.PARC:BR-000015": {
+  "file": "assets/tenant-logos/d9a5c1a69d25655ddabd.svg",
+  "sha256": "d9a5c1a69d25655ddabd353883e0c0798f75cb45e3a1811fb340862b15bbaee5",
+  "mime": "image/svg+xml",
+  "width": 62,
+  "height": 62,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.starbucks.com/"
+ },
+ "research.MLA.PARC|mla.PARC:BR-000020": {
+  "file": "assets/tenant-logos/3e5756a6e64c332ab2c2.jpg",
+  "sha256": "3e5756a6e64c332ab2c2eff6d40af6fb7b50e231064413f6944304bcb1717b9f",
+  "mime": "image/jpeg",
+  "width": 841,
+  "height": 841,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://page.line.me/thongsmith"
+ },
+ "research.MLA.PARC|mla.PARC:BR-000062": {
+  "file": "assets/tenant-logos/263e4291d82de7e167a3.png",
+  "sha256": "263e4291d82de7e167a3be47f71fb2c462208b213e4c76e12d9db3dd8a294a84",
+  "mime": "image/png",
+  "width": 242,
+  "height": 92,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://wineconnection.co.th/"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:322ba45f20c94efc": {
+  "file": "assets/tenant-logos/17e1f6727011a6ea52e0.svg",
+  "sha256": "17e1f6727011a6ea52e0eca347c66a6cce4abdb5a0e385016efb30b2ac1885db",
+  "mime": "image/svg+xml",
+  "width": 84,
+  "height": 110,
+  "background": "#182327",
+  "sourceUrl": "https://www.a-ramen.com/"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:c2843de2b71b80ef": {
+  "file": "assets/tenant-logos/262484aef99423ab6ed5.png",
+  "sha256": "262484aef99423ab6ed55b36009006fee5065ca5145d8aa47d598e8455515238",
+  "mime": "image/png",
+  "width": 800,
+  "height": 800,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.minorfood.com/en"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:5421bb1c0d37eb8f": {
+  "file": "assets/tenant-logos/7a92ca24bf2a3dd5ea6b.png",
+  "sha256": "7a92ca24bf2a3dd5ea6bc591f1f4de5b33e530a7b2053420d69de62fb4e2d457",
+  "mime": "image/png",
+  "width": 211,
+  "height": 159,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.cafe-amazon.com/"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:498089d4abdd4e3c": {
+  "file": "assets/tenant-logos/e069622885058d33a3c8.png",
+  "sha256": "e069622885058d33a3c87d624d9710617d5038987e06c7e575cd0156a74b56bd",
+  "mime": "image/png",
+  "width": 470,
+  "height": 420,
+  "background": "#182327",
+  "sourceUrl": "https://www.pizzahut.co.th/"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:a09b11442fc96331": {
+  "file": "assets/tenant-logos/263e4291d82de7e167a3.png",
+  "sha256": "263e4291d82de7e167a3be47f71fb2c462208b213e4c76e12d9db3dd8a294a84",
+  "mime": "image/png",
+  "width": 242,
+  "height": 92,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://wineconnection.co.th/"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:f64258b145ecf07c": {
+  "file": "assets/tenant-logos/8bb167e8a20e74bbe2da.png",
+  "sha256": "8bb167e8a20e74bbe2da7d13f31ef4029427f3c00d17d5451091ee0adf7eb864",
+  "mime": "image/png",
+  "width": 270,
+  "height": 223,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.sukiya.co.th/"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:eefa3980fdf345e9": {
+  "file": "assets/tenant-logos/8bac7c7e312e48f920fb.png",
+  "sha256": "8bac7c7e312e48f920fb3b881564f661e930f3f419fc274f5a2d3dd72ac932d0",
+  "mime": "image/png",
+  "width": 3840,
+  "height": 3564,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://global.kfc.com/media-assets"
+ },
+ "research.MLA.PARC|mla.COMPETITORS:brand:b21492b15d85500e": {
+  "file": "assets/tenant-logos/d9a5c1a69d25655ddabd.svg",
+  "sha256": "d9a5c1a69d25655ddabd353883e0c0798f75cb45e3a1811fb340862b15bbaee5",
+  "mime": "image/svg+xml",
+  "width": 62,
+  "height": 62,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.starbucks.com/"
  }
 }

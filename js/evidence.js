@@ -97,6 +97,7 @@ export const STORE_DATASETS = Object.freeze({
   'research.TH.gold': 'ร้านทอง',
   'research.TH.optical': 'ร้านแว่นตา',
   'research.TH.camera': 'ร้านกล้อง',
+  'research.MLA.PARC': 'ข้อมูลร้านจาก MLA',
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 

@@ -8,18 +8,31 @@ must be primary=false with the explicit reviewed exact-host role and relationshi
 ordinary candidate / supplemental observations never enter the roster. The extraction
 receipt belongs with the research inputs; this public build stores only its content hash.
 An optional logo manifest maps "dataset|brandId" to a local file and its recorded SHA-256.
+MLA listings use a separate, dated public-membership gate; they never upgrade current
+operation or the original registry graph. Explicitly matched existing outlets receive
+corroborating evidence rather than a second displayed shop.
 """
 import argparse
 import hashlib
 import json
 import re
 from collections import Counter, defaultdict
+from datetime import date
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 SHARDS = 32
 PRIVATE = re.compile(r'(?:docs|drive)\.google\.com', re.I)
+MLA_ROLE = 'mla_dated_public_tenant_listing'
+MLA_DATASET = 'research.MLA.PARC'
+MLA_AUTHORITIES = {
+    'google_business_profile_listing_observed_by_mla',
+    'third_party_branch_directory_observed_by_mla',
+    'official_merchant_branch_listing_observed_by_mla',
+    'official_venue_directory_observed_by_mla',
+    'public_named_host_directory_observed_by_mla',
+}
 ITEM_FIELDS = ('id', 'name', 'brand', 'brandId', 'dataset', 'branch', 'sourceUrl',
                'checkedOn', 'status', 'category', 'storeFormat', 'unitFloor',
                'evidenceStatus', 'statusSourceUrl', 'statusCheckedOn', 'role',
@@ -30,7 +43,12 @@ ITEM_FIELDS = ('id', 'name', 'brand', 'brandId', 'dataset', 'branch', 'sourceUrl
                'formatLogoKey', 'registeredChildVenueId', 'sourceGate', 'reconciledOn',
                'displayName', 'displayBrand', 'retailerRole', 'sourceStoreName',
                'representedBrands', 'displayIdentityBasis', 'sourceCorrectionBasis',
-               'supersededSourceUrl', 'sourceCheckedOn', 'suppressManufacturerLogo')
+               'supersededSourceUrl', 'sourceCheckedOn', 'suppressManufacturerLogo',
+               'hostIdentityStatus', 'membershipStatus', 'observedOn', 'sourceAuthority',
+               'sourceArtifactKey', 'sourceRowKey', 'membershipEvidenceNote',
+               'sourceCategoryL1', 'sourceCategoryL2', 'categoryVerificationStatus',
+               'categoryConflict', 'latestListingRefreshOn', 'refreshIdentityBasis',
+               'matchedSourceStoreIds', 'dedupeDisposition', 'identityNote')
 
 
 def digest(path):
@@ -62,6 +80,71 @@ def public_urls(value):
             if url and url not in found:
                 found.append(url)
     return found
+
+
+def iso_date(value):
+    if not isinstance(value, str) or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', value):
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def public_membership_source(value):
+    """Reject unscoped home/search pages; exact source scope is still a reviewed input fact."""
+    url = public_url(value)
+    if not url:
+        return False
+    parsed = urlparse(url)
+    if parsed.username or parsed.password or not parsed.hostname:
+        return False
+    host = parsed.hostname.lower()
+    if host in {'localhost', '127.0.0.1', '::1'} or host.endswith('.googleusercontent.com'):
+        return False
+    query = parse_qs(parsed.query)
+    if host in {'google.com', 'www.google.com'}:
+        if parsed.path.startswith('/search'):
+            return False
+        if parsed.path.startswith('/maps/search') and not query.get('query_place_id'):
+            return False
+    return bool(parsed.path.strip('/') or query.get('cid') or query.get('query_place_id') or query.get('place_id'))
+
+
+def mla_gate(observation, as_of):
+    """A dated directory membership is neither a movement promotion nor a present-open claim."""
+    if observation.get('sourceRole') != MLA_ROLE or observation.get('dataset') != MLA_DATASET:
+        return 'mla_source_role'
+    if observation.get('accepted') is not True or observation.get('primary') is not False:
+        return 'mla_not_accepted_dated_membership'
+    if (observation.get('relationshipBasis') != 'mla_dated_public_branch_or_host_listing_exact_canonical_host'
+            or observation.get('sourceGate') != 'public_branch_specific_source_and_dated_membership_observation_reconciled_to_canonical_venue'
+            or observation.get('hostIdentityStatus') != 'exact_canonical_venue_verified'):
+        return 'mla_host_evidence_gate'
+    ids = observation.get('venueIds')
+    if not isinstance(ids, list) or len(ids) != 1 or not isinstance(ids[0], str) or not ids[0].strip():
+        return 'mla_single_exact_host_required'
+    if observation.get('membershipStatus') not in {'source_listed_at_observation', 'dated_directory_listed'}:
+        return 'mla_membership_not_observed'
+    if observation.get('status') != 'dated_listing_current_operation_unconfirmed':
+        return 'mla_operation_not_promoted'
+    if observation.get('eventType') or observation.get('movementType'):
+        return 'mla_event_not_membership'
+    observed = iso_date(observation.get('observedOn'))
+    source_date = iso_date(observation.get('sourceDate')) if observation.get('sourceDate') else None
+    if not observed or observed > iso_date(as_of) or (observation.get('sourceDate') and not source_date) or (source_date and source_date > iso_date(as_of)):
+        return 'mla_missing_or_invalid_observation_date'
+    if (observation.get('sourceAuthority') not in MLA_AUTHORITIES
+            or not public_membership_source(observation.get('sourceUrl'))
+            or not re.fullmatch(r'[a-fA-F0-9]{64}', str(observation.get('sourceSha256') or ''))
+            or not str(observation.get('sourceArtifactKey') or '').strip()
+            or not str(observation.get('sourceRowKey') or '').strip()):
+        return 'mla_public_source_provenance'
+    matches = observation.get('matchedSourceStoreIds')
+    if matches is not None and (not isinstance(matches, list) or len(matches) != 1 or not isinstance(matches[0], str)
+                                or observation.get('dedupeDisposition') != 'corroborate_existing_outlet_do_not_append'):
+        return 'mla_explicit_existing_outlet_match_required'
+    return None
 
 
 def clean_item(observation):
@@ -116,16 +199,24 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
     rows = [r if isinstance(r, dict) else dict(zip(fields, r)) for r in document['rows']]
     venues = {r['id']: r for r in rows}
     as_of = payload.get('meta', {}).get('asOf')
-    if not as_of or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', str(as_of)):
+    if not iso_date(as_of):
         raise ValueError('input meta.asOf must be an ISO date')
     logos = logo_manifest or {}
     rosters = defaultdict(list)
     seen = set()
     omitted, datasets, status, source_roles = Counter(), Counter(), Counter(), Counter()
     input_rows = 0
-    for observation in payload.get('observations', []):
+    mla_counts = Counter()
+    # Resolve original/official outlets before explicit MLA corroboration, independent of input order.
+    observations = sorted(payload.get('observations', []), key=lambda row: row.get('sourceRole') == MLA_ROLE or row.get('dataset') == MLA_DATASET)
+    for observation in observations:
         input_rows += 1
-        original_primary = observation.get('primary') is True
+        is_mla = observation.get('sourceRole') == MLA_ROLE or observation.get('dataset') == MLA_DATASET
+        mla_error = mla_gate(observation, as_of) if is_mla else None
+        if is_mla and mla_error:
+            omitted[mla_error] += 1
+            continue
+        original_primary = observation.get('primary') is True and not is_mla
         additional_official = (observation.get('primary') is False
                                and observation.get('sourceRole') == 'official_chain_exact_named_host_listing'
                                and observation.get('relationshipBasis') ==
@@ -139,7 +230,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
                               'official_branch_name_and_unit_address_agree_with_existing_Main_parent_venue_identity'
                               and bool(observation.get('registeredChildVenueId'))
                               and bool(public_urls(observation.get('sourceUrl'))))
-        if observation.get('accepted') is not True or not (original_primary or additional_official or registered_grocery):
+        if observation.get('accepted') is not True or not (original_primary or additional_official or registered_grocery or is_mla):
             omitted['not_accepted_primary'] += 1
             continue
         item = clean_item(observation)
@@ -158,10 +249,22 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
             if venue_id not in venues:
                 omitted['host_outside_public_qualified_population'] += 1
                 continue
+            if is_mla and observation.get('matchedSourceStoreIds'):
+                target_id = observation['matchedSourceStoreIds'][0]
+                target = next((existing for existing in rosters[venue_id] if existing['id'] == target_id), None)
+                if target is None:
+                    omitted['mla_existing_outlet_match_not_in_same_host'] += 1
+                    continue
+                # Preserve selected identity, status, logo and original source-card count.
+                target.setdefault('corroboratingMembershipEvidence', []).append(dict(item))
+                mla_counts['corroboratingExistingListings'] += 1
+                continue
             rosters[venue_id].append(dict(item))
             datasets[item['dataset']] += 1
             status[item.get('status', 'unknown')] += 1
             source_roles[item.get('sourceRole', 'unspecified')] += 1
+            if is_mla:
+                mla_counts['newDisplayedListings'] += 1
     shards = [dict() for _ in range(SHARDS)]
     mismatches = []
     for venue_id, items in sorted(rosters.items()):
@@ -185,6 +288,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
               'publishedSourceObservations': sum(item.get('sourceObservationCount', 1) for items in rosters.values() for item in items),
               'datasets': dict(sorted(datasets.items())), 'statuses': dict(sorted(status.items())),
               'sourceRoles': dict(sorted(source_roles.items())),
+              'mlaMembership': dict(mla_counts),
               'withLogo': sum(bool(item.get('logo')) for items in rosters.values() for item in items),
               'retailerIdentity': {
                   'manufacturerLogosSuppressed': sum(item.get('suppressManufacturerLogo') is True for items in rosters.values() for item in items),
@@ -197,6 +301,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
               'limits': ['Source observations are a partial roster, not a current tenant census.',
                          'Source-listed status and closure conflicts remain separate from host identity.',
                          'Ranking is a contextual editorial priority, not measured visits, sales or footfall.',
+                         'Dated MLA membership does not establish current operation; existing-outlet corroboration is evidence, not another displayed/source-card count.',
                          'Venue core rows and aggregate store counts are not rewritten by this build.']}
     return outputs, report
 

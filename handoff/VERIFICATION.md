@@ -96,3 +96,11 @@ Deployment is a separate gate: build the tracked-file handoff manifest after com
 ## Release 0.1.2 — road-label repetition only (`20261025-r10`)
 
 Owner reported dense repeated road names in the steep CentralWorld view. The tenant release ea0b633 did not change map-style, camera, buildings or massing; the old road symbol layers used repeated `line` placement at 420/360-pixel intervals. Change only the two road-name layers to `line-center`, with no interval repetition. Preserve road lines, colours, text sizes, layer order, camera, building data, tenant data and interactions. CentralWorld before/after screenshots use the same viewport and automatic venue camera. No MLA data is part of this correction. Existing tests pass; verify exact deployed bytes and the live view separately.
+
+## 0.1.3 — MLA data enrichment
+
+Canonical native readback verifies3 new venue rows,22 existing field changes,170 venue field-evidence rows,99 tenant review cases and272 tenant field-evidence rows. The tenant ledger retains80 eligible dated observations and19 explicit holds;42 native columns, table bounds and date/Boolean/status types were checked. Exact dedupe against2,230 prior public items and2,241 source inputs finds only2 existing outlets.
+
+The canonical build yields11,012 registry records; original BO/BP values and9-dataset primary graph remain unchanged. Full-resolution boundary input matches the original pinned hash. Published district/province boundaries and130 building features remain byte-identical. Tenant output has2,308 items,2,310 source observations,463 hosts and1,621 items with logos. Candidate events, private source links, raw reviews and commercial values are excluded.
+
+All117 tests and whitespace checks pass. Desktop and390px dark/light views were inspected with actual Thai/English tenant names and logos. PARC pagination was exercised10→20→30→40→42 with no duplicates; the new JAS roster renders4/4. Original map style, camera code and district/province/building bytes remain unchanged. PADDIO stays unlocated with administrative fields blank; existing map navigation context is not administrative evidence. Release receipts retain exact build/provider/live hashes and screenshots.

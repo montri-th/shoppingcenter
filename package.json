@@ -1,9 +1,9 @@
 {
   "name": "citymeter-shopping-centers",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
-  "description": "CityMETER \u00b7 Shopping Centers & Retail Venues \u2014 3D district-first map of qualified retail venues in Thailand",
+  "description": "CityMETER · Shopping Centers & Retail Venues — 3D district-first map of qualified retail venues in Thailand",
   "engines": {
     "node": ">=20.0.0"
   },

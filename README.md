@@ -92,3 +92,11 @@ npm test         # Node ≥ 20
 ลำดับเป็นการประเมินบทบาทต่อศูนย์จากร้านหลัก รูปแบบศูนย์และ positioning ทางการที่มีหลักฐาน (11 ศูนย์) ไม่ใช่อันดับยอดเข้าชมหรือยอดขาย บทบาทเท่ากันเรียงชื่ออย่างคงที่ วิธีและขอบเขตอยู่ในหลักฐานรายช่องและ [DATA_METHOD.md](DATA_METHOD.md) §9 จำนวนในแผงใช้ roster ล่าสุด; ตัวเลขรวมของแผนที่/การ์ด/ย่าน/กราฟยังใช้ snapshot เดิมเพื่อคงพฤติกรรมเดิมตามขอบเขตงาน
 
 ไฟล์ที่เกี่ยวข้อง: `js/tenants.js`, `data/tenants/`, `data/tenant-profiles.json`, `assets/tenant-logos-manifest.json`, `scripts/build-tenant-data.py` และ tests ของ tenant build/interaction ผลการสร้างอยู่ใน `data/tenants/build-report.json` สร้างซ้ำจาก reviewed interchange ด้วย `python3 scripts/build-tenant-data.py --observations <reviewed-tenant-observations.json> --logos assets/tenant-logos-manifest.json` โดยเก็บไฟล์วิจัยต้นทางไว้ภายใน
+
+## MLA PARC enrichment — 26 October 2026
+
+PARC Bangna and15 competitors now reconcile to the same venue registry. Three distinct hosts were added: Dadfa Lasalle, The JAS Urban Srinakarin and planned PADDIO Bangna. The canonical registry has11,012 records;22 existing selected fields were updated with field-scoped provenance. Date-qualified records do not establish current opening or the latest operator appointment.
+
+The tenant panel adds78 displayed listings from80 dated public membership observations;2 exact existing outlets receive corroborating evidence only. The additional evidence covers PARC, Little Walk Bangna, Lasalle’s Avenue, Central Bangna, Design Village Bangna and JAS Urban. It is partial historical/source coverage, not a complete current tenant census for every competitor. Nineteen reviewed cases remain held in the canonical ledger. Public rosters now contain2,308 display items at463 hosts, including1,621 items with verified local logos. Original9-dataset primary joins and BO/BP counts remain unchanged.
+
+The source pipeline reads the canonical dated-observation ledger, verifies public branch-specific provenance and exact host identity, retains current operation as unconfirmed, and suppresses candidates/events and unresolved cases. Original brand files are reused only after exact brand or explicitly approved alias matching. No commercial terms, sales, rents, raw reviews or reviewer identities are exported. Map layout, road placement, camera and building geometry remain as release0.1.2.

@@ -11,6 +11,18 @@ const readJSON = path => JSON.parse(readFileSync(path, 'utf8'));
 const base = {id: 'source:stores:1', name: 'ร้านตัวอย่าง', dataset: 'research.TH.example',
   brand: 'ตัวอย่าง', venueIds: ['V1'], primary: true, accepted: true,
   sourceUrl: 'https://example.com/one\nhttps://example.com/two'};
+const mla = {...base, id: 'mla.PARC:TENANT:1', dataset: 'research.MLA.PARC', primary: false,
+  sourceRole: 'mla_dated_public_tenant_listing',
+  relationshipBasis: 'mla_dated_public_branch_or_host_listing_exact_canonical_host',
+  sourceGate: 'public_branch_specific_source_and_dated_membership_observation_reconciled_to_canonical_venue',
+  hostIdentityStatus: 'exact_canonical_venue_verified', membershipStatus: 'source_listed_at_observation',
+  observedOn: '2026-08-02', checkedOn: '2026-08-02', reconciledOn: '2026-10-25',
+  status: 'dated_listing_current_operation_unconfirmed', sourceAuthority: 'google_business_profile_listing_observed_by_mla',
+  sourceUrl: 'https://www.google.com/maps/place/Example/data=!4m2!3m1!1sEXAMPLE',
+  sourceArtifactKey: 'MLA-PARC-TENANT-PROFILE-BRIDGE-v0.3', sourceRowKey: 'GBP-20260802-001', sourceSha256: 'a'.repeat(64)};
+
+const outputItems = out => Array.from({length: 32}, (_, n) => readJSON(join(out, `${String(n).padStart(2, '0')}.json`)))
+  .flatMap(shard => Object.values(shard.venues).flatMap(v => v.items));
 
 test('tenant build accepts confirmed primary hosts, excludes candidates and leaves core unchanged', () => {
   const dir = mkdtempSync(join(tmpdir(), 'shopping-tenant-build-'));
@@ -149,4 +161,79 @@ test('original primary source observations still reconcile to unchanged venue su
   }
   assert.equal([...counts.values()].reduce((a, b) => a + b, 0), 1579);
   for (const row of core.rows) assert.equal(counts.get(row.id) || 0, row.storeCount || 0, row.id);
+});
+
+test('MLA imports only dated public membership and never promotes candidates, movements or current-open status', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'shopping-tenant-mla-gate-'));
+  try {
+    const venues = join(dir, 'venues.json'), observations = join(dir, 'observations.json'), out = join(dir, 'out');
+    const core = JSON.stringify({meta: {coreFields: ['id', 'storeCount']}, rows: [{id: 'V1', storeCount: 0}]});
+    writeFileSync(venues, core);
+    const rejected = [
+      {accepted: false}, {primary: true}, {membershipStatus: 'candidate'}, {membershipStatus: 'opening_announced'},
+      {status: 'opened'}, {status: 'permanently_closed'}, {eventType: 'opening_announced'},
+      {hostIdentityStatus: 'name_candidate'}, {venueIds: ['V1', 'V2']},
+      {observedOn: ''}, {observedOn: '2026-02-31'}, {observedOn: '2026-11-01'}, {sourceDate: '2026-12-01'},
+      {sourceRole: 'registry_accepted_primary'}, {sourceAuthority: 'internal_proposal'}, {sourceSha256: ''},
+      {sourceUrl: 'https://example.com/'}, {sourceUrl: 'https://www.google.com/search?q=shops'},
+      {sourceUrl: 'https://www.google.com/maps/search/?api=1&query=nearby+shops'},
+    ].map((patch, i) => ({...mla, ...patch, id: `mla.PARC:rejected:${i}`}));
+    writeFileSync(observations, JSON.stringify({meta: {asOf: '2026-10-25'}, observations: [mla, ...rejected]}));
+    execFileSync('python3', [script, '--observations', observations, '--venues', venues, '--out', out]);
+    const report = readJSON(join(out, 'build-report.json')), items = outputItems(out);
+    assert.equal(items.length, 1);
+    assert.equal(items[0].id, mla.id);
+    assert.equal(items[0].observedOn, '2026-08-02');
+    assert.equal(items[0].checkedOn, '2026-08-02');
+    assert.equal(items[0].status, 'dated_listing_current_operation_unconfirmed');
+    assert.equal(items[0].hostIdentityStatus, 'exact_canonical_venue_verified');
+    assert.equal(report.mlaMembership.newDisplayedListings, 1);
+    assert.equal(Object.values(report.omitted).reduce((sum, n) => sum + n, 0), rejected.length);
+    assert.equal(readFileSync(venues, 'utf8'), core);
+  } finally { rmSync(dir, {recursive: true, force: true}); }
+});
+
+test('MLA evidence explicitly matched to the same existing outlet corroborates it without duplicating its shop or original source count', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'shopping-tenant-mla-dedupe-'));
+  try {
+    const venues = join(dir, 'venues.json'), observations = join(dir, 'observations.json'), out = join(dir, 'out');
+    writeFileSync(venues, JSON.stringify({meta: {coreFields: ['id', 'storeCount']}, rows: [{id: 'V1', storeCount: 1}, {id: 'V2', storeCount: 0}]}));
+    const corroboration = {...mla, matchedSourceStoreIds: [base.id], dedupeDisposition: 'corroborate_existing_outlet_do_not_append'};
+    writeFileSync(observations, JSON.stringify({meta: {asOf: '2026-10-25'}, observations: [
+      corroboration, base,
+      {...corroboration, id: 'mla.PARC:wrong-host', venueIds: ['V2']},
+      {...corroboration, id: 'mla.PARC:missing-outlet', matchedSourceStoreIds: ['not-present']},
+    ]}));
+    execFileSync('python3', [script, '--observations', observations, '--venues', venues, '--out', out]);
+    const report = readJSON(join(out, 'build-report.json')), items = outputItems(out);
+    assert.equal(report.publishedItems, 1);
+    assert.equal(report.publishedSourceObservations, 1);
+    assert.equal(report.mlaMembership.corroboratingExistingListings, 1);
+    assert.equal(report.omitted.mla_existing_outlet_match_not_in_same_host, 2);
+    assert.equal(items[0].id, base.id);
+    assert.equal(items[0].status, undefined, 'the old selected status is not overwritten');
+    assert.equal(items[0].corroboratingMembershipEvidence[0].id, mla.id);
+    assert.equal(items[0].corroboratingMembershipEvidence[0].observedOn, '2026-08-02');
+    assert.deepEqual(report.summaryDifferences, []);
+  } finally { rmSync(dir, {recursive: true, force: true}); }
+});
+
+test('MLA exact-place URLs can use an explicit Google place ID, while internal-only evidence stays out', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'shopping-tenant-mla-public-'));
+  try {
+    const venues = join(dir, 'venues.json'), observations = join(dir, 'observations.json'), out = join(dir, 'out');
+    writeFileSync(venues, JSON.stringify({meta: {coreFields: ['id']}, rows: [{id: 'V1'}]}));
+    const place = {...mla, sourceUrl: 'https://www.google.com/maps/search/?api=1&query=Example&query_place_id=ChIJexample',
+      privateSourceReference: 'internal-only-do-not-publish'};
+    writeFileSync(observations, JSON.stringify({meta: {asOf: '2026-10-25'}, observations: [
+      place, {...mla, id: 'mla.PARC:private', sourceUrl: 'https://' + ['docs', 'google', 'com'].join('.') + '/spreadsheets/example'},
+    ]}));
+    execFileSync('python3', [script, '--observations', observations, '--venues', venues, '--out', out]);
+    const items = outputItems(out), report = readJSON(join(out, 'build-report.json'));
+    assert.equal(items.length, 1);
+    assert.match(items[0].sourceUrl, /query_place_id=/);
+    assert.equal(items[0].privateSourceReference, undefined);
+    assert.ok(!JSON.stringify(items).includes('internal-only-do-not-publish'));
+    assert.equal(report.omitted.mla_public_source_provenance, 1);
+  } finally { rmSync(dir, {recursive: true, force: true}); }
 });

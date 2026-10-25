@@ -1,12 +1,13 @@
 {
-  "asOf": "2026-10-25",
-  "inputObservations": 2241,
-  "eligibleSourceObservations": 2241,
-  "publishedVenueHosts": 461,
-  "publishedObservations": 2230,
-  "publishedItems": 2230,
-  "publishedSourceObservations": 2232,
+  "asOf": "2026-10-26",
+  "inputObservations": 2321,
+  "eligibleSourceObservations": 2321,
+  "publishedVenueHosts": 463,
+  "publishedObservations": 2308,
+  "publishedItems": 2308,
+  "publishedSourceObservations": 2310,
   "datasets": {
+    "research.MLA.PARC": 78,
     "research.TH.bank": 218,
     "research.TH.camera": 184,
     "research.TH.gold": 322,
@@ -19,6 +20,7 @@
   "statuses": {
     "association_listed_not_field_verified": 19,
     "closure_conflict_review": 4,
+    "dated_listing_current_operation_unconfirmed": 78,
     "listed_on_official_booking_directory_not_field_verified": 1,
     "listed_on_official_locator_not_field_verified": 174,
     "listed_on_official_website_not_field_verified": 1,
@@ -32,11 +34,16 @@
     "status_recheck_required_after_temporary_notice": 3
   },
   "sourceRoles": {
+    "mla_dated_public_tenant_listing": 78,
     "official_chain_exact_named_host_listing": 644,
     "official_grocery_explicit_parent_host_listing": 7,
     "registry_accepted_primary": 1579
   },
-  "withLogo": 1609,
+  "mlaMembership": {
+    "newDisplayedListings": 78,
+    "corroboratingExistingListings": 2
+  },
+  "withLogo": 1621,
   "retailerIdentity": {
     "manufacturerLogosSuppressed": 8,
     "monoBrandRetailerNames": 4,
@@ -155,17 +162,17 @@
     {
       "venueId": "SC-000976",
       "summaryObservations": 0,
-      "rosterObservations": 1
+      "rosterObservations": 16
     },
     {
       "venueId": "SC-000977",
       "summaryObservations": 0,
-      "rosterObservations": 1
+      "rosterObservations": 42
     },
     {
       "venueId": "SC-000992",
       "summaryObservations": 14,
-      "rosterObservations": 22
+      "rosterObservations": 24
     },
     {
       "venueId": "SC-001065",
@@ -523,6 +530,11 @@
       "rosterObservations": 11
     },
     {
+      "venueId": "SC-012155",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-012178",
       "summaryObservations": 0,
       "rosterObservations": 1
@@ -615,7 +627,7 @@
     {
       "venueId": "SC-C0129",
       "summaryObservations": 0,
-      "rosterObservations": 2
+      "rosterObservations": 17
     },
     {
       "venueId": "SC-C0221",
@@ -1363,6 +1375,11 @@
       "rosterObservations": 3
     },
     {
+      "venueId": "VN-76b3c63823c8d2",
+      "summaryObservations": 0,
+      "rosterObservations": 4
+    },
+    {
       "venueId": "VN-794a723a07bbce",
       "summaryObservations": 0,
       "rosterObservations": 3
@@ -1469,9 +1486,10 @@
     "Source observations are a partial roster, not a current tenant census.",
     "Source-listed status and closure conflicts remain separate from host identity.",
     "Ranking is a contextual editorial priority, not measured visits, sales or footfall.",
+    "Dated MLA membership does not establish current operation; existing-outlet corroboration is evidence, not another displayed/source-card count.",
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
-  "inputSha256": "2be81bfdbf982859f7e1728e7cb46057ee107d40ec79d41dc5bf677d5f48eb10",
-  "venueCoreSha256": "a7e1d51e0ee00903cad5ed59ef073fa6df32e128feca6be07a634d3f23b7d0cb",
-  "logoManifestSha256": "4a31f55d848d4f5cc1c034bbfb3a40f645675857ab9f98a384676f5ba958eec0"
+  "inputSha256": "5c63db5e54b53ec4e48ff9d9d5cb217a0d3dd9c11ec3ba38ccdd371ecb387b4c",
+  "venueCoreSha256": "8ae465e87237e53879b9b3b03a73ffa9d2de5a2e63fb3e39e6f9e07303ed4462",
+  "logoManifestSha256": "69ae084fac70cf970eacf6c9ea2ce8a9ac33bd8dd38eecc905ed725871afdbea"
 }
