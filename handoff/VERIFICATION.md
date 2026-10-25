@@ -45,7 +45,7 @@ Scripted check of the camera against the free map box (`window.__citymeter.visib
 
 GitHub Pages, branch `main`, folder `/` (enabled 25 Oct 2026).
 
-- **Bytes:** `npm run verify:live` compares every published file with the SHA-256 in `handoff/handoff-manifest.json`, plus the root document; re-run after every push (tests, scripts and dotfiles are not compared). Results: `88353eb` + `399e2ab` 207/207 · `dd8348a` 225/225 · `fcff6b1` 449/449 · `eb448ef` (tag `20261025-r6`) 453/453 · `5d4301e` (tag `20261025-r7`) **453/453**.
+- **Bytes:** `npm run verify:live` compares every published file with the SHA-256 in `handoff/handoff-manifest.json`, plus the root document; re-run after every push (tests, scripts and dotfiles are not compared). Results: `88353eb` + `399e2ab` 207/207 · `dd8348a` 225/225 · `fcff6b1` 449/449 · `eb448ef` (tag `20261025-r6`) 453/453 · `5d4301e` (tag `20261025-r7`) 453/453 · `d1828d6` (tag `20261025-r8`) **453/453**.
 - After a push, browsers may keep modules for up to 10 minutes (GitHub Pages `max-age=600`); entry points carry `?v=`; since `20261025-r4` an import map gives every module in `js/` the same tag.
 
 ### Title, pin buildings, city massing, charts — tags `r5` (`7e03aaa`) and `r6` (`eb448ef`), 25 Oct 2026
@@ -59,6 +59,16 @@ Owner's Chrome, desktop, fresh URLs; real OpenFreeMap tiles.
 - **Charts, dark theme:** the ranking renders in the same LUT colours as the map, amCharts logo kept at the bottom left (linkware licence). This check showed the caption “878 แห่ง · ทุกเขตในกรุงเทพฯ” beside “49 จาก 856 แห่ง” — fixed in `r7` (S19).
 - **Mobile 390×844 (Playwright against the live URL, tiles blocked in the container):** charts, venue and dark overview — no console errors, no horizontal overflow.
 
+### Two-point venue camera, phones map first, venue panel — tag `r8` (`d1828d6`), 25 Oct 2026
+
+Owner's Chrome (1300×899, dark theme, real OpenFreeMap tiles), all modules loaded at `20261025-r8`:
+
+- `?venue=SC-C1138` (เกษรวิลเลจ, checked host geometry): bearing 54.9°, zoom 18.32, podium and tower fill 99.9% of the free height, centred; the city massing in front is see-through.
+- `?venue=SC-001077` (สีลมเอจ, pin building): framed on the pin first, then one turn to its pin building when it arrived (podium 5.4 m + tower 40.4 m from the basemap): bearing 23.2°, zoom 19.34, 100% of the free width and 99.8% of its height.
+- `?district=1004`, then a mouse click on the พาร์ค สีลม pin: venue panel and two-point view, bearing 21.9°, zoom 19.02, its pin building (the 5.4 m L-shaped basemap building at the pin, an edge match) fills 100% of the free width, centred to the pixel. A drag of the map, then “มุมสถาปนิก”: framed again the same way.
+- Console: no errors across these pages.
+- Phone layout on the live URL: Playwright 390×844 against `https://montri-th.github.io/shoppingcenter/` (basemap tiles blocked in the container) gives the same results as the r8 container table in §2 — cards, sheet re-frame, no console errors, no horizontal overflow.
+
 ### Numbers add up — tag `r7` (`5d4301e`), 25 Oct 2026
 
 Owner's Chrome, dark theme, fresh URLs: all 29 modules in `js/` loaded at `20261025-r7`. First view: “49 จาก 856 แห่ง …”, chart caption “856 แห่ง · ทุกเขตในกรุงเทพฯ” and “อีก 22 แห่งยังระบุเขตไม่ได้ · ดูในตาราง”. `?venue=SC-001066` (เซ็นทรัล พาร์ค): “เปิดเมื่อ 4 ก.ย. 2568” once; its checked host building (3 features) drawn in the building colour.
@@ -69,4 +79,4 @@ Owner's Chrome, dark theme, fresh URLs: all 29 modules in `js/` loaded at `20261
 - **D6 (`a0832e6`):** `?venue=SC-001304` shows สามย่านมิตรทาวน์ counted as its own venue.
 - **Logos (`dd8348a`):** 113 of 113 files equal `10_VENUE_LOGOS` by SHA-256; `?venue=SC-001299` shows the MBK Center logo in the panel and on the map.
 - **15:06 data refresh + 41-sample ramp (`fcff6b1`):** “6% … 49 จาก 838 แห่ง”, เมืองเชียงใหม่ 96 แห่ง, context toggle 4,941; `?venue=SC-000500` (ตลาดสำเพ็ง) reads the owner rule “ตลาด”.
-- **Not checked on live:** a real phone (the live URL was checked at phone size in the container harness, without basemap tiles).
+- **Not checked on live:** a real phone (the live URL was checked at phone size in the container harness, without basemap tiles), so the two-point fit over real pin buildings on a phone screen is checked on desktop only.
