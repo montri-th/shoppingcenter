@@ -10,8 +10,9 @@ const {kx, ky} = metresPerDegree(LAT);
 const rect = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]].map(([x, y]) => [LON + x / kx, LAT + y / ky]);
 const at = (x, y) => [LON + x / kx, LAT + y / ky];
 const tileOf = lonLatToTile(LON, LAT, 14);
+// querySourceFeatures shape of MapLibre 5: the tile is `tile: {z, x, y}`.
 const feature = (id, rings, props = {}, t = tileOf) => ({
-  id, _z: t.z, _x: t.x, _y: t.y,
+  id, tile: {z: t.z, x: t.x, y: t.y},
   properties: {render_height: 20, render_min_height: 0, ...props},
   geometry: Array.isArray(rings[0][0][0]) ? {type: 'MultiPolygon', coordinates: rings} : {type: 'Polygon', coordinates: rings},
 });
@@ -73,6 +74,10 @@ test('only z14 pieces are read when z14 is loaded (a retained parent tile would 
   const parent = {z: 13, x: Math.floor(tileOf.x / 2), y: Math.floor(tileOf.y / 2)};
   const parts = explodeParts([feature(40, [rect(0, 0, 10, 10)]), feature(41, [rect(0, 0, 10, 10)], {}, parent)]);
   assert.deepEqual(parts.map(p => p.fid), [40]);
+  assert.equal(parts[0].tile, `14/${tileOf.x}/${tileOf.y}`, 'tile read from MapLibre 5 `tile`');
+  // Older MapLibre builds exposed _z/_x/_y instead.
+  const legacy = explodeParts([{id: 42, _z: 14, _x: 1, _y: 2, properties: {}, geometry: {type: 'Polygon', coordinates: [rect(0, 0, 10, 10)]}}]);
+  assert.equal(legacy[0].tile, '14/1/2');
 });
 
 test('display shape: grown outward to enclose the basemap copy, holes shrink, lifted, never under 3 m', () => {

@@ -93,22 +93,26 @@ export function interiorPoint(part) {
 
 /**
  * Polygon parts of querySourceFeatures output. Keeps z14 pieces only when z14 is loaded (a
- * retained parent tile would duplicate them). Each part: {fid, tile, outer, holes, bbox,
+ * retained parent tile would duplicate them); the tile comes from tileOf(). Each part: {fid, tile, outer, holes, bbox,
  * areaM2, height, base, hide3d}.
  */
+/** Tile of a querySourceFeatures result: MapLibre 5 sets `tile: {z, x, y}`; older builds had _z/_x/_y. */
+export const tileOf = f => (f?.tile && Number.isFinite(f.tile.z) ? f.tile : Number.isFinite(f?._z) ? {z: f._z, x: f._x, y: f._y} : null);
+
 export function explodeParts(features, {zoom = PIN_TILE_ZOOM} = {}) {
   const list = Array.isArray(features) ? features : [];
-  const hasZoom = list.some(f => f && f._z === zoom);
+  const hasZoom = list.some(f => tileOf(f)?.z === zoom);
   const parts = [];
   for (const f of list) {
-    if (!f || (hasZoom && f._z !== zoom)) continue;
+    if (!f || (hasZoom && tileOf(f)?.z !== zoom)) continue;
     let g;
     try { g = f.geometry; } catch { continue; }
     if (!g) continue;
     const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
     const p = f.properties || {};
     const height = Number(p.render_height), base = Number(p.render_min_height) || 0;
-    const tile = f._z != null ? `${f._z}/${f._x}/${f._y}` : '';
+    const t = tileOf(f);
+    const tile = t ? `${t.z}/${t.x}/${t.y}` : '';
     for (const poly of polys) {
       const outer = poly?.[0];
       if (!Array.isArray(outer) || outer.length < 4) continue;

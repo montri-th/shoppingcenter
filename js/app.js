@@ -473,13 +473,15 @@ function drawChart() {
   $('chart').setAttribute('aria-labelledby', 'tab-' + state.view);
   const readCode = readingProvince();
   const kind = readCode ? 'district' : 'province';
-  $('chart-scope').textContent = `${num(state.scopeRows.length)} แห่ง · ${readCode ? `ทุก${districtWord(readCode)}ใน${provinceShort(readCode)}` : 'ทุกจังหวัด'}`;
+  // One scope for every view: the province being read (its districts), else the whole country.
+  const scope = readCode ? state.scopeRows.filter(r => rowProvince(r) === readCode) : state.scopeRows;
+  $('chart-scope').textContent = `${num(scope.length)} แห่ง · ${readCode ? `ทุก${districtWord(readCode)}ใน${provinceShort(readCode)}` : 'ทุกจังหวัด'}`;
   $('tab-rank').querySelector('.tab-label').textContent = readCode ? `${districtWord(readCode)}ที่แน่นที่สุด` : 'จังหวัด';
   if ($('insight-content').hidden) return;
   const areas = kind === 'district' ? state.districtModel.areas : provinceAreas(state.scopeRows, state.provinceModel);
   chartDispose = renderInsightChart({
     elementId: 'chart', view: state.view, areas, kind, unitWord: districtWord(readCode),
-    operatorRows: operatorRanking(state.scopeRows), total: state.scopeRows.length,
+    operatorRows: operatorRanking(scope), total: scope.length,
     selectedId: state.panel.mode === 'district' ? state.panel.id : values().province, selectedOperator: values().operator, theme: theme(),
   }, selection => {
     if (selection.type === 'area') { if (kind === 'district') selectDistrict(selection.id, {fromMap: true}); else selectProvince(selection.id); }
