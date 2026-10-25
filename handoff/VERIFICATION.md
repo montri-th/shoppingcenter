@@ -26,6 +26,14 @@ Playwright + Chromium (SwiftShader WebGL) against `python3 -m http.server`, with
 | Map failure | MapLibre blocked | “โหลดแผนที่ไม่สำเร็จ ข้อมูล ตาราง และกราฟยังใช้งานได้” with retry; panel, finding and table still work |
 | Keyboard | Tab from the top | focus ring 3 px solid, visible in both themes |
 
-## 3. Live release
+## 3. Live release — https://montri-th.github.io/shoppingcenter/
 
-Recorded after deployment: commit, `npm run verify:live` (every published file's SHA-256 against `handoff/handoff-manifest.json`), and a real-browser check of the live page (basemap, massing, 3D, light/dark, narrow width, Luxury Brands link).
+GitHub Pages, branch `main`, folder `/` (enabled 25 Oct 2026).
+
+- **Bytes:** `npm run verify:live` after commits `88353eb` and `399e2ab`: **207 published files, 207 match** the SHA-256 in `handoff/handoff-manifest.json`, plus the root document. Re-run after every push; tests, scripts and dotfiles are not compared.
+- **Real browser (owner's Chrome, 1710×851, dark by system theme, 25 Oct 2026):**
+  - First view: paper basemap with roads, river and Thai labels; the three districts filled with the top density class; 32 pins; the finding panel as in §2. At commit `88353eb` the first view opened at zoom 12.57 with **no building massing** (OpenMapTiles buildings begin at zoom 13) — fixed in `399e2ab`: the venues are framed at zoom 13.1 and the focus massing is drawn.
+  - Venue `?venue=SC-001244`: architect's view of สยามพารากอน, host building in the map role colour drawn over see-through massing, logo label, full panel. Its link “ดูแบรนด์หรูที่นี่ใน Luxury Brands” opens `luxurybrands/?place=49b5afdc-…` on Siam Paragon (breadcrumb ประเทศไทย › กรุงเทพมหานคร › สยาม › Siam Paragon).
+  - Light theme `?province=CMI`: paper basemap, district fills, labels on their own districts; no console errors. Theme set back to Auto afterwards.
+  - After a push, browsers may keep modules for up to 10 minutes (GitHub Pages `max-age=600`); entry points carry `?v=` (now `20261025-r2`) and inner modules follow on the next cache expiry.
+- **Not checked on live:** a real phone; narrow width was checked in the container harness with the same bytes.

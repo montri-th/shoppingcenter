@@ -95,14 +95,14 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 | S01 | Pipeline สถานที่ | `scripts/build-data.py` → `venues.json`, `details/`, `pending.json`, `build-report.json`; counts 565/540/536/483 และ D1 32/181 ตรงกับ `meta.checks.aha` ด้วย test · `npm run data:refresh` รันใหม่ด้วยคำสั่งเดียว | done |
 | S02 | ขอบเขต + รหัส production | provinces 77 / districts 928 simplified; ทุก `id` ตรง production lv0/lv1 (remap `4026` → `4029` บันทึกใน meta) | done |
 | S03 | อาคารของสถานที่ | 127 รูปทรงของ 74 สถานที่ (parts 10 · footprint 64); parent ที่มี parts เป็น outline; ความสูงไม่รู้คง `null` + display fallback 3 ม. | done |
-| S04 | โลโก้สถานที่ | ไฟล์ตรง SHA-256 ของทะเบียน; ไม่มีลิงก์ Drive · ไฟล์ครบตามที่ระบุใน `data/venue-logos.json` `meta.status` | done (ดูจำนวนไฟล์ใน VERIFICATION) |
+| S04 | โลโก้สถานที่ | ไฟล์ตรง SHA-256 ของทะเบียน; ไม่มีลิงก์ Drive · จำนวนไฟล์ที่ตรวจแล้วอยู่ใน `data/venue-logos.json` `meta.status` (รุ่นนี้ 95 จาก 113 — ที่เหลือแสดงชื่อโดยไม่มีโลโก้) | partial |
 | S05 | Model + ตัวกรอง + Aha | `model.js`, `areas.js`, `area-insight.js` + unit tests บนข้อมูลจริง | done |
 | S06 | แผนที่ | choropleth เขต/จังหวัด, หมุดรูปทรง, จุด GPU ของรายการรอตรวจและบริบท, อาคาร, มวลอาคาร focus (ทั้งเขตเมื่อ ≤ 40 ตร.กม. ไม่เช่นนั้นวงรัศมี 420 ม. รอบสถานที่ในโฟกัส ≤ 60 แห่ง) | done |
 | S07 | แผง + breadcrumb + URL | ทุกโหมดใน §6; crumbs 4 ระดับ; permalink คืนสถานะ | done |
 | S08 | กราฟ + ตาราง | เขตหนาแน่น, matrix ช่องเท่ากัน, ผู้บริหาร; ตารางทีละ 25 แถว | done |
 | S09 | ข้อความ, help, SEO, noscript | คำไทยสั้นตาม Voice; ไม่มี caveat บนหน้าแรก; JSON-LD + ตาราง noscript สร้างด้วย `scripts/build-static.py` | done |
-| S10 | ทดสอบ | `npm test` ผ่าน; browser 390/1280 × light/dark (harness ใน container + Chrome จริงบน live) — ผลใน `handoff/VERIFICATION.md` | ดู VERIFICATION |
-| S11 | Release | push `main`, เปิด Pages, `verify:live` ตรงทุกไฟล์ | ดู VERIFICATION |
+| S10 | ทดสอบ | `npm test` 70/70; harness 18 สถานการณ์ (390/1280 × light/dark, ล้มเหลวของแผนที่, คีย์บอร์ด); Chrome จริงบน live — ผลใน `handoff/VERIFICATION.md` | done |
+| S11 | Release | push `main`, เปิด Pages (main, /), `verify:live` 207/207 ไฟล์ตรง | done |
 | S12 | Handoff | README, DATA_METHOD, AGENTS, docs/BUILD_CARD, `assets/manifest.json`, `handoff-manifest.json` (local) · เก็บ PS + แผนใน Drive `02_CityMETER/03_OUTPUTS_AND_EXAMPLES` · product-statement / implementation-plan แบบ JSON ยังไม่ทำ (เลื่อนไปรอบหลังข้อมูลชุดใหญ่) | partial |
 
 ## 8. เกณฑ์รับงาน

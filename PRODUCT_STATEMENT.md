@@ -250,4 +250,5 @@ D1–D4 เจ้าของเลือกในแชต 25 ต.ค. 2569 (Ow
 | Landometer Design System | 0.9.7 · `v0.9.7-owner.1` · `standalone-0.9.7-r1` · SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96` (ตรวจ hash ตรงแล้ว) |
 | Location Intelligence Profile | `location-intelligence-profile-lds-0.9.7-r1` · `baseDocument.sha256` ตรงกับ LDS ข้างบน · ใช้นิยาม `li.supply` และ `li.market_share` |
 | ต้นแบบหน้าตา | CityMETER: Luxury Brands Thailand รุ่น 0.5 · commit `0ed2b9d` |
+| เว็บรุ่นแรก | https://montri-th.github.io/shoppingcenter/ รุ่น 0.1.0 · repository `montri-th/shoppingcenter` · ผลตรวจใน `handoff/VERIFICATION.md` |
 | ขอบเขตการปกครอง | OpenGISData-Thailand `provinces.geojson` SHA-256 `310c3adf…` และ `districts.geojson` SHA-256 `329315c2…` · commit `fafcea1` · CC BY 4.0 |
