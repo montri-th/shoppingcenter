@@ -1,0 +1,26 @@
+/* Categorical series assignment and venue identity artwork.
+   Category colours resolve the LDS landometer-series-10-v8 tokens by series number
+   (js/model.js GROUPS[].series); every swatch also carries the series shape cue (js/cues.js).
+   Venue logos keep their source bytes on the backplate colour recorded in the registry. */
+
+/* Category fill variable: pins, swatches and mix bars read --pin-fill. */
+.store-pin[data-category="1"], .category-1 { --pin-fill: var(--series-1-fill); }
+.store-pin[data-category="2"], .category-2 { --pin-fill: var(--series-2-fill); }
+.store-pin[data-category="3"], .category-3 { --pin-fill: var(--series-3-fill); }
+.store-pin[data-category="4"], .category-4 { --pin-fill: var(--series-4-fill); }
+.store-pin[data-category="5"], .category-5 { --pin-fill: var(--series-5-fill); }
+.store-pin[data-category="6"], .category-6 { --pin-fill: var(--series-6-fill); }
+.store-pin[data-category="7"], .category-7 { --pin-fill: var(--series-7-fill); }
+.store-pin[data-category="8"], .category-8 { --pin-fill: var(--series-8-fill); }
+.store-pin[data-category="9"], .category-9 { --pin-fill: var(--series-9-fill); }
+.store-pin[data-category="10"], .category-10 { --pin-fill: var(--series-10-fill); }
+.mix-fill.category-1 { background: var(--series-1-fill); }
+.mix-fill.category-2 { background: var(--series-2-fill); }
+.mix-fill.category-3 { background: var(--series-3-fill); }
+.mix-fill.category-4 { background: var(--series-4-fill); }
+.mix-fill.category-5 { background: var(--series-5-fill); }
+.mix-fill.category-6 { background: var(--series-6-fill); }
+.mix-fill.category-7 { background: var(--series-7-fill); }
+.mix-fill.category-8 { background: var(--series-8-fill); }
+.mix-fill.category-9 { background: var(--series-9-fill); }
+.mix-fill.category-10 { background: var(--series-10-fill); }

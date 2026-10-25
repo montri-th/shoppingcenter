@@ -1,0 +1,19 @@
+{
+  "name": "citymeter-shopping-centers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CityMETER · Shopping Centers & Retail Venues — 3D district-first map of qualified retail venues in Thailand",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "start": "python3 -m http.server 4173 --bind 127.0.0.1",
+    "data:refresh": "bash scripts/refresh-data.sh",
+    "data:reference": "python3 scripts/fetch-reference.py",
+    "handoff:manifest": "node scripts/build-handoff.mjs",
+    "handoff:bundle": "node scripts/build-handoff.mjs --zip dist/CityMETER-Shopping-Centers-Developer-Handoff.zip",
+    "verify:live": "node scripts/verify-live.mjs"
+  }
+}

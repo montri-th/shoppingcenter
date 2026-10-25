@@ -1,0 +1,1922 @@
+{
+ "meta": {
+  "asOf": "2026-10-23",
+  "count": 95,
+  "expected": 113,
+  "folder": "assets/venue-logos/",
+  "registry": "CityMETER Shopping Centers & Retail Venues — Research Master, tab 10_VENUE_LOGOS",
+  "status": "partial: 95 of 113 files verified; 18 pending transfer (venues keep their name, no logo shown)",
+  "pending": [
+   {
+    "file": "park-silom.png",
+    "logoKey": "VL-d4cd92657354d209",
+    "reason": "transfer_pending",
+    "sheetSha256": "d4cd92657354d209a9f113598db0e1eb3725016dcc6da19ac600a5a8da47ac0d",
+    "venues": [
+     "SC-001052"
+    ]
+   },
+   {
+    "file": "central-chiangmai-airport.png",
+    "logoKey": "BVL-fa30b03f8494a745",
+    "reason": "transfer_pending",
+    "sheetSha256": "fa30b03f8494a74504243e21e7f6b49aa43c04b6feae91deb8e43faa895c00f7",
+    "venues": [
+     "SC-015770"
+    ]
+   },
+   {
+    "file": "central-khonkaen.png",
+    "logoKey": "BVL-ec32d46869918c89",
+    "reason": "transfer_pending",
+    "sheetSha256": "ec32d46869918c895019ca46b8d380ae0d74f63e1aad9b7a58bf5773d5f0d1f1",
+    "venues": [
+     "SC-002835"
+    ]
+   },
+   {
+    "file": "central-nakhon-pathom.svg",
+    "logoKey": "VL-abf7da9ebfec600a",
+    "reason": "transfer_pending",
+    "sheetSha256": "abf7da9ebfec600ada11a96c696445fd52250ca16b060b027f6607312755ab5a",
+    "venues": [
+     "SC-005210"
+    ]
+   },
+   {
+    "file": "central-ramindra.png",
+    "logoKey": "VL-8d31b8c822586880",
+    "reason": "transfer_pending",
+    "sheetSha256": "8d31b8c822586880c4d61872dab4bb4f7f53e833e82ecdc5b16c14a6d353953a",
+    "venues": [
+     "SC-001109"
+    ]
+   },
+   {
+    "file": "fortune-town.png",
+    "logoKey": "VL-e70eeac4cb1c2d24",
+    "reason": "transfer_pending",
+    "sheetSha256": "e70eeac4cb1c2d24b4116b30f32f3b93edc1c36c51299d9f8cbf828a11198c47",
+    "venues": [
+     "SC-000573"
+    ]
+   },
+   {
+    "file": "it-square-laksi.jpg",
+    "logoKey": "VL-87829648ac540f2b",
+    "reason": "transfer_pending",
+    "sheetSha256": "87829648ac540f2b2a325155e4fbf76d7fb724e9b35e6224b17bc2f4ccf66b58",
+    "venues": [
+     "SC-002006"
+    ]
+   },
+   {
+    "file": "mbk-center.svg",
+    "logoKey": "VL-e58054ac6d586e5d",
+    "reason": "transfer_pending",
+    "sheetSha256": "e58054ac6d586e5d8b7817feee71405d65b1332574e8250f1a031c731f325937",
+    "venues": [
+     "SC-001299"
+    ]
+   },
+   {
+    "file": "paradise-park.svg",
+    "logoKey": "VL-c1aa205e740f0d7e",
+    "reason": "transfer_pending",
+    "sheetSha256": "c1aa205e740f0d7e6d0ebd578809dda056da9f22855345e914af093d3671650a",
+    "venues": [
+     "SC-001340"
+    ]
+   },
+   {
+    "file": "sena-fest.jpg",
+    "logoKey": "VL-1565e75bdbd67dc4",
+    "reason": "transfer_pending",
+    "sheetSha256": "1565e75bdbd67dc49038451cee20ca3618b79cabc732f8bfd3445093b7f5a683",
+    "venues": [
+     "SC-000218"
+    ]
+   },
+   {
+    "file": "terminal21-korat.png",
+    "logoKey": "VL-acef56ffd907acfa",
+    "reason": "transfer_pending",
+    "sheetSha256": "acef56ffd907acfaaed37ba1d10162ed36abbc798a03df769e806fd73e4590f4",
+    "venues": [
+     "SC-C0221"
+    ]
+   },
+   {
+    "file": "the-bright-rama2.png",
+    "logoKey": "VL-f509602fdacc7221",
+    "reason": "transfer_pending",
+    "sheetSha256": "f509602fdacc7221ada7c9c19abfc3aa6fa65bc85149266ee48c9e62c3a6fdb2",
+    "venues": [
+     "SC-C0403"
+    ]
+   },
+   {
+    "file": "the-promenade.png",
+    "logoKey": "VL-6369e2e564920e0d",
+    "reason": "transfer_pending",
+    "sheetSha256": "6369e2e564920e0d57301d5c07ea602503cf6ae52c8e70407e2afc0d1bf880c7",
+    "venues": [
+     "SC-000327"
+    ]
+   },
+   {
+    "file": "porto-go-bang-pa-in.png",
+    "logoKey": "VL-d5a17dcbe045dd06",
+    "reason": "transfer_pending",
+    "sheetSha256": "d5a17dcbe045dd06a261cf57e2721893f0485987784d380a02b2774b00b51dce",
+    "venues": [
+     "VN-f9c5ad25f10363"
+    ]
+   },
+   {
+    "file": "habito.jpg",
+    "logoKey": "VL-79f49229288f0dbd",
+    "reason": "transfer_pending",
+    "sheetSha256": "79f49229288f0dbd46bec9a34e292d050afab730f788d14b107316fa6a3aa513",
+    "venues": [
+     "SC-001787"
+    ]
+   },
+   {
+    "file": "mega-plaza.jpg",
+    "logoKey": "VL-9808c758e1e8ff2a",
+    "reason": "transfer_pending",
+    "sheetSha256": "9808c758e1e8ff2a9f38a626575f00b1ca1db87e6bcb930995609e9a08ab0e57",
+    "venues": [
+     "SC-001430"
+    ]
+   },
+   {
+    "file": "silom-edge.png",
+    "logoKey": "VL-df59be36733d2383",
+    "reason": "transfer_pending",
+    "sheetSha256": "df59be36733d23835348152ed05289100dc69f1c7c80dd2ef8c249879219904c",
+    "venues": [
+     "SC-001077"
+    ]
+   },
+   {
+    "file": "union-mall.png",
+    "logoKey": "VL-120ac8d74a86a012",
+    "reason": "transfer_pending",
+    "sheetSha256": "120ac8d74a86a0123b4a39b29110fc9ee128dcf6d1f154db424f5264c91e6598",
+    "venues": [
+     "SC-000426"
+    ]
+   }
+  ],
+  "roles": {
+   "venue_specific": "โลโก้ของสถานที่โดยตรง",
+   "parent_complex": "โลโก้โครงการแม่",
+   "shared_department_store_banner": "โลโก้ห้างสรรพสินค้าในเครือ",
+   "shared_chain_banner": "โลโก้เครือ"
+  },
+  "identityRole": "Identify the venue in the panel, lists and map pins; the venue name stays the record of identity",
+  "backgroundRule": "transparent marks on #E5E9E6, light transparent marks on #182327, opaque files on #FFFFFF; artwork bytes unchanged",
+  "licenseNote": "การรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า สิทธิ์ยังเป็นของเจ้าของ"
+ },
+ "assets": [
+  {
+   "key": "VL-8f8f3cb838c228cc",
+   "file": "assets/venue-logos/central-bangna.png",
+   "mime": "image/png",
+   "bytes": 11840,
+   "sha256": "8f8f3cb838c228cc136e4427a8da7e11498bbe5aa334fe7bc04e944c17c77adf",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-bangna/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-bangna/common/002-bangna-logo8c6667c5-a305-42c8-90f8-27d8495067ff.png?sfvrsn=79e5c4bd_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-68b350ecebc0bc80",
+   "file": "assets/venue-logos/central-chaengwattana.png",
+   "mime": "image/png",
+   "bytes": 9480,
+   "sha256": "68b350ecebc0bc80ecb2e0206a7f537b523029fa8566eab44168db4252dc2e6f",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-chaengwattana/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-chaengwattana/common/003-chaengwattana-logo.png?sfvrsn=1754ad05_2",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-894e587d0e540718",
+   "file": "assets/venue-logos/central-chiangmai.png",
+   "mime": "image/png",
+   "bytes": 81998,
+   "sha256": "894e587d0e5407183d4ddbe77b0723a196095d3249d72545f2d80b63170a8781",
+   "width": 3834,
+   "height": 955,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-chiangmai/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-chiangmai/common/central_chiangmai_logo.png?sfvrsn=4b828f37_0",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-cdd4538ef0e0aaed",
+   "file": "assets/venue-logos/central-korat.png",
+   "mime": "image/png",
+   "bytes": 10366,
+   "sha256": "cdd4538ef0e0aaeda92e6ddc2152942aadc8caf6bdbd331a6d0167f9543a2238",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-korat/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-korat/common/central-korat-logo23385ccf-b885-4791-ade9-1cae5ed5fea3.png?sfvrsn=ae979d9f_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-912a70b5a14fb704",
+   "file": "assets/venue-logos/central-ladprao.png",
+   "mime": "image/png",
+   "bytes": 11496,
+   "sha256": "912a70b5a14fb704c32b9ada55089afcd71235ab6ef839750c7bd940740a38b2",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-ladprao/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-ladprao/common/013-ladprao-logo549e82d6-91cd-4893-985a-0de602050f5c.png?sfvrsn=1f78bc8e_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-98b18935c14e8f23",
+   "file": "assets/venue-logos/central-phuket.svg",
+   "mime": "image/svg+xml",
+   "bytes": 1949,
+   "sha256": "98b18935c14e8f234582341c7b3848f65369ca1fe07ba5e34a780a17521986b3",
+   "width": 196,
+   "height": 54,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.centralphuket.com/en",
+   "assetURL": "https://www.centralphuket.com/img/logo_b.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-24c15d6d64ba6d33",
+   "file": "assets/venue-logos/central-pinklao.svg",
+   "mime": "image/svg+xml",
+   "bytes": 3406,
+   "sha256": "24c15d6d64ba6d33d3780b504ed50dc9b5bc5a39a1e5ed786256e81b6304093f",
+   "width": 176,
+   "height": 55,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.centralpinklao.com/en",
+   "assetURL": "https://www.centralpinklao.com/img/PKO/logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-70d16b7422c4464d",
+   "file": "assets/venue-logos/central-rama-9.png",
+   "mime": "image/png",
+   "bytes": 11641,
+   "sha256": "70d16b7422c4464d33fa551e71b382ca15559440219ca4679be753a70c01f358",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-rama-9/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-rama-9/common/023-rama9-logo0b85d7b9-1331-4a67-b216-700bf93220ce.png?sfvrsn=34c27674_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-1b39cffe4ab6c770",
+   "file": "assets/venue-logos/central-salaya.png",
+   "mime": "image/png",
+   "bytes": 11120,
+   "sha256": "1b39cffe4ab6c7707d7e0e2220d9333ca1b991fb9f20339e4ec801787c5b85f9",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-salaya/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-salaya/common/027-salaya-logo.png?sfvrsn=45505a81_2",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-12cffc2d06217373",
+   "file": "assets/venue-logos/central-udon.png",
+   "mime": "image/png",
+   "bytes": 9811,
+   "sha256": "12cffc2d062173735fc6c44cea35b2263c3c216891f9afb501706df75608cb21",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-udon/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-udon/common/032-udon-logo3f17cf31-2815-4098-894c-3feed19a6f5d.png?sfvrsn=1e0641e4_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-1ed9cfc96f7d3e57",
+   "file": "assets/venue-logos/central-pattaya.png",
+   "mime": "image/png",
+   "bytes": 9898,
+   "sha256": "1ed9cfc96f7d3e57407b15f682f05a34e6b710d4b6e7b76bb9e90393b3ae1924",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-pattaya/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-pattaya/common/018-pattaya-logo06fbecca-43fd-4166-b401-64315bb82630.png?sfvrsn=5795724c_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-41f6c18aa0d086c2",
+   "file": "assets/venue-logos/gaysorn-village.png",
+   "mime": "image/png",
+   "bytes": 9711,
+   "sha256": "41f6c18aa0d086c26843f6710f45611a08f10721920efdbe5515a7f7a48ea845",
+   "width": 352,
+   "height": 138,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.gaysornvillage.com/en/",
+   "assetURL": "https://www.gaysornvillage.com/wp-content/uploads/2024/01/logo-footer.webp",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-30a48c241e543d34",
+   "file": "assets/venue-logos/central-embassy.png",
+   "mime": "image/png",
+   "bytes": 8882,
+   "sha256": "30a48c241e543d3429f68ecbd0551c5652a663ca5f87805a63b24c1b6b8ca69d",
+   "width": 286,
+   "height": 65,
+   "background": "#182327",
+   "sourcePage": "https://www.centralembassy.com/",
+   "assetURL": "https://www.centralembassy.com/wp-content/uploads/2021/08/logo-ce-1.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-d39b6051df36a55a",
+   "file": "assets/venue-logos/central-rama-2.png",
+   "mime": "image/png",
+   "bytes": 10423,
+   "sha256": "d39b6051df36a55a6c0e5339d423a359f64b5880285da5bf42f6c09cf729bf42",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-rama-2/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-rama-2/common/021-rama2-logo3d4c4a13-e573-42a0-bb70-c875f273dea9.png?sfvrsn=4205a478_3",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-6de57f80a77409ee",
+   "file": "assets/venue-logos/central-westgate.png",
+   "mime": "image/png",
+   "bytes": 11088,
+   "sha256": "6de57f80a77409ee930379ef453b26db11bda6c816d631d7f0e9eaec48774e5f",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-westgate/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-westgate/common/033-westgate.png?sfvrsn=aa875000_2",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-9cb3ef869b85148c",
+   "file": "assets/venue-logos/emquartier.png",
+   "mime": "image/png",
+   "bytes": 4393,
+   "sha256": "9cb3ef869b85148c1fe313fbfe01994b446eebe60c37cba4bd652cdc3c446e0d",
+   "width": 420,
+   "height": 70,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.emquartier.co.th/",
+   "assetURL": "https://www.emquartier.co.th/wp-content/uploads/2025/01/site-logo-1.webp",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-fe0d35ecaf8544da",
+   "file": "assets/venue-logos/emsphere.svg",
+   "mime": "image/svg+xml",
+   "bytes": 1857,
+   "sha256": "fe0d35ecaf8544da3c45765274dff2fe5a795c1b706ff09afb4411fa14eede9e",
+   "width": 177,
+   "height": 21,
+   "background": "#182327",
+   "sourcePage": "https://emsphere.co.th/",
+   "assetURL": "https://emsphere.co.th/wp-content/uploads/2023/12/site-logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-a3085cf548599cae",
+   "file": "assets/venue-logos/iconsiam.svg",
+   "mime": "image/svg+xml",
+   "bytes": 11159,
+   "sha256": "a3085cf548599caecc3c82c1452678ec404c678dbbcc0f40e15553c064f02011",
+   "width": 161,
+   "height": 25,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.iconsiam.com/en",
+   "assetURL": "https://www.iconsiam.com/media/loading/logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-c17dd33ce8df782c",
+   "file": "assets/venue-logos/megabangna.png",
+   "mime": "image/png",
+   "bytes": 4886,
+   "sha256": "c17dd33ce8df782c1725b4d774195d77b1cd371a37ea155fda8b9340d5d5b469",
+   "width": 183,
+   "height": 70,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.mega-bangna.com/",
+   "assetURL": "https://www.mega-bangna.com/public/assets/images/logo.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-23d26775dffb6c50",
+   "file": "assets/venue-logos/siam-paragon.svg",
+   "mime": "image/svg+xml",
+   "bytes": 9927,
+   "sha256": "23d26775dffb6c5015ab40810622702f0ea757c1aeef2252a0f82ed7e4650504",
+   "width": 238,
+   "height": 150,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.siamparagon.co.th/?lang=en",
+   "assetURL": "https://www.siamparagon.co.th/?lang=en#header-inline-logo-svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-4224f1181abdf19c",
+   "file": "assets/venue-logos/mall-bangkae.jpeg",
+   "mime": "image/jpeg",
+   "bytes": 6641,
+   "sha256": "4224f1181abdf19c762133eaec9f0cb1cb8204f64625c909747982e40d615db7",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": "https://page.line.me/776txukp",
+   "assetURL": "https://profile.line-scdn.net/0hKdhXDl2PFEtVIQhcX7FrHGlkGiYiDxIDLU8JKnUpSnt9RlIUahRSeid1SHx_EAQVa05ceXFyQitw/preview",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-8d0862e76043aca6",
+   "file": "assets/venue-logos/mall-bangkapi.jpeg",
+   "mime": "image/jpeg",
+   "bytes": 7095,
+   "sha256": "8d0862e76043aca6bb439862bd43a455920f0697d364e7fb8663c208e6082028",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": "https://page.line.me/713peczi",
+   "assetURL": "https://profile.line-scdn.net/0h9D8fqmJBZmsFH3p8D74ZPDlaaAZyMWAjfX4tWnJKbAt6fCJqai5-WXQePl8rLiQ0Oy4hBHQXP1J6/preview",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-45edcb7d24732ff4",
+   "file": "assets/venue-logos/mall-ngam.jpeg",
+   "mime": "image/jpeg",
+   "bytes": 7480,
+   "sha256": "45edcb7d24732ff46e433be271c982d680588bc5b8f071fca63088e927c7824b",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": "https://page.line.me/424smzdz",
+   "assetURL": "https://profile.line-scdn.net/0hzDLCttINJWtxOjl8e-JaPE1_KwYGFCMjCV1oC1Y7eggOAzI7RV06BV09KQ5dX2E1RA45WF06eglb/preview",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-68ef52be5690270f",
+   "file": "assets/venue-logos/mall-site-header.svg",
+   "mime": "image/svg+xml",
+   "bytes": 15755,
+   "sha256": "68ef52be5690270f255ff360c19a8d6fc6acb7aeb9a74e9323e803bdfafa4601",
+   "width": 190,
+   "height": 227,
+   "background": "#E5E9E6",
+   "sourcePage": "https://themalllifestore.com/branch/thapra",
+   "assetURL": "https://themalllifestore.com/img/design/site-logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-964e9772a643cc1a",
+   "file": "assets/venue-logos/centralworld.svg",
+   "mime": "image/svg+xml",
+   "bytes": 7854,
+   "sha256": "964e9772a643cc1a3d26142e525a0fc45d2212db1785339b97cee7281e46af9e",
+   "width": 398,
+   "height": 51,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.centralworld.co.th/en",
+   "assetURL": "https://www.centralworld.co.th/images/design/site-logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-7237b47ac4bd7f68",
+   "file": "assets/venue-logos/fashion-island.png",
+   "mime": "image/png",
+   "bytes": 11020,
+   "sha256": "7237b47ac4bd7f68d5c58eadbc0d970c218fc9eb7a48438e3e4938748a29541b",
+   "width": 1084,
+   "height": 96,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.fashionisland.co.th/",
+   "assetURL": "https://www.fashionisland.co.th/wp-content/themes/fashion-island/img/FASHION_ISLAND.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-7dd80f34276c58b5",
+   "file": "assets/venue-logos/one-bangkok.png",
+   "mime": "image/png",
+   "bytes": 1279,
+   "sha256": "7dd80f34276c58b51f10c36a915f56d4eee3b1bd04430ebba30e62d305a61d4c",
+   "width": 238,
+   "height": 29,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.onebangkok.com/en/",
+   "assetURL": "https://www.onebangkok.com/content/experience-fragments/onebangkok_v2/en/header/master/_jcr_content/root/header/logo.coreimg.png/1710903780913/logo-one-black.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-f219ca8874ce865a",
+   "file": "assets/venue-logos/central-village.svg",
+   "mime": "image/svg+xml",
+   "bytes": 10417,
+   "sha256": "f219ca8874ce865a8158ba5d1babc66f4d31c184abc01b2ec74fd5258a26d76a",
+   "width": 220,
+   "height": 32,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.centralvillageoutlet.com/en",
+   "assetURL": "https://www.centralvillageoutlet.com/img/SVB/logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-05448176db1ec9ec",
+   "file": "assets/venue-logos/siam-premium-outlets.svg",
+   "mime": "image/svg+xml",
+   "bytes": 6792,
+   "sha256": "05448176db1ec9ec916f1be6f150402981ae996e2a10d7c306421b6c4e80c704",
+   "width": 300,
+   "height": 63,
+   "background": "#182327",
+   "sourcePage": "https://www.siampremiumoutlets.com/",
+   "assetURL": "https://www.siampremiumoutlets.com/images/logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-8a8cd8d752f15540",
+   "file": "assets/venue-logos/dusit-central-park.svg",
+   "mime": "image/svg+xml",
+   "bytes": 3409,
+   "sha256": "8a8cd8d752f15540657a4f921d2ab4812d368fc0c23af2d2db99b32c0fcb8b6c",
+   "width": 189,
+   "height": 150,
+   "background": "#182327",
+   "sourcePage": "https://dusitcentralpark.com/",
+   "assetURL": "https://dusitcentralpark.com/wp-content/uploads/2024/10/dcp_logo_white.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-70d04c26cd9ea94d",
+   "file": "assets/venue-logos/central-department-store.svg",
+   "mime": "image/svg+xml",
+   "bytes": 6227,
+   "sha256": "70d04c26cd9ea94d674bff0f291741c729c545d9f9df67e79a87f11110d92eaf",
+   "width": 170,
+   "height": 23,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.central.co.th/en/store",
+   "assetURL": "https://www.central.co.th/logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-efd695c415e92556",
+   "file": "assets/venue-logos/central-eastville.png",
+   "mime": "image/png",
+   "bytes": 9591,
+   "sha256": "efd695c415e925566cfc27ecff8e5b5d36171fb48805365cdb4a1aa6324a9929",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-eastville/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-eastville/common/009-eastville-logo.png?sfvrsn=5d605430_2",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-7d4d4aebc089a1fd",
+   "file": "assets/venue-logos/central-rama-3.png",
+   "mime": "image/png",
+   "bytes": 10693,
+   "sha256": "7d4d4aebc089a1fdef5860c1a3e12ef28229c821157cc8a15dd5876e616ec2e6",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": "https://shoppingcenter.centralpattana.co.th/branch/central-rama-3/",
+   "assetURL": "https://shoppingcenter.centralpattana.co.th/images/default-source/central-rama-3/common/022-rama3-logo-01.png?sfvrsn=756fc10f_2",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-96b134a4f6fc55f6",
+   "file": "assets/venue-logos/central-westville.svg",
+   "mime": "image/svg+xml",
+   "bytes": 2543,
+   "sha256": "96b134a4f6fc55f62a10b77602fe6a83bb04423c45fd3eab4fce322e9f068ef9",
+   "width": 193,
+   "height": 55,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.centralwestville.com/en",
+   "assetURL": "https://www.centralwestville.com/img/RCP/logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-40582615aaa65da1",
+   "file": "assets/venue-logos/emporium.png",
+   "mime": "image/png",
+   "bytes": 3961,
+   "sha256": "40582615aaa65da1ef560942bb87592837ccb03850ba6a64678aa0b9d26e92f0",
+   "width": 201,
+   "height": 84,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.emporium.co.th/",
+   "assetURL": "https://www.emporium.co.th/wp-content/uploads/2025/02/Isolation_Mode-2.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-6229fc0e08b3146f",
+   "file": "assets/venue-logos/siam-center.png",
+   "mime": "image/png",
+   "bytes": 15063,
+   "sha256": "6229fc0e08b3146f0dfb66a14d19021dc6f054be855a419aedfd8c50d3216745",
+   "width": 555,
+   "height": 222,
+   "background": "#182327",
+   "sourcePage": "https://www.siamcenter.co.th/",
+   "assetURL": "https://ddoymmimcbbtg.cloudfront.net/home/page/ffccb19b-26fa-4cc1-ae7d-2ffda282ccb4.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-51f8f7184a83ddaf",
+   "file": "assets/venue-logos/siam-discovery.svg",
+   "mime": "image/svg+xml",
+   "bytes": 26383,
+   "sha256": "51f8f7184a83ddafd7aa1692a1dbb803cdbd2724fe433d4697093649625866b4",
+   "width": 1200,
+   "height": 346,
+   "background": "#E5E9E6",
+   "sourcePage": "https://www.siamdiscovery.co.th/",
+   "assetURL": "https://www.siamdiscovery.co.th/en/_nuxt/logo-footer.CW3RB3sP.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-400861c42cc8af00",
+   "file": "assets/venue-logos/siam-square.svg",
+   "mime": "image/svg+xml",
+   "bytes": 23778,
+   "sha256": "400861c42cc8af00e07bfd62fc8a1283dae30869e4ffc4a5b2305c545e0ce9ab",
+   "width": 240,
+   "height": 82,
+   "background": "#E5E9E6",
+   "sourcePage": "https://commons.wikimedia.org/wiki/File:Siam_Square_Logo.svg",
+   "assetURL": "https://upload.wikimedia.org/wikipedia/commons/3/32/Siam_Square_Logo.svg",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-044c6cfa77d04799",
+   "file": "assets/venue-logos/maya.png",
+   "mime": "image/png",
+   "bytes": 9208,
+   "sha256": "044c6cfa77d04799d04b062251997ea8467d62665b73b3c570dd285b2764cd7a",
+   "width": 200,
+   "height": 82,
+   "background": "#E5E9E6",
+   "sourcePage": "https://mayashoppingcenter.com/",
+   "assetURL": "https://mayashoppingcenter.com/api/image/61841058da9e5.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-3d94a67bd70b6945",
+   "file": "assets/venue-logos/one-nimman.png",
+   "mime": "image/png",
+   "bytes": 8446,
+   "sha256": "3d94a67bd70b6945c12430849aa021fecae43bd067eca5962ee4b77622ed5f33",
+   "width": 500,
+   "height": 266,
+   "background": "#182327",
+   "sourcePage": "https://www.onenimman.com/",
+   "assetURL": "https://www.onenimman.com/images/logo.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-3777db826c685e0d",
+   "file": "assets/venue-logos/silom-complex.png",
+   "mime": "image/png",
+   "bytes": 1964,
+   "sha256": "3777db826c685e0de5e5cbbb207d63a0cc839a28b9c809524c92276f30b2aa93",
+   "width": 183,
+   "height": 90,
+   "background": "#182327",
+   "sourcePage": "https://www.silomcomplex.co.th/en/home",
+   "assetURL": "https://www.silomcomplex.co.th/images/logo/logo.png",
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-4ced966d078d65ea",
+   "file": "assets/venue-logos/chamchuri-square.svg",
+   "mime": "image/svg+xml",
+   "bytes": 11684,
+   "sha256": "4ced966d078d65eaf4730ca8e30908777e7894ac96c3b3932bd5437e8bde0551",
+   "width": 240,
+   "height": 91,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-88b809400ca1deec",
+   "file": "assets/venue-logos/center-one.jpg",
+   "mime": "image/jpeg",
+   "bytes": 4235,
+   "sha256": "88b809400ca1deec4391ceb8aca2943971dacddf5939d112f4fc88de6f5449dc",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-dd51f18280b2d679",
+   "file": "assets/venue-logos/central-ayutthaya.png",
+   "mime": "image/png",
+   "bytes": 11448,
+   "sha256": "dd51f18280b2d679f6dae5874296dd5f939d50c34460f50c8b801d1347ff985d",
+   "width": 506,
+   "height": 126,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-8f1f55871709826c",
+   "file": "assets/venue-logos/central-chanthaburi.png",
+   "mime": "image/png",
+   "bytes": 10259,
+   "sha256": "8f1f55871709826c729d1368f4b52550cd9d835eecdd21a523b08eb8abdedac5",
+   "width": 600,
+   "height": 126,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "BVL-aa091822ffce94a3",
+   "file": "assets/venue-logos/central-chiangrai.png",
+   "mime": "image/png",
+   "bytes": 10851,
+   "sha256": "aa091822ffce94a33abea054447be874b48e94221619300058e2ba2e461b02d8",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-27246fa82872e4f6",
+   "file": "assets/venue-logos/central-chonburi.png",
+   "mime": "image/png",
+   "bytes": 10368,
+   "sha256": "27246fa82872e4f6bcc0527c950c6935b0c6a292dab79cfeb6dfd88bff8f2f68",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "BVL-bce9861b01941e1e",
+   "file": "assets/venue-logos/central-hatyai.png",
+   "mime": "image/png",
+   "bytes": 8329,
+   "sha256": "bce9861b01941e1e5e5f780aad85c9f82ccb013ec7716a379d60aae2e73cbfa9",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-b30c3d3f340a25ed",
+   "file": "assets/venue-logos/central-krabi.svg",
+   "mime": "image/svg+xml",
+   "bytes": 3323,
+   "sha256": "b30c3d3f340a25ed8202045ba95029cbb565814931eb80fdda98ba4616257c14",
+   "width": 160,
+   "height": 54,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-a398f7f941968e7f",
+   "file": "assets/venue-logos/central-lampang.png",
+   "mime": "image/png",
+   "bytes": 11345,
+   "sha256": "a398f7f941968e7f9048982d295ecb7de8a4d29f224c28a5fc9c52985e59282c",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-59179ce7e39f1837",
+   "file": "assets/venue-logos/central-mahachai.png",
+   "mime": "image/png",
+   "bytes": 10255,
+   "sha256": "59179ce7e39f1837d9fe065b753e765af20558fb9eb9f9402f30fecbd96fd1e3",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-2b255adc23d3247f",
+   "file": "assets/venue-logos/central-nakhon-sawan.svg",
+   "mime": "image/svg+xml",
+   "bytes": 3884,
+   "sha256": "2b255adc23d3247f7259d94e66fcc78af5794ba03f2e084c0308ac4f3093d2fc",
+   "width": 304,
+   "height": 57,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-be23389cdc05277a",
+   "file": "assets/venue-logos/central-northville.svg",
+   "mime": "image/svg+xml",
+   "bytes": 3861,
+   "sha256": "be23389cdc05277a4319834b015396203e8c6fb195ff4aebf2cf2d6b3ae9457d",
+   "width": 268,
+   "height": 66,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-7e4917bb38535b17",
+   "file": "assets/venue-logos/central-phitsanulok.png",
+   "mime": "image/png",
+   "bytes": 9332,
+   "sha256": "7e4917bb38535b17762639ece16922705ac90b1c581fa495fe240bcae90b7663",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "BVL-65108860287355cd",
+   "file": "assets/venue-logos/central-rayong.png",
+   "mime": "image/png",
+   "bytes": 11821,
+   "sha256": "65108860287355cd89937215decd3b0f3816393837ee7399216815b171f44e22",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-ffc18a96ed5c9ca6",
+   "file": "assets/venue-logos/central-samui.png",
+   "mime": "image/png",
+   "bytes": 9524,
+   "sha256": "ffc18a96ed5c9ca6ed192af50015b2660f87ad99b7ea0350a2cbb5a9238ffda9",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "BVL-27d8f3562a7d8e4c",
+   "file": "assets/venue-logos/central-suratthani.png",
+   "mime": "image/png",
+   "bytes": 9374,
+   "sha256": "27d8f3562a7d8e4c29c6a303329cbfd0c2eb3b6835a723f1d214d260a5051c84",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-bf90f7f1cb1bdc94",
+   "file": "assets/venue-logos/gateway-bangsue.jpg",
+   "mime": "image/jpeg",
+   "bytes": 4517,
+   "sha256": "bf90f7f1cb1bdc94cd91af69685554c53d0f697d3af0d01fc6320bfa6da86e82",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-d024b6597fad66f5",
+   "file": "assets/venue-logos/gateway-ekamai.jpg",
+   "mime": "image/jpeg",
+   "bytes": 4003,
+   "sha256": "d024b6597fad66f5e51a7536f2e7b325c2a3d8dc6e57fcc902b3a61c20689d89",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-ec7493582578cecc",
+   "file": "assets/venue-logos/im-park.png",
+   "mime": "image/png",
+   "bytes": 5294,
+   "sha256": "ec7493582578cecc3d7b21d79a4342d92ade102c4dc760ce6a22e98d522a6965",
+   "width": 441,
+   "height": 176,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-6ed78593afda9ebd",
+   "file": "assets/venue-logos/jj-mall.png",
+   "mime": "image/png",
+   "bytes": 31462,
+   "sha256": "6ed78593afda9ebd7e1ac73c73df5d990dd3349ee141df605f2ced4dd541cd7f",
+   "width": 709,
+   "height": 320,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-9a4d6752778fe1da",
+   "file": "assets/venue-logos/jas-green-village-bang-bua-thong.jpg",
+   "mime": "image/jpeg",
+   "bytes": 21087,
+   "sha256": "9a4d6752778fe1daf97853c032d22f967dc0ed6634689c94a82c6a4e1176e81c",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-95274cfe17bc2888",
+   "file": "assets/venue-logos/k-village.png",
+   "mime": "image/png",
+   "bytes": 5994,
+   "sha256": "95274cfe17bc2888524462bc177170b4040cb67ba6c293f8aa4513a8e01cdc9e",
+   "width": 70,
+   "height": 98,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-78aa8dee50d6faf9",
+   "file": "assets/venue-logos/marche-thonglor.jpg",
+   "mime": "image/jpeg",
+   "bytes": 19330,
+   "sha256": "78aa8dee50d6faf9570506f13826cd10c93d5cc1b0a67b3c8af05a2973cf050b",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-88b8d1cd833ee08e",
+   "file": "assets/venue-logos/meta-mall.webp",
+   "mime": "image/webp",
+   "bytes": 13412,
+   "sha256": "88b8d1cd833ee08e3e103ccd66951a6ca1e852fb90b61c9e5c5715935db1ecbb",
+   "width": 856,
+   "height": 576,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-f86ebc95925309ea",
+   "file": "assets/venue-logos/mixt-chatuchak.png",
+   "mime": "image/png",
+   "bytes": 5003,
+   "sha256": "f86ebc95925309ea07c132d3e87d81d2798d78bfa1e6557391c415b37f0a12aa",
+   "width": 193,
+   "height": 105,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-464c1895d1ebbcd7",
+   "file": "assets/venue-logos/porto-chino.png",
+   "mime": "image/png",
+   "bytes": 19026,
+   "sha256": "464c1895d1ebbcd7e19d8fa6b09b9c5a5a7467faa0894ee01fea223119005af1",
+   "width": 471,
+   "height": 145,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-e32cbca6413c2ea9",
+   "file": "assets/venue-logos/samyan-mitrtown.png",
+   "mime": "image/png",
+   "bytes": 3902,
+   "sha256": "e32cbca6413c2ea9e2d752b474a88258045571e803a1ffc7013c4c87bda1a809",
+   "width": 225,
+   "height": 91,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-97c53ca279a2aea1",
+   "file": "assets/venue-logos/seacon-bangkae.svg",
+   "mime": "image/svg+xml",
+   "bytes": 9842,
+   "sha256": "97c53ca279a2aea1fc81b2136712fa5b5ed11baa1c9202da9368151482f42801",
+   "width": 240,
+   "height": 120,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-d9a51d4c03f95332",
+   "file": "assets/venue-logos/summer-hill.png",
+   "mime": "image/png",
+   "bytes": 4414,
+   "sha256": "d9a51d4c03f95332cc6718914ec92d71e4e52ad7ec8b14d58ff28a52acc142eb",
+   "width": 337,
+   "height": 121,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-d5db48db3251eada",
+   "file": "assets/venue-logos/summer-point.png",
+   "mime": "image/png",
+   "bytes": 59006,
+   "sha256": "d5db48db3251eada2375f6b3ade8af0965c6324aa53f0b1ac33324cee0555b5b",
+   "width": 2333,
+   "height": 604,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-8e348311ce7f2c40",
+   "file": "assets/venue-logos/terminal21-asok.png",
+   "mime": "image/png",
+   "bytes": 7237,
+   "sha256": "8e348311ce7f2c40025ff11c1f9fc8bdaaa36668261a337bebe58893edb5a2e0",
+   "width": 384,
+   "height": 105,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-2c74555b81bc3894",
+   "file": "assets/venue-logos/terminal21-pattaya.png",
+   "mime": "image/png",
+   "bytes": 8125,
+   "sha256": "2c74555b81bc38943c1dd49d7e792172442eea2f683fe425222b73f929910469",
+   "width": 500,
+   "height": 142,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-baecd294f090e923",
+   "file": "assets/venue-logos/terminal21-rama3.png",
+   "mime": "image/png",
+   "bytes": 21605,
+   "sha256": "baecd294f090e9230303be429166d60e89b39aa2db33d01cee1f17d3ebc4c9d9",
+   "width": 443,
+   "height": 124,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-617f4ed621e61594",
+   "file": "assets/venue-logos/thanya-park.png",
+   "mime": "image/png",
+   "bytes": 30327,
+   "sha256": "617f4ed621e61594efc0834935e29056c48fd84d42c79247282bd4dacf8a26e2",
+   "width": 729,
+   "height": 271,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-c912f33c179598d8",
+   "file": "assets/venue-logos/the-circle-ratchaphruek.png",
+   "mime": "image/png",
+   "bytes": 1081594,
+   "sha256": "c912f33c179598d80993a27063507fea46769ca06f750774fb61e990509fcec0",
+   "width": 835,
+   "height": 1000,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-4242edf7b179953d",
+   "file": "assets/venue-logos/the-crystal-sb-ratchaphruek.webp",
+   "mime": "image/webp",
+   "bytes": 8088,
+   "sha256": "4242edf7b179953dbe7a0c6098788fc3379cfa8ff5cb27d5c41190d8b3bd0909",
+   "width": 194,
+   "height": 182,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-2d5edcb653d30fd4",
+   "file": "assets/venue-logos/mall-korat.jpeg",
+   "mime": "image/jpeg",
+   "bytes": 11380,
+   "sha256": "2d5edcb653d30fd4234305052809fc198a226571ba9b8f9710aa6c33112a6e99",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-7d4863b7859f9ea9",
+   "file": "assets/venue-logos/the-scene-town-in-town.png",
+   "mime": "image/png",
+   "bytes": 11501,
+   "sha256": "7d4863b7859f9ea968ceeadb712b288db1b5bb71a2c3bef9eb72c96685eb20a7",
+   "width": 663,
+   "height": 298,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-cf3635904b5641ad",
+   "file": "assets/venue-logos/the-street-ratchada-line.jpg",
+   "mime": "image/jpeg",
+   "bytes": 3633,
+   "sha256": "cf3635904b5641ad79d809305fc2cb3a4f17427c16d766636b877a8220a05862",
+   "width": 200,
+   "height": 200,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-a82673189beba9de",
+   "file": "assets/venue-logos/the-walk-kaset-nawamin.png",
+   "mime": "image/png",
+   "bytes": 22832,
+   "sha256": "a82673189beba9de88bca8a37ab06d4d666e6fc1265beed137b0c2e820c815c8",
+   "width": 456,
+   "height": 156,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-a62c299902ac7659",
+   "file": "assets/venue-logos/porto-go-tha-chin.png",
+   "mime": "image/png",
+   "bytes": 23817,
+   "sha256": "a62c299902ac7659c87f3d76572fd75fd7211dd433540c76a8f0bbde28d4cd0b",
+   "width": 535,
+   "height": 196,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-8ec18b38cbeddd29",
+   "file": "assets/venue-logos/foodvilla.jpg",
+   "mime": "image/jpeg",
+   "bytes": 21363,
+   "sha256": "8ec18b38cbeddd2999d0027ab7a6e890f6a9b3edb595def5c275f9650a372f9e",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-f65778ba55da37d4",
+   "file": "assets/venue-logos/foodie-bangna.png",
+   "mime": "image/png",
+   "bytes": 51663,
+   "sha256": "f65778ba55da37d48036eba288b822d8f790918382503b64a19a915066f71089",
+   "width": 409,
+   "height": 216,
+   "background": "#E5E9E6",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-dea31312c027b099",
+   "file": "assets/venue-logos/jc-mall.jpg",
+   "mime": "image/jpeg",
+   "bytes": 16482,
+   "sha256": "dea31312c027b099f6dc51463da581fc6d20d458b0932748dc8d5907c069e89c",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-61f00012c1b25606",
+   "file": "assets/venue-logos/market-pracha.jpg",
+   "mime": "image/jpeg",
+   "bytes": 19873,
+   "sha256": "61f00012c1b25606bc8d90ed735e538f2bb458d8ba93cc3494cd3f655d5605b6",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-e5a1daa40afc724d",
+   "file": "assets/venue-logos/market-wongsawang.jpg",
+   "mime": "image/jpeg",
+   "bytes": 27834,
+   "sha256": "e5a1daa40afc724d11efff53ced7eb51a34367af66c03e14db8a9426d01b079c",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-12291c4a88c404fc",
+   "file": "assets/venue-logos/nihonmachi-fb.jpg",
+   "mime": "image/jpeg",
+   "bytes": 18507,
+   "sha256": "12291c4a88c404fce88532279ccfb118e0e977e39eb9b8c192b5eafa246c0008",
+   "width": 708,
+   "height": 708,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-0cecb29a42759100",
+   "file": "assets/venue-logos/plaza-lagoon-fb.jpg",
+   "mime": "image/jpeg",
+   "bytes": 58356,
+   "sha256": "0cecb29a42759100a9412582c4a2bca163834e423ab12cf4a2f82c55fb8cc9aa",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-ca80ead13190595d",
+   "file": "assets/venue-logos/riverside-plaza.svg",
+   "mime": "image/svg+xml",
+   "bytes": 7389,
+   "sha256": "ca80ead13190595d39c1f3bb0e9dcece56477c7ebe9343b5d5bca5e5f2a97069",
+   "width": 302,
+   "height": 104,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-48cc1ab9b18e83f3",
+   "file": "assets/venue-logos/old-siam.webp",
+   "mime": "image/webp",
+   "bytes": 8702,
+   "sha256": "48cc1ab9b18e83f397726b0017e0f3c494f77eabdc25327f3a4f26321f11a2ac",
+   "width": 200,
+   "height": 92,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-32cf4514fed3360c",
+   "file": "assets/venue-logos/platinum-mall.png",
+   "mime": "image/png",
+   "bytes": 1850,
+   "sha256": "32cf4514fed3360c0f8fd8b3bb8773cb1ab2e2985b74590cf00fd48c7d0e4fe0",
+   "width": 109,
+   "height": 59,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "VL-221ca8261545d312",
+   "file": "assets/venue-logos/seasons-fb.jpg",
+   "mime": "image/jpeg",
+   "bytes": 26455,
+   "sha256": "221ca8261545d31200a3085e1c5bbe8ccc1998124f7704196115725af646897b",
+   "width": 720,
+   "height": 720,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "BVL-b6325adda59668cc",
+   "file": "assets/venue-logos/central-ubon.png",
+   "mime": "image/png",
+   "bytes": 9729,
+   "sha256": "b6325adda59668cc09ec4b57965f77548e3ebc620f7fc91ea17236342bceb659",
+   "width": 800,
+   "height": 251,
+   "background": "#182327",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-22"
+  },
+  {
+   "key": "parc-bangna-original-aec3daf50bb5",
+   "file": "assets/venue-logos/parc-bangna-owner-logo.png",
+   "mime": "image/png",
+   "bytes": 29905,
+   "sha256": "aec3daf50bb5aa943abba31f791792878a463769fe1c75d16621937511861b2c",
+   "width": 1592,
+   "height": 745,
+   "background": "#FFFFFF",
+   "sourcePage": null,
+   "assetURL": null,
+   "checkedOn": "2026-10-23"
+  }
+ ],
+ "venues": [
+  {
+   "id": "SC-000992",
+   "key": "VL-8f8f3cb838c228cc",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006469",
+   "key": "VL-68b350ecebc0bc80",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-015800",
+   "key": "VL-894e587d0e540718",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-005645",
+   "key": "VL-cdd4538ef0e0aaed",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000401",
+   "key": "VL-912a70b5a14fb704",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-009298",
+   "key": "VL-98b18935c14e8f23",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000761",
+   "key": "VL-24c15d6d64ba6d33",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-002060",
+   "key": "VL-70d16b7422c4464d",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-005123",
+   "key": "VL-1b39cffe4ab6c770",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-014484",
+   "key": "VL-12cffc2d06217373",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0262",
+   "key": "VL-1ed9cfc96f7d3e57",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001279",
+   "key": "VL-41f6c18aa0d086c2",
+   "role": "parent_complex"
+  },
+  {
+   "id": "SC-001283",
+   "key": "VL-30a48c241e543d34",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000887",
+   "key": "VL-d39b6051df36a55a",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006426",
+   "key": "VL-6de57f80a77409ee",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001765",
+   "key": "VL-9cb3ef869b85148c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000289",
+   "key": "VL-fe0d35ecaf8544da",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000229",
+   "key": "VL-a3085cf548599cae",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-012204",
+   "key": "VL-c17dd33ce8df782c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001244",
+   "key": "VL-23d26775dffb6c50",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001164",
+   "key": "VL-4224f1181abdf19c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000799",
+   "key": "VL-8d0862e76043aca6",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006590",
+   "key": "VL-45edcb7d24732ff4",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000710",
+   "key": "VL-68ef52be5690270f",
+   "role": "shared_chain_banner"
+  },
+  {
+   "id": "SC-001245",
+   "key": "VL-964e9772a643cc1a",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000337",
+   "key": "VL-7237b47ac4bd7f68",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0015",
+   "key": "VL-7dd80f34276c58b5",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-012208",
+   "key": "VL-f219ca8874ce865a",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-012256",
+   "key": "VL-05448176db1ec9ec",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0139",
+   "key": "VL-8a8cd8d752f15540",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001282",
+   "key": "VL-70d04c26cd9ea94d",
+   "role": "shared_department_store_banner"
+  },
+  {
+   "id": "SC-001664",
+   "key": "VL-efd695c415e92556",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001536",
+   "key": "VL-7d4d4aebc089a1fd",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006353",
+   "key": "VL-96b134a4f6fc55f6",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-014564",
+   "key": "VL-12cffc2d06217373",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000288",
+   "key": "VL-40582615aaa65da1",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C1138",
+   "key": "VL-41f6c18aa0d086c2",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001242",
+   "key": "VL-6229fc0e08b3146f",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001243",
+   "key": "VL-51f8f7184a83ddaf",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001223",
+   "key": "VL-400861c42cc8af00",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-88dbfd6362e923",
+   "key": "VL-7dd80f34276c58b5",
+   "role": "parent_complex"
+  },
+  {
+   "id": "VN-4d6c8a6f3db541",
+   "key": "VL-7dd80f34276c58b5",
+   "role": "parent_complex"
+  },
+  {
+   "id": "SC-SM-06768",
+   "key": "VL-044c6cfa77d04799",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0773",
+   "key": "VL-3d94a67bd70b6945",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001069",
+   "key": "VL-3777db826c685e0d",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001237",
+   "key": "VL-4ced966d078d65ea",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001554",
+   "key": "VL-88b809400ca1deec",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-008039",
+   "key": "VL-dd51f18280b2d679",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-003076",
+   "key": "VL-8f1f55871709826c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-015253",
+   "key": "BVL-aa091822ffce94a3",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-003895",
+   "key": "VL-27246fa82872e4f6",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-011757",
+   "key": "BVL-bce9861b01941e1e",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000067",
+   "key": "VL-b30c3d3f340a25ed",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-011214",
+   "key": "VL-a398f7f941968e7f",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-012645",
+   "key": "VL-59179ce7e39f1837",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006188",
+   "key": "VL-2b255adc23d3247f",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006549",
+   "key": "VL-be23389cdc05277a",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-008771",
+   "key": "VL-7e4917bb38535b17",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-010265",
+   "key": "BVL-65108860287355cd",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C3650",
+   "key": "VL-ffc18a96ed5c9ca6",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-013641",
+   "key": "BVL-27d8f3562a7d8e4c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000934",
+   "key": "VL-bf90f7f1cb1bdc94",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000322",
+   "key": "VL-d024b6597fad66f5",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001291",
+   "key": "VL-ec7493582578cecc",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000369",
+   "key": "VL-6ed78593afda9ebd",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-dc970c0b1ab411",
+   "key": "VL-9a4d6752778fe1da",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000269",
+   "key": "VL-95274cfe17bc2888",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-3321e200e1c19c",
+   "key": "VL-78aa8dee50d6faf9",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-015503",
+   "key": "VL-88b8d1cd833ee08e",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-fc8f0e850b7597",
+   "key": "VL-f86ebc95925309ea",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-7a1719654a5a17",
+   "key": "VL-464c1895d1ebbcd7",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001304",
+   "key": "VL-e32cbca6413c2ea9",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001469",
+   "key": "VL-97c53ca279a2aea1",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000314",
+   "key": "VL-d9a51d4c03f95332",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-cc97cf94acc741",
+   "key": "VL-d5db48db3251eada",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001783",
+   "key": "VL-8e348311ce7f2c40",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0355",
+   "key": "VL-2c74555b81bc3894",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0450",
+   "key": "VL-baecd294f090e923",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0264",
+   "key": "VL-617f4ed621e61594",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000631",
+   "key": "VL-c912f33c179598d8",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-006349",
+   "key": "VL-4242edf7b179953d",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-005612",
+   "key": "VL-2d5edcb653d30fd4",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C0999",
+   "key": "VL-7d4863b7859f9ea9",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000534",
+   "key": "VL-cf3635904b5641ad",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001667",
+   "key": "VL-a82673189beba9de",
+   "role": "venue_specific"
+  },
+  {
+   "id": "VN-d90a5833953dd0",
+   "key": "VL-a62c299902ac7659",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000628",
+   "key": "VL-8ec18b38cbeddd29",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-012181",
+   "key": "VL-f65778ba55da37d4",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001194",
+   "key": "VL-dea31312c027b099",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000686",
+   "key": "VL-61f00012c1b25606",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001701",
+   "key": "VL-e5a1daa40afc724d",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-C1087",
+   "key": "VL-12291c4a88c404fc",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001692",
+   "key": "VL-0cecb29a42759100",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000717",
+   "key": "VL-ca80ead13190595d",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001421",
+   "key": "VL-48cc1ab9b18e83f3",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001576",
+   "key": "VL-32cf4514fed3360c",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001384",
+   "key": "VL-221ca8261545d312",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-001066",
+   "key": "VL-8a8cd8d752f15540",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-014972",
+   "key": "BVL-b6325adda59668cc",
+   "role": "venue_specific"
+  },
+  {
+   "id": "SC-000977",
+   "key": "parc-bangna-original-aec3daf50bb5",
+   "role": "venue_specific"
+  }
+ ]
+}
