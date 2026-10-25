@@ -31,7 +31,7 @@ Playwright + Chromium (SwiftShader WebGL) against the repository, with MapLibre 
 
 GitHub Pages, branch `main`, folder `/` (enabled 25 Oct 2026).
 
-- **Bytes:** `npm run verify:live` compares every published file with the SHA-256 in `handoff/handoff-manifest.json`, plus the root document; re-run after every push (tests, scripts and dotfiles are not compared). Results: `88353eb` + `399e2ab` 207/207 · `dd8348a` 225/225 · `fcff6b1` 449/449 · `eb448ef` (tag `20261025-r6`) **453/453**.
+- **Bytes:** `npm run verify:live` compares every published file with the SHA-256 in `handoff/handoff-manifest.json`, plus the root document; re-run after every push (tests, scripts and dotfiles are not compared). Results: `88353eb` + `399e2ab` 207/207 · `dd8348a` 225/225 · `fcff6b1` 449/449 · `eb448ef` (tag `20261025-r6`) 453/453 · `5d4301e` (tag `20261025-r7`) **453/453**.
 - After a push, browsers may keep modules for up to 10 minutes (GitHub Pages `max-age=600`); entry points carry `?v=`; since `20261025-r4` an import map gives every module in `js/` the same tag.
 
 ### Title, pin buildings, city massing, charts — tags `r5` (`7e03aaa`) and `r6` (`eb448ef`), 25 Oct 2026
@@ -44,6 +44,10 @@ Owner's Chrome, desktop, fresh URLs; real OpenFreeMap tiles.
 - **Province zoom-in — Nakhon Ratchasima `?province=NMA`, camera moved to Central Korat (zoom 15.6):** 3D city around the camera (331 focus + 13 city buildings rendered, 64 fade anchors), two pin buildings drawn.
 - **Charts, dark theme:** the ranking renders in the same LUT colours as the map, amCharts logo kept at the bottom left (linkware licence). This check showed the caption “878 แห่ง · ทุกเขตในกรุงเทพฯ” beside “49 จาก 856 แห่ง” — fixed in `r7` (S19).
 - **Mobile 390×844 (Playwright against the live URL, tiles blocked in the container):** charts, venue and dark overview — no console errors, no horizontal overflow.
+
+### Numbers add up — tag `r7` (`5d4301e`), 25 Oct 2026
+
+Owner's Chrome, dark theme, fresh URLs: all 29 modules in `js/` loaded at `20261025-r7`. First view: “49 จาก 856 แห่ง …”, chart caption “856 แห่ง · ทุกเขตในกรุงเทพฯ” and “อีก 22 แห่งยังระบุเขตไม่ได้ · ดูในตาราง”. `?venue=SC-001066` (เซ็นทรัล พาร์ค): “เปิดเมื่อ 4 ก.ย. 2568” once; its checked host building (3 features) drawn in the building colour.
 
 ### Earlier releases (kept as history)
 
