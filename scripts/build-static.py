@@ -7,6 +7,11 @@ Reads data/venues.json (the same rows the app counts) and replaces the content b
 <!-- static-summary:start/end --> and <!-- json-ld:start/end --> markers. Numbers are counted
 here with the app's rules (countable, supply, located, point-in-polygon province) so search
 engines and readers without JavaScript see the same figures as the map.
+
+It also writes the import map between <!-- importmap:start/end -->: every module in js/ is mapped
+to itself with the cache tag of the entry scripts (js/app.js?v=…), so after a release a browser
+never combines a cached older module with a newer one (GitHub Pages caches files for 10 minutes).
+Bump the tag on the entry scripts and stylesheets, then run this script.
 """
 import json
 import re
@@ -48,7 +53,8 @@ def main():
         '@context': 'https://schema.org', '@type': 'Dataset',
         'name': 'ศูนย์การค้าและสถานที่ค้าปลีก: จำนวน ประเภท และผู้บริหาร (CityMETER)',
         'alternateName': 'CityMETER Shopping Centers & Retail Venues Thailand',
-        'description': 'สถานที่ค้าปลีกของไทยที่ผ่านนิยามด้วยหลักฐาน (หลายกิจการขายผู้บริโภค มีผู้บริหารพื้นที่ร่วมรายเดียว) '
+        'description': 'สถานที่ค้าปลีกของไทยที่ผ่านนิยาม (หลายกิจการขายผู้บริโภคและมีผู้บริหารพื้นที่ร่วมรายเดียว '
+                       'หรือเข้ากฎรายประเภทที่เจ้าของข้อมูลยอมรับ เช่น ตลาด และสถานีบริการน้ำมันที่มีร้านค้า) '
                        'แยกประเภทและผู้บริหาร พร้อมหลักฐานรายช่อง ไม่ใช่สำมะโน ไม่ใช่ footfall ยอดขาย ค่าเช่า หรืออัตราว่าง',
         'url': SITE, 'inLanguage': 'th', 'dateModified': as_of,
         'creator': {'@type': 'Organization', 'name': 'Landometer · CityMETER'},
@@ -62,8 +68,14 @@ def main():
                   lambda m: m.group(1) + '\n      ' + '\n      '.join(lines) + '\n      ' + m.group(2), html, flags=re.S)
     html = re.sub(r'(<!-- json-ld:start -->).*?(<!-- json-ld:end -->)',
                   lambda m: m.group(1) + '\n  <script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>\n  ' + m.group(2), html, flags=re.S)
+    tag = re.search(r'src="js/app\.js\?v=([\w.-]+)"', html).group(1)
+    imports = {f'./js/{f.name}': f'./js/{f.name}?v={tag}' for f in sorted((ROOT / 'js').glob('*.js'))}
+    importmap = '<script type="importmap">' + json.dumps({'imports': imports}, separators=(',', ':')) + '</script>'
+    html = re.sub(r'(<!-- importmap:start -->).*?(<!-- importmap:end -->)',
+                  lambda m: m.group(1) + '\n  ' + importmap + '\n  ' + m.group(2), html, flags=re.S)
     (ROOT / 'index.html').write_text(html)
-    print(f'static summary: {len(per)} provinces, {len(located)} located venues; JSON-LD dateModified {as_of}')
+    print(f'static summary: {len(per)} provinces, {len(located)} located venues; JSON-LD dateModified {as_of}; '
+          f'import map {len(imports)} modules at ?v={tag}')
 
 
 if __name__ == '__main__':

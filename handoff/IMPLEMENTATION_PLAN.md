@@ -1,6 +1,6 @@
 # CityMETER Shopping Centers & Retail Venues — Implementation Plan
 
-รุ่นแผน 0.2 · 25 ต.ค. 2569 · ใช้คู่กับ [PRODUCT_STATEMENT.md](../PRODUCT_STATEMENT.md) (รุ่น 0.3) · ต้นแบบ: CityMETER Luxury Brands รุ่น 0.5 (commit `0ed2b9d`) · รุ่น 0.2 บันทึกสิ่งที่สร้างจริงในเว็บรุ่น 0.1.0 และสถานะงาน (§7)
+รุ่นแผน 0.3 · 25 ต.ค. 2569 · ใช้คู่กับ [PRODUCT_STATEMENT.md](../PRODUCT_STATEMENT.md) (รุ่น 0.5) · ต้นแบบ: CityMETER Luxury Brands รุ่น 0.5 (commit `0ed2b9d`) · รุ่น 0.2 บันทึกสิ่งที่สร้างจริงในเว็บรุ่น 0.1.0 และสถานะงาน (§7) · รุ่น 0.3 บันทึกการอัปเดตข้อมูลหลังปิดรายการรอตรวจรอบแรก (export 15:06 น.), กฎรายประเภทของเจ้าของ (D7), สเกล 41 สี (D8) และการแสดงรายการที่ตรวจแล้วยังยืนยันไม่ได้ (D9)
 
 เป้าหมายรุ่นแรก (0.1.0): เว็บที่หน้าตาและพฤติกรรมเหมือน Luxury Brands — เมือง 3 มิติที่โฟกัสข้อค้นพบแรกทันที โฟกัสแล้วเงียบ basemap กระดาษ อาคารของสถานที่ที่มองเห็นและกดได้เสมอ breadcrumb ที่ใช้รหัสจังหวัดของ production — แต่หน่วยของข้อมูลคือ **สถานที่ค้าปลีก** ไม่ใช่สาขาของแบรนด์ และหน่วยพื้นที่คือ **เขต/อำเภอ** ตามขอบเขตทางการ ไม่ใช่ย่านที่วาดเอง เผยแพร่ที่ `https://montri-th.github.io/shoppingcenter/`
 
@@ -8,12 +8,15 @@
 
 | รหัส | ข้อตัดสินใจ | ผลต่อการพัฒนา |
 |---|---|---|
-| D1 | ข้อค้นพบแรก = 3 เขตที่มีแห่ง/ตร.กม. สูงสุดของจังหวัดที่มีเขตหนาแน่นที่สุด (ค่าเริ่มต้น: ปทุมวัน บางรัก ราชเทวี — 36 จาก 185 แห่งของกรุงเทพฯ บนพื้นที่ 1.2% หลัง D6; ก่อน D6 32 จาก 181) | สูตรใน `js/area-insight.js` คำนวณจากข้อมูลทุกครั้ง ไม่ใช่ค่าคงที่; ภาพแรก = preset `city` ที่เห็นสามเขตนี้ |
+| D1 | ข้อค้นพบแรก = 3 เขตที่มีแห่ง/ตร.กม. สูงสุดของจังหวัดที่มีเขตหนาแน่นที่สุด (snapshot 15:06 น.: สัมพันธวงศ์ พระนคร บางรัก — 49 จาก 838 แห่งของกรุงเทพฯ บนพื้นที่ 0.7%; รอบก่อน ปทุมวัน บางรัก ราชเทวี 36 จาก 185) | สูตรใน `js/area-insight.js` คำนวณจากข้อมูลทุกครั้ง ไม่ใช่ค่าคงที่; ภาพแรก = preset `city` ที่เห็นสามเขตนี้ |
 | D2 | ชื่อบนหน้า “ศูนย์การค้าและสถานที่ค้าปลีก: จำนวน ประเภท และผู้บริหาร” | title/description/JSON-LD ใช้ชื่อนี้; ไม่มีตัวชี้วัด GLA หรือ segment |
 | D3 | ขนาดแบบค่าประมาณเดิมแสดงเฉพาะในรายละเอียดสถานที่ พร้อมวิธีคำนวณ | ไม่มีใน filter, กราฟ, ตาราง, ผลรวม หรืออันดับ |
-| D4 | รายการรอตรวจนิยาม 10,423 รายการเป็นจุดเทาเงียบ ซ่อนได้ ค้นหาได้ ไม่นับ | ชั้น circle ของ MapLibre แยกจากหมุด DOM; ไม่อยู่ใน tab order; ไม่เข้าตัวเลขใด |
+| D4 | รายการที่ยังไม่ผ่านนิยามเป็นจุดเทาเงียบ ซ่อนได้ ค้นหาได้ ไม่นับ (ณ วันตัดสิน 10,423 รายการ; snapshot 15:06 น. รอตรวจ 1,977 + ตรวจแล้วยังยืนยันไม่ได้ 2,983) | ชั้น circle ของ MapLibre แยกจากหมุด DOM; ไม่อยู่ใน tab order; ไม่เข้าตัวเลขใด |
 | D5 | ผู้ใช้บริการทั่วไปเป็นกลุ่มรอง | ไม่มีฟิลเตอร์สิ่งอำนวยความสะดวก |
-| D6 | พื้นที่ย่อยที่โครงการแม่ไม่ผ่านนิยาม นับเป็นสถานที่เองเฉพาะที่เป็นศูนย์การค้า/มอลล์ (5 แห่ง) | `ORPHAN_COUNTED_GROUPS` + `OWNER_SHOPPING_CENTRES` ใน `scripts/build-data.py`; แถวมี `countBasis`; แผงสถานที่บอกเหตุผล; test `owner decision D6` |
+| D6 | พื้นที่ย่อยที่โครงการแม่ไม่ผ่านนิยาม นับเป็นสถานที่เองเฉพาะที่เป็นศูนย์การค้า/มอลล์ (5 แห่ง) — ใช้กับบทบาทพื้นที่ย่อยเท่านั้น | `ORPHAN_COUNTED_GROUPS` + `OWNER_SHOPPING_CENTRES` ใน `scripts/build-data.py`; แถวมี `countBasis`; แผงสถานที่บอกเหตุผล; test `owner decision D6` |
+| D7 | กฎรายประเภทที่เจ้าของยอมรับ (บันทึกในทะเบียน: `owner_<กฎ>_definition_accepted_*`, `owner_confirmed_*`) นับเป็นผ่านนิยาม | `qualification_rule()` → tier `owner` + `ownerRule`; แผงสถานที่ใช้ `tierReading()` (“ผ่านนิยามตามกฎที่เจ้าของข้อมูลยอมรับ · <กฎ>”); count role เป็น allowlist (`COUNTED_ROLES` / `COMPONENT_ROLES` / `HELD_ROLES`) พร้อม `countHold` และ gate `countRoleFallback` |
+| D8 | สเกลสีใช้ครบ 41 สีตาม LDS | `buildRamp()` ใน `js/scales.js` (rank → LUT index 0–40) สำหรับเขต จังหวัด และ matrix; `rampLegendHTML()` แสดงครบ 41 สีพร้อม ticks; ตัวเลขบนสีที่หมึกไม่ถึง 4.5:1 อยู่บนพื้นรอง |
+| D9 (ข้อเสนอ) | `reviewed_definition_unconfirmed` แสดงในชั้นจุดเทาเดียวกับรอตรวจ แต่ติดป้าย “ตรวจแล้ว ยังยืนยันนิยามไม่ได้” | tier `unconfirmed`; `pending.json` field ที่ 8 `state = "reviewed"`; legend “ยังไม่ผ่านนิยาม · ไม่นับ”; การ์ดและผลค้นหาบอกสถานะ |
 
 ## 2. สถาปัตยกรรม (fork จาก Luxury Brands)
 
@@ -25,7 +28,7 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 | `js/model.js` | taxonomy, ตัวกรองร่วม, `PROVINCES` | กลุ่มประเภท 8 กลุ่ม (เพิ่มไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า), ระดับการผ่านนิยาม, สถานะ (อุปทาน / โครงการอนาคต / ปิดตามหลักฐาน), กลุ่มผู้บริหาร; `PROVINCES` ครบ 77 จังหวัดจาก production (`base/info/lv0` → `abbrEn`) |
 | `js/neighborhoods.js` → `js/areas.js` | point-in-polygon + membership | membership คำนวณล่วงหน้าใน pipeline (`provinceCode`, `districtCode` ต่อแถว) จากขอบเขตความละเอียดเต็ม; client ใช้เฉพาะสรุปต่อพื้นที่ |
 | `js/area-insight.js` | Aha 3 ย่าน | Aha 3 เขตตามแห่ง/ตร.กม. (สูตร §4); คืน `{province, districtIds, count, total, share, areaKm2, provinceAreaKm2, areaShare}` |
-| `js/scales.js` | LUT `count` 41 ค่า + EVID-05 | เพิ่ม LUT `density.area` 41 ค่า (scaleVersion `554812a7…`); classes แบบ quantile ต่อการอ่าน โดยสีมาจาก class table 5 หรือ 3 ระดับของ LDS เท่านั้น (§5); `count` ใช้กับจังหวัดและตาราง matrix |
+| `js/scales.js` | LUT `count` 41 ค่า + EVID-05 | เพิ่ม LUT `density.area` 41 ค่า (scaleVersion `554812a7…`); ใช้ครบ 41 ตัวอย่างตามลำดับค่าของการอ่าน (`buildRamp`, D8) แทน class table 3/5 ระดับ (§5); `count` ใช้กับจังหวัดและตาราง matrix |
 | `js/map-layers.js` | choropleth ย่าน + focus/quiet | choropleth เขต/อำเภอ (`density.area`) ภายในจังหวัดที่อ่านอยู่; เขตนอกโฟกัสเป็นเส้นบาง; ป้ายชิปชื่อเขต |
 | `js/provinces.js` | กรอบจังหวัด country view | ใช้ 77 จังหวัด, ค่า = จำนวนสถานที่ (`count` classes แบบประกาศคงที่), ป้ายชิป, drill-down |
 | `js/pins.js` | หมุดรายแถว DOM, context pins, โลโก้ zoom ≥ 14 | หนึ่งหมุด = หนึ่งสถานที่ที่ผ่านนิยามและระบุตำแหน่งได้; สีกลุ่ม + **รูปทรงกำกับ** (SVG ต่อหมุด); โครงการอนาคตเป็นหมุดเส้นประ, ปิดตามหลักฐานเป็นหมุดกลวง; โลโก้สถานที่แทนโลโก้แบรนด์ |
@@ -44,45 +47,45 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 
 | ไฟล์ | เนื้อหา | ขนาดเป้าหมาย |
 |---|---|---|
-| `data/venues.json` | `meta` (snapshot, นิยาม, ตารางจับคู่กลุ่ม, counts, checks, inputs + SHA-256) + `rows` 565 สถานที่ที่ผ่านนิยามแบบ core fields (ตัวตน กลุ่ม การนับ สถานะ ผู้บริหาร จุด พื้นที่) | ≤ 900 KB (จริง 364 KB, gzip 48 KB) |
-| `data/details/NN.json` | หลักฐานรายช่องเต็มต่อสถานที่ แบ่ง shard ด้วย FNV-1a ของ `venue_id` (อย่างน้อย 32 shard เพิ่มเองตามขนาดทะเบียน) โหลดเมื่อเปิดสถานที่ | รอบนี้ 32 shard เฉลี่ย 68 KB (37–99 KB) |
-| `data/pending.json` | รายการรอตรวจที่ระบุตำแหน่งได้แบบ columnar: `id, name, lon, lat, provinceCode, districtCode, group` | ≤ 1.2 MB (จริง 1.39 MB สำหรับ 10,401 จุด — จะเล็กลงเมื่อรายการรอตรวจถูกปิด; โหลดหลังภาพแรก) |
-| `data/build-report.json` | คำของสถานะการผ่านนิยามและพิกัดพร้อมกฎที่อ่าน ประเภทที่จัดด้วย keyword พื้นที่ย่อยที่ไม่มีโครงการแม่ — สำหรับตรวจก่อนเผยแพร่ ไม่ได้โหลดโดยหน้าเว็บ | — |
+| `data/venues.json` | `meta` (snapshot, นิยาม, ตารางจับคู่กลุ่ม, counts, checks, inputs + SHA-256) + `rows` 6,045 สถานที่ที่ผ่านนิยามแบบ core fields (ตัวตน กลุ่ม การนับ สถานะ ผู้บริหาร จุด พื้นที่) | จริง 3.43 MB (gzip 392 KB ที่ Pages ส่งจริง) — โหลดภาพแรกราว 3 วินาทีในการจำลอง 7,800 แห่ง |
+| `data/details/NN.json` | หลักฐานรายช่องเต็มต่อสถานที่ แบ่ง shard ด้วย FNV-1a ของ `venue_id` (อย่างน้อย 32 shard เพิ่มเองตามขนาดทะเบียน) โหลดเมื่อเปิดสถานที่ | รอบนี้ 256 shard เฉลี่ย 72 KB (37–129 KB) |
+| `data/pending.json` | รายการที่ยังไม่ผ่านนิยามที่ระบุตำแหน่งได้แบบ columnar: `id, name, lon, lat, provinceCode, districtCode, group, state` (`state = "reviewed"` เมื่อตรวจแล้วยังยืนยันไม่ได้) | ≤ 1.2 MB (จริง 773 KB สำหรับ 4,941 จุด; โหลดหลังภาพแรก) |
+| `data/build-report.json` | คำของสถานะการผ่านนิยาม บทบาทการนับ และพิกัดพร้อมกฎที่อ่าน ประเภทที่จัดด้วย keyword พื้นที่ย่อยที่ไม่มีโครงการแม่ — สำหรับตรวจก่อนเผยแพร่ ไม่ได้โหลดโดยหน้าเว็บ | — |
 | `data/provinces.geojson` | 77 จังหวัด simplified, `id` = รหัส production (`BKK`), `dopa`, `th`, `en`, `areaKm2` | ≤ 300 KB |
 | `data/districts.geojson` | 928 เขต/อำเภอ simplified แบบรักษา topology, `id` = รหัส 4 หลัก (= `code` ของ production), `province`, `th`, `en`, `areaKm2` | ≤ 1.5 MB |
-| `data/venue-buildings.geojson` | 127 รูปทรงของ 74 สถานที่ที่ผ่านนิยาม (footprint 74, part 53) map เข้า schema ของ `buildings.js`; ความสูงที่ไม่รู้คงเป็น `null` | ≤ 900 KB (จริง 192 KB) |
+| `data/venue-buildings.geojson` | 130 รูปทรงของ 77 สถานที่ที่ผ่านนิยาม (footprint 77, part 53) map เข้า schema ของ `buildings.js`; ความสูงที่ไม่รู้คงเป็น `null` | ≤ 900 KB (จริง 195 KB) |
 | `data/venue-logos.json`, `assets/venue-logos/` | โลโก้ที่ตรง sha256 ของทะเบียน (โหลดผ่าน Drive connector) | — |
 
-แถวใน `venues.json` (ชื่อฟิลด์ camelCase): ตัวตน (`id` = `venue_id`, `name`, `nameTh`, `nameEn`, `scId` = `mall_external_id`, `citymeterId`, `citymeterStatus`) · ประเภท (`group`, `groupBasis` evidence/legacy, `venueType`, `legacyType`, `subtype`) · นิยาม (`tier` supported/historical/planned, `qualification`, `countable`, `countRole`, `parentId`, `hierarchyRole`) · สถานะ (`status` supply/planned/closed, `operationGroup`, `operation`) · ผู้บริหารและการติดต่อ (`operator`, `operatorGroup`, `website`, `directory`, `phone`, `hours`, `hoursScope`, `yearOpened`) · ขนาด (`size` เฉพาะค่าที่มี: reported GLA/GFA/site/floors/tenants พร้อมขอบเขต, legacy GLA/GFA พร้อม `basis`) · ที่ตั้ง (`address`, `addrProvince`, `addrDistrict`, `lat`, `lon`, `located`, `coordinateStatus`, `coordinateRole`) · พื้นที่ (`provinceCode`, `districtCode` จาก point-in-polygon เฉพาะ `located`) · ร้านข้างใน (`stores` = จำนวนยืนยัน + ชุดข้อมูล) · หลักฐาน (`ev` ต่อช่อง: basis, url, checkedOn) · `logoKey`, `buildings`
+แถวใน `venues.json` (ชื่อฟิลด์ camelCase): ตัวตน (`id` = `venue_id`, `name`, `nameTh`, `nameEn`, `scId` = `mall_external_id`, `citymeterId`, `citymeterStatus`) · ประเภท (`group`, `groupBasis` evidence/legacy, `venueType`, `legacyType`, `subtype`) · นิยาม (`tier` supported/owner/historical/planned, `ownerRule`, `qualification`, `countable`, `countRole`, `countHold`, `parentId`, `hierarchyRole`) · สถานะ (`status` supply/planned/closed, `operationGroup`, `operation`) · ผู้บริหารและการติดต่อ (`operator`, `operatorGroup`, `website`, `directory`, `phone`, `hours`, `hoursScope`, `yearOpened`) · ขนาด (`size` เฉพาะค่าที่มี: reported GLA/GFA/site/floors/tenants พร้อมขอบเขต, legacy GLA/GFA พร้อม `basis`) · ที่ตั้ง (`address`, `addrProvince`, `addrDistrict`, `lat`, `lon`, `located`, `coordinateStatus`, `coordinateRole`) · พื้นที่ (`provinceCode`, `districtCode` จาก point-in-polygon เฉพาะ `located`) · ร้านข้างใน (`stores` = จำนวนยืนยัน + ชุดข้อมูล) · หลักฐาน (`ev` ต่อช่อง: basis, url, checkedOn) · `logoKey`, `buildings`
 
 กติกา: ไม่มีลิงก์ `docs.google.com` / `drive.google.com` หรือรหัสชีตภายในในไฟล์สาธารณะ (หลักฐานที่เป็นไฟล์ภายในแสดงเป็น “เอกสารภายใน” ไม่มีลิงก์) · ค่าว่างคือ `null` ไม่ใช่ 0 · ไม่แก้ค่าต้นทาง ค่าดิบที่ใช้จัดกลุ่มอยู่คู่กันเสมอ
 
 ## 4. ตัวเลขและกติกาการนับ
 
-- **ผ่านนิยาม** = `venue_qualification_status` กลุ่ม definition-supported / qualified (ปัจจุบัน 506 · ย้อนหลัง 55 · อนาคต 4 = 565); `pending_*` = รอตรวจ ไม่นับ
-- **นับได้** = ผ่านนิยาม และ `count_role` ไม่ใช่พื้นที่ย่อย/อาจซ้ำ + พื้นที่ย่อยที่เป็นศูนย์การค้า/มอลล์ซึ่งโครงการแม่ไม่ผ่านนิยาม (D6, 5 แห่ง) → 545
-- **อุปทาน** = นับได้ ไม่ใช่ `future_project` และไม่ใช่ `closed_source_evidence` → 541
-- **ระบุตำแหน่งได้** = `coordinate_status` เป็นจุดที่เลือกแล้ว (ไม่ใช่ `not_collected*`, `held_*`, `not_selected*`, ว่าง) → 488 ใน 57 จังหวัด 160 เขต/อำเภอ; อีก 53 แห่งอยู่ในรายการและตาราง ไม่อยู่บนแผนที่และไม่เข้าตัวเลขรายพื้นที่
-- **พื้นที่ย่อย** (20 ที่ไม่นับ) ไม่บวกกับโครงการแม่; แสดงในแผงของโครงการแม่เมื่อหา parent ได้; ที่หา parent ไม่ได้และไม่เข้า D6 (13) รายงานเป็นรายการตรวจสอบ
+- **ผ่านนิยาม** = `venue_qualification_status` กลุ่ม definition-supported / qualified หรือกฎรายประเภทของเจ้าของ (ปัจจุบัน 709 · ตามกฎของเจ้าของ 5,113 · ย้อนหลัง 219 · อนาคต 4 = 6,045); `pending_*` = รอตรวจ และ `reviewed_*_unconfirmed` = ตรวจแล้วยังยืนยันไม่ได้ — ไม่นับทั้งสองอย่าง
+- **นับได้** = ผ่านนิยาม และ `count_role` อยู่ในบทบาทที่นับ (ไม่ใช่พื้นที่ย่อย อาจซ้ำ รอตรวจการนับ หรือบริบท; สถานะที่ระบุว่าอาจซ้ำไม่นับเสมอ) + พื้นที่ย่อยที่เป็นศูนย์การค้า/มอลล์ซึ่งโครงการแม่ไม่ผ่านนิยาม (D6, 5 แห่ง) → 5,997
+- **อุปทาน** = นับได้ ไม่ใช่ `future_project` และไม่ใช่ `closed_source_evidence` → 5,992
+- **ระบุตำแหน่งได้** = `coordinate_status` เป็นจุดที่เลือกแล้ว (ไม่ใช่ `not_collected*`, `held_*`, `not_selected*`, ว่าง) → 5,928 ใน 77 จังหวัด 734 เขต/อำเภอ; อีก 54 แห่งไม่มีพิกัดที่ผ่านเกณฑ์และ 10 แห่งมีจุดนอกขอบเขต — อยู่ในรายการและตาราง ไม่เข้าตัวเลขรายพื้นที่
+- **ไม่นับแยก** (48: พื้นที่ย่อย 20 · อาจซ้ำ 15 · รอตรวจการนับ 12 · บริบท 1) ไม่บวกกับโครงการแม่; แสดงในแผงของโครงการแม่เมื่อหา parent ได้; ที่หา parent ไม่ได้และไม่เข้า D6 (38) รายงานเป็นรายการตรวจสอบพร้อม `hold`
 - **ข้อค้นพบแรก (D1):** ในขอบเขตตัวกรองปัจจุบัน (ไม่รวมการเลือกพื้นที่) หาเขตที่มีแห่ง/ตร.กม. สูงสุดของประเทศ → จังหวัด P ของเขตนั้น (หรือจังหวัดที่ผู้ใช้เลือก) → เรียงเขตใน P ตามแห่ง/ตร.กม. (เสมอกันใช้จำนวน แล้วรหัส) เลือก 3 เขตแรกที่มี ≥ 1 แห่ง → ตัวตั้ง = จำนวนในสามเขต · ตัวหาร = อุปทานที่ระบุตำแหน่งได้ใน P · บริบทพื้นที่ = ผลรวมพื้นที่สามเขต ÷ พื้นที่ P (ผลรวมพื้นที่เขตจากแหล่งขอบเขตเดียวกัน) · ทุกตัวเลขมาพร้อม dataset · source · date · boundary
 - **ผู้บริหาร:** `operatorGroup` จากตารางชื่อที่ประกาศไว้ (ชื่อบริษัทที่ระบุก่อนในข้อความ; รวมสะกดไทย/อังกฤษของบริษัทเดียวกัน) — Inference ที่เผยแพร่ใน `DATA_METHOD.md`; ข้อความดิบแสดงในรายละเอียดเสมอ; กราฟเรียกว่า “สัดส่วนจำนวนสถานที่” ไม่ใช่ market share
 
 ## 5. สีและสัญลักษณ์ (LDS 0.9.7)
 
-- เขต/อำเภอ: `density.area` (แห่ง/ตร.กม.) classes แบบ quantile ของการอ่านนั้น (ขอบแสดงใน legend ทุกครั้ง) จาก class table 5 ระดับ (LUT index 0/10/20/30/40) หรือ 3 ระดับ (0/20/40) เมื่อค่าแบ่ง 5 ระดับไม่ได้ · measured zero = fill ต่ำสุด + `zeroOutline` · นอกจังหวัดที่อ่าน = out_of_scope ไม่ระบาย — เปลี่ยนจากแผน 0.1 (thresholds คงที่) เพราะจำนวนสถานที่ต่อเขตต่างกันมากระหว่างจังหวัด และทะเบียนกำลังโตหลายเท่า thresholds ที่ตรึงจาก snapshot นี้จะไม่แยกค่าในรอบหน้า
-- จังหวัด: `count` quantile แบบจำนวนเต็มด้วยกติกา table เดียวกัน · HEX เดียวกันสองธีม
-- กลุ่มประเภท: `landometer-series-10-v8` พร้อม cue ของ series — ศูนย์การค้า coral/circle · คอมมูนิตี้มอลล์ teal/hexagon · ตลาด lime/diamond · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า mint/cross · พื้นที่ค้าปลีกในโครงการ sky/star · เอาท์เล็ต blue/ring · จุดพักรถและสถานีบริการ green/plus · อื่น ๆ slate/dash (ไม่มีม่วงหรือน้ำตาล; ไม่ใช้ series 2–3 ส้ม/ทองที่ชนกับ choropleth)
-- อาคารของสถานที่: map role เดิมของ Luxury · รายการรอตรวจ: `--text-disabled` ขนาดเล็ก · ไม่มี bracket หรือแถบสีซ้ายเชิงตกแต่ง · focus ring มองเห็นได้
+- เขต/อำเภอ: `density.area` (แห่ง/ตร.กม.) ใช้ครบ 41 ตัวอย่างของ LUT ตามลำดับค่าของการอ่านนั้น (D8: mid-rank percentile ยืดเป็น index 0–40, ค่าเท่ากันได้สีเดียวกัน ไม่ interpolate) · legend แสดงครบ 41 สีพร้อมค่าที่ตำแหน่งของค่าต่ำสุด สูงสุด และใกล้ index 10/20/30 · measured zero = index 0 + `zeroOutline` · นอกจังหวัดที่อ่าน = out_of_scope ไม่ระบาย — รุ่น 0.2 ใช้ class table 3/5 ระดับ; เจ้าของสั่งให้ใช้ครบ 41 สี 25 ต.ค. 2569
+- จังหวัดและช่อง matrix: `count` ด้วยกติกา 41 ตัวอย่างเดียวกัน · ตัวเลขบนช่องที่สี index 27–29 อยู่บนพื้นรองกลาง · HEX เดียวกันสองธีม
+- กลุ่มประเภท: `landometer-series-10-v8` พร้อม cue ของ series — ศูนย์การค้า coral/circle · คอมมูนิตี้มอลล์ teal/hexagon · ตลาด lime/diamond · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า mint/cross · พื้นที่ค้าปลีกในโครงการ sky/star · เอาท์เล็ต blue/ring · สถานีบริการน้ำมันและจุดพักรถ green/plus · อื่น ๆ slate/dash (ไม่มีม่วงหรือน้ำตาล; ไม่ใช้ series 2–3 ส้ม/ทองที่ชนกับ choropleth)
+- อาคารของสถานที่: map role เดิมของ Luxury · รายการที่ยังไม่ผ่านนิยาม: `--border-default` ขนาดเล็ก · ไม่มี bracket หรือแถบสีซ้ายเชิงตกแต่ง · focus ring มองเห็นได้
 
 ## 6. หน้าจอและพฤติกรรม
 
-- **ภาพแรก:** preset `city` (pitch 56, bearing 28) จัดกรอบ 3 เขตของ Aha, focus อัตโนมัติ; แผงแสดง “19% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้ — 36 จาก 185 แห่ง บนพื้นที่ 1.2% ของเมือง” + คำสั่ง: ดูทุกเขตในจังหวัด (`areas=all`) · ดูทั้งประเทศ · เทียบพื้นที่ — ไม่มี caveat บนหน้าแรก
+- **ภาพแรก:** preset `city` (pitch 56, bearing 28) จัดกรอบ 3 เขตของ Aha, focus อัตโนมัติ; แผงแสดง “6% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้ — 49 จาก 838 แห่ง บนพื้นที่ 0.7% ของกรุงเทพฯ” (snapshot 15:06 น.; คำนวณใหม่ทุกครั้ง) + คำสั่ง: ดูทุกเขตในจังหวัด (`areas=all`) · ดูทั้งประเทศ · เทียบพื้นที่ — ไม่มี caveat บนหน้าแรก
 - **ทั้งประเทศ (zoom < 9):** กรอบจังหวัดระบาย `count` + ป้ายชิป + รายการจังหวัดในแผง → drill-down
 - **จังหวัด:** เขต/อำเภอของจังหวัดนั้นระบาย `density.area`; โปรไฟล์จังหวัด (จำนวนตามกลุ่ม ผู้บริหาร โครงการที่กำลังมา ปิดตามหลักฐาน และ “อีก k แห่งยังไม่มีพิกัดที่ผ่านเกณฑ์”)
 - **เขต/อำเภอ:** preset `model`; โปรไฟล์เขต + รายการสถานที่; สถานที่นอกเขตเป็นจุดเทา
-- **สถานที่:** มุมสถาปนิก (`eye`) เมื่อมีรูปทรงอาคารที่ผ่านเกณฑ์ ไม่เช่นนั้น `model` ที่จุด; แผงหลักฐานรายช่อง: ชื่อ (ฐานของชื่อ), กลุ่มประเภท + ค่าต้นทาง, การผ่านนิยาม, สถานะ + แหล่ง, ผู้บริหาร, เว็บทางการ/ไดเรกทอรีร้าน/โทร/เวลาเปิด (+ขอบเขตของเวลา), ปีที่เปิด, ขนาด (ค่าที่รายงาน หรือค่าประมาณเดิมพร้อมวิธีคำนวณ — D3), ที่ตั้ง + บทบาทพิกัด, ร้านที่ยืนยันว่าอยู่ข้างใน (จำนวน + ชุดข้อมูล + ลิงก์ Luxury Brands `?place=` เมื่อมี), พื้นที่ย่อย/โครงการแม่, รหัส (`venue_id`, Shopping Center id, CityMETER id)
-- **รายการรอตรวจ:** กดจุดเทาแล้วได้การ์ดย่อ: ชื่อ ประเภทตามแหล่งเดิม “รอตรวจนิยาม — ไม่นับในตัวเลข” และบันทึกใน production
-- **ค้นหา:** ชื่อไทย/อังกฤษ ผู้บริหาร และรหัส (substring หลัง normalize ไม่ fuzzy) ผลที่ผ่านนิยามมาก่อน รายการรอตรวจติดป้าย
+- **สถานที่:** มุมสถาปนิก (`eye`) เมื่อมีรูปทรงอาคารที่ผ่านเกณฑ์ ไม่เช่นนั้น `model` ที่จุด; แผงหลักฐานรายช่อง: ชื่อ (ฐานของชื่อ), กลุ่มประเภท + ค่าต้นทาง, การผ่านนิยาม (ด้วยหลักฐาน หรือกฎของเจ้าของ · ชื่อกฎ), เหตุผลที่ไม่นับแยก, สถานะ + แหล่ง, ผู้บริหาร, เว็บทางการ/ไดเรกทอรีร้าน/โทร/เวลาเปิด (+ขอบเขตของเวลา), ปีที่เปิด, ขนาด (ค่าที่รายงาน หรือค่าประมาณเดิมพร้อมวิธีคำนวณ — D3), ที่ตั้ง + บทบาทพิกัด, ร้านที่ยืนยันว่าอยู่ข้างใน (จำนวน + ชุดข้อมูล + ลิงก์ Luxury Brands `?place=` เมื่อมี), พื้นที่ย่อย/โครงการแม่, รหัส (`venue_id`, Shopping Center id, CityMETER id)
+- **รายการที่ยังไม่ผ่านนิยาม:** กดจุดเทาแล้วได้การ์ดย่อ: ชื่อ ประเภทตามแหล่งเดิม สถานะ (“รอตรวจนิยาม” หรือ “ตรวจแล้ว ยังยืนยันนิยามไม่ได้”) และ “ไม่นับในตัวเลขใด ๆ”
+- **ค้นหา:** ชื่อไทย/อังกฤษ ผู้บริหาร และรหัส (substring หลัง normalize ไม่ fuzzy) ผลที่ผ่านนิยามมาก่อน รายการที่ยังไม่ผ่านนิยามติดป้ายสถานะ
 - **ตัวกรอง:** กลุ่มประเภท · ผู้บริหาร · สถานะ (อุปทาน ค่าเริ่มต้น / โครงการอนาคต / ปิดตามหลักฐาน / ทั้งหมดที่ผ่านนิยาม) · จังหวัด · ค้นหา
 - **URL:** `province`, `district`, `venue`, `pending`, `group`, `operator`, `status`, `q`, `areas`, `view`, `view3d`, `cam`
 - **สามขอบเขตแถว** (สัญญาเดิม): `rows` → หมุด ตัวนับ ตาราง; `scopeRows` (ตัวกรองก่อนเลือกพื้นที่) → Aha, choropleth, กราฟ; `baseRows` → ฐานเทียบโปรไฟล์
@@ -92,19 +95,20 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 
 | ID | งาน | ผลลัพธ์ / หลักฐานที่ต้องได้ | สถานะ |
 |---|---|---|---|
-| S00 | Product Statement (MBB §7.2) | `PRODUCT_STATEMENT.md` รุ่น 0.3 + การตัดสินใจ D1–D4 | done |
-| S01 | Pipeline สถานที่ | `scripts/build-data.py` → `venues.json`, `details/`, `pending.json`, `build-report.json`; counts 565/545/541/488 และ D1 36/185 ตรงกับ `meta.checks.aha` ด้วย test (ก่อน D6: 540/536/483 และ 32/181) · `npm run data:refresh` รันใหม่ด้วยคำสั่งเดียว | done |
+| S00 | Product Statement (MBB §7.2) | `PRODUCT_STATEMENT.md` รุ่น 0.5 + การตัดสินใจ D1–D4, D6–D8 และข้อเสนอ D5, D9 | done |
+| S01 | Pipeline สถานที่ | `scripts/build-data.py` → `venues.json`, `details/`, `pending.json`, `build-report.json`; counts 6,045/5,997/5,992/5,928 และ D1 49/838 ตรงกับ `meta.checks.aha` ด้วย test (รอบก่อน 565/545/541/488 และ 36/185) · `npm run data:refresh` รันใหม่ด้วยคำสั่งเดียว และพิมพ์รายการ REVIEW ก่อน gate | done |
 | S02 | ขอบเขต + รหัส production | provinces 77 / districts 928 simplified; ทุก `id` ตรง production lv0/lv1 (remap `4026` → `4029` บันทึกใน meta) | done |
-| S03 | อาคารของสถานที่ | 127 รูปทรงของ 74 สถานที่ (parts 10 · footprint 64); parent ที่มี parts เป็น outline; ความสูงไม่รู้คง `null` + display fallback 3 ม. | done |
-| S04 | โลโก้สถานที่ | ไฟล์ตรง SHA-256 ของทะเบียน; ไม่มีลิงก์ Drive · จำนวนไฟล์ที่ตรวจแล้วอยู่ใน `data/venue-logos.json` `meta.status` (ครบ 113 จาก 113 · ผูกกับ 104 สถานที่ที่นับได้) | done |
+| S03 | อาคารของสถานที่ | 130 รูปทรงของ 77 สถานที่ (parts 10 · footprint 67); parent ที่มี parts เป็น outline; ความสูงไม่รู้คง `null` + display fallback 3 ม. | done |
+| S04 | โลโก้สถานที่ | ไฟล์ตรง SHA-256 ของทะเบียน; ไม่มีลิงก์ Drive · จำนวนไฟล์ที่ตรวจแล้วอยู่ใน `data/venue-logos.json` `meta.status` (ครบ 113 จาก 113 · ผูกกับ 108 สถานที่ที่นับได้) | done |
 | S05 | Model + ตัวกรอง + Aha | `model.js`, `areas.js`, `area-insight.js` + unit tests บนข้อมูลจริง | done |
 | S06 | แผนที่ | choropleth เขต/จังหวัด, หมุดรูปทรง, จุด GPU ของรายการรอตรวจและบริบท, อาคาร, มวลอาคาร focus (ทั้งเขตเมื่อ ≤ 40 ตร.กม. ไม่เช่นนั้นวงรัศมี 420 ม. รอบสถานที่ในโฟกัส ≤ 60 แห่ง) | done |
 | S07 | แผง + breadcrumb + URL | ทุกโหมดใน §6; crumbs 4 ระดับ; permalink คืนสถานะ | done |
 | S08 | กราฟ + ตาราง | เขตหนาแน่น, matrix ช่องเท่ากัน, ผู้บริหาร; ตารางทีละ 25 แถว | done |
 | S09 | ข้อความ, help, SEO, noscript | คำไทยสั้นตาม Voice; ไม่มี caveat บนหน้าแรก; JSON-LD + ตาราง noscript สร้างด้วย `scripts/build-static.py` | done |
-| S10 | ทดสอบ | `npm test` 71/71; harness 20 สถานการณ์ (390/1280 × light/dark, ล้มเหลวของแผนที่, คีย์บอร์ด); Chrome จริงบน live — ผลใน `handoff/VERIFICATION.md` | done |
-| S11 | Release | push `main`, เปิด Pages (main, /), `verify:live` 207/207 ไฟล์ตรง | done |
+| S10 | ทดสอบ | `npm test` 75/75; harness 20 สถานการณ์ (390/1280 × light/dark, ล้มเหลวของแผนที่, คีย์บอร์ด); Chrome จริงบน live — ผลใน `handoff/VERIFICATION.md` | done |
+| S11 | Release | push `main`, เปิด Pages (main, /), `verify:live` ทุกไฟล์ตรง manifest (ผลล่าสุดใน `handoff/VERIFICATION.md`) · import map ให้ทุก module ใช้ cache tag เดียวกับ entry | done |
 | S12 | Handoff | README, DATA_METHOD, AGENTS, docs/BUILD_CARD, `assets/manifest.json`, `handoff-manifest.json` (local) · เก็บ PS + แผนใน Drive `02_CityMETER/03_OUTPUTS_AND_EXAMPLES` · product-statement / implementation-plan แบบ JSON ยังไม่ทำ (เลื่อนไปรอบหลังข้อมูลชุดใหญ่) | partial |
+| S13 | อัปเดตข้อมูลหลังปิดรายการรอตรวจรอบแรก | export 15:06 น. 25 ต.ค. 2569 · จัดกฎสถานะใหม่ (D7, `unconfirmed`, `not_qualifying`) · บทบาทการนับใหม่ · ประเภทใหม่ 60 ค่า · สเกล 41 สี (D8) · เอกสารทุกฉบับ · ตรวจ live | done |
 
 ## 8. เกณฑ์รับงาน
 
@@ -112,10 +116,10 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 |---|---|---|
 | AC01 | เปิดหน้า | ภาพแรก = 3D city preset ที่ 3 เขต Aha; แผงมี Aha + ตัวตั้ง/ตัวหาร/บริบทพื้นที่ + คำสั่ง; ตัวเลขคำนวณจาก `venues.json` |
 | AC02 | ไม่นับปน | ตัวเลขทุกตัวนับเฉพาะ countable; พื้นที่ย่อยไม่บวก parent; โครงการอนาคต/ปิดแยกบรรทัด; รายการรอตรวจไม่เข้าตัวเลขใด |
-| AC03 | รายการรอตรวจ | จุดเทาที่ zoom ≥ 11 ไม่มีโลโก้ ไม่อยู่ใน tab order; สวิตช์ซ่อนได้และจำใน URL; ค้นหาเจอพร้อมป้าย |
-| AC04 | ไม่มีพิกัด | 53 แห่งอยู่ในรายการ/ตารางพร้อมป้าย ไม่มีหมุดและไม่เข้าตัวเลขรายพื้นที่ |
+| AC03 | รายการที่ยังไม่ผ่านนิยาม | จุดเทาที่ zoom ≥ 11 ไม่มีโลโก้ ไม่อยู่ใน tab order; สวิตช์ซ่อนได้และจำใน URL; ค้นหาเจอพร้อมป้ายสถานะ (รอตรวจ / ตรวจแล้วยังยืนยันไม่ได้) |
+| AC04 | ไม่มีพิกัด | 54 แห่งอยู่ในรายการ/ตารางพร้อมป้าย ไม่มีหมุดและไม่เข้าตัวเลขรายพื้นที่ |
 | AC05 | ขนาด (D3) | ค่าประมาณเดิมมีเฉพาะในแผงสถานที่พร้อมวิธีคำนวณ; ไม่มีผลรวม อันดับ หรือ filter ขนาด |
-| AC06 | choropleth | ระดับสีตรง legend และกราฟอันดับ; หน่วย “แห่ง/ตร.กม.” และตัวหารบอกชัด; measured zero มีเส้นขอบศูนย์; HEX เดียวกันสองธีม |
+| AC06 | choropleth | ใช้ครบ 41 สีของ LUT และ legend แสดงทั้ง 41 สี; สีตรง legend และกราฟอันดับ; หน่วย “แห่ง/ตร.กม.” และตัวหารบอกชัด; measured zero มีเส้นขอบศูนย์; HEX เดียวกันสองธีม |
 | AC07 | หมุด | หนึ่งหมุดต่อสถานที่; สี + รูปทรงตามกลุ่ม; เส้นประ = อนาคต; กลวง = ปิดตามหลักฐาน; โลโก้เฉพาะ zoom ≥ 14 ในโฟกัส ≤ 250 |
 | AC08 | อาคารของสถานที่ | มองเห็นและกดได้เสมอใน 3D (ลำดับชั้นเดิม + x-ray); parent ที่มี parts เป็น outline; ความสูงที่ไม่รู้ไม่ถูกอ้างเป็นข้อเท็จจริง |
 | AC09 | breadcrumb | ประเทศไทย › จังหวัด › เขต/อำเภอ › สถานที่; `province` = รหัส production; `district` = รหัส 4 หลักของ production |

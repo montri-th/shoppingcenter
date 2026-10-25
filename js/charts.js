@@ -11,7 +11,7 @@
  * Every mark is a real <button>; clicks emit {type:'area', id} or {type:'operator', id}.
  */
 import {rankAreas, groupMatrix} from './chart-model.js';
-import {buildClasses, classify, formatDensity} from './scales.js';
+import {buildRamp, classify, formatDensity, rampLegendHTML} from './scales.js';
 import {GROUPS, groupById} from './model.js';
 import {cueSVG} from './cues.js';
 
@@ -50,26 +50,25 @@ function ranking(element, {areas, kind, unitWord, select, selectedId}) {
 function matrix(element, {areas, kind, unitWord, select, selectedId}) {
   const m = groupMatrix(rankAreas(areas, {kind}), {areaLimit: 12});
   if (!m.areas.length) { empty(element, 'ไม่มีสถานที่ในตัวกรองนี้'); return; }
-  const classes = buildClasses(m.cells.map(c => c.count), {kind: 'count'});
+  const ramp = buildRamp(m.cells.map(c => c.count), {kind: 'count'});
   const head = m.groups.map(g => `<th scope="col" title="${esc(g.th)}"><span class="matrix-col"><i class="cue-swatch category-${g.series}" aria-hidden="true">${cueSVG(g.cue)}</i>${esc(g.short)}</span></th>`).join('');
   const body = m.areas.map(a => {
     const pressed = a.id === selectedId;
     const cells = m.groups.map(g => {
       const count = a.groups?.[g.id] || 0;
-      const cls = classify(count, classes);
+      const cls = classify(count, ramp);
       const style = cls.state === 'measured_zero'
         ? `background:${cls.fill};color:${cls.ink};box-shadow:inset 0 0 0 2px var(--data-zero-outline)`
         : `background:${cls.fill};color:${cls.ink}`;
       return `<td><button type="button" class="matrix-cell is-${cls.state}" data-area="${esc(a.id)}" style="${style}"
-        aria-label="${esc(a.name)} × ${esc(g.th)}: ${num(count)} แห่ง" title="${esc(a.name)} × ${esc(g.th)} — ${num(count)} แห่ง"><span class="data-number">${num(count)}</span></button></td>`;
+        aria-label="${esc(a.name)} × ${esc(g.th)}: ${num(count)} แห่ง" title="${esc(a.name)} × ${esc(g.th)} — ${num(count)} แห่ง"><span class="data-number${cls.plate ? ' on-plate' : ''}">${num(count)}</span></button></td>`;
     }).join('');
     return `<tr${pressed ? ' class="is-selected"' : ''}><th scope="row"><button type="button" class="matrix-row" data-area="${esc(a.id)}" aria-pressed="${pressed}">${esc(a.name)}<small class="data-number">${num(a.count)}</small></button></th>${cells}</tr>`;
   }).join('');
-  const legend = classes.classes.map(c => `<span class="legend-step"><i style="background:${c.fill}" aria-hidden="true"></i>${esc(c.label)}</span>`).join('');
   const columns = `<colgroup><col class="matrix-head-col">${m.groups.map(() => '<col class="matrix-cell-col">').join('')}</colgroup>`;
   element.innerHTML = `<p class="chart-caption">${num(m.areas.length)}/${num(m.totalAreas)} ${kind === 'district' ? unitWord : 'จังหวัด'} × ${num(m.groups.length)} กลุ่มประเภท · ตัวเลข = จำนวนสถานที่ · ทุกช่องขนาดเท่ากัน</p>
     <div class="matrix-scroll"><table class="matrix" style="--matrix-columns:${m.groups.length}">${columns}<thead><tr><th scope="col" class="matrix-corner">${kind === 'district' ? esc(unitWord) : 'จังหวัด'} · แห่ง</th>${head}</tr></thead><tbody>${body}</tbody></table></div>
-    <p class="chart-legend"><span class="legend-title">ระดับสี (จำนวนในช่อง, ${num(classes.classCount)} ระดับแบบควอนไทล์):</span>${legend}<span class="legend-step"><i class="legend-zero" aria-hidden="true"></i>0</span></p>`;
+    <p class="chart-legend"><span class="legend-title">สีของช่อง: จำนวนสถานที่ ไล่ 41 ระดับตามลำดับค่า</span>${rampLegendHTML(ramp, {zero: m.cells.some(c => !c.count), unit: 'แห่ง'})}</p>`;
   element.querySelectorAll('[data-area]').forEach(b => b.addEventListener('click', () => select({type: 'area', id: b.dataset.area})));
 }
 

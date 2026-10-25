@@ -294,10 +294,23 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 .map-legend > * { pointer-events: auto; }
 .legend-block { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .legend-title { font-weight: 600; margin-right: 2px; }
-.legend-steps { display: flex; align-items: flex-end; gap: 2px; }
+.legend-steps { display: flex; align-items: flex-start; gap: 10px; }
 .legend-step { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; line-height: 1.2; min-width: 34px; color: var(--text-metadata); }
 .legend-step i { display: block; width: 100%; height: 10px; border: 1px solid var(--border-default); }
 .legend-step .legend-zero { background: var(--scale-count-1); box-shadow: inset 0 0 0 2px var(--data-zero-outline); }
+.legend-ramp { position: relative; display: inline-flex; flex-direction: column; width: 204px; max-width: 100%; padding-bottom: 15px; }
+.ramp-bar { display: flex; height: 12px; border: 1px solid var(--border-default); }
+.ramp-bar i { flex: 1 1 0; min-width: 0; }
+.ramp-ticks { position: absolute; left: 1px; right: 1px; top: 14px; height: 15px; }
+.ramp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-size: 11px; line-height: 1.2; color: var(--text-metadata); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ramp-tick::before { content: ''; position: absolute; left: 50%; top: -4px; width: 1px; height: 4px; background: var(--border-emphasis); }
+.ramp-tick.is-start { transform: translateX(-2px); }
+.ramp-tick.is-start::before { left: 2px; }
+.ramp-tick.is-end { transform: translateX(calc(-100% + 2px)); }
+.ramp-tick.is-end::before { left: auto; right: 2px; }
+.ramp-zero i { height: 12px; }
+.matrix-cell .on-plate { background: var(--surface-card); color: var(--text-primary); padding: 0 4px; border-radius: 3px; }
+.chart-legend .legend-ramp { margin-top: 2px; }
 .legend-marks span { display: inline-flex; align-items: center; gap: 6px; }
 .legend-pin { width: 10px; height: 10px; border-radius: 50%; background: var(--series-1-fill); border: 1px solid var(--map-marker-stroke); box-shadow: 0 0 0 1.5px var(--map-marker-halo); }
 .legend-pending, .pending-swatch { display: inline-block; width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--border-default); box-shadow: 0 0 0 .8px var(--text-disabled); }

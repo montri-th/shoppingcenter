@@ -15,7 +15,7 @@
  */
 import {PROVINCES, provinceByCode} from './model.js';
 import {summarizeProvinces} from './areas.js';
-import {buildClasses, classify} from './scales.js';
+import {buildRamp, classify} from './scales.js';
 import {featureBounds, firstLineLayerId} from './map-layers.js';
 
 export const PROVINCE_FILL_MAX_ZOOM = 9;
@@ -39,9 +39,9 @@ export function buildProvinceModel(rows, geojson) {
     const center = Number.isFinite(f.properties?.labelLon) ? [f.properties.labelLon, f.properties.labelLat] : null;
     return {id: code, code, name: meta.th, label: `จังหวัด${meta.th}`, nameEn: meta.en, count, areaKm2: f.properties?.areaKm2 || null, feature: f, center};
   }).filter(p => provinceByCode(p.code));
-  const classes = buildClasses(provinces.map(p => p.count), {kind: 'count'});
-  for (const p of provinces) { const c = classify(p.count, classes); p.state = c.state; p.fill = c.fill; p.ink = c.ink; }
-  return {provinces, classes, zeroCount: provinces.filter(p => p.state === 'measured_zero').length};
+  const ramp = buildRamp(provinces.map(p => p.count), {kind: 'count'});
+  for (const p of provinces) { const c = classify(p.count, ramp); p.state = c.state; p.fill = c.fill; p.ink = c.ink; p.rampIndex = c.index; }
+  return {provinces, ramp, zeroCount: provinces.filter(p => p.state === 'measured_zero').length};
 }
 
 export function installProvinceLayers(map, geojson, {onSelect} = {}) {

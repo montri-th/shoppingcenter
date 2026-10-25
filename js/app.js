@@ -46,7 +46,7 @@ import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint} from './camera.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
-import {formatDensity} from './scales.js';
+import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 
 const $ = id => document.getElementById(id);
@@ -339,7 +339,7 @@ function selectPending(index, {fromMap = false} = {}) {
   update({camera: false});
   if (state.loaded) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: sheetOffset(), animate: animate()}); state.lastPreset = cameraPreset(); }
   if (!fromMap || mobilePortrait()) openMobilePanel();
-  announce(`รายการรอตรวจ ${c.name}`);
+  announce(`${c.reviewed ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รายการรอตรวจนิยาม'} ${c.name}`);
 }
 
 /** Frame a venue on its host building(s) when it has qualified geometry, else on its point. */
@@ -438,13 +438,12 @@ function renderLegend() {
   const readCode = readingProvince();
   const word = readCode ? districtWord(readCode) : 'เขต/อำเภอ';
   $('legend-title').textContent = atProvince ? 'จังหวัด · จำนวนสถานที่' : `${word} · แห่ง/ตร.กม.`;
-  if (!model || !model.classes.classes.length) steps.innerHTML = '<span class="hint">ไม่มีสถานที่ในตัวกรองนี้</span>';
+  if (!model || !model.ramp.levels.length) steps.innerHTML = '<span class="hint">ไม่มีสถานที่ในตัวกรองนี้</span>';
   else {
-    steps.innerHTML = model.classes.classes.map(c => `<span class="legend-step"><i style="background:${c.fill}" aria-hidden="true"></i>${esc(c.label)}</span>`).join('') +
-      (model.zeroCount ? `<span class="legend-step" title="พื้นที่ที่ไม่มีสถานที่ในตัวกรองนี้ (วัดได้ว่าเป็นศูนย์)"><i class="legend-zero" aria-hidden="true"></i>0</span>` : '');
+    steps.innerHTML = rampLegendHTML(model.ramp, {zero: model.zeroCount > 0, unit: atProvince ? 'แห่ง' : 'แห่ง/ตร.กม.'});
     $('legend-areas').title = atProvince
-      ? `จำนวนสถานที่ต่อจังหวัด · ${model.classes.classCount} ระดับแบบควอนไทล์ · สีเดียวกันทั้งสองธีม`
-      : `สถานที่ต่อตารางกิโลเมตรของ${word} (ตัวหาร = พื้นที่ตามขอบเขต OpenGISData-Thailand) · ${model.classes.classCount} ระดับแบบควอนไทล์ · สีเดียวกันทั้งสองธีม`;
+      ? `จำนวนสถานที่ต่อจังหวัด · สีไล่ 41 ระดับของ LDS ตามลำดับค่า (ค่าต่ำสุดอ่อนสุด ค่าสูงสุดเข้มสุด) · สีเดียวกันทั้งสองธีม`
+      : `สถานที่ต่อตารางกิโลเมตรของ${word} (ตัวหาร = พื้นที่ตามขอบเขต OpenGISData-Thailand) · สีไล่ 41 ระดับของ LDS ตามลำดับค่า · สีเดียวกันทั้งสองธีม`;
   }
   $('toggle-pending').setAttribute('aria-pressed', String(state.showPending));
   $('pending-count').textContent = state.pending ? num(state.pending.rows.length) : '';
@@ -457,7 +456,7 @@ function togglePending() {
   updatePins();
   renderLegend();
   saveURL();
-  announce(state.showPending ? 'แสดงรายการรอตรวจนิยาม' : 'ซ่อนรายการรอตรวจนิยาม');
+  announce(state.showPending ? 'แสดงรายการที่ยังไม่ผ่านนิยาม' : 'ซ่อนรายการที่ยังไม่ผ่านนิยาม');
 }
 
 /* ---------- charts ---------- */

@@ -85,7 +85,8 @@ export function installVenuePoints(map, {onSelect, onSelectPending} = {}) {
     filter: ['==', ['get', 'focus'], 1],
     layout: {
       'icon-image': ['concat', 'venue-icon-', ['get', 'group']],
-      'icon-size': ['interpolate', ['linear'], ['zoom'], 5, 0.45, 10, 0.65, 14, 0.9, 17, 1.1],
+      // smaller at country zoom, where thousands of venues sit over the province ramp
+      'icon-size': ['interpolate', ['linear'], ['zoom'], 4, 0.3, 6, 0.42, 10, 0.65, 14, 0.9, 17, 1.1],
       'icon-allow-overlap': true, 'icon-ignore-placement': true, 'visibility': 'none',
     },
   });

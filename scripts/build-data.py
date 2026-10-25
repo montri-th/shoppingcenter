@@ -13,10 +13,12 @@ data/venue-buildings.geojson. Re-run after a new export of the sheet; no code ch
 every count, the first finding and the class thresholds' inputs are recomputed and recorded in
 meta, and every input file is hashed into meta.inputs.
 
-Rules (Product Statement 0.2 §4, owner retail-venue definition 2026-10-23):
-- qualified = venue_qualification_status in the definition-supported family; pending_* is not
-  eligible by default and is published only as quiet, uncounted context (owner decision D4).
-- countable = qualified and count_role is not a child zone / component / duplicate hold; a component without a
+Rules (Product Statement §4, owner retail-venue definition 2026-10-23):
+- qualified = venue_qualification_status in the definition-supported family, or a category rule the owner
+  accepted (owner_*_definition_accepted_*, Owner-stated); pending_* and reviewed-unconfirmed records are not
+  eligible and are published only as quiet, uncounted context (owner decision D4).
+- countable = qualified and count_role is a counted role (not a child zone / component / duplicate or count hold);
+  unknown count roles are never counted and fail the tests until classified; a component without a
   qualified parent counts as its own venue when it is a shopping centre or mall (owner decision D6, 2026-10-25).
 - supply = countable minus future projects and closed-by-evidence (operation_group).
 - located = a selected reference point (coordinate_status/role); area membership is point-in-polygon
@@ -55,10 +57,42 @@ OWNER_SHOPPING_CENTRES = {
     'SC-C0015': 'One Bangkok Retail', 'SC-001304': 'Samyan Mitrtown', 'SC-001069': 'Silom Complex',
 }
 
-COUNT_EXCLUDED_ROLES = {
-    'child_zone', 'child_venue', 'duplicate_candidate_hold', 'retail_component_within_managed_site',
-    'retail_subarea_do_not_count_as_separate_parent_mall', 'component_within_managed_site',
+# count_role vocabulary of qualified rows. Counted roles are an allowlist: a role missing from all three sets is not
+# counted and is listed in meta.checks.countRoleFallback (the tests fail until it is classified here).
+# Component roles may still be counted by D6 when no qualified parent holds them; held roles never are.
+COUNTED_ROLES = {
+    'venue_site', 'venue_site_candidate', 'parent_complex', 'managed_site_parent',
+    'pending_scope_boundary_review', 'retail_scope_pending_terminal_boundary',
 }
+COMPONENT_ROLES = {
+    'child_zone', 'child_venue', 'retail_component_within_managed_site',
+    'retail_subarea_do_not_count_as_separate_parent_mall', 'component_within_managed_site',
+    'child_component_not_independent_center_count',
+}
+HELD_ROLES = {
+    'duplicate_candidate_hold', 'aggregate_context_not_independent_venue',
+    'individual_store_context_not_counted_as_venue', 'retail_component_scope_count_review',
+}
+COUNT_EXCLUDED_ROLES = COMPONENT_ROLES | HELD_ROLES
+# Why a qualified row is not counted (row field countHold): component | duplicate | count-review | context | unclassified.
+HOLD_KIND = {
+    'duplicate_candidate_hold': 'duplicate', 'retail_component_scope_count_review': 'count-review',
+    'aggregate_context_not_independent_venue': 'context', 'individual_store_context_not_counted_as_venue': 'context',
+}
+# A qualification status that itself holds the count wins over a counted role (e.g. …_duplicate_count_held).
+STATUS_COUNT_HOLD = re.compile(r'duplicate_(count_held|review)')
+
+
+def count_role_rule(role):
+    """(countable, kind) for a count_role value; kind 'fallback' marks unreviewed vocabulary."""
+    role = role or ''
+    if role in COUNTED_ROLES:
+        return True, 'counted'
+    if role in COMPONENT_ROLES:
+        return False, 'component'
+    if role in HELD_ROLES:
+        return False, 'held'
+    return False, 'fallback'
 
 # Display groups (Inference, for navigation only). Evidence `venue_type` first; `legacy_venue_type`
 # only while the evidence type is `unclassified`. Ids must match js/model.js GROUPS.
@@ -114,6 +148,49 @@ LEGACY_GROUP = {
     'walking_street': 'market',
     'gas_station_retail': 'fuel', 'terminal_duty_free': 'component',
 }
+# Evidence types added at the 25 Oct 2026 refresh, after reviewing the keyword placement of each (the owner's
+# category rules brought markets, fuel stations and grocery anchors into the qualified set).
+TYPE_GROUP_ADDED_2026_10_25 = {
+    'community': {
+        'community_retail_property_historical_source'
+    },
+    'hoststore': {
+        'grocery_anchor_with_food_retail_counter_component', 'grocery_anchor_with_restaurant_component',
+        'grocery_anchor_with_restaurant_retail_component', 'grocery_anchor_with_staffed_retail_service_component',
+        'grocery_store_with_source_listed_restaurant_component', 'hypermarket_with_managed_foodcourt_component',
+        'hypermarket_with_managed_retail_component', 'hypermarket_with_retail_component',
+        'hypermarket_with_staffed_pharmacy_component', 'supermarket_with_ancillary_retail_component',
+        'supermarket_with_managed_foodcourt_component', 'supermarket_with_managed_retail_component_owner_reported',
+        'supermarket_with_owner_confirmed_restaurant_component',
+        'supermarket_with_source_listed_consumer_unit_component', 'supermarket_with_staffed_pharmacy_component',
+        'wholesale_store_with_derived_retail_component_scope'
+    },
+    'market': {
+        'agricultural_wholesale_market', 'community_walking_street_market', 'covered_market_source_reported',
+        'craft_retail_market_cluster', 'farmers_market', 'floating_market_multizone',
+        'food_market_common_management_unconfirmed', 'fresh_evening_market', 'fruit_market', 'historic_food_market',
+        'historic_market_district_retail_scope_pending', 'historic_riverside_market', 'market', 'market_district',
+        'market_precinct', 'marketplace', 'morning_fresh_food_street_market', 'morning_fresh_market',
+        'municipal_market', 'night_market_and_retail_complex', 'periodic_heritage_market', 'railway_market_subarea',
+        'reported_market_source_vintage_disclosed', 'riverside_market', 'riverside_periodic_walking_street_market',
+        'roadside_morning_market', 'roadside_retail_market', 'street_market_identity_scope_pending',
+        'street_market_multiple_plot_management_scope_pending', 'sunday_periodic_market_identity_perimeter_pending',
+        'temple_retail_market', 'walking_street_market', 'walking_street_market_scope_pending',
+        'weekend_community_market'
+    },
+    'other': {
+        'historic_retail_district', 'historic_retail_district_walking_street', 'retail_food_district'
+    },
+    'fuel': {
+        'fuel_station_with_historical_retail_component', 'fuel_station_with_retail_component',
+        'fuel_station_with_source_listed_retail_component'
+    },
+    'component': {
+        'community_market_otop_component', 'seafood_market_component', 'shopping_center_retail_component'
+    },
+}
+for _group, _types in TYPE_GROUP_ADDED_2026_10_25.items():
+    TYPE_GROUP[_group] |= _types
 TYPE_TO_GROUP = {t: g for g, ts in TYPE_GROUP.items() for t in ts}
 
 # Operator groups (Inference): a curated name table; the first company named in the source text wins.
@@ -217,7 +294,23 @@ def number(value):
 # meta.checks.qualificationFallback so the next build reviews it.
 NEGATIVE_PREFIXES = ('excluded', 'rejected', 'disqualified', 'not_', 'non_', 'out_of_scope', 'definition_not_',
                      'definition_failed', 'fails_', 'does_not_')
-NEGATIVE_PARTS = ('not_independent_venue', 'not_retail_venue', 'not_a_retail', 'not_qualified', 'not_eligible')
+NEGATIVE_PARTS = ('not_independent_venue', 'not_retail_venue', 'not_a_retail', 'not_qualified', 'not_qualifying',
+                  'not_eligible')
+
+# Category rules the owner accepted as meeting the retail-venue definition (Owner-stated, recorded per row in the
+# registry, e.g. owner_market_definition_accepted_identity_current_and_count_separate): the rule id is the text
+# between "owner_" and "_definition_accepted"; owner_confirmed_* records a site-level owner confirmation.
+OWNER_ACCEPTED = re.compile(r'^owner_([a-z0-9_]+?)_definition_accepted(?:_|$)')
+
+
+def owner_rule(s):
+    s = s or ''
+    m = OWNER_ACCEPTED.match(s)
+    if m:
+        return m.group(1)
+    if s.startswith('owner_confirmed_'):
+        return re.sub(r'_current(_.*)?$', '', s[len('owner_'):])
+    return None
 
 
 def qualification_rule(s):
@@ -233,6 +326,10 @@ def qualification_rule(s):
         return 'pending', 'pending_*'
     if s.startswith(NEGATIVE_PREFIXES) or any(part in s for part in NEGATIVE_PARTS):
         return 'excluded', 'negative determination'
+    if owner_rule(s):
+        return 'owner', 'owner_*_definition_accepted / owner_confirmed_*'
+    if s.startswith('reviewed_') and 'unconfirmed' in s:
+        return 'unconfirmed', 'reviewed_*_unconfirmed'
     if s.endswith('_pending'):
         return 'pending', '*_pending'
     return 'pending', 'fallback'
@@ -240,6 +337,10 @@ def qualification_rule(s):
 
 def qualification_tier(s):
     return qualification_rule(s)[0]
+
+
+QUALIFIED_TIERS = ('supported', 'owner', 'historical', 'planned')
+CONTEXT_TIERS = ('pending', 'unconfirmed')   # quiet grey context (D4), never counted
 
 
 # Keyword rule for evidence types not in the table yet (new research vocabulary): ordered, first match wins.
@@ -331,7 +432,7 @@ def find_export(folder, tab):
 # ---------------------------------------------------------------- output helpers
 
 MIN_SHARDS, VENUES_PER_SHARD = 32, 40   # shards grow (powers of two) with the registry; the client reads meta.detail.shards
-CORE_KEYS = ['id', 'name', 'nameEn', 'aliases', 'scId', 'group', 'groupBasis', 'tier', 'countable', 'countRole',
+CORE_KEYS = ['id', 'name', 'nameEn', 'aliases', 'scId', 'group', 'groupBasis', 'tier', 'ownerRule', 'countable', 'countRole', 'countHold',
              'parentId', 'children', 'status', 'operationGroup', 'operatorGroup', 'operatorLabel', 'lat', 'lon', 'located',
              'provinceCode', 'districtCode', 'addrProvince', 'addrDistrict', 'logoKey', 'yearOpened', 'countBasis']
 CORE_ONLY = {'storeCount', 'hasBuilding'}
@@ -494,7 +595,7 @@ def main():
     logo_by_key = {r['logo_key']: r for _, r in logos.iterrows() if text(r.get('logo_key'))}
 
     rows, pending = [], []
-    unmapped_types, vocab, coord_vocab = Counter(), Counter(), Counter()
+    unmapped_types, vocab, coord_vocab, role_vocab = Counter(), Counter(), Counter(), Counter()
     outside = Counter()
     as_of = args.as_of
     for _, r in df.iterrows():
@@ -502,7 +603,7 @@ def main():
         vocab[(r['venue_qualification_status'] or '', tier, rule)] += 1
         group, basis = display_group(r['venue_type'], r['legacy_venue_type'])
         if basis == 'evidence-keyword':
-            unmapped_types[(tier != 'pending', r['venue_type'], group)] += 1
+            unmapped_types[(tier in QUALIFIED_TIERS, r['venue_type'], group)] += 1
         located = is_located(r)
         lat, lon = coord(r['latitude']), coord(r['longitude'])
         area = locator.locate(lon, lat) if located else None
@@ -513,14 +614,22 @@ def main():
 
         if tier == 'excluded':
             continue
-        if tier == 'pending':
+        if tier in CONTEXT_TIERS:
             if located:
-                pending.append([r['venue_id'], name, round(lon, 5), round(lat, 5),
-                                area['province'] if area else None, area['code'] if area else None, group])
+                rec = [r['venue_id'], name, round(lon, 5), round(lat, 5),
+                       area['province'] if area else None, area['code'] if area else None, group]
+                if tier == 'unconfirmed':
+                    rec.append('reviewed')
+                pending.append(rec)
             continue
 
         coord_vocab[(r['coordinate_status'] or '', r['coordinate_role'] or '', located)] += 1
-        countable = r['count_role'] not in COUNT_EXCLUDED_ROLES
+        countable, role_kind = count_role_rule(r['count_role'])
+        role_vocab[(r['count_role'] or '', role_kind)] += 1
+        hold = None if countable else HOLD_KIND.get(r['count_role'] or '', 'component' if role_kind == 'component' else 'unclassified')
+        if countable and STATUS_COUNT_HOLD.search(r['venue_qualification_status'] or ''):
+            # the status itself holds the count (possible duplicate) even where count_role says candidate
+            countable, hold = False, 'duplicate'
         op_gid, op_label = operator_group(r['operator_name'])
         logo = logo_by_key.get(r['venue_logo_key'] or '')
         size = {}
@@ -559,9 +668,11 @@ def main():
             'legacyType': text(r['legacy_venue_type']),
             'subtype': text(r['venue_subtype']),
             'tier': tier,
+            'ownerRule': owner_rule(r['venue_qualification_status']) if tier == 'owner' else None,
             'qualification': text(r['venue_qualification_status']),
             'countable': countable,
             'countRole': text(r['count_role']),
+            'countHold': hold,
             'parentId': text(r['parent_venue_id']),
             'hierarchyRole': text(r['hierarchy_role']),
             'status': status_of(r['operation_group']),
@@ -636,15 +747,16 @@ def main():
         if r['parentId'] and r['parentId'] in by_id:
             by_id[r['parentId']].setdefault('children', []).append(r['id'])
         elif not r['countable']:
-            counted = r['countRole'] != 'duplicate_candidate_hold' and (
-                r['id'] in OWNER_SHOPPING_CENTRES or r['group'] in ORPHAN_COUNTED_GROUPS)
+            hold = r['countHold']
+            counted = hold == 'component' and (r['id'] in OWNER_SHOPPING_CENTRES or r['group'] in ORPHAN_COUNTED_GROUPS)
             if counted:
                 r['countable'] = True
                 r['countBasis'] = 'component-without-qualified-parent'
+                r['countHold'] = None
                 if r['group'] not in ORPHAN_COUNTED_GROUPS:
                     r['group'], r['groupBasis'] = 'mall', 'owner'
-            orphans.append({'id': r['id'], 'name': r['name'], 'countRole': r['countRole'], 'parentId': r['parentId'],
-                            'counted': counted, 'group': r['group']})
+            orphans.append({'id': r['id'], 'name': r['name'], 'countRole': r['countRole'], 'hold': hold,
+                            'parentId': r['parentId'], 'counted': counted, 'group': r['group']})
 
     # ------------------------------------------------------------ buildings
     links = pd.read_csv(find_export(args.master, '13_BUILDING_LINKS'), dtype=str, keep_default_na=False) \
@@ -728,9 +840,14 @@ def main():
         'unlocatedSupply': sum(not r['located'] for r in supply), 'provinces': len(per_province), 'districts': len(per_district),
         'components': len(rows) - len(countable), 'componentsWithoutParent': sum(not o['counted'] for o in orphans),
         'componentsCountedAsVenue': sum(o['counted'] for o in orphans),
+        'holds': dict(Counter(r['countHold'] for r in rows if not r['countable'])),
+        'ownerRules': dict(Counter(r['ownerRule'] for r in rows if r['ownerRule'])),
+        'ownerRulesSupply': dict(Counter(r['ownerRule'] for r in supply if r['ownerRule'])),
         'pendingRegistry': int((df.venue_qualification_status.map(qualification_tier) == 'pending').sum()),
+        'unconfirmedRegistry': int((df.venue_qualification_status.map(qualification_tier) == 'unconfirmed').sum()),
         'excludedRegistry': int((df.venue_qualification_status.map(qualification_tier) == 'excluded').sum()),
-        'pendingMapped': len(pending), 'buildingsFeatures': len(buildings),
+        'pendingMapped': len(pending), 'unconfirmedMapped': sum(len(p) > 7 for p in pending),
+        'buildingsFeatures': len(buildings),
         'buildingVenues': len({i for b in buildings for i in b['properties']['venue_ids']}),
         'storesConfirmed': sum(r['stores']['confirmed'] for r in countable),
         'storeVenues': sum(r['stores']['confirmed'] > 0 for r in countable),
@@ -752,13 +869,22 @@ def main():
                      'url': 'https://github.com/chingchai/OpenGISData-Thailand',
                      'codes': 'CityMETER production base/info lv0 (abbrEn) and lv1 (district code)'},
         'definitions': {
-            'qualified': 'venue_qualification_status in the definition-supported family (current, historical, planned)',
-            'countable': 'qualified and count_role not in ' + ', '.join(sorted(COUNT_EXCLUDED_ROLES)) +
-                         '; a component without a qualified parent counts as its own venue when it is a shopping centre '
-                         'or mall (display group mall/community, or named by the owner) — owner decision D6, 2026-10-25',
+            'qualified': 'venue_qualification_status in the definition-supported family (current, historical, planned) '
+                         'or a category rule the owner accepted (owner_*_definition_accepted_*, owner_confirmed_*; '
+                         'tier "owner", Owner-stated)',
+            'owner': 'qualified by a category rule the owner accepted and recorded in the registry (ownerRule = rule id); '
+                     'the rule replaces source evidence of a single common manager for that category, it does not add it',
+            'countable': 'qualified and count_role in ' + ', '.join(sorted(COUNTED_ROLES)) +
+                         ' (unknown roles are not counted and listed in checks.countRoleFallback); '
+                         'a component role (' + ', '.join(sorted(COMPONENT_ROLES)) + ') without a qualified parent counts as '
+                         'its own venue when it is a shopping centre or mall (display group mall/community, or named by the '
+                         'owner) — owner decision D6, 2026-10-25; held roles (' + ', '.join(sorted(HELD_ROLES)) +
+                         ') are never counted',
             'supply': 'countable minus operation_group future_project and closed_source_evidence',
             'located': 'a selected reference point (coordinate_status/role); area = point-in-polygon on full-resolution boundaries',
             'pending': 'pending_* qualification: not eligible by default, quiet context only, never counted',
+            'unconfirmed': 'reviewed_*_unconfirmed: the definition review closed without confirming the record; quiet '
+                           'context only (pending.json field state = "reviewed"), never counted',
             'excluded': 'a negative determination (e.g. individual_tenant_component_not_independent_venue): not shown, never counted',
         },
         'groupMapping': {'evidence': {g: sorted(ts) for g, ts in TYPE_GROUP.items()}, 'legacy': LEGACY_GROUP,
@@ -772,7 +898,8 @@ def main():
                    'keywordMappedTypes': [{'qualified': q, 'venueType': t, 'group': g, 'rows': n}
                                           for (q, t, g), n in sorted(unmapped_types.items(), key=lambda x: (not x[0][0], x[0][1]))],
                    'componentsWithoutParent': orphans, 'geometryLinksWithoutFeature': sorted(missing_geom),
-                   'qualificationFallback': [{'status': st, 'rows': n} for (st, tier, rule), n in sorted(vocab.items()) if rule == 'fallback']},
+                   'qualificationFallback': [{'status': st, 'rows': n} for (st, tier, rule), n in sorted(vocab.items()) if rule == 'fallback'],
+                   'countRoleFallback': [{'role': role, 'rows': n} for (role, kind), n in sorted(role_vocab.items()) if kind == 'fallback']},
         'release': 'research snapshot published as a demo by the owner; registry release_status remains on hold per row '
                    '(identity, geometry, rights, remaining fields) — not a CityMETER production release',
         'inputs': inputs,
@@ -806,9 +933,13 @@ def main():
         write_json(details / f'{n:02d}.json', {'asOf': as_of, 'shard': n, 'venues': shards.get(n, {})})
     (DATA / 'pending.json').write_text(json.dumps({
         'meta': {'asOf': as_of, 'grain': meta['grain'], 'definition': meta['definitions']['pending'],
-                 'count': len(pending), 'registryPending': counts['pendingRegistry'], 'registryExcluded': counts['excludedRegistry'],
-                 'note': 'Context only: not eligible by default under the owner retail-venue definition; never counted.'},
-        'fields': ['id', 'name', 'lon', 'lat', 'provinceCode', 'districtCode', 'group'],
+                 'definitionReviewed': meta['definitions']['unconfirmed'],
+                 'count': len(pending), 'reviewed': counts['unconfirmedMapped'],
+                 'registryPending': counts['pendingRegistry'], 'registryUnconfirmed': counts['unconfirmedRegistry'],
+                 'registryExcluded': counts['excludedRegistry'],
+                 'note': 'Context only: not eligible under the owner retail-venue definition; never counted. '
+                         'A row with an 8th field "reviewed" closed its definition review unconfirmed.'},
+        'fields': ['id', 'name', 'lon', 'lat', 'provinceCode', 'districtCode', 'group', 'state'],
         'rows': sorted(pending, key=lambda r: r[0]),
     }, ensure_ascii=False, separators=(',', ':')))
     d_geo, p_geo = simplify(districts_geojson, district_meta, args.mapshaper, args.simplify)
@@ -849,11 +980,15 @@ def main():
                                     for (st, tier, rule), n in sorted(vocab.items(), key=lambda x: (x[0][1], -x[1], x[0][0]))],
         'coordinateVocabulary': [{'status': st, 'role': role, 'located': loc, 'rows': n}
                                  for (st, role, loc), n in sorted(coord_vocab.items(), key=lambda x: -x[1])],
+        'countRoleVocabulary': [{'role': role, 'kind': kind, 'rows': n}
+                                for (role, kind), n in sorted(role_vocab.items(), key=lambda x: (x[0][1], -x[1]))],
         'keywordMappedTypes': meta['checks']['keywordMappedTypes'],
         'componentsWithoutParent': orphans,
         'geometryLinksWithoutFeature': sorted(missing_geom),
         'review': [
             'qualificationVocabulary rule "fallback": new status values; add them to qualification_rule() before publishing.',
+            'countRoleVocabulary kind "fallback": new count_role values of qualified rows (not counted); classify them in '
+            'COUNTED_ROLES, COMPONENT_ROLES or HELD_ROLES before publishing.',
             'keywordMappedTypes with qualified=true: add the venue_type to TYPE_TO_GROUP so the group basis is "evidence".',
             'coordinateVocabulary: confirm every status/role read as located is a selected reference point.',
             'componentsWithoutParent: retail components whose parent is not qualified are counted nowhere.',
@@ -863,6 +998,7 @@ def main():
     print(json.dumps({'counts': counts, 'aha': aha, 'problems': problems[:10], 'remapped': remapped,
                       'keywordQualified': {t: g for (q, t, g), n in unmapped_types.items() if q},
                       'qualificationFallback': meta['checks']['qualificationFallback'],
+                      'countRoleFallback': meta['checks']['countRoleFallback'],
                       'orphans': len(orphans), 'missingGeom': sorted(missing_geom),
                       'detailShards': n_shards}, ensure_ascii=False, indent=1))
 

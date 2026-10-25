@@ -70,13 +70,16 @@ export function buildVenueProfile({row, detail = null, byId, districts}) {
   };
 }
 
-/** Pending record card (D4): context only, never counted. */
+/**
+ * Pending record card (D4): context only, never counted. `reviewed` = the definition review closed
+ * without confirming the record (pending.json state "reviewed"); otherwise it still awaits review.
+ */
 export function buildPendingCard(pending, index, districts) {
   const r = pending?.rows?.[index];
   if (!r) return null;
-  const [id, name, lon, lat, provinceCode, districtCode, group] = r;
+  const [id, name, lon, lat, provinceCode, districtCode, group, state] = r;
   const district = districtCode ? districts?.get(districtCode) || null : null;
-  return {id, name, lon, lat, group: groupById(group), province: provinceByCode(provinceCode), district, index};
+  return {id, name, lon, lat, group: groupById(group), province: provinceByCode(provinceCode), district, index, reviewed: state === 'reviewed'};
 }
 
 /**

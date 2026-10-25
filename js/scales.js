@@ -7,15 +7,13 @@
  *    scaleVersion 4ff5c1fb4be71ecd13c48685b38371b528bcd4ce369ce964a75354c2eb4d0980.
  *
  * Both LUTs are the exact approved 41-sample light tables, consumed unchanged on both
- * themes (themePolicy identical-light-values-on-both-themes); class n ∈ {3,5,7,9} uses
- * index round(i × 40 / (n − 1)); nothing is interpolated or recoloured here.
- *
- * Classification (consumer supplied, as the scale entries require): quantile classes of
- * the measured nonzero values of the areas being read (the selected province's districts,
- * or every province/district when the country is read), five classes or fewer when there
- * are fewer distinct values. Thresholds are rounded to two significant digits (density) or
- * integers (count), the top class is open-ended and labelled as such (no silent clamp).
- * Zero is a measured fact (EVID-05 measured_zero: lowest fill + zero outline), never a class.
+ * themes (themePolicy identical-light-values-on-both-themes); nothing is interpolated or
+ * recoloured here. Every map fill, label and chart cell uses the full 41-sample ramp
+ * (owner instruction 2026-10-25, `buildRamp`): the colour of a value is the LUT sample of its
+ * rank among the measured nonzero values of the areas being read (the selected province's
+ * districts, or every province/district when the country is read). The LDS class tables
+ * (`classColors`, n ∈ {3,5,7,9} at index round(i × 40 / (n − 1))) remain for static tokens.
+ * Zero is a measured fact (EVID-05 measured_zero: sample 0 + zero outline), never a level.
  */
 export const DENSITY_SCALE = Object.freeze({
   scaleId: 'density.area',
@@ -65,6 +63,13 @@ export function inkFor(fill) {
   return contrastRatio(fill, dark) >= contrastRatio(fill, light) ? dark : light;
 }
 
+/**
+ * Numbers set directly on a data fill need 4.5:1. Three count samples (27–29) and the two darkest density
+ * samples reach it with neither ink, so text on them sits on a neutral plate (LDS: keep the data colour,
+ * add a backplate) — `plate` in classify().
+ */
+export const needsPlate = fill => contrastRatio(fill, inkFor(fill)) < 4.5;
+
 /** Exact class colours for n ∈ {3,5,7,9}: index round(i × 40 / (n − 1)). */
 export function classColors(n = 5, scale = DENSITY_SCALE) {
   if (![3, 5, 7, 9].includes(n)) throw new RangeError('Class count must be 3, 5, 7 or 9');
@@ -84,78 +89,118 @@ const INTEGER = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0});
 export const formatDensity = v => (v > 0 && v < 0.0001 ? '< 0.0001' : DECIMAL.format(v));
 
 /**
- * Quantile thresholds over the positive values: upper bounds of classes 1…k−1 (the last
- * class is open). `integer` rounds up to whole numbers (counts); otherwise two significant
- * digits. Duplicate thresholds collapse, so k ≤ n and intervals never overlap.
- */
-export function quantileThresholds(values, n = 5, {integer = false} = {}) {
-  const v = (Array.isArray(values) ? values : []).filter(x => Number.isFinite(x) && x > 0).sort((a, b) => a - b);
-  if (!v.length) return [];
-  const out = [];
-  for (let i = 1; i < n; i++) {
-    const q = v[Math.min(v.length - 1, Math.floor((i * v.length) / n))];
-    let t = integer ? Math.floor(q) : roundSig(q);
-    if (integer && t < 1) t = 1;
-    if (t >= v[v.length - 1]) break;
-    const prev = out.length ? out[out.length - 1] : 0;
-    // keep a threshold only when its class holds a value: rounding (2 significant digits) can move a
-    // threshold below every remaining value and would otherwise leave an empty class in the legend
-    if (t > prev && v.some(x => x > prev && x <= t)) out.push(t);
-  }
-  return out;
-}
-
-/**
- * Class model for one reading. kind 'density' (venues/km², decimals) or 'count' (integers).
- * Classes: [min, t1], (t1, t2], …, (tk−1, max] with the top class labelled “> tk−1”.
+ * 41-sample ramp for one reading — owner instruction 2026-10-25: every analytical colour scale of
+ * this page uses all 41 samples of the LDS LUT (DATAVIZ-02 continuous ramp), not a 3/5-class pick.
  *
- * Colours always come from an LDS class table (classCounts 3/5/7/9): the 5-class table when the
- * values support five quantile classes, otherwise the 3-class table. When the values have fewer
- * distinct levels than the table (one or two), the levels take table positions by rank — lowest
- * first, highest last — and the unused positions are simply not drawn (`table` says which table).
+ * Method (consumer supplied, declared in every legend): rank. The measured nonzero values of the
+ * areas being read are ordered; each distinct value takes the LUT sample of its mid-rank percentile,
+ * rescaled so the lowest value sits on sample 0 and the highest on sample 40 (one value alone sits on
+ * sample 40). Equal values share one sample; a value never falls between samples (nothing is
+ * interpolated), the highest value closes the ramp (no clamp, no open class), and renderer, legend,
+ * labels and charts read the same `levels`. Zero is a measured fact (EVID-05 measured_zero: sample 0
+ * plus the zero outline), never a level; missing is `no_data`.
  */
-export function buildClasses(values, {kind = 'density'} = {}) {
+export const RAMP_STEPS = 41;
+
+export function buildRamp(values, {kind = 'density'} = {}) {
   const scale = SCALES[kind] || DENSITY_SCALE;
   const integer = kind === 'count';
-  const measured = (Array.isArray(values) ? values : []).filter(x => Number.isFinite(x) && x > 0);
-  const max = measured.length ? Math.max(...measured) : 0;
-  let n = 5, thresholds = quantileThresholds(measured, 5, {integer});
-  if (thresholds.length !== 4) { n = 3; thresholds = quantileThresholds(measured, 3, {integer}); }
-  const k = measured.length ? thresholds.length + 1 : 0;
-  const colors = classColors(n, scale);
-  const picks = Array.from({length: k}, (_, i) => (k === 1 ? n - 1 : Math.round((i * (n - 1)) / (k - 1))));
-  const fmt = integer ? (x => INTEGER.format(x)) : formatDensity;
-  const classes = picks.map((pick, i) => {
-    const lower = i === 0 ? 0 : thresholds[i - 1];
-    const upper = i === k - 1 ? Infinity : thresholds[i];
-    let label;
-    if (k === 1) label = integer ? `1–${fmt(max)}` : `≤ ${fmt(max)}`;
-    else if (i === 0) label = integer ? (upper === 1 ? '1' : `1–${fmt(upper)}`) : `≤ ${fmt(upper)}`;
-    else if (i === k - 1) label = `> ${fmt(lower)}`;
-    else label = integer ? (lower + 1 === upper ? fmt(upper) : `${fmt(lower + 1)}–${fmt(upper)}`) : `${fmt(lower)}–${fmt(upper)}`;
-    return {index: pick, lower, upper, fill: colors[pick], ink: inkFor(colors[pick]), label};
+  const measured = (Array.isArray(values) ? values : []).filter(x => Number.isFinite(x) && x > 0).sort((a, b) => a - b);
+  const distinct = [];
+  for (const v of measured) {
+    const last = distinct.at(-1);
+    if (last && last.value === v) last.n++;
+    else distinct.push({value: v, n: 1});
+  }
+  const total = measured.length;
+  let below = 0;
+  const mid = distinct.map(d => { const p = (below + d.n / 2) / total; below += d.n; return p; });
+  const span = mid.length > 1 ? mid.at(-1) - mid[0] : 0;
+  const levels = distinct.map((d, j) => {
+    const index = span > 0 ? Math.round(((mid[j] - mid[0]) / span) * (RAMP_STEPS - 1)) : RAMP_STEPS - 1;
+    const fill = scale.lut[index];
+    return {value: d.value, areas: d.n, index, fill, ink: inkFor(fill)};
   });
+  const fmt = integer ? (x => INTEGER.format(x)) : formatDensity;
   return {
     scaleId: scale.scaleId, scaleVersion: scale.scaleVersion, unit: scale.unit, kind,
-    method: 'quantile', table: k ? n : 0, classCount: k, max, thresholds, classes,
-    zero: {fill: colors[0], ink: inkFor(colors[0]), label: '0'},
+    method: 'rank', steps: RAMP_STEPS, lut: scale.lut,
+    min: measured.length ? measured[0] : 0, max: measured.length ? measured.at(-1) : 0,
+    levels, levelCount: new Set(levels.map(l => l.index)).size,
+    ticks: rampTicks(levels, fmt),
+    format: fmt,
+    zero: {fill: scale.lut[0], ink: inkFor(scale.lut[0]), label: '0'},
   };
 }
 
 /**
+ * Legend ticks: the lowest and highest values plus the values nearest samples 10, 20 and 30, each
+ * placed at its own sample; a tick closer than 8 samples to the one before it is dropped (the
+ * highest value always stays).
+ */
+export function rampTicks(levels, fmt = String) {
+  if (!levels.length) return [];
+  const picks = [];
+  for (const target of [0, 10, 20, 30, 40]) {
+    let best = levels[0];
+    for (const l of levels) if (Math.abs(l.index - target) < Math.abs(best.index - target)) best = l;
+    if (!picks.includes(best)) picks.push(best);
+  }
+  const top = levels.at(-1);
+  if (!picks.includes(top)) picks.push(top);
+  const kept = [];
+  for (const l of picks.sort((a, b) => a.index - b.index)) {
+    if (kept.length && l.index - kept.at(-1).index < 8) {
+      if (l === top) kept.pop(); else continue;
+    }
+    kept.push(l);
+  }
+  return kept.map(l => ({index: l.index, value: l.value, label: fmt(l.value)}));
+}
+
+/** The level that holds `value`: the highest level whose value is ≤ value (levels ascend). */
+function levelOf(value, levels) {
+  let lo = 0, hi = levels.length - 1, found = levels[0];
+  while (lo <= hi) {
+    const m = (lo + hi) >> 1;
+    if (levels[m].value <= value) { found = levels[m]; lo = m + 1; } else hi = m - 1;
+  }
+  return found;
+}
+
+/**
  * Resolve one value to its EVID-05 state and visual treatment.
- * - measured: finite > 0 → class fill
- * - measured_zero: 0 → lowest fill + zero outline (caller draws the outline token)
+ * - measured: finite > 0 → the LUT sample of its level
+ * - measured_zero: 0 → sample 0 + zero outline (caller draws the outline token)
  * - no_data: not finite → noData fill
  * - out_of_scope: caller passes the state; nothing is drawn
  */
 export function classify(value, model, state = 'measured') {
   if (state === 'out_of_scope') return {state, fill: null, ink: null, label: 'นอกพื้นที่ที่อ่าน'};
   if (state === 'no_data' || value == null || !Number.isFinite(value)) return {state: 'no_data', fill: DENSITY_SCALE.noData, ink: null, label: 'ไม่มีข้อมูล'};
+  const fmt = model?.format || String;
   if (value <= 0) return {state: 'measured_zero', fill: model.zero.fill, ink: model.zero.ink, label: '0'};
-  const cls = model.classes.find(c => value > c.lower && value <= c.upper) || model.classes.at(-1);
-  if (!cls) return {state: 'measured', fill: model.zero.fill, ink: model.zero.ink, label: String(value)};
-  return {state: 'measured', fill: cls.fill, ink: cls.ink, label: cls.label, classIndex: cls.index};
+  if (!model.levels?.length) return {state: 'measured', fill: model.zero.fill, ink: model.zero.ink, label: fmt(value)};
+  const level = levelOf(value, model.levels);
+  return {state: 'measured', fill: level.fill, ink: level.ink, label: fmt(value), index: level.index, plate: needsPlate(level.fill)};
+}
+
+/**
+ * Legend markup for a ramp: all 41 samples in order (the scale itself), ticks at the samples their
+ * values take, and the zero swatch when zero occurs. `title` names the reading; the accessible name
+ * states the method, range and unit in text.
+ */
+export function rampLegendHTML(model, {zero = false, unit = ''} = {}) {
+  if (!model?.levels?.length) return '';
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+  const fmt = model.format || String;
+  const cells = model.lut.map((c, i) => `<i style="background:${c}" data-step="${i}"></i>`).join('');
+  // ticks sit under their own sample; the ends align inward so a label never leaves the bar
+  const edge = i => (i <= 2 ? ' is-start' : i >= model.steps - 3 ? ' is-end' : '');
+  const ticks = model.ticks.map(t => `<span class="ramp-tick${edge(t.index)}" style="left:${(((t.index + 0.5) / model.steps) * 100).toFixed(2)}%">${esc(t.label)}</span>`).join('');
+  const name = `${model.steps} ระดับสีตามลำดับค่า ต่ำสุด ${fmt(model.min)} สูงสุด ${fmt(model.max)}${unit ? ` ${unit}` : ''}`;
+  const zeroSwatch = zero ? `<span class="legend-step ramp-zero" title="พื้นที่ที่ไม่มีสถานที่ในตัวกรองนี้ (วัดได้ว่าเป็นศูนย์)"><i class="legend-zero" style="background:${model.zero.fill}" aria-hidden="true"></i>0</span>` : '';
+  return `<span class="legend-ramp" role="img" aria-label="${esc(name)}"><span class="ramp-bar" aria-hidden="true">${cells}</span><span class="ramp-ticks" aria-hidden="true">${ticks}</span></span>${zeroSwatch}`;
 }
 
 /** Relative luminance (sRGB) contrast ratio, used for label ink and in tests. */

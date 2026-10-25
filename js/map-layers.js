@@ -12,7 +12,7 @@
  * outlines. Value states follow EVID-05: measured, measured_zero (lowest fill + zero outline)
  * and out_of_scope (districts outside the reading: not drawn).
  */
-import {buildClasses, classify} from './scales.js';
+import {buildRamp, classify} from './scales.js';
 import {pointInRing} from './geometry.js';
 
 /** Outer-ring containment for a Polygon / MultiPolygon feature (labels only; holes are ignored). */
@@ -47,15 +47,15 @@ export function featureBounds(feature, LngLatBounds) {
 
 /**
  * Per-district model for the layer, legend, labels and charts: every scoped district with
- * its EVID-05 state and class. `summaries` come from areas.summarizeDistricts().
+ * its EVID-05 state and its sample of the 41-sample ramp. `summaries` come from areas.summarizeDistricts().
  */
 export function buildDistrictModel(summaries) {
-  const classes = buildClasses(summaries.map(s => s.density), {kind: 'density'});
+  const ramp = buildRamp(summaries.map(s => s.density), {kind: 'density'});
   const areas = summaries.map(s => {
-    const c = classify(s.density, classes);
-    return {...s, state: c.state, fill: c.fill, ink: c.ink, classLabel: c.label};
+    const c = classify(s.density, ramp);
+    return {...s, state: c.state, fill: c.fill, ink: c.ink, classLabel: c.label, rampIndex: c.index};
   });
-  return {areas, classes, zeroCount: areas.filter(a => a.state === 'measured_zero').length};
+  return {areas, ramp, zeroCount: areas.filter(a => a.state === 'measured_zero').length};
 }
 
 export function installDistrictLayers(map, {onSelect} = {}) {

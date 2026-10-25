@@ -11,7 +11,7 @@
  * qualified retail venue; แห่ง/ตร.กม. = venues per square kilometre of district area.
  * Missing is never zero: an unknown field says “ยังไม่มีข้อมูล”, never 0.
  */
-import {GROUPS, groupById, STATUSES, TIERS, provinceByCode, districtWord, hasPoint, BANGKOK} from './model.js';
+import {GROUPS, groupById, STATUSES, tierReading, contextState, provinceByCode, districtWord, hasPoint, BANGKOK} from './model.js';
 import {venueLogoMarkup, getVenueLogo} from './venue-logos.js';
 import {formatDensity} from './scales.js';
 import {cueSVG} from './cues.js';
@@ -162,15 +162,16 @@ export function renderSearch(results, {pending = null, districts = null, asOf = 
     if (!r) return '';
     const g = groupById(r[6]);
     const d = r[5] ? districts?.get(r[5]) : null;
-    return `<li><button type="button" class="venue-row is-pending" data-action="select-pending" data-id="${esc(i)}" aria-label="${esc(r[1])} · รอตรวจนิยาม ไม่นับ"><i class="pending-swatch" aria-hidden="true"></i><span class="venue-name">${esc(r[1])}<small>${esc(g.th)} ตามแหล่งเดิม${d ? ` · ${esc(unitWord(d.province))}${esc(d.th)}` : ''}</small></span><span></span></button></li>`;
+    const stateText = contextState(r[7] === 'reviewed');
+    return `<li><button type="button" class="venue-row is-pending" data-action="select-pending" data-id="${esc(i)}" aria-label="${esc(r[1])} · ${esc(stateText)} ไม่นับ"><i class="pending-swatch" aria-hidden="true"></i><span class="venue-name">${esc(r[1])}<small>${esc(stateText)} · ${esc(g.th)} ตามแหล่งเดิม${d ? ` · ${esc(unitWord(d.province))}${esc(d.th)}` : ''}</small></span><span></span></button></li>`;
   };
   const total = results.qualifiedTotal + results.components.length + results.pendingTotal;
   return `<section class="aha is-focused" aria-label="ผลค้นหา"><p class="eyebrow">ผลค้นหา</p><h2>“${esc(results.query)}”</h2>
-      <p class="aha-copy">${total ? `ผ่านนิยาม ${num(results.qualifiedTotal)} แห่ง${results.otherStatus ? ` (รวมที่กำลังมาหรือปิด ${num(results.otherStatus)})` : ''}${results.components.length ? ` · พื้นที่ย่อย ${num(results.components.length)}` : ''} · รอตรวจนิยาม ${num(results.pendingTotal)} รายการ` : 'ไม่พบชื่อหรือรหัสนี้'}</p>
+      <p class="aha-copy">${total ? `ผ่านนิยาม ${num(results.qualifiedTotal)} แห่ง${results.otherStatus ? ` (รวมที่กำลังมาหรือปิด ${num(results.otherStatus)})` : ''}${results.components.length ? ` · ไม่นับแยก ${num(results.components.length)}` : ''} · ยังไม่ผ่านนิยาม ${num(results.pendingTotal)} รายการ` : 'ไม่พบชื่อหรือรหัสนี้'}</p>
       <div class="aha-actions"><button type="button" data-action="clear-filter" data-id="search" class="btn">ล้างคำค้น</button></div></section>
     ${results.qualified.length ? `<section class="panel-section"><div class="section-heading">${heading('venue', 'สถานที่ที่ผ่านนิยาม')}<span class="hint">${num(results.qualifiedTotal)}</span></div>${venueList(results.qualified, {limit: 30})}</section>` : ''}
-    ${results.components.length ? `<section class="panel-section"><div class="section-heading"><h3>พื้นที่ย่อยในโครงการ</h3><span class="hint">ไม่นับแยก</span></div>${venueList(results.components, {limit: 30})}</section>` : ''}
-    ${results.pending.length ? `<section class="panel-section"><div class="section-heading"><h3>รายการรอตรวจนิยาม</h3><span class="hint">ไม่นับ · ${num(results.pendingTotal)}</span></div><ul class="venue-list">${results.pending.map(pendingRow).join('')}</ul>${results.pendingTotal > results.pending.length ? `<p class="hint">แสดง ${num(results.pending.length)} รายการแรก</p>` : ''}</section>` : ''}
+    ${results.components.length ? `<section class="panel-section"><div class="section-heading"><h3>ผ่านนิยามแต่ไม่นับแยก</h3><span class="hint">พื้นที่ย่อย · อาจซ้ำ · รอตรวจการนับ</span></div>${venueList(results.components, {limit: 30})}</section>` : ''}
+    ${results.pending.length ? `<section class="panel-section"><div class="section-heading"><h3>รายการที่ยังไม่ผ่านนิยาม</h3><span class="hint">ไม่นับ · ${num(results.pendingTotal)}</span></div><ul class="venue-list">${results.pending.map(pendingRow).join('')}</ul>${results.pendingTotal > results.pending.length ? `<p class="hint">แสดง ${num(results.pending.length)} รายการแรก</p>` : ''}</section>` : ''}
     ${dataLine(asOf)}`;
 }
 
@@ -225,7 +226,7 @@ function evidenceRows(row, d) {
   if (d?.nameEn && d.nameEn !== d.nameTh) item('ชื่ออังกฤษ', nameBasis(ev.nameEn?.basis), ev.nameEn?.url);
   item('ประเภท', typeEvidence(ev.type?.status), ev.type?.url, ev.type?.checkedOn);
   if (row.groupBasis === 'owner') rowsHtml.push(`<li><span class="ev-label">กลุ่มบนหน้าจอ</span><span class="ev-text">เจ้าของข้อมูลระบุว่าเป็นศูนย์การค้า · ${esc(thaiDate('2026-10-25'))}</span></li>`);
-  item('ผ่านนิยาม', TIERS[row.tier] || '', ev.qualification?.url);
+  item('ผ่านนิยาม', tierReading(row), ev.qualification?.url);
   item('สถานะ', operationReading(row.operationGroup), ev.operation?.url);
   if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
@@ -255,7 +256,7 @@ export function renderVenue(p, {asOf = '', buildings = [], detailError = false} 
   const storeBlock = stores.confirmed
     ? `<p><strong class="data-number">${num(stores.confirmed)}</strong> ร้านที่ยืนยันแล้วว่าอยู่ในสถานที่นี้ จากชุดข้อมูล ${stores.datasets.map(x => esc(storeDataset(x))).join(' · ') || '—'}</p>${luxury ? `<p class="links">${luxury}</p>` : ''}`
     : `<p class="hint">ยังไม่มีร้านจากชุดข้อมูลร้านค้าที่ยืนยันว่าอยู่ในสถานที่นี้</p>${luxury ? `<p class="links">${luxury}</p>` : ''}`;
-  const parent = p.parent ? `<p class="subtle">ส่วนหนึ่งของ <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : (!r.countable && r.countRole !== 'duplicate_candidate_hold' ? '<p class="hint">ยังไม่พบโครงการแม่ในชุดที่ผ่านนิยาม</p>' : '');
+  const parent = p.parent ? `<p class="subtle">ส่วนหนึ่งของ <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : (!r.countable && (r.countHold || 'component') === 'component' ? '<p class="hint">ยังไม่พบโครงการแม่ในชุดที่ผ่านนิยาม</p>' : '');
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading"><h3>พื้นที่ย่อยในโครงการ</h3><span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
   const heights = [...new Set(buildings.map(f => buildingHeightLabel(f.properties)))];
   const buildingText = r.hasBuilding
@@ -295,10 +296,10 @@ export function renderPending(c, {asOf = ''} = {}) {
   const word = c.district ? unitWord(c.district.province) : '';
   return `<section class="detail-head pending">
       <button type="button" class="btn quiet back" data-action="back">กลับ</button>
-      <p class="eyebrow"><i class="pending-swatch" aria-hidden="true"></i> รายการรอตรวจนิยาม</p>
+      <p class="eyebrow"><i class="pending-swatch" aria-hidden="true"></i> ${c.reviewed ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รายการรอตรวจนิยาม'}</p>
       <h2>${esc(c.name)}</h2>
       <p class="subtle">${esc(c.group.th)} ตามแหล่งเดิม${c.district ? ` · <button type="button" class="link-button" data-action="select-district" data-id="${esc(c.district.code)}">${esc(word)}${esc(c.district.th)}</button>` : ''}${c.province ? ` · ${esc(c.province.th)}` : ''}</p>
-      <p class="aha-copy">ยังไม่นับในตัวเลขใด ๆ จนกว่าจะมีหลักฐานว่ามีหลายกิจการขายผู้บริโภค และมีผู้บริหารพื้นที่ร่วมรายเดียว</p>
+      <p class="aha-copy">${c.reviewed ? 'ตรวจนิยามแล้วแต่ยังยืนยันไม่ได้ว่าเข้านิยามสถานที่ค้าปลีก จึงไม่นับในตัวเลขใด ๆ' : 'ยังไม่นับในตัวเลขใด ๆ จนกว่าจะตรวจได้ว่าเข้านิยาม: มีหลายกิจการขายผู้บริโภคและมีผู้บริหารพื้นที่ร่วมรายเดียว หรือเข้ากฎรายประเภทที่เจ้าของข้อมูลยอมรับ'}</p>
       <dl class="facts">${fact('พิกัด', `<span class="data-number">${c.lat.toFixed(5)}, ${c.lon.toFixed(5)}</span><br><span class="hint">จุดอ้างอิงจากทะเบียน ไม่ใช่ประตูทางเข้า</span>`)}${fact('รหัส', `<code>${esc(c.id)}</code>`)}</dl>
     </section>${dataLine(asOf)}`;
 }

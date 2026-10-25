@@ -28,7 +28,15 @@ test('venues.json counts reconcile with its own meta', () => {
   assert.equal(rows.length - countable.length, counts.components);
   assert.equal(filterVenues(rows, {}).length, counts.supply, 'the default filter is the supply set');
   assert.equal(pending.rows.length, counts.pendingMapped);
-  assert.ok(counts.pendingRegistry >= pending.rows.length);
+  assert.equal(pending.rows.filter(r => r[7] === 'reviewed').length, counts.unconfirmedMapped);
+  assert.ok(counts.pendingRegistry + counts.unconfirmedRegistry >= pending.rows.length);
+  assert.ok(counts.unconfirmedRegistry >= counts.unconfirmedMapped);
+  const tiers = {};
+  for (const r of rows) tiers[r.tier] = (tiers[r.tier] || 0) + 1;
+  assert.deepEqual(tiers, counts.tiers);
+  const rules = {};
+  for (const r of rows) if (r.ownerRule) rules[r.ownerRule] = (rules[r.ownerRule] || 0) + 1;
+  assert.deepEqual(rules, counts.ownerRules);
   assert.deepEqual(venues.meta.checks.problems, [], 'boundary codes all resolve to production codes');
 });
 
@@ -40,10 +48,38 @@ test('every qualification status was read by a reviewed rule (new vocabulary mus
   assert.equal(report.asOf, venues.meta.asOf);
   const byTier = {};
   for (const v of report.qualificationVocabulary) byTier[v.tier] = (byTier[v.tier] || 0) + v.rows;
-  assert.equal((byTier.supported || 0) + (byTier.historical || 0) + (byTier.planned || 0), counts.qualified);
+  assert.equal((byTier.supported || 0) + (byTier.owner || 0) + (byTier.historical || 0) + (byTier.planned || 0), counts.qualified);
   assert.equal(byTier.pending || 0, counts.pendingRegistry);
+  assert.equal(byTier.unconfirmed || 0, counts.unconfirmedRegistry);
   assert.equal(byTier.excluded || 0, counts.excludedRegistry);
-  assert.equal(counts.qualified + counts.pendingRegistry + counts.excludedRegistry, counts.registry);
+  assert.equal(counts.qualified + counts.pendingRegistry + counts.unconfirmedRegistry + counts.excludedRegistry, counts.registry);
+  // owner category rules are read only from owner_*_definition_accepted_* / owner_confirmed_* statuses
+  for (const v of report.qualificationVocabulary) {
+    if (v.tier === 'owner') assert.match(v.status, /^owner_(.+_definition_accepted(_|$)|confirmed_)/, v.status);
+    if (v.status.startsWith('owner_') && v.tier !== 'owner') assert.equal(v.tier, 'excluded', v.status);
+  }
+});
+
+test('every count role of a qualified row was classified (unknown roles are never counted and fail here)', () => {
+  assert.deepEqual(venues.meta.checks.countRoleFallback, []);
+  const report = read('data/build-report.json');
+  const kinds = new Map(report.countRoleVocabulary.map(v => [v.role, v.kind]));
+  for (const r of rows) {
+    const kind = kinds.get(r.countRole || '');
+    assert.ok(kind && kind !== 'fallback', `${r.id}: count role ${r.countRole}`);
+    if (r.countable) {
+      assert.equal(r.countHold, undefined, r.id);
+      assert.ok(kind === 'counted' || r.countBasis === 'component-without-qualified-parent', `${r.id} counted with role ${r.countRole}`);
+    } else {
+      assert.ok(['component', 'duplicate', 'count-review', 'context'].includes(r.countHold), `${r.id}: hold ${r.countHold}`);
+      if (kind === 'held') assert.notEqual(r.countHold, 'component', r.id);
+    }
+  }
+  // a status that holds the count as a possible duplicate wins over a counted role
+  for (const r of rows) if (/duplicate_(count_held|review)/.test(r.qualification || '')) assert.ok(!r.countable, r.id);
+  const holds = {};
+  for (const r of rows) if (!r.countable) holds[r.countHold] = (holds[r.countHold] || 0) + 1;
+  assert.deepEqual(holds, counts.holds);
 });
 
 test('owner decision D6: a component without a qualified parent counts only when it is a shopping centre or mall', () => {
@@ -56,6 +92,7 @@ test('owner decision D6: a component without a qualified parent counts only when
       assert.equal(r.countBasis, 'component-without-qualified-parent');
       assert.ok(['mall', 'community'].includes(r.group), `${o.id} counted as ${r.group}`);
       assert.notEqual(r.countRole, 'duplicate_candidate_hold');
+      assert.equal(o.hold, 'component', `${o.id}: only a component role is counted by D6`);
     } else assert.equal(r.countBasis, undefined);
   }
   assert.equal(orphans.filter(o => o.counted).length, counts.componentsCountedAsVenue);
@@ -73,7 +110,8 @@ test('rows: ids unique, groups known, located rows carry a point and an area, un
   for (const r of rows) {
     assert.ok(groupIds.has(r.group), `group ${r.group}`);
     assert.ok(['supply', 'planned', 'closed'].includes(r.status));
-    assert.ok(['supported', 'historical', 'planned'].includes(r.tier));
+    assert.ok(['supported', 'owner', 'historical', 'planned'].includes(r.tier));
+    assert.equal(Boolean(r.ownerRule), r.tier === 'owner', `${r.id}: ownerRule only on the owner tier`);
     if (r.located) {
       assert.ok(Number.isFinite(r.lat) && Number.isFinite(r.lon), r.id);
       if (r.districtCode) {
@@ -140,7 +178,8 @@ test('public files carry no Drive/Docs links, no internal sheet ids and no crede
   for (const f of files) {
     const text = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
     assert.ok(!/docs\.google\.com|drive\.google\.com|googleusercontent/.test(text), `${f} has a private link`);
-    assert.ok(!/api[_-]?key|secret|password|token=/i.test(text), `${f} looks like it holds a credential`);
+    // “secret” as a word or key, not inside a host name such as secreta.doae.go.th (a public government site)
+    assert.ok(!/api[_-]?key|(?<![a-z])secret(?![a-z.])|password|token=/i.test(text), `${f} looks like it holds a credential`);
   }
 });
 
@@ -169,9 +208,10 @@ test('nothing in the public repository names an internal Drive or Sheets file', 
 
 test('pending records are context only: valid points, no overlap with qualified ids', () => {
   const ids = new Set(rows.map(r => r.id));
-  assert.deepEqual(pending.fields, ['id', 'name', 'lon', 'lat', 'provinceCode', 'districtCode', 'group']);
+  assert.deepEqual(pending.fields, ['id', 'name', 'lon', 'lat', 'provinceCode', 'districtCode', 'group', 'state']);
   for (const r of pending.rows) {
     assert.ok(!ids.has(r[0]), `pending ${r[0]} is also qualified`);
     assert.ok(r[2] > 97 && r[2] < 106 && r[3] > 5 && r[3] < 21);
+    assert.ok(r.length === 7 || (r.length === 8 && r[7] === 'reviewed'), `${r[0]}: state is absent (awaiting review) or "reviewed"`);
   }
 });

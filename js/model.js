@@ -22,7 +22,7 @@ export const GROUPS = Object.freeze([
   {id: 'hoststore', th: 'ไฮเปอร์มาร์เก็ตและซูเปอร์มาร์เก็ตที่มีร้านเช่า', short: 'ไฮเปอร์/ซูเปอร์มาร์เก็ต', series: 5, cue: 'cross'},
   {id: 'component', th: 'พื้นที่ค้าปลีกในโครงการ', short: 'ในโครงการ', series: 6, cue: 'star'},
   {id: 'outlet', th: 'เอาท์เล็ต', short: 'เอาท์เล็ต', series: 8, cue: 'ring'},
-  {id: 'fuel', th: 'จุดพักรถและสถานีบริการ', short: 'จุดพักรถ', series: 10, cue: 'plus'},
+  {id: 'fuel', th: 'สถานีบริการน้ำมันและจุดพักรถ', short: 'สถานีบริการ', series: 10, cue: 'plus'},
   {id: 'other', th: 'อื่น ๆ', short: 'อื่น ๆ', series: 9, cue: 'dash'},
 ]);
 const GROUP_MAP = new Map(GROUPS.map(g => [g.id, g]));
@@ -39,9 +39,37 @@ export const STATUS_FILTERS = Object.freeze({'': 'เปิดอยู่หร
 
 export const TIERS = Object.freeze({
   supported: 'ผ่านนิยามด้วยหลักฐานปัจจุบัน',
+  owner: 'ผ่านนิยามตามกฎที่เจ้าของข้อมูลยอมรับ',
   historical: 'ผ่านนิยามด้วยหลักฐานย้อนหลัง',
   planned: 'โครงการที่ผ่านนิยาม',
 });
+
+/**
+ * Category rules the owner accepted as meeting the definition (registry status
+ * owner_<rule>_definition_accepted_*, Owner-stated; row field `ownerRule`). The rule stands in for
+ * source evidence of a single common manager for that category; it does not add such evidence.
+ */
+export const OWNER_RULES = Object.freeze({
+  market: 'ตลาด',
+  fuel_retail_presence: 'สถานีบริการน้ำมันที่มีร้านค้า',
+  lotus_restaurant_presence: 'โลตัสที่มีร้านอาหาร',
+  anchor_second_business: 'ร้านหลักที่มีกิจการอื่นอยู่ด้วย',
+  foodland_plus_tooklaedee: 'ฟู้ดแลนด์ที่มีร้านถูกและดี',
+  project_source_common_management_inferred: 'แหล่งข้อมูลโครงการบ่งชี้ผู้บริหารร่วม',
+  confirmed_managed_retail_component: 'พื้นที่ค้าปลีกที่บริหารร่วม',
+});
+
+/** Short state of a context record (pending.json), as shown next to its name; never counted. */
+export const contextState = reviewed => (reviewed ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รอตรวจนิยาม');
+
+/** How a qualified row passed the definition, in words (venue panel evidence list). */
+export function tierReading(row) {
+  if (!row) return '';
+  if (row.tier !== 'owner') return TIERS[row.tier] || '';
+  const rule = String(row.ownerRule || '');
+  const label = OWNER_RULES[rule] || 'กฎรายประเภท';
+  return rule.startsWith('confirmed_') ? `เจ้าของข้อมูลยืนยันรายสถานที่ · ${label}` : `${TIERS.owner} · ${label}`;
+}
 
 /**
  * The 77 provinces as CityMETER production names them: `code` is production `abbrEn`

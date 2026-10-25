@@ -35,6 +35,7 @@ export function operationReading(group) {
     case 'operating_source_evidence': return 'มีหลักฐานว่าเปิดดำเนินการ ยังไม่ตรวจภาคสนาม';
     case 'official_listing_not_field_verified': return 'อยู่ในรายชื่อทางการ ยังไม่ตรวจภาคสนาม';
     case 'needs_review': return 'สถานะปัจจุบันรอยืนยัน';
+    case 'current_operation_unconfirmed': return 'สถานะปัจจุบันยังยืนยันไม่ได้';
     case 'recent_source_evidence_current_operation_separate': return 'มีหลักฐานล่าสุด สถานะวันนี้ตรวจแยก';
     case 'operation_conflict': return 'หลักฐานสถานะขัดกัน รอตรวจ';
     case 'partially_operating': return 'ทยอยเปิด';
@@ -99,9 +100,18 @@ export const STORE_DATASETS = Object.freeze({
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 
+/** Why a qualified row is not counted (row.countHold from the pipeline; countRole for older data). */
+const HOLD_READINGS = Object.freeze({
+  duplicate: 'อาจซ้ำกับรายการอื่น ไม่นับแยกจนกว่าจะตรวจ',
+  'count-review': 'ผ่านนิยามแล้ว แต่การนับแยกยังรอตรวจ จึงยังไม่นับ',
+  context: 'เป็นบริบทของหลายสถานที่ ไม่นับเป็นสถานที่เดียว',
+  unclassified: 'บทบาทการนับยังไม่จัดประเภท จึงยังไม่นับ',
+});
+
 export function hierarchyReading(row) {
   if (!row) return '';
-  if (row.countRole === 'duplicate_candidate_hold') return 'อาจซ้ำกับรายการอื่น ไม่นับแยกจนกว่าจะตรวจ';
+  if (!row.countable && HOLD_READINGS[row.countHold]) return HOLD_READINGS[row.countHold];
+  if (row.countRole === 'duplicate_candidate_hold') return HOLD_READINGS.duplicate;
   if (!row.countable) return 'พื้นที่ย่อยในโครงการ ไม่นับแยก';
   if (row.countBasis === 'component-without-qualified-parent') return (row.children || []).length
     ? 'นับเป็นสถานที่ ไม่บวกพื้นที่ย่อย · โครงการแม่ยังไม่อยู่ในชุดที่ผ่านนิยาม'

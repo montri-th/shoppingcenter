@@ -4,7 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, readdirSync} from 'node:fs';
-import {filterVenues, prepareRows, summarize} from '../js/model.js';
+import {filterVenues, prepareRows, summarize, tierReading} from '../js/model.js';
+import {hierarchyReading} from '../js/evidence.js';
 import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.js';
 import {summarizeAreaInsight} from '../js/area-insight.js';
 import {buildDistrictModel} from '../js/map-layers.js';
@@ -100,16 +101,42 @@ test('search finds qualified venues, components and pending records without fuzz
   const p = searchAll(somePending[0], {rows, pending});
   assert.ok(p.pending.includes(0));
   const html = renderSearch(p, {pending, districts, asOf});
-  assert.ok(html.includes('รายการรอตรวจนิยาม') && html.includes('ไม่นับ'));
+  assert.ok(html.includes('รายการที่ยังไม่ผ่านนิยาม') && html.includes('ไม่นับ'));
+  assert.ok(html.includes(somePending[7] === 'reviewed' ? 'ตรวจแล้ว ยังยืนยันนิยามไม่ได้' : 'รอตรวจนิยาม'));
   assert.equal(searchAll('zzzz-not-a-venue', {rows, pending}).qualifiedTotal, 0);
 });
 
-test('pending card says the record is not counted', () => {
-  const c = buildPendingCard(pending, 0, districts);
-  assert.equal(c.id, pending.rows[0][0]);
-  const html = renderPending(c, {asOf});
-  assert.ok(html.includes('ยังไม่นับในตัวเลขใด ๆ'));
+test('context card says the record is not counted, and whether it awaits review or closed unconfirmed', () => {
+  const awaiting = pending.rows.findIndex(r => r[7] !== 'reviewed');
+  const reviewed = pending.rows.findIndex(r => r[7] === 'reviewed');
+  assert.ok(awaiting >= 0 && reviewed >= 0, 'this snapshot has both states');
+  const a = buildPendingCard(pending, awaiting, districts);
+  assert.equal(a.id, pending.rows[awaiting][0]);
+  assert.equal(a.reviewed, false);
+  const ha = renderPending(a, {asOf});
+  assert.ok(ha.includes('รายการรอตรวจนิยาม') && ha.includes('ยังไม่นับในตัวเลขใด ๆ'));
+  const b = buildPendingCard(pending, reviewed, districts);
+  assert.equal(b.reviewed, true);
+  const hb = renderPending(b, {asOf});
+  assert.ok(hb.includes('ตรวจแล้ว ยังยืนยันนิยามไม่ได้') && hb.includes('จึงไม่นับในตัวเลขใด ๆ'));
+  assert.ok(!hb.includes('รายการรอตรวจนิยาม'));
   assert.equal(buildPendingCard(pending, -1, districts), null);
+});
+
+test('the venue panel says how a venue passed: source evidence or an owner category rule', () => {
+  const owner = rows.find(r => r.tier === 'owner' && r.ownerRule === 'market');
+  const supported = rows.find(r => r.tier === 'supported');
+  assert.ok(owner && supported);
+  assert.equal(tierReading(owner), 'ผ่านนิยามตามกฎที่เจ้าของข้อมูลยอมรับ · ตลาด');
+  assert.equal(tierReading(supported), 'ผ่านนิยามด้วยหลักฐานปัจจุบัน');
+  assert.equal(tierReading({tier: 'owner', ownerRule: 'confirmed_managed_retail_component'}), 'เจ้าของข้อมูลยืนยันรายสถานที่ · พื้นที่ค้าปลีกที่บริหารร่วม');
+  assert.equal(tierReading({tier: 'owner', ownerRule: 'new_rule'}), 'ผ่านนิยามตามกฎที่เจ้าของข้อมูลยอมรับ · กฎรายประเภท');
+  const html = renderVenue(buildVenueProfile({row: owner, detail: details.get(owner.id), byId, districts}), {asOf});
+  assert.ok(html.includes('ผ่านนิยามตามกฎที่เจ้าของข้อมูลยอมรับ · ตลาด'));
+  const held = rows.find(r => r.countHold === 'count-review');
+  if (held) assert.equal(hierarchyReading(held), 'ผ่านนิยามแล้ว แต่การนับแยกยังรอตรวจ จึงยังไม่นับ');
+  const dup = rows.find(r => r.countHold === 'duplicate');
+  if (dup) assert.equal(hierarchyReading(dup), 'อาจซ้ำกับรายการอื่น ไม่นับแยกจนกว่าจะตรวจ');
 });
 
 test('summaries in panels never count components', () => {

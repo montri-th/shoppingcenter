@@ -34,22 +34,29 @@ python3 scripts/build-data.py --master "$EXPORT" --geometry "$GEOMETRY" \
 LOGOS_CSV=$(ls "$EXPORT"/*10_VENUE_LOGOS.csv | tail -1)
 python3 scripts/build-venue-logos.py "$LOGOS_CSV" assets/venue-logos "$@" --sources data/venue-logos.json
 python3 scripts/build-static.py
-npm test
 
-python3 - <<'EOF'
+# Summary and review lists first, so a failing vocabulary gate below still shows what to classify.
+python3 - <<'PY'
 import json
 m = json.load(open('data/venues.json'))['meta']
 r = json.load(open('data/build-report.json'))
 c = m['counts']
-print(f"\nsnapshot {m['asOf']}: registry {c['registry']:,} · qualified {c['qualified']:,} · countable {c['countable']:,} · "
-      f"supply {c['supply']:,} (located {c['locatedSupply']:,}) · pending {c['pendingRegistry']:,} · excluded {c['excludedRegistry']:,}")
+print(f"\nsnapshot {m['asOf']}: registry {c['registry']:,} · qualified {c['qualified']:,} {c['tiers']} · "
+      f"countable {c['countable']:,} · supply {c['supply']:,} (located {c['locatedSupply']:,}) · "
+      f"pending {c['pendingRegistry']:,} · reviewed-unconfirmed {c.get('unconfirmedRegistry', 0):,} · excluded {c['excludedRegistry']:,}")
+print(f"owner rules (qualified): {c.get('ownerRules', {})}")
 a = m['checks']['aha']
 print(f"first finding: {a['province']} {a['districts']} {a['count']}/{a['total']}")
 fallback = [v for v in r['qualificationVocabulary'] if v['rule'] == 'fallback']
+roles = [v for v in r.get('countRoleVocabulary', []) if v['kind'] == 'fallback']
 keyword = [t for t in r['keywordMappedTypes'] if t['qualified']]
-for title, items in (('status values read by the fallback rule', fallback), ('qualified venue types placed by keyword', keyword)):
+for title, items in (('status values read by the fallback rule', fallback),
+                     ('count roles of qualified rows not classified (not counted)', roles),
+                     ('qualified venue types placed by keyword', keyword)):
     if items:
         print(f"REVIEW {title}:")
         for i in items:
             print('  ', i)
-EOF
+PY
+
+npm test
