@@ -6,7 +6,7 @@ This Build Card records the first-use contract of this research demo (release 0.
 
 **First useful understanding:** where qualified retail venues concentrate, measured as venues per km² of official districts, and how much of the province that concentration covers. The user can start from districts without learning any filter.
 
-Default copy (snapshot checked to 24 Oct 2026): **“18% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้”** — ปทุมวัน · บางรัก · ราชเทวี, **32 จาก 181 แห่ง บนพื้นที่ 1.2% ของกรุงเทพฯ**, with the secondary finding “เขตที่มีสถานที่มากที่สุดในประเทศ: ปทุมวัน 20 แห่ง”. Every figure is computed from `data/venues.json` and `data/districts.geojson` at runtime, never written in markup; the map opens on the `city` preset, focused automatically on those three districts. When the districts would fit just below zoom 13 (where OpenMapTiles buildings begin), the camera frames their venues at zoom 13.1 instead, so the first view shows the 3D city with the district fills around the venues.
+Default copy (snapshot checked to 24 Oct 2026, counting rule with owner decision D6): **“19% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้”** — ปทุมวัน · บางรัก · ราชเทวี, **36 จาก 185 แห่ง บนพื้นที่ 1.2% ของกรุงเทพฯ**, with the secondary finding “เขตที่มีสถานที่มากที่สุดในประเทศ: ปทุมวัน 22 แห่ง”. (Before D6 the same districts held 32 of 181.) Every figure is computed from `data/venues.json` and `data/districts.geojson` at runtime, never written in markup; the map opens on the `city` preset, focused automatically on those three districts. When the districts would fit just below zoom 13 (where OpenMapTiles buildings begin), the camera frames their venues at zoom 13.1 instead, so the first view shows the 3D city with the district fills around the venues.
 
 **One useful action:** the default state already focuses the three districts (focus mode `auto`, no `areas` parameter): district fill, labels, venue pins, host buildings and rounded focus massing appear only there; the rest of the country stays visible but quiet. Visible actions: “ดูทุกเขตในกรุงเทพฯ” (`areas=all`, keeps every filter), “ดูทั้งประเทศ” and “เทียบพื้นที่”. A filter change recomputes the finding, its denominator and the automatic focus; the default figures are never kept as if they described a new selection.
 
@@ -20,11 +20,11 @@ Calculation: `summarizeAreaInsight` in [js/area-insight.js](../js/area-insight.j
 
 | District | Code (production) | Venues | km² | Venues/km² |
 |---|---|---:|---:|---:|
-| ปทุมวัน | `1007` | 20 | 8.012 | 2.50 |
-| บางรัก | `1004` | 5 | 3.985 | 1.25 |
+| ปทุมวัน | `1007` | 22 | 8.012 | 2.75 |
+| บางรัก | `1004` | 7 | 3.985 | 1.76 |
 | ราชเทวี | `1037` | 7 | 7.173 | 0.98 |
 
-The three districts hold **32** of the **181** located countable venues of Bangkok (17.7%) on **19.17 of 1,566.58 km²** (1.2%). Boundaries: OpenGISData-Thailand districts (DOPA-credited, CC BY 4.0, commit `fafcea1`); membership is point-in-polygon of the selected reference point, nothing is assigned by name. These are descriptive shares within the qualified research dataset — not a census, market share, footfall, sales, rent, vacancy or a claim about market gaps.
+The three districts hold **36** of the **185** located countable venues of Bangkok (19.5%) on **19.17 of 1,566.58 km²** (1.2%). Boundaries: OpenGISData-Thailand districts (DOPA-credited, CC BY 4.0, commit `fafcea1`); membership is point-in-polygon of the selected reference point, nothing is assigned by name. These are descriptive shares within the qualified research dataset — not a census, market share, footfall, sales, rent, vacancy or a claim about market gaps.
 
 If no district has a located venue in the current filter, the panel says how many venues lack a qualifying point and offers the table; it never turns a zero numerator into “no shopping centres here”. An empty filter gets a clear empty state and a reset action.
 

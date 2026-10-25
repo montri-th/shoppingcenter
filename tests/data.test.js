@@ -46,6 +46,26 @@ test('every qualification status was read by a reviewed rule (new vocabulary mus
   assert.equal(counts.qualified + counts.pendingRegistry + counts.excludedRegistry, counts.registry);
 });
 
+test('owner decision D6: a component without a qualified parent counts only when it is a shopping centre or mall', () => {
+  const orphans = venues.meta.checks.componentsWithoutParent;
+  const byId = new Map(rows.map(r => [r.id, r]));
+  for (const o of orphans) {
+    const r = byId.get(o.id);
+    assert.equal(Boolean(r.countable), o.counted, o.id);
+    if (o.counted) {
+      assert.equal(r.countBasis, 'component-without-qualified-parent');
+      assert.ok(['mall', 'community'].includes(r.group), `${o.id} counted as ${r.group}`);
+      assert.notEqual(r.countRole, 'duplicate_candidate_hold');
+    } else assert.equal(r.countBasis, undefined);
+  }
+  assert.equal(orphans.filter(o => o.counted).length, counts.componentsCountedAsVenue);
+  assert.equal(orphans.filter(o => !o.counted).length, counts.componentsWithoutParent);
+  for (const r of rows) {
+    if (r.countRole === 'duplicate_candidate_hold') assert.ok(!r.countable, `${r.id}: a possible duplicate is never counted`);
+    if (r.countBasis) assert.ok(!r.parentId || !byId.has(r.parentId), `${r.id} has a qualified parent`);
+  }
+});
+
 test('rows: ids unique, groups known, located rows carry a point and an area, unlocated rows none', () => {
   assert.equal(new Set(rows.map(r => r.id)).size, rows.length);
   const groupIds = new Set(GROUPS.map(g => g.id));

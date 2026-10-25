@@ -224,6 +224,7 @@ function evidenceRows(row, d) {
   item('ชื่อไทย', nameBasis(ev.nameTh?.basis), ev.nameTh?.url);
   if (d?.nameEn && d.nameEn !== d.nameTh) item('ชื่ออังกฤษ', nameBasis(ev.nameEn?.basis), ev.nameEn?.url);
   item('ประเภท', typeEvidence(ev.type?.status), ev.type?.url, ev.type?.checkedOn);
+  if (row.groupBasis === 'owner') rowsHtml.push(`<li><span class="ev-label">กลุ่มบนหน้าจอ</span><span class="ev-text">เจ้าของข้อมูลระบุว่าเป็นศูนย์การค้า · ${esc(thaiDate('2026-10-25'))}</span></li>`);
   item('ผ่านนิยาม', TIERS[row.tier] || '', ev.qualification?.url);
   item('สถานะ', operationReading(row.operationGroup), ev.operation?.url);
   if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url);

@@ -103,6 +103,9 @@ export function hierarchyReading(row) {
   if (!row) return '';
   if (row.countRole === 'duplicate_candidate_hold') return 'อาจซ้ำกับรายการอื่น ไม่นับแยกจนกว่าจะตรวจ';
   if (!row.countable) return 'พื้นที่ย่อยในโครงการ ไม่นับแยก';
+  if (row.countBasis === 'component-without-qualified-parent') return (row.children || []).length
+    ? 'นับเป็นสถานที่ ไม่บวกพื้นที่ย่อย · โครงการแม่ยังไม่อยู่ในชุดที่ผ่านนิยาม'
+    : 'นับเป็นสถานที่ · โครงการแม่ยังไม่อยู่ในชุดที่ผ่านนิยาม';
   if ((row.children || []).length) return 'โครงการแม่ นับครั้งเดียว ไม่บวกพื้นที่ย่อย';
   return '';
 }

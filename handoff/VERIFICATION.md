@@ -4,7 +4,7 @@ What was checked, where, and what it does not prove. Local results are not proof
 
 ## 1. Unit and data tests — `npm test`
 
-25 Oct 2026 · Node 22 · **70 tests, 70 pass, 0 fail.** Coverage: data contract (`meta.counts` reconcile with rows; production codes for 77 provinces / 928 districts; detail shards; qualification vocabulary; no private links or Drive/Sheets ids anywhere in the repository), counting rules, first finding (equals the pipeline's independent computation), LDS LUTs and class tables (3 or 5 only), EVID-05 states, panels (overview, district, venue, pending, search; legacy size only in the venue panel), logos (SHA-256 per file, lookup by `venue_id`), pins, MVT reader, geometry, massing, venue x-ray, basemap style and breadcrumb.
+25 Oct 2026 · Node 22 · **71 tests, 71 pass, 0 fail.** Coverage: data contract (`meta.counts` reconcile with rows; production codes for 77 provinces / 928 districts; detail shards; qualification vocabulary; no private links or Drive/Sheets ids anywhere in the repository), counting rules, first finding (equals the pipeline's independent computation), LDS LUTs and class tables (3 or 5 only), EVID-05 states, panels (overview, district, venue, pending, search; legacy size only in the venue panel), logos (SHA-256 per file, lookup by `venue_id`), pins, MVT reader, geometry, massing, venue x-ray, basemap style and breadcrumb.
 
 ## 2. Browser harness (container)
 
@@ -12,11 +12,11 @@ Playwright + Chromium (SwiftShader WebGL) against `python3 -m http.server`, with
 
 | Scenario | URL | Result |
 |---|---|---|
-| Desktop light / dark 1280×800 | `/` | 3D city preset (pitch 56, zoom 13.1 so the city massing is drawn) on the venues of ปทุมวัน · บางรัก · ราชเทวี; panel “18% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้”, 32 จาก 181 แห่ง, 1.2%; 32 focus pins; legend 5 classes; no console errors; no horizontal overflow |
+| Desktop light / dark 1280×800 | `/` | 3D city preset (pitch 56, zoom 13.1 so the city massing is drawn) on the venues of ปทุมวัน · บางรัก · ราชเทวี; panel “19% ของศูนย์การค้าและสถานที่ค้าปลีกในกรุงเทพฯ อยู่ใน 3 เขตนี้”, 36 จาก 185 แห่ง, 1.2% (after owner decision D6; before it 18%, 32/181); 36 focus pins; legend 5 classes; no console errors; no horizontal overflow |
 | Mobile light / dark 390×844 | `/` | same finding in the compact map card; legend readable; no horizontal overflow |
 | Country | `?areas=all` | province frames, `count` legend 5 classes (1 · 2 · 3–4 · 5–8 · > 8), 483 pins, province chips |
 | Bangkok all districts | `?province=BKK&areas=all` | 2D province fit, district chips, 5-class density legend |
-| District | `?district=1007` | ปทุมวัน profile, 20 pins, breadcrumb ประเทศไทย › กรุงเทพมหานคร › เขตปทุมวัน |
+| District | `?district=1007` | ปทุมวัน profile, 22 pins (D6), breadcrumb ประเทศไทย › กรุงเทพมหานคร › เขตปทุมวัน |
 | Venue light / dark, mobile | `?venue=SC-001244` | สยามพารากอน in มุมสถาปนิก (pitch 75) with the host building drawn by the x-ray; logo, status, operator, contacts, hours with scope, size with method (D3), 73 confirmed stores and the Luxury Brands link; breadcrumb to the venue |
 | Chiang Mai | `?province=CMI` | “91% … ในเชียงใหม่ อยู่ใน 3 อำเภอ” (21/23); labels stay on their own district and move off venue points |
 | Small province | `?province=CNT` | one district, one venue: one class from the 3-class table, the venue pin visible (labels yield to points) |

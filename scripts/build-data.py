@@ -16,7 +16,8 @@ meta, and every input file is hashed into meta.inputs.
 Rules (Product Statement 0.2 §4, owner retail-venue definition 2026-10-23):
 - qualified = venue_qualification_status in the definition-supported family; pending_* is not
   eligible by default and is published only as quiet, uncounted context (owner decision D4).
-- countable = qualified and count_role is not a child zone / component / duplicate hold.
+- countable = qualified and count_role is not a child zone / component / duplicate hold; a component without a
+  qualified parent counts as its own venue when it is a shopping centre or mall (owner decision D6, 2026-10-25).
 - supply = countable minus future projects and closed-by-evidence (operation_group).
 - located = a selected reference point (coordinate_status/role); area membership is point-in-polygon
   of located points against the full-resolution boundaries; nothing is assigned by name.
@@ -44,6 +45,15 @@ DATA = ROOT / 'data'
 SCHEMA_VERSION = '1.0.0'
 
 # ---------------------------------------------------------------- definitions
+
+# Owner decision D6 (Owner-stated, 25 Oct 2026): a qualified retail component whose parent is not in the qualified
+# set is counted as a venue of its own when it is a shopping centre or mall: its display group (from evidence) is
+# mall or community, or the owner named it a shopping centre (shown in the mall group, basis "owner"). Markets,
+# terminal / hospital / other zones and possible duplicates stay uncounted until the registry links or re-roles them.
+ORPHAN_COUNTED_GROUPS = {'mall', 'community'}
+OWNER_SHOPPING_CENTRES = {
+    'SC-C0015': 'One Bangkok Retail', 'SC-001304': 'Samyan Mitrtown', 'SC-001069': 'Silom Complex',
+}
 
 COUNT_EXCLUDED_ROLES = {
     'child_zone', 'child_venue', 'duplicate_candidate_hold', 'retail_component_within_managed_site',
@@ -323,7 +333,7 @@ def find_export(folder, tab):
 MIN_SHARDS, VENUES_PER_SHARD = 32, 40   # shards grow (powers of two) with the registry; the client reads meta.detail.shards
 CORE_KEYS = ['id', 'name', 'nameEn', 'aliases', 'scId', 'group', 'groupBasis', 'tier', 'countable', 'countRole',
              'parentId', 'children', 'status', 'operationGroup', 'operatorGroup', 'operatorLabel', 'lat', 'lon', 'located',
-             'provinceCode', 'districtCode', 'addrProvince', 'addrDistrict', 'logoKey', 'yearOpened']
+             'provinceCode', 'districtCode', 'addrProvince', 'addrDistrict', 'logoKey', 'yearOpened', 'countBasis']
 CORE_ONLY = {'storeCount', 'hasBuilding'}
 
 
@@ -626,7 +636,15 @@ def main():
         if r['parentId'] and r['parentId'] in by_id:
             by_id[r['parentId']].setdefault('children', []).append(r['id'])
         elif not r['countable']:
-            orphans.append({'id': r['id'], 'name': r['name'], 'countRole': r['countRole'], 'parentId': r['parentId']})
+            counted = r['countRole'] != 'duplicate_candidate_hold' and (
+                r['id'] in OWNER_SHOPPING_CENTRES or r['group'] in ORPHAN_COUNTED_GROUPS)
+            if counted:
+                r['countable'] = True
+                r['countBasis'] = 'component-without-qualified-parent'
+                if r['group'] not in ORPHAN_COUNTED_GROUPS:
+                    r['group'], r['groupBasis'] = 'mall', 'owner'
+            orphans.append({'id': r['id'], 'name': r['name'], 'countRole': r['countRole'], 'parentId': r['parentId'],
+                            'counted': counted, 'group': r['group']})
 
     # ------------------------------------------------------------ buildings
     links = pd.read_csv(find_export(args.master, '13_BUILDING_LINKS'), dtype=str, keep_default_na=False) \
@@ -708,7 +726,8 @@ def main():
         'countable': len(countable), 'supply': len(supply), 'planned': sum(r['status'] == 'planned' for r in countable),
         'closed': sum(r['status'] == 'closed' for r in countable), 'locatedSupply': len(located_supply),
         'unlocatedSupply': sum(not r['located'] for r in supply), 'provinces': len(per_province), 'districts': len(per_district),
-        'components': len(rows) - len(countable), 'componentsWithoutParent': len(orphans),
+        'components': len(rows) - len(countable), 'componentsWithoutParent': sum(not o['counted'] for o in orphans),
+        'componentsCountedAsVenue': sum(o['counted'] for o in orphans),
         'pendingRegistry': int((df.venue_qualification_status.map(qualification_tier) == 'pending').sum()),
         'excludedRegistry': int((df.venue_qualification_status.map(qualification_tier) == 'excluded').sum()),
         'pendingMapped': len(pending), 'buildingsFeatures': len(buildings),
@@ -734,7 +753,9 @@ def main():
                      'codes': 'CityMETER production base/info lv0 (abbrEn) and lv1 (district code)'},
         'definitions': {
             'qualified': 'venue_qualification_status in the definition-supported family (current, historical, planned)',
-            'countable': 'qualified and count_role not in ' + ', '.join(sorted(COUNT_EXCLUDED_ROLES)),
+            'countable': 'qualified and count_role not in ' + ', '.join(sorted(COUNT_EXCLUDED_ROLES)) +
+                         '; a component without a qualified parent counts as its own venue when it is a shopping centre '
+                         'or mall (display group mall/community, or named by the owner) — owner decision D6, 2026-10-25',
             'supply': 'countable minus operation_group future_project and closed_source_evidence',
             'located': 'a selected reference point (coordinate_status/role); area = point-in-polygon on full-resolution boundaries',
             'pending': 'pending_* qualification: not eligible by default, quiet context only, never counted',
