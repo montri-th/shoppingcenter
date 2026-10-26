@@ -20,6 +20,9 @@ export const GLYPHS_URL = 'https://tiles.openfreemap.org/fonts/{fontstack}/{rang
 export const SOURCE_ID = 'openmaptiles';
 export const FIRST_LINE_LAYER = 'waterway';
 export const FIRST_LABEL_LAYER = 'water-name';
+// Only the selected venue solid draws above road labels; place labels and venue
+// points keep their existing foreground order. Ordinary host/massing layers do not move.
+export const VENUE_XRAY_BEFORE = 'place-quarter';
 
 const FONT = ['Noto Sans Regular'];
 const FONT_ITALIC = ['Noto Sans Italic'];

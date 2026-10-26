@@ -100,3 +100,10 @@ PARC Bangna and15 competitors now reconcile to the same venue registry. Three di
 The tenant panel adds78 displayed listings from80 dated public membership observations;2 exact existing outlets receive corroborating evidence only. The additional evidence covers PARC, Little Walk Bangna, Lasalle’s Avenue, Central Bangna, Design Village Bangna and JAS Urban. It is partial historical/source coverage, not a complete current tenant census for every competitor. Nineteen reviewed cases remain held in the canonical ledger. Public rosters now contain2,308 display items at463 hosts, including1,621 items with verified local logos. Original9-dataset primary joins and BO/BP counts remain unchanged.
 
 The source pipeline reads the canonical dated-observation ledger, verifies public branch-specific provenance and exact host identity, retains current operation as unconfirmed, and suppresses candidates/events and unresolved cases. Original brand files are reused only after exact brand or explicitly approved alias matching. No commercial terms, sales, rents, raw reviews or reviewer identities are exported. Map layout, road placement, camera and building geometry remain as release0.1.2.
+
+
+## 0.1.4 - scoped owner tenant refresh and selected-building road labels
+
+The current shop list follows the canonical owner decisions from 26 October 2026: explicit closed and planned/hidden entries are excluded, Grill & Ground is added separately at Dadfa, host/name corrections are applied without duplicate outlets, and owner assertions remain distinct from public-source checks in field evidence. LOPIA stays hidden until explicitly released.
+
+Only the selected venue x-ray solid moves above road-name symbols, letting its walls and roof cover road text. Nearby roads, ordinary buildings, camera, palette, layouts and primary venue/area counts stay unchanged. Cache tag 20261026-r12 loads the coordinated release.

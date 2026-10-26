@@ -237,3 +237,60 @@ test('MLA exact-place URLs can use an explicit Google place ID, while internal-o
     assert.equal(report.omitted.mla_public_source_provenance, 1);
   } finally { rmSync(dir, {recursive: true, force: true}); }
 });
+
+const owner = {...base, id: 'owner:one', dataset: 'research.MLA.PARC', primary: false,
+  sourceRole: 'owner_confirmed_tenant_state', sourceAuthority: 'owner_direct_assertion',
+  relationshipBasis: 'owner_confirmed_scoped_identity_membership_or_state',
+  sourceGate: 'direct_owner_approved_fact_no_web_verification', hostIdentityStatus: 'exact_canonical_venue_verified',
+  membershipStatus: 'owner_confirmed_tenant_membership', status: 'owner_reported_open',
+  sourceUrl: null, sourceUrls: [], ownerAssertionDate: '2026-10-26', observedOn: '2026-10-26', sourceDate: '2026-10-26',
+  checkedOn: '2026-10-26', sourceArtifactKey: 'OWNER-RESPONSE', sourceRowKey: 'selected-one', sourceSha256: 'b'.repeat(64)};
+
+test('scoped owner facts retain their actual authority and reject holds, closures, planned dates and unreviewed promotions', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'shopping-owner-gate-'));
+  try {
+    const venues = join(dir, 'venues.json'), observations = join(dir, 'observations.json'), out = join(dir, 'out');
+    const core = JSON.stringify({meta: {coreFields: ['id', 'storeCount']}, rows: [{id: 'V1', storeCount: 0}]});
+    writeFileSync(venues, core);
+    const rejected = [
+      {status: 'owner_reported_closed'}, {status: 'owner_reported_not_yet_open', plannedOpeningMonth: '2027-02'},
+      {visibilityHold: true, plannedOpeningMonth: '2026-01'}, {publicExportEligible: false},
+      {sourceAuthority: 'official_venue_directory_observed_by_mla'}, {ownerAssertionDate: '2026-10-27'},
+      {ownerAssertionDate: ''}, {sourceSha256: ''}, {status: 'opened'}, {primary: true},
+      {membershipStatus: 'candidate'}, {hostIdentityStatus: 'name_candidate'}, {venueIds: ['V1', 'V2']},
+    ].map((patch, i) => ({...owner, ...patch, id: `owner:rejected:${i}`}));
+    const identityOnly = {...owner, id: 'owner:alias', status: 'current_operation_unconfirmed',
+      membershipStatus: 'owner_alias_confirmed_prior_listing', aliases: ['Moon', 'Monn']};
+    writeFileSync(observations, JSON.stringify({meta: {asOf: '2026-10-26'}, observations: [owner, identityOnly, ...rejected]}));
+    execFileSync('python3', [script, '--observations', observations, '--venues', venues, '--out', out]);
+    const report = readJSON(join(out, 'build-report.json')), result = outputItems(out);
+    assert.equal(result.length, 2);
+    assert.equal(report.ownerAssertions.newDisplayedListings, 2);
+    assert.equal(result.find(row => row.id === owner.id).sourceUrl, undefined);
+    assert.equal(result.find(row => row.id === identityOnly.id).status, 'current_operation_unconfirmed');
+    assert.deepEqual(result.find(row => row.id === identityOnly.id).aliases, ['Moon', 'Monn']);
+    assert.equal(Object.values(report.omitted).reduce((sum, n) => sum + n, 0), rejected.length);
+    assert.equal(readFileSync(venues, 'utf8'), core);
+  } finally { rmSync(dir, {recursive: true, force: true}); }
+});
+
+test('owner host corroboration reuses a dated same-host listing without replacing its status or duplicating the shop', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'shopping-owner-dedupe-'));
+  try {
+    const venues = join(dir, 'venues.json'), observations = join(dir, 'observations.json'), out = join(dir, 'out');
+    writeFileSync(venues, JSON.stringify({meta: {coreFields: ['id']}, rows: [{id: 'V1'}, {id: 'V2'}]}));
+    const corroboration = {...owner, status: 'current_operation_unconfirmed', matchedSourceStoreIds: [mla.id],
+      dedupeDisposition: 'corroborate_existing_outlet_do_not_append'};
+    writeFileSync(observations, JSON.stringify({meta: {asOf: '2026-10-26'}, observations: [
+      corroboration, mla, {...corroboration, id: 'owner:wrong-host', venueIds: ['V2']},
+    ]}));
+    execFileSync('python3', [script, '--observations', observations, '--venues', venues, '--out', out]);
+    const result = outputItems(out), report = readJSON(join(out, 'build-report.json'));
+    assert.equal(result.length, 1);
+    assert.equal(result[0].id, mla.id);
+    assert.equal(result[0].status, 'dated_listing_current_operation_unconfirmed');
+    assert.equal(result[0].corroboratingMembershipEvidence[0].sourceAuthority, 'owner_direct_assertion');
+    assert.equal(report.ownerAssertions.corroboratingExistingListings, 1);
+    assert.equal(report.omitted.owner_existing_outlet_match_not_in_same_host, 1);
+  } finally { rmSync(dir, {recursive: true, force: true}); }
+});

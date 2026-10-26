@@ -104,3 +104,12 @@ Canonical native readback verifies3 new venue rows,22 existing field changes,170
 The canonical build yields11,012 registry records; original BO/BP values and9-dataset primary graph remain unchanged. Full-resolution boundary input matches the original pinned hash. Published district/province boundaries and130 building features remain byte-identical. Tenant output has2,308 items,2,310 source observations,463 hosts and1,621 items with logos. Candidate events, private source links, raw reviews and commercial values are excluded.
 
 All117 tests and whitespace checks pass. Desktop and390px dark/light views were inspected with actual Thai/English tenant names and logos. PARC pagination was exercised10→20→30→40→42 with no duplicates; the new JAS roster renders4/4. Original map style, camera code and district/province/building bytes remain unchanged. PADDIO stays unlocated with administrative fields blank; existing map navigation context is not administrative evidence. Release receipts retain exact build/provider/live hashes and screenshots.
+
+
+## 0.1.4 - owner tenant decisions and selected-solid road occlusion
+
+All 122 tests pass, including explicit owner closure/visibility/date gates, native-ledger mapping, same-host corroboration, and selected-solid layer ordering. Fresh native source/review reads match the previously verified owner decisions. Independent checks find 2,322 displayed shops, 2,324 source observations, 464 hosts and 1,624 logo-bearing entries. Only four host rosters change; all 1,579 original primary entries and 2,230 non-MLA entries are unchanged. All 15 protected camera, massing, geometry, style, boundary, core-data and logo/profile files remain byte-identical.
+
+Actual in-app browser inspection at desktop and 390px, light/dark, shows road names no longer painted on the selected centralWorld walls/roof. Ordinary roads remain readable in the plan view. Dadfa shows Grill & Ground with its owner assertion in field evidence; no inherited logo is substituted. Mobile tenant text remains readable without overlap. PARC pagination was exercised 10->20->30->40->50, with the final page complete and no closed or hidden entries. This is browser viewport verification, not a physical phone attestation.
+
+The release uses unified cache tag 20261026-r12. Provider completion and source/build/live comparisons are recorded separately in the private release receipt after publication. No other website flow or styling is part of this correction.

@@ -34,3 +34,10 @@ Recorded 2026-10-25 (release 0.1.2, cache tag `20261025-r10`, data from the 16:3
 - Strict source role `mla_dated_public_tenant_listing` requires a dated public branch-specific observation, exact canonical venue, allowed source authority and source hash; current operation stays unconfirmed. Never promote commercial, review, route, candidate or movement states as physical opening/closure.
 - Registry11,012:3 exact new hosts,22 existing field updates. Dated tenant facts80:78 new display items,2 exact corroborations;19 held. Public roster2,308 items/2,310 source observations/463 hosts/1,621 logo items. Original primary source observations1,579 in this public roster remain unchanged; Main BO/BP and original9 graph are separate populations.
 - Preserve source-qualified membership, names, categories, logo bytes, source dates and holds in the canonical ledger, read back native values/types before deriving public files. Native table header format copying can change column types/validation: restore the destination table’s own column properties after copying format, then inspect actual metadata and visible dates.
+
+
+### Owner tenant status + selected-building road occlusion - 0.1.4 / 20261026-r12
+
+- Only the selected venue x-ray solid draws after road-name symbols and before place-quarter. Normal host/massing layers, road geometry/placement/text, camera and palettes stay unchanged. Keep the selected solid able to mask road text on its walls and roof.
+- Canonical owner tenant assertions use a separate dated source role, not fresh web/field verification. Explicit closed, planned or visibility-held observations never enter the current roster. An opening forecast never auto-releases a visibility hold. Identity/membership/host-only replies leave current operation unconfirmed.
+- Preserve the closed Ohkajhu record in the private ledger; publish Grill & Ground at Dadfa as a distinct owner-confirmed concept with no inherited logo. MitPlaJum at Lasalle corroborates the existing outlet. Core venues, primary-nine graph, counts, geometry and unrelated experience do not change.

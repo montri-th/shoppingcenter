@@ -278,6 +278,9 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
   if (tenants?.roster) {
     note('รายชื่อร้าน', `รายการที่เชื่อมสถานที่แล้วจากชุดข้อมูลในทะเบียน · ตรวจทะเบียน ${esc(thaiDate(tenants.roster.meta?.asOf || ''))} · รายชื่ออาจยังไม่ครบทั้งศูนย์และไม่ได้ยืนยันว่าทุกร้านเปิดอยู่วันนี้ ลิงก์ข้างชื่อร้านเปิดหลักฐานต้นทางตามวันที่ของแต่ละรายการ`);
+    const ownerFacts = (tenants.roster.items || []).flatMap(item => [item, ...(item.corroboratingMembershipEvidence || [])])
+      .filter(item => item.sourceRole === 'owner_confirmed_tenant_state');
+    if (ownerFacts.length) note('คำยืนยันเจ้าของข้อมูล', ownerFacts.map(item => `${esc(item.displayName || item.name)} · ${esc(thaiDate(item.ownerAssertionDate))} · ${item.status === 'owner_reported_open' ? 'เปิดอยู่ตามคำยืนยันเจ้าของข้อมูล' : 'ยืนยันชื่อหรือสถานที่ โดยสถานะเปิดปัจจุบันยังไม่ยืนยัน'}`).join('<br>') + ' · เป็นคำยืนยันเจ้าของข้อมูล แยกจากการตรวจเว็บไซต์หรือสำรวจหน้างาน');
     note('ลำดับร้าน', 'ประเมินบทบาทต่อศูนย์: ร้านหลักที่แหล่งระบุ → ร้านที่ตรงกับเอกลักษณ์หรือรูปแบบศูนย์ → ห้างและความบันเทิง ซูเปอร์มาร์เก็ต ร้านปลายทาง อาหาร และบริการ ตามบริบทของศูนย์ บทบาทเดียวกันเรียงตามชื่อ ไม่ใช่อันดับจากยอดขายหรือจำนวนผู้เข้าชม โลโก้ไม่เพิ่มลำดับ');
     const profile = tenants.roster.profile;
     if (profile?.sourceUrl) item('เอกลักษณ์ศูนย์', profile.label, profile.sourceUrl, profile.checkedOn);

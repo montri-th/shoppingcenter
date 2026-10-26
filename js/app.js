@@ -42,7 +42,7 @@ import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBou
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
 import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch} from './panel.js';
-import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE} from './map-style.js';
+import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing} from './camera.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
@@ -852,7 +852,8 @@ function installSpatialLayers() {
     tileUrl: t => (state.tileTemplate ? state.tileTemplate.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y) : ''),
     onResult: result => { state.massingResult = result; $('map-status').dataset.massing = `${result.features || 0}`; },
   });
-  try { state.xray = installVenueXray(map, {beforeId: MASSING_BEFORE}); }
+  // Redraw only the selected solid over road text; retain nearby road/place labels.
+  try { state.xray = installVenueXray(map, {beforeId: VENUE_XRAY_BEFORE}); }
   catch (e) { state.xray = null; console.warn('Venue x-ray unavailable', e); }
   // Venue and pending dots sit above every 3D layer so they are never hidden inside a building.
   state.points = installVenuePoints(map);

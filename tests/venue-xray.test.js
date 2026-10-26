@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {buildSolid, screenBoxOf, solidHit, mat4Multiply, mat4Translation, transformPoint, installVenueXray, XRAY_LAYER, XRAY_MIN_ZOOM} from '../js/venue-xray.js';
 import {installMassing, CITY_LAYER, FOCUS_LAYER, OCCLUDER_LAYER} from '../js/massing.js';
 import {HOST_LAYERS} from '../js/buildings.js';
+import {buildMapStyle, MASSING_BEFORE, VENUE_XRAY_BEFORE} from '../js/map-style.js';
 
 // Mercator stand-in: x = lon/360 + 0.5, y = 0.5 - lat/360 (flat), z = altitude × 1e-7 (like MercatorCoordinate near the equator).
 const merc = ([lon, lat], alt = 0) => ({x: lon / 360 + 0.5, y: 0.5 - lat / 360, z: alt * 1e-7});
@@ -161,4 +162,35 @@ test('draw order contract: massing tiers are inserted before the host extrusion 
   map.addLayer({id: HOST_LAYERS.extrusion, type: 'fill-extrusion'}, 'water-name');
   installMassing(map, {beforeId: HOST_LAYERS.extrusion, colors: {}, tileUrl: () => ''});
   assert.deepEqual(map.layers, [CITY_LAYER, FOCUS_LAYER, OCCLUDER_LAYER, HOST_LAYERS.extrusion, 'water-name']);
+});
+
+test('selected venue solid masks road text while preserving road labels outside it and the existing massing order', () => {
+  for (const theme of ['light', 'dark']) {
+    const map = fakeMap();
+    const style = buildMapStyle(theme);
+    for (const layer of style.layers) map.addLayer(layer);
+    map.addLayer({id: HOST_LAYERS.extrusion, type: 'fill-extrusion'}, MASSING_BEFORE);
+    const priorOrder = [...map.layers];
+    const xray = installVenueXray(map, {beforeId: VENUE_XRAY_BEFORE, toMercator: merc});
+    const index = id => map.layers.indexOf(id);
+    assert.ok(index(HOST_LAYERS.extrusion) < index('water-name'), 'normal hosts remain beneath the original labels');
+    for (const id of ['road-name-major', 'road-name-minor']) {
+      assert.ok(index(id) < index(XRAY_LAYER), `${id} cannot paint over the selected solid`);
+      assert.notEqual(map.getLayer(id).layout.visibility, 'none', 'nearby road labels stay available');
+      assert.equal(map.getLayer(id).layout['symbol-placement'], 'line-center', 'the prior repetition fix remains');
+    }
+    assert.ok(index(XRAY_LAYER) < index('place-quarter'), 'place labels retain foreground priority');
+    assert.deepEqual(map.layers.filter(id => id !== XRAY_LAYER), priorOrder, 'no existing layer was reordered');
+    const def = map.getLayer(XRAY_LAYER), {gl, calls} = fakeGl();
+    def.onAdd(map, gl);
+    const main = new Float64Array(16); main[0] = main[5] = main[10] = main[15] = 1;
+    calls.length = 0;
+    def.render(gl, {defaultProjectionData: {mainMatrix: main}});
+    assert.equal(calls.length, 0, 'without a selected solid the entire existing map is untouched');
+    xray.update([square(20)]);
+    def.render(gl, {defaultProjectionData: {mainMatrix: main}});
+    assert.equal(calls.filter(c => c[0] === 'clear').length, 1, 'only the solid draws, with the existing scissored depth clear');
+    xray.dispose();
+    assert.deepEqual(map.layers, priorOrder, 'disposing restores exactly the original layer order');
+  }
 });

@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SHARDS = 32
 PRIVATE = re.compile(r'(?:docs|drive)\.google\.com', re.I)
 MLA_ROLE = 'mla_dated_public_tenant_listing'
+OWNER_ROLE = 'owner_confirmed_tenant_state'
 MLA_DATASET = 'research.MLA.PARC'
 MLA_AUTHORITIES = {
     'google_business_profile_listing_observed_by_mla',
@@ -48,7 +49,9 @@ ITEM_FIELDS = ('id', 'name', 'brand', 'brandId', 'dataset', 'branch', 'sourceUrl
                'sourceArtifactKey', 'sourceRowKey', 'membershipEvidenceNote',
                'sourceCategoryL1', 'sourceCategoryL2', 'categoryVerificationStatus',
                'categoryConflict', 'latestListingRefreshOn', 'refreshIdentityBasis',
-               'matchedSourceStoreIds', 'dedupeDisposition', 'identityNote')
+               'matchedSourceStoreIds', 'dedupeDisposition', 'identityNote',
+               'ownerAssertionDate', 'aliases', 'parentBrand', 'brandFamilyOwnerReported',
+               'replacesObservationId')
 
 
 def digest(path):
@@ -147,6 +150,48 @@ def mla_gate(observation, as_of):
     return None
 
 
+def owner_gate(observation, as_of):
+    """A scoped owner assertion may establish membership without a public website claim."""
+    if observation.get('accepted') is not True or observation.get('primary') is not False:
+        return 'owner_not_accepted'
+    if (observation.get('dataset') != MLA_DATASET
+            or observation.get('sourceAuthority') != 'owner_direct_assertion'
+            or observation.get('relationshipBasis') != 'owner_confirmed_scoped_identity_membership_or_state'
+            or observation.get('sourceGate') != 'direct_owner_approved_fact_no_web_verification'
+            or observation.get('hostIdentityStatus') != 'exact_canonical_venue_verified'):
+        return 'owner_scoped_assertion_gate'
+    ids = observation.get('venueIds')
+    if not isinstance(ids, list) or len(ids) != 1 or not isinstance(ids[0], str) or not ids[0].strip():
+        return 'owner_single_exact_host_required'
+    asserted = iso_date(observation.get('ownerAssertionDate'))
+    if (not asserted or asserted > iso_date(as_of)
+            or observation.get('observedOn') != observation.get('ownerAssertionDate')
+            or observation.get('sourceDate') != observation.get('ownerAssertionDate')
+            or not re.fullmatch(r'[a-fA-F0-9]{64}', str(observation.get('sourceSha256') or ''))
+            or not str(observation.get('sourceArtifactKey') or '').strip()
+            or not str(observation.get('sourceRowKey') or '').strip()):
+        return 'owner_missing_dated_assertion_provenance'
+    if (observation.get('membershipStatus') not in {'owner_confirmed_tenant_membership', 'owner_alias_confirmed_prior_listing'}
+            or observation.get('status') not in {'owner_reported_open', 'current_operation_unconfirmed'}
+            or observation.get('eventType') or observation.get('movementType')):
+        return 'owner_assertion_scope_not_current_membership'
+    matches = observation.get('matchedSourceStoreIds')
+    if matches is not None and (not isinstance(matches, list) or len(matches) != 1 or not isinstance(matches[0], str)
+                                or observation.get('dedupeDisposition') != 'corroborate_existing_outlet_do_not_append'):
+        return 'owner_explicit_existing_outlet_match_required'
+    return None
+
+
+def current_listing_exclusion(observation):
+    # Visibility holds stay explicit: a forecast month never releases a held listing.
+    if observation.get('visibilityHold') is True or observation.get('publicExportEligible') is False:
+        return 'held_or_not_public_export_eligible'
+    if observation.get('status') in {'owner_reported_closed', 'owner_reported_not_yet_open',
+                                    'closed_source_evidence', 'permanently_closed', 'opening_announced'}:
+        return 'not_current_tenant_listing'
+    return None
+
+
 def clean_item(observation):
     item = {key: observation[key] for key in ITEM_FIELDS if observation.get(key) not in (None, '')}
     if not item.get('sourceRole') and observation.get('rosterRole'):
@@ -206,17 +251,26 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
     seen = set()
     omitted, datasets, status, source_roles = Counter(), Counter(), Counter(), Counter()
     input_rows = 0
-    mla_counts = Counter()
+    mla_counts, owner_counts = Counter(), Counter()
     # Resolve original/official outlets before explicit MLA corroboration, independent of input order.
-    observations = sorted(payload.get('observations', []), key=lambda row: row.get('sourceRole') == MLA_ROLE or row.get('dataset') == MLA_DATASET)
+    observations = sorted(payload.get('observations', []), key=lambda row: 2 if row.get('sourceRole') == OWNER_ROLE else 1 if row.get('sourceRole') == MLA_ROLE or row.get('dataset') == MLA_DATASET else 0)
     for observation in observations:
         input_rows += 1
-        is_mla = observation.get('sourceRole') == MLA_ROLE or observation.get('dataset') == MLA_DATASET
+        excluded = current_listing_exclusion(observation)
+        if excluded:
+            omitted[excluded] += 1
+            continue
+        is_owner = observation.get('sourceRole') == OWNER_ROLE
+        owner_error = owner_gate(observation, as_of) if is_owner else None
+        if owner_error:
+            omitted[owner_error] += 1
+            continue
+        is_mla = not is_owner and (observation.get('sourceRole') == MLA_ROLE or observation.get('dataset') == MLA_DATASET)
         mla_error = mla_gate(observation, as_of) if is_mla else None
         if is_mla and mla_error:
             omitted[mla_error] += 1
             continue
-        original_primary = observation.get('primary') is True and not is_mla
+        original_primary = observation.get('primary') is True and not is_mla and not is_owner
         additional_official = (observation.get('primary') is False
                                and observation.get('sourceRole') == 'official_chain_exact_named_host_listing'
                                and observation.get('relationshipBasis') ==
@@ -230,7 +284,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
                               'official_branch_name_and_unit_address_agree_with_existing_Main_parent_venue_identity'
                               and bool(observation.get('registeredChildVenueId'))
                               and bool(public_urls(observation.get('sourceUrl'))))
-        if observation.get('accepted') is not True or not (original_primary or additional_official or registered_grocery or is_mla):
+        if observation.get('accepted') is not True or not (original_primary or additional_official or registered_grocery or is_mla or is_owner):
             omitted['not_accepted_primary'] += 1
             continue
         item = clean_item(observation)
@@ -249,15 +303,15 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
             if venue_id not in venues:
                 omitted['host_outside_public_qualified_population'] += 1
                 continue
-            if is_mla and observation.get('matchedSourceStoreIds'):
+            if (is_mla or is_owner) and observation.get('matchedSourceStoreIds'):
                 target_id = observation['matchedSourceStoreIds'][0]
                 target = next((existing for existing in rosters[venue_id] if existing['id'] == target_id), None)
                 if target is None:
-                    omitted['mla_existing_outlet_match_not_in_same_host'] += 1
+                    omitted['owner_existing_outlet_match_not_in_same_host' if is_owner else 'mla_existing_outlet_match_not_in_same_host'] += 1
                     continue
                 # Preserve selected identity, status, logo and original source-card count.
                 target.setdefault('corroboratingMembershipEvidence', []).append(dict(item))
-                mla_counts['corroboratingExistingListings'] += 1
+                (owner_counts if is_owner else mla_counts)['corroboratingExistingListings'] += 1
                 continue
             rosters[venue_id].append(dict(item))
             datasets[item['dataset']] += 1
@@ -265,6 +319,8 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
             source_roles[item.get('sourceRole', 'unspecified')] += 1
             if is_mla:
                 mla_counts['newDisplayedListings'] += 1
+            if is_owner:
+                owner_counts['newDisplayedListings'] += 1
     shards = [dict() for _ in range(SHARDS)]
     mismatches = []
     for venue_id, items in sorted(rosters.items()):
@@ -289,6 +345,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
               'datasets': dict(sorted(datasets.items())), 'statuses': dict(sorted(status.items())),
               'sourceRoles': dict(sorted(source_roles.items())),
               'mlaMembership': dict(mla_counts),
+              'ownerAssertions': dict(owner_counts),
               'withLogo': sum(bool(item.get('logo')) for items in rosters.values() for item in items),
               'retailerIdentity': {
                   'manufacturerLogosSuppressed': sum(item.get('suppressManufacturerLogo') is True for items in rosters.values() for item in items),
@@ -302,6 +359,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
                          'Source-listed status and closure conflicts remain separate from host identity.',
                          'Ranking is a contextual editorial priority, not measured visits, sales or footfall.',
                          'Dated MLA membership does not establish current operation; existing-outlet corroboration is evidence, not another displayed/source-card count.',
+                         'Owner assertions are dated owner-reported facts, not new website or field verification; identity or host confirmation alone does not establish current opening.',
                          'Venue core rows and aggregate store counts are not rewritten by this build.']}
     return outputs, report
 

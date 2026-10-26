@@ -1,13 +1,13 @@
 {
   "asOf": "2026-10-26",
-  "inputObservations": 2321,
-  "eligibleSourceObservations": 2321,
-  "publishedVenueHosts": 463,
-  "publishedObservations": 2308,
-  "publishedItems": 2308,
-  "publishedSourceObservations": 2310,
+  "inputObservations": 2341,
+  "eligibleSourceObservations": 2336,
+  "publishedVenueHosts": 464,
+  "publishedObservations": 2322,
+  "publishedItems": 2322,
+  "publishedSourceObservations": 2324,
   "datasets": {
-    "research.MLA.PARC": 78,
+    "research.MLA.PARC": 92,
     "research.TH.bank": 218,
     "research.TH.camera": 184,
     "research.TH.gold": 322,
@@ -20,6 +20,7 @@
   "statuses": {
     "association_listed_not_field_verified": 19,
     "closure_conflict_review": 4,
+    "current_operation_unconfirmed": 3,
     "dated_listing_current_operation_unconfirmed": 78,
     "listed_on_official_booking_directory_not_field_verified": 1,
     "listed_on_official_locator_not_field_verified": 174,
@@ -27,6 +28,7 @@
     "not_field_verified": 97,
     "not_revalidated": 60,
     "official_locator_and_bot_registry_listed_not_field_verified": 39,
+    "owner_reported_open": 11,
     "source_filtered_operational_not_revalidated": 1,
     "source_listed": 291,
     "source_listed_current_operation_not_independently_verified": 644,
@@ -37,13 +39,18 @@
     "mla_dated_public_tenant_listing": 78,
     "official_chain_exact_named_host_listing": 644,
     "official_grocery_explicit_parent_host_listing": 7,
+    "owner_confirmed_tenant_state": 14,
     "registry_accepted_primary": 1579
   },
   "mlaMembership": {
     "newDisplayedListings": 78,
     "corroboratingExistingListings": 2
   },
-  "withLogo": 1621,
+  "ownerAssertions": {
+    "newDisplayedListings": 14,
+    "corroboratingExistingListings": 1
+  },
+  "withLogo": 1624,
   "retailerIdentity": {
     "manufacturerLogosSuppressed": 8,
     "monoBrandRetailerNames": 4,
@@ -51,7 +58,8 @@
     "scope": "retailer identity display only; source IDs and source-observation counts retained"
   },
   "omitted": {
-    "host_outside_public_qualified_population": 11
+    "host_outside_public_qualified_population": 11,
+    "held_or_not_public_export_eligible": 5
   },
   "summaryDifferences": [
     {
@@ -162,12 +170,12 @@
     {
       "venueId": "SC-000976",
       "summaryObservations": 0,
-      "rosterObservations": 16
+      "rosterObservations": 18
     },
     {
       "venueId": "SC-000977",
       "summaryObservations": 0,
-      "rosterObservations": 42
+      "rosterObservations": 50
     },
     {
       "venueId": "SC-000992",
@@ -627,7 +635,7 @@
     {
       "venueId": "SC-C0129",
       "summaryObservations": 0,
-      "rosterObservations": 17
+      "rosterObservations": 20
     },
     {
       "venueId": "SC-C0221",
@@ -1315,6 +1323,11 @@
       "rosterObservations": 2
     },
     {
+      "venueId": "VN-23c2cdf592bb54",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "VN-26c7ef3ce0ab83",
       "summaryObservations": 1,
       "rosterObservations": 2
@@ -1487,9 +1500,10 @@
     "Source-listed status and closure conflicts remain separate from host identity.",
     "Ranking is a contextual editorial priority, not measured visits, sales or footfall.",
     "Dated MLA membership does not establish current operation; existing-outlet corroboration is evidence, not another displayed/source-card count.",
+    "Owner assertions are dated owner-reported facts, not new website or field verification; identity or host confirmation alone does not establish current opening.",
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
-  "inputSha256": "5c63db5e54b53ec4e48ff9d9d5cb217a0d3dd9c11ec3ba38ccdd371ecb387b4c",
+  "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
   "venueCoreSha256": "8ae465e87237e53879b9b3b03a73ffa9d2de5a2e63fb3e39e6f9e07303ed4462",
   "logoManifestSha256": "69ae084fac70cf970eacf6c9ea2ce8a9ac33bd8dd38eecc905ed725871afdbea"
 }

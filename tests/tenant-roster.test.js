@@ -29,7 +29,13 @@ test('published tenant shards, source roles, counts and local logo bytes reconci
         const key = `${id}|${item.id}`;
         assert.ok(!seen.has(key)); seen.add(key);
         assert.ok(item.name && item.id && item.dataset);
-        assert.ok(item.sourceUrl && /^https?:\/\/\S+$/.test(item.sourceUrl));
+        if (item.sourceRole === 'owner_confirmed_tenant_state') {
+          assert.equal(item.sourceAuthority, 'owner_direct_assertion');
+          assert.match(item.ownerAssertionDate, /^\d{4}-\d{2}-\d{2}$/);
+          assert.match(item.sourceSha256, /^[a-f0-9]{64}$/);
+          assert.ok(['owner_reported_open', 'current_operation_unconfirmed'].includes(item.status));
+        } else assert.ok(item.sourceUrl && /^https?:\/\/\S+$/.test(item.sourceUrl));
+        assert.ok(!['owner_reported_closed', 'owner_reported_not_yet_open', 'permanently_closed'].includes(item.status));
         assert.ok(!/candidate|unreviewed|nearby/.test(item.sourceRole || ''));
         sourceCount += item.sourceObservationCount || 1;
         if (item.logo) logos.set(item.logo.file, item.logo.sha256);
