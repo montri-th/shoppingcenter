@@ -294,3 +294,37 @@ test('owner host corroboration reuses a dated same-host listing without replacin
     assert.equal(report.omitted.owner_existing_outlet_match_not_in_same_host, 1);
   } finally { rmSync(dir, {recursive: true, force: true}); }
 });
+
+const linked = {...base, id: 'research.TH.fitness:02_STORES:POS-FIT-1', dataset: 'research.TH.fitness', primary: false,
+  name: 'Jetts · Gaysorn Village', brand: 'Jetts', brandId: 'BR-FIT-1', branch: 'Gaysorn Village', checkedOn: '2026-10-26',
+  status: 'source_listed', sourceRole: 'dataset_accepted_host_link',
+  relationshipBasis: 'research_sheet_accepted_identity_and_located_in_single_registry_venue',
+  hostIdentityStatus: 'accepted_identity_and_located_in', sourceUrl: 'https://example.com/clubs/gaysorn',
+  sourceArtifactKey: 'montri-th/fitness@6775063:data/fitness.json', sourceRowKey: 'POS-FIT-1', sourceSha256: 'b'.repeat(64)};
+
+test('a linked research dataset enters only through its own gate: accepted host link, one registry venue, current source listing, public provenance', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'shopping-tenant-linked-gate-'));
+  try {
+    const venues = join(dir, 'venues.json'), observations = join(dir, 'observations.json'), out = join(dir, 'out');
+    const core = JSON.stringify({meta: {coreFields: ['id', 'storeCount']}, rows: [{id: 'V1', storeCount: 0}]});
+    writeFileSync(venues, core);
+    const rejected = [
+      {accepted: false}, {primary: true, sourceRole: 'dataset_accepted_host_link', accepted: false},
+      {dataset: 'research.TH.example'}, {relationshipBasis: 'name_match'}, {hostIdentityStatus: 'candidate_registry_duplicate_review'},
+      {venueIds: ['V1', 'V2']}, {venueIds: []}, {status: 'announced_opening_soon'}, {status: 'source_status_unknown'},
+      {status: 'permanently_closed'}, {checkedOn: ''}, {checkedOn: '2026-11-01'}, {sourceUrl: 'https://docs.google.com/spreadsheets/d/x'},
+      {sourceSha256: ''}, {sourceArtifactKey: ''}, {sourceRowKey: ''}, {farPointConflict: true}, {visibilityHold: true},
+    ].map((patch, i) => ({...linked, ...patch, id: `research.TH.fitness:02_STORES:rejected-${i}`}));
+    writeFileSync(observations, JSON.stringify({meta: {asOf: '2026-10-26'}, observations: [linked, ...rejected]}));
+    execFileSync('python3', [script, '--observations', observations, '--venues', venues, '--out', out]);
+    const report = readJSON(join(out, 'build-report.json')), items = outputItems(out);
+    assert.deepEqual(items.map(x => x.id), [linked.id]);
+    assert.equal(items[0].sourceRole, 'dataset_accepted_host_link');
+    assert.equal(items[0].hostIdentityStatus, 'accepted_identity_and_located_in');
+    assert.equal(items[0].sourceRowKey, 'POS-FIT-1');
+    assert.ok(!('farPointConflict' in items[0]) && !('accepted' in items[0]) && !('venueIds' in items[0]), 'gate inputs stay out of the item');
+    assert.equal(Object.values(report.omitted).reduce((sum, n) => sum + n, 0), rejected.length);
+    assert.deepEqual(report.summaryDifferences, [{venueId: 'V1', summaryObservations: 0, rosterObservations: 1}]);
+    assert.equal(readFileSync(venues, 'utf8'), core, 'venue cores and primary counts are never rewritten');
+  } finally { rmSync(dir, {recursive: true, force: true}); }
+});

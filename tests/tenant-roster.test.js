@@ -60,3 +60,34 @@ test('centre character profiles use existing venue IDs, public evidence and supp
     if (profile.roleOrder.includes('dining')) assert.ok(profile.roleOrder.includes('food'), 'broad source food category stays in the intended dining position');
   }
 });
+
+test('linked datasets (build-report.linkedDatasets): pinned release, only gated listings, items and logos reconcile', () => {
+  const report = read('data/tenants/build-report.json');
+  const linked = report.linkedDatasets || {};
+  assert.deepEqual(Object.keys(linked), ['research.TH.fitness']);
+  const manifest = read('assets/tenant-logos-manifest.json');
+  for (const [dataset, receipt] of Object.entries(linked)) {
+    assert.match(receipt.commit, /^[0-9a-f]{40}$/);
+    assert.match(receipt.files['data/fitness.json'], /^[0-9a-f]{64}$/);
+    const items = [], hosts = new Set();
+    for (const file of shards) for (const [id, roster] of Object.entries(read('data/tenants/' + file).venues)) {
+      for (const item of roster.items.filter(x => x.dataset === dataset)) { items.push(item); hosts.add(id); }
+    }
+    assert.equal(items.length, receipt.publishedItems, `${dataset}: items (a canonical rebuild must be followed by scripts/link-dataset-tenants.py)`);
+    assert.equal(hosts.size, receipt.publishedVenueHosts);
+    assert.equal(report.datasets[dataset], receipt.publishedItems);
+    assert.equal(items.filter(x => x.logo).length, receipt.withLogo);
+    for (const item of items) {
+      assert.equal(item.sourceRole, 'dataset_accepted_host_link');
+      assert.equal(item.relationshipBasis, 'research_sheet_accepted_identity_and_located_in_single_registry_venue');
+      assert.equal(item.hostIdentityStatus, 'accepted_identity_and_located_in');
+      assert.equal(item.status, 'source_listed');
+      assert.equal(item.sourceArtifactKey, `montri-th/fitness@${receipt.commit.slice(0, 7)}:data/fitness.json`);
+      assert.equal(item.sourceSha256, receipt.files['data/fitness.json']);
+      assert.equal(item.id, `${dataset}:02_STORES:${item.sourceRowKey}`);
+      assert.ok(/^https:\/\/\S+$/.test(item.sourceUrl) && !/google\.com\/maps|docs\.google|drive\.google/.test(item.sourceUrl));
+      assert.ok(!/ชั้น|floor|unit|โทร/i.test(item.unitFloor || ''), 'no floors, units or phone numbers from the linked dataset');
+      if (item.logo) assert.deepEqual(item.logo.file, manifest[`${dataset}|${item.brandId}`].file);
+    }
+  }
+});

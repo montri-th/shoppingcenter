@@ -113,3 +113,12 @@ All 122 tests pass, including explicit owner closure/visibility/date gates, nati
 Actual in-app browser inspection at desktop and 390px, light/dark, shows road names no longer painted on the selected centralWorld walls/roof. Ordinary roads remain readable in the plan view. Dadfa shows Grill & Ground with its owner assertion in field evidence; no inherited logo is substituted. Mobile tenant text remains readable without overlap. PARC pagination was exercised 10->20->30->40->50, with the final page complete and no closed or hidden entries. This is browser viewport verification, not a physical phone attestation.
 
 The release uses unified cache tag 20261026-r12. Provider completion and source/build/live comparisons are recorded separately in the private release receipt after publication. No other website flow or styling is part of this correction.
+
+## 0.1.5 - CityMETER Fitness tenants and cross-links
+
+Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https://montri-th.github.io/shoppingcenter/ ใน registry”). Input: the CityMETER Fitness public release `6775063` (Fitness 0.3.1, live bytes 344/344 on that commit), files hashed in `build-report.json#linkedDatasets`.
+
+- Data: 147 Fitness rows linked to registry venues → 139 items at 124 venues (8 announced or unclear rows omitted by `linked_gate`), 139 with verified logos from 27 `brand_primary` files. Every canonical item is byte-identical (checked venue by venue against the previous shards: 0 changed); venue cores, primary counts and map/area/chart numbers untouched. Published totals: 2,461 items · 502 hosts · 1,763 with logos.
+- Tests: `npm test` 125 pass — linked gate (accepted host link, one registry venue, `source_listed`, public provenance, far point, hold), published receipt reconciliation, fitness role/label/order, cross-link only with Fitness items.
+- Container render (Playwright, MapLibre from npm, OpenFreeMap stubbed — not a live check): Gaysorn Village `?venue=SC-C1138` lists 7 (Jetts with logo, “ฟิตเนสและสตูดิโอ · Black Gaysorn Village (BTS Chid Lom)”) and links to Luxury Brands and CityMETER Fitness; Erawan Bangkok `?venue=SC-001278` lists Breathe Pilates Thailand and Physique 57 Bangkok; centralWorld unchanged (41, Fitness First held in Fitness); 390 px dark sheet without horizontal overflow; no broken logos.
+- Live: recorded after publication.

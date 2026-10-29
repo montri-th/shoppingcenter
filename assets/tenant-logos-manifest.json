@@ -2071,5 +2071,362 @@
   "height": 62,
   "background": "#E5E9E6",
   "sourceUrl": "https://www.starbucks.com/"
+ },
+ "research.TH.fitness|BR-FIT-06883aecdb6a": {
+  "file": "assets/tenant-logos/9a4c6f4b6a81c6cb1aaf.png",
+  "sha256": "9a4c6f4b6a81c6cb1aafe7621e7853a76e131218158f28475fde4826a9116415",
+  "mime": "image/png",
+  "width": 361,
+  "height": 160,
+  "background": "#182327",
+  "sourceUrl": "https://www.jetts.co.th/club/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-06883aecdb6a.png"
+ },
+ "research.TH.fitness|BR-FIT-090b4346235e": {
+  "file": "assets/tenant-logos/55065c7e2fd6834036cb.svg",
+  "sha256": "55065c7e2fd6834036cbbdafa5870ad7f239a998618a8745237ef47432fd9cdc",
+  "mime": "image/svg+xml",
+  "width": 76.0,
+  "height": 60.0,
+  "background": "#182327",
+  "sourceUrl": "https://physique57bangkok.com/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-090b4346235e.svg"
+ },
+ "research.TH.fitness|BR-FIT-115f9ee20506": {
+  "file": "assets/tenant-logos/50b53ace0420580d27c7.jpg",
+  "sha256": "50b53ace0420580d27c7d0a0d2a590595f1c44ff35d7d02bdf051e21e231dc5e",
+  "mime": "image/jpeg",
+  "width": 200,
+  "height": 200,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://page.line.me/788vxfwy",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-115f9ee20506.jpg"
+ },
+ "research.TH.fitness|BR-FIT-2ddabb00de00": {
+  "file": "assets/tenant-logos/4177ff4826a37bd00778.png",
+  "sha256": "4177ff4826a37bd00778fae0aaf566e39f4ee8dce49c0a64a522f196098f51a7",
+  "mime": "image/png",
+  "width": 300,
+  "height": 63,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://wefitnesssociety.com/club/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-2ddabb00de00.png"
+ },
+ "research.TH.fitness|BR-FIT-3f0e489cdc32": {
+  "file": "assets/tenant-logos/2ec6bda98af2db5e6968.svg",
+  "sha256": "2ec6bda98af2db5e6968dee71f5c95f9f4d4628009cfd195cad6022d6ed9e98f",
+  "mime": "image/svg+xml",
+  "width": 83.0,
+  "height": 50.0,
+  "background": "#182327",
+  "sourceUrl": "https://basebangkok.com/contact-us",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-3f0e489cdc32.svg"
+ },
+ "research.TH.fitness|BR-FIT-4113ec51e9b3": {
+  "file": "assets/tenant-logos/e2202f7c50d833866beb.svg",
+  "sha256": "e2202f7c50d833866beb3f7b13fa69a3c3f3376dd6d2e56b81c2e69642c2d2d0",
+  "mime": "image/svg+xml",
+  "width": 127.0,
+  "height": 46.0,
+  "background": "#182327",
+  "sourceUrl": "https://www.celebrityfitness.com/th/th",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-4113ec51e9b3.svg"
+ },
+ "research.TH.fitness|BR-FIT-4a4f68ebacd9": {
+  "file": "assets/tenant-logos/0e281cb24f087aa5e362.webp",
+  "sha256": "0e281cb24f087aa5e362c20a189a4d74d73939a6c36b9f690a752b63ed3e904c",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 216,
+  "background": "#182327",
+  "sourceUrl": "https://swiss-pilates.com/studios/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-4a4f68ebacd9.webp",
+  "original": {
+   "sha256": "82fd6c18856fbdd07d5ef1ce2ad814959bd563f77139b3dc0ef0572d974be594",
+   "mime": "image/webp",
+   "width": 1200,
+   "height": 675
+  }
+ },
+ "research.TH.fitness|BR-FIT-6cae7a1adacd": {
+  "file": "assets/tenant-logos/ffa8e4f02e1f1b6d4a1f.webp",
+  "sha256": "ffa8e4f02e1f1b6d4a1f359f129c10d6c9603d97c3624ee29c4a842f2ff6c42d",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 157,
+  "background": "#182327",
+  "sourceUrl": "https://redrockcanyon.co/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-6cae7a1adacd.webp",
+  "original": {
+   "sha256": "a99fb319a77b58203c1aa74a4cdb903a56a9bad349925f33ed29d07330eeb4ab",
+   "mime": "image/png",
+   "width": 1040,
+   "height": 1040
+  }
+ },
+ "research.TH.fitness|BR-FIT-78954882ffa4": {
+  "file": "assets/tenant-logos/e0f20c38b0ab6d921f93.svg",
+  "sha256": "e0f20c38b0ab6d921f9341c55488a709b9c6ddad6c1469b4d26f90c5abbfe789",
+  "mime": "image/svg+xml",
+  "width": 190.3,
+  "height": 186.6,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.fitnessfirst.com/th/en/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-78954882ffa4.svg"
+ },
+ "research.TH.fitness|BR-FIT-7dc750887eea": {
+  "file": "assets/tenant-logos/b99f989d5e9f5b233065.webp",
+  "sha256": "b99f989d5e9f5b2330653e62f73a2ef7035af38ea85aa7b82a66484651e74f75",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 133,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://spacegym.org/studio",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-7dc750887eea.webp",
+  "original": {
+   "sha256": "32f4734f83f31587f46df30b0f557f1eda5cdbb3ea722f4b364d1d6fe8c39842",
+   "mime": "image/png",
+   "width": 512,
+   "height": 512
+  }
+ },
+ "research.TH.fitness|BR-FIT-83588ea94465": {
+  "file": "assets/tenant-logos/ef9a9ba1761b2e8c672d.png",
+  "sha256": "ef9a9ba1761b2e8c672d14f5916886e78b86476cad1421d62ec4c01bb576f65e",
+  "mime": "image/png",
+  "width": 425,
+  "height": 111,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://iyengar-yoga-bangkok.com/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-83588ea94465.png"
+ },
+ "research.TH.fitness|BR-FIT-84d1fc8af461": {
+  "file": "assets/tenant-logos/dcb746626f19ae2cf982.webp",
+  "sha256": "dcb746626f19ae2cf98206126ea47ab19bfe4dfe4de227453e164ab17f883142",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 267,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.terminal21.co.th/rama3/the-fitness-platinum/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-84d1fc8af461.webp",
+  "original": {
+   "sha256": "7af2a8b1268b5c36a4b6c7c1e59f993f89508ea183d59e8b00b14b74bbed5413",
+   "mime": "image/png",
+   "width": 400,
+   "height": 400
+  }
+ },
+ "research.TH.fitness|BR-FIT-8ccf4622d35a": {
+  "file": "assets/tenant-logos/2601e1249b9d63875435.webp",
+  "sha256": "2601e1249b9d6387543572ddb2b4c19a4bb2a16e5e4eedd9e98b093ffcbe3377",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 384,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.facebook.com/climbcentralbangkok/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-8ccf4622d35a.webp",
+  "original": {
+   "sha256": "725bcecb187818700c04721effe6270148ef1d691541981ed795396ecbbe54f0",
+   "mime": "image/png",
+   "width": 720,
+   "height": 720
+  }
+ },
+ "research.TH.fitness|BR-FIT-940cc6bfc3c4": {
+  "file": "assets/tenant-logos/2a82a312cab9248045ec.webp",
+  "sha256": "2a82a312cab9248045ecd159157cde181c5ebcb168310d1d89d41d8594bcb5ed",
+  "mime": "image/webp",
+  "width": 162,
+  "height": 43,
+  "background": "#182327",
+  "sourceUrl": "https://www.anytimefitness.co.th/find-gym/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-940cc6bfc3c4.webp"
+ },
+ "research.TH.fitness|BR-FIT-971cff0aa049": {
+  "file": "assets/tenant-logos/b71cde2bde78f163007b.png",
+  "sha256": "b71cde2bde78f163007b159c8db32c2955a8a41e4b1095eedd27b4226b22bb08",
+  "mime": "image/png",
+  "width": 200,
+  "height": 40,
+  "background": "#182327",
+  "sourceUrl": "https://rumpuree.com/page/about",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-971cff0aa049.png"
+ },
+ "research.TH.fitness|BR-FIT-a20d1f257f0f": {
+  "file": "assets/tenant-logos/296b498553d8416961a2.webp",
+  "sha256": "296b498553d8416961a2a365fd1296c59d8739104f4e5baa20fe0735f545127c",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 124,
+  "background": "#182327",
+  "sourceUrl": "https://www.boulderplanet.co.th/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-a20d1f257f0f.webp",
+  "original": {
+   "sha256": "55d4fccf06b643cfc273de436084d3e71b4caf9245b91b9f205c4c5db8a0ef70",
+   "mime": "image/png",
+   "width": 3810,
+   "height": 1232
+  }
+ },
+ "research.TH.fitness|BR-FIT-ba21881d436b": {
+  "file": "assets/tenant-logos/ca4cdb5bd057f6ade775.png",
+  "sha256": "ca4cdb5bd057f6ade7750f2a07e63a27b3bf1a4b56750e839e82959fcd68d3c2",
+  "mime": "image/png",
+  "width": 345,
+  "height": 136,
+  "background": "#182327",
+  "sourceUrl": "https://carvehouse.co/locations/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-ba21881d436b.png"
+ },
+ "research.TH.fitness|BR-FIT-bc2b3a24917e": {
+  "file": "assets/tenant-logos/d189599e26aea98b6baf.webp",
+  "sha256": "d189599e26aea98b6bafbed097a5756a58d915b57b5eb48b70ba4cfec6c2453f",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 146,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.pilatesplusbangkok.com/contact/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-bc2b3a24917e.webp",
+  "original": {
+   "sha256": "2589c96b0b8451ea8c848c0c1188585b4f6ca48b09a1eaba928b8e8320b8809d",
+   "mime": "image/jpeg",
+   "width": 521,
+   "height": 198
+  }
+ },
+ "research.TH.fitness|BR-FIT-bc826189dc6b": {
+  "file": "assets/tenant-logos/b46db2509af51be45db0.png",
+  "sha256": "b46db2509af51be45db03de91ea1e00f3050cd3812229eee857b8e8ef774bec1",
+  "mime": "image/png",
+  "width": 512,
+  "height": 98,
+  "background": "#182327",
+  "sourceUrl": "https://theinnerstudio.com/room",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-bc826189dc6b.png"
+ },
+ "research.TH.fitness|BR-FIT-bc851e43c9cc": {
+  "file": "assets/tenant-logos/ec02d17f94eb3c9899a7.svg",
+  "sha256": "ec02d17f94eb3c9899a790409bdca86220dc9a0f8ee8557ed515501d1e331b42",
+  "mime": "image/svg+xml",
+  "width": 100.0,
+  "height": 88.4,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://th.fitness24seven.com/en",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-bc851e43c9cc.svg"
+ },
+ "research.TH.fitness|BR-FIT-c0130817f483": {
+  "file": "assets/tenant-logos/a0cd9f8dcd957f63156a.jpg",
+  "sha256": "a0cd9f8dcd957f63156a9c89369920b960ef2152c8fae87c6498c1209cf1730a",
+  "mime": "image/jpeg",
+  "width": 300,
+  "height": 300,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://salehere.co.th/the-fitness-society/branches",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-c0130817f483.jpg"
+ },
+ "research.TH.fitness|BR-FIT-c6053a358a20": {
+  "file": "assets/tenant-logos/3431c1c17e2675eb2a1e.png",
+  "sha256": "3431c1c17e2675eb2a1eb1eff58bfbef6709f0b51c0b095e0aa24db49872e6da",
+  "mime": "image/png",
+  "width": 370,
+  "height": 70,
+  "background": "#182327",
+  "sourceUrl": "https://absoluteboutiquefitness.co/absolute-studios/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-c6053a358a20.png"
+ },
+ "research.TH.fitness|BR-FIT-d09407a32751": {
+  "file": "assets/tenant-logos/3d971987cfa1bdbd93d9.jpg",
+  "sha256": "3d971987cfa1bdbd93d9ddc0afd027817fa12d612833775e46423ef8d7ff6741",
+  "mime": "image/jpeg",
+  "width": 100,
+  "height": 100,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.instagram.com/bloccityclimb/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-d09407a32751.jpg"
+ },
+ "research.TH.fitness|BR-FIT-db3a9da59474": {
+  "file": "assets/tenant-logos/f4f625ab4bded3e04715.webp",
+  "sha256": "f4f625ab4bded3e04715827d4607e6bb6c32ed9c92cf25c2ac0dddec5ccc9428",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 24,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.breathepilates.co.th/th/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-db3a9da59474.webp",
+  "original": {
+   "sha256": "edf6e6b22c241eb776669d4f644e5ce123989e61809b6da57f82af366f0a6f38",
+   "mime": "image/webp",
+   "width": 603,
+   "height": 37
+  }
+ },
+ "research.TH.fitness|BR-FIT-e24341a4c506": {
+  "file": "assets/tenant-logos/7ea45b4b05152544e94b.png",
+  "sha256": "7ea45b4b05152544e94bdaf37057f0c54757a09a540d9f1fde51d5bd44052dc7",
+  "mime": "image/png",
+  "width": 478,
+  "height": 194,
+  "background": "#182327",
+  "sourceUrl": "https://fitness7thailand.com/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-e24341a4c506.png"
+ },
+ "research.TH.fitness|BR-FIT-f1e42bf1095e": {
+  "file": "assets/tenant-logos/8255fc9c471df0381c9d.webp",
+  "sha256": "8255fc9c471df0381c9d9bbccfb605f9c83ccc84588bbcaf2e843927e053df92",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 183,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.virginactive.co.th/en/locations",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-f1e42bf1095e.webp",
+  "original": {
+   "sha256": "da61f74f3e6b1d647f32d3e58b51ecfc0d01fa79c97e545d9554b88d2e1c4cef",
+   "mime": "image/png",
+   "width": 2524,
+   "height": 1205
+  }
+ },
+ "research.TH.fitness|BR-FIT-fe3800bc5e7d": {
+  "file": "assets/tenant-logos/257bd15a738a9e6bf68c.webp",
+  "sha256": "257bd15a738a9e6bf68c71b9ea0b866f688b62155e61f11c73aa79403b6f6077",
+  "mime": "image/webp",
+  "width": 384,
+  "height": 63,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://poppilates.com/studio-location/",
+  "checkedOn": "2026-10-29",
+  "origin": "montri-th/fitness@6775063:assets/brand-logos/br-fit-fe3800bc5e7d.webp",
+  "original": {
+   "sha256": "587203edf5c76a5096bc7ada945b77ba6789b287101128c2ba5c96439b9ea9bf",
+   "mime": "image/png",
+   "width": 699,
+   "height": 115
+  }
  }
 }

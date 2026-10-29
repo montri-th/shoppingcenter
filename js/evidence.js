@@ -98,6 +98,7 @@ export const STORE_DATASETS = Object.freeze({
   'research.TH.optical': 'ร้านแว่นตา',
   'research.TH.camera': 'ร้านกล้อง',
   'research.MLA.PARC': 'ข้อมูลร้านจาก MLA',
+  'research.TH.fitness': 'ฟิตเนสและสตูดิโอ',
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 

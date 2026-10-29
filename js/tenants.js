@@ -72,6 +72,8 @@ const collator = new Intl.Collator('th', {numeric: true, sensitivity: 'base'});
 export function tenantRole(item) {
   const category = text(`${item.category || ''} ${item.storeFormat || ''}`);
   const dataset = text(item.dataset);
+  // A linked dataset that is one kind of tenant (CityMETER Fitness: gyms and studios) takes its role from the dataset.
+  if (/fitness/.test(dataset)) return 'fitness';
   if (/cinema|entertainment|โรงภาพยนตร์/.test(category)) return 'entertainment';
   if (/^(department_store|department store|ห้างสรรพสินค้า)$/.test(text(item.category))
     || (!/luxury/.test(dataset) && /^(department_store|department store)$/.test(text(item.storeFormat)))) return 'department';
@@ -93,10 +95,10 @@ export function tenantRole(item) {
 export const TENANT_ROLE_LABELS = Object.freeze({
   entertainment: 'ความบันเทิง', department: 'ห้างสรรพสินค้า', grocery: 'ซูเปอร์มาร์เก็ตและของใช้',
   convenience: 'ร้านสะดวกซื้อ', destination: 'แฟชั่นและแบรนด์หรู', beauty: 'ความงาม', dining: 'ร้านอาหาร', food: 'อาหารและเครื่องดื่ม', cafe: 'คาเฟ่และเครื่องดื่ม', technology: 'เทคโนโลยีและอุปกรณ์',
-  camera: 'กล้องและอุปกรณ์', gold: 'ทองและเครื่องประดับ', pharmacy: 'ยาและสุขภาพ', optical: 'แว่นตา', bank: 'บริการธนาคาร', shop: 'ร้านค้าและบริการ',
+  camera: 'กล้องและอุปกรณ์', gold: 'ทองและเครื่องประดับ', pharmacy: 'ยาและสุขภาพ', optical: 'แว่นตา', bank: 'บริการธนาคาร', fitness: 'ฟิตเนสและสตูดิโอ', shop: 'ร้านค้าและบริการ',
 });
 
-const BASE = {department: 100, entertainment: 95, grocery: 90, destination: 85, beauty: 72, dining: 70, food: 68, technology: 67, camera: 65, gold: 60, cafe: 55, pharmacy: 50, optical: 45, convenience: 40, bank: 35, shop: 30};
+const BASE = {department: 100, entertainment: 95, grocery: 90, destination: 85, beauty: 72, dining: 70, food: 68, technology: 67, fitness: 66, camera: 65, gold: 60, cafe: 55, pharmacy: 50, optical: 45, convenience: 40, bank: 35, shop: 30};
 
 export function tenantPriority(item, venue = {}, profile = null) {
   const role = tenantRole(item);

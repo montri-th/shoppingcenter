@@ -11,6 +11,10 @@ An optional logo manifest maps "dataset|brandId" to a local file and its recorde
 MLA listings use a separate, dated public-membership gate; they never upgrade current
 operation or the original registry graph. Explicitly matched existing outlets receive
 corroborating evidence rather than a second displayed shop.
+A linked research dataset (role dataset_accepted_host_link, e.g. research.TH.fitness) enters through its own gate:
+the dataset's sheet of record accepted the branch as identical with and located in exactly one registry venue
+(accepted_identity_and_located_in), its public source still lists it, and the published release it comes from is
+pinned by commit and SHA-256 (scripts/link-dataset-tenants.py). It never changes venue cores or primary counts.
 """
 import argparse
 import hashlib
@@ -27,6 +31,11 @@ PRIVATE = re.compile(r'(?:docs|drive)\.google\.com', re.I)
 MLA_ROLE = 'mla_dated_public_tenant_listing'
 OWNER_ROLE = 'owner_confirmed_tenant_state'
 MLA_DATASET = 'research.MLA.PARC'
+LINKED_ROLE = 'dataset_accepted_host_link'
+LINKED_BASIS = 'research_sheet_accepted_identity_and_located_in_single_registry_venue'
+LINKED_HOST_STATUS = 'accepted_identity_and_located_in'
+LINKED_DATASETS = {'research.TH.fitness'}
+LINKED_STATUSES = {'source_listed'}
 MLA_AUTHORITIES = {
     'google_business_profile_listing_observed_by_mla',
     'third_party_branch_directory_observed_by_mla',
@@ -182,6 +191,32 @@ def owner_gate(observation, as_of):
     return None
 
 
+def linked_gate(observation, as_of):
+    """A branch that another CityMETER research dataset accepted as located in one registry venue."""
+    if observation.get('accepted') is not True or observation.get('primary') is not False:
+        return 'linked_not_accepted'
+    if (observation.get('dataset') not in LINKED_DATASETS
+            or observation.get('relationshipBasis') != LINKED_BASIS
+            or observation.get('hostIdentityStatus') != LINKED_HOST_STATUS):
+        return 'linked_host_evidence_gate'
+    ids = observation.get('venueIds')
+    if not isinstance(ids, list) or len(ids) != 1 or not isinstance(ids[0], str) or not ids[0].strip():
+        return 'linked_single_exact_host_required'
+    if observation.get('status') not in LINKED_STATUSES or observation.get('eventType') or observation.get('movementType'):
+        return 'linked_not_current_source_listing'
+    checked = iso_date(observation.get('checkedOn'))
+    if not checked or checked > iso_date(as_of):
+        return 'linked_missing_or_future_check_date'
+    if (not public_url(observation.get('sourceUrl'))
+            or not re.fullmatch(r'[a-fA-F0-9]{64}', str(observation.get('sourceSha256') or ''))
+            or not str(observation.get('sourceArtifactKey') or '').strip()
+            or not str(observation.get('sourceRowKey') or '').strip()):
+        return 'linked_public_source_provenance'
+    if observation.get('farPointConflict') is True:
+        return 'linked_far_point_conflict'
+    return None
+
+
 def current_listing_exclusion(observation):
     # Visibility holds stay explicit: a forecast month never releases a held listing.
     if observation.get('visibilityHold') is True or observation.get('publicExportEligible') is False:
@@ -270,6 +305,11 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
         if is_mla and mla_error:
             omitted[mla_error] += 1
             continue
+        is_linked = not is_owner and not is_mla and observation.get('sourceRole') == LINKED_ROLE
+        linked_error = linked_gate(observation, as_of) if is_linked else None
+        if linked_error:
+            omitted[linked_error] += 1
+            continue
         original_primary = observation.get('primary') is True and not is_mla and not is_owner
         additional_official = (observation.get('primary') is False
                                and observation.get('sourceRole') == 'official_chain_exact_named_host_listing'
@@ -284,7 +324,7 @@ def build(payload, venue_file, logo_manifest=None, root=ROOT):
                               'official_branch_name_and_unit_address_agree_with_existing_Main_parent_venue_identity'
                               and bool(observation.get('registeredChildVenueId'))
                               and bool(public_urls(observation.get('sourceUrl'))))
-        if observation.get('accepted') is not True or not (original_primary or additional_official or registered_grocery or is_mla or is_owner):
+        if observation.get('accepted') is not True or not (original_primary or additional_official or registered_grocery or is_mla or is_owner or is_linked):
             omitted['not_accepted_primary'] += 1
             continue
         item = clean_item(observation)

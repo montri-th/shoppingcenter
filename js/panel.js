@@ -30,6 +30,8 @@ export const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;',
 export const num = n => NUMBER.format(n);
 const safeURL = value => { try { const u = new URL(value); return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : ''; } catch { return ''; } };
 export const LUXURY_SITE = 'https://montri-th.github.io/luxurybrands/';
+/** CityMETER Fitness opens a venue by its registry id (the same id as here). */
+export const FITNESS_SITE = 'https://montri-th.github.io/fitness/';
 /** Product title (owner instruction 2026-10-25): TH ศูนย์การค้า · EN Shopping centers. */
 export const PRODUCT_TITLE = 'ศูนย์การค้า';
 /** Plain word for what the numbers count — shopping centres, markets and other retail venues. */
@@ -361,9 +363,11 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
   if (opened && tiles.length < 3) tiles.push(metricTile(opened, 'เปิด', 'opened'));
   const links = [d ? link(d.website, 'เว็บไซต์', 'chip-link') : '', d ? link(d.directory, 'รายชื่อร้าน', 'chip-link') : '', d?.phone ? phoneLink(d.phone) : ''].filter(Boolean);
   const luxury = d?.luxuryPlace ? link(`${LUXURY_SITE}?place=${encodeURIComponent(d.luxuryPlace)}`, 'ดูแบรนด์หรูที่นี่ใน Luxury Brands', 'source-link strong-link') : '';
+  const fitness = (tenants?.roster?.items || []).some(item => item.dataset === 'research.TH.fitness')
+    ? link(`${FITNESS_SITE}?venue=${encodeURIComponent(r.id)}`, 'ดูฟิตเนสที่นี่ใน CityMETER Fitness', 'source-link strong-link') : '';
   const datasetIds = tenants?.roster ? [...new Set((tenants.roster.items || []).map(item => item.dataset))].sort() : stores.datasets;
   const storeSources = listedStores && datasetIds.length ? datasetIds.map(x => esc(storeDataset(x))).join(' · ') : '';
-  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury ? `<p class="links">${luxury}</p>` : ''}</section>`;
+  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
   const building = buildingReading(r, buildings, pinState);

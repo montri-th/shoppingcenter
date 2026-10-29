@@ -107,3 +107,7 @@ The source pipeline reads the canonical dated-observation ledger, verifies publi
 The current shop list follows the canonical owner decisions from 26 October 2026: explicit closed and planned/hidden entries are excluded, Grill & Ground is added separately at Dadfa, host/name corrections are applied without duplicate outlets, and owner assertions remain distinct from public-source checks in field evidence. LOPIA stays hidden until explicitly released.
 
 Only the selected venue x-ray solid moves above road-name symbols, letting its walls and roof cover road text. Nearby roads, ordinary buildings, camera, palette, layouts and primary venue/area counts stay unchanged. Cache tag 20261026-r12 loads the coordinated release.
+
+## 0.1.5 - CityMETER Fitness branches in the tenant list
+
+Owner request 30 October 2026: map the CityMETER Fitness branches to the venues of this registry. The Fitness research sheet links each branch to a registry venue by id only (`accepted_identity_and_located_in`); its public release at commit `6775063` now feeds the tenant list as a linked dataset. 139 branches whose official source still lists them appear at 124 venues with verified brand logos (27 files); 8 announced or unclear rows stay out. Every existing tenant entry, venue core, map count and area figure is unchanged. A venue with Fitness branches links to the same venue in CityMETER Fitness, which links back by the same registry id. Cache tag 20261030-r13.

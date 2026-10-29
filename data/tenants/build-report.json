@@ -2,14 +2,15 @@
   "asOf": "2026-10-26",
   "inputObservations": 2341,
   "eligibleSourceObservations": 2336,
-  "publishedVenueHosts": 464,
-  "publishedObservations": 2322,
-  "publishedItems": 2322,
-  "publishedSourceObservations": 2324,
+  "publishedVenueHosts": 502,
+  "publishedObservations": 2461,
+  "publishedItems": 2461,
+  "publishedSourceObservations": 2463,
   "datasets": {
     "research.MLA.PARC": 92,
     "research.TH.bank": 218,
     "research.TH.camera": 184,
+    "research.TH.fitness": 139,
     "research.TH.gold": 322,
     "research.TH.grocery": 60,
     "research.TH.luxury": 295,
@@ -30,12 +31,13 @@
     "official_locator_and_bot_registry_listed_not_field_verified": 39,
     "owner_reported_open": 11,
     "source_filtered_operational_not_revalidated": 1,
-    "source_listed": 291,
+    "source_listed": 430,
     "source_listed_current_operation_not_independently_verified": 644,
     "source_listed_not_field_verified": 896,
     "status_recheck_required_after_temporary_notice": 3
   },
   "sourceRoles": {
+    "dataset_accepted_host_link": 139,
     "mla_dated_public_tenant_listing": 78,
     "official_chain_exact_named_host_listing": 644,
     "official_grocery_explicit_parent_host_listing": 7,
@@ -50,7 +52,7 @@
     "newDisplayedListings": 14,
     "corroboratingExistingListings": 1
   },
-  "withLogo": 1624,
+  "withLogo": 1763,
   "retailerIdentity": {
     "manufacturerLogosSuppressed": 8,
     "monoBrandRetailerNames": 4,
@@ -65,12 +67,22 @@
     {
       "venueId": "SC-000067",
       "summaryObservations": 4,
-      "rosterObservations": 5
+      "rosterObservations": 6
+    },
+    {
+      "venueId": "SC-000218",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "SC-000229",
       "summaryObservations": 42,
-      "rosterObservations": 46
+      "rosterObservations": 47
+    },
+    {
+      "venueId": "SC-000250",
+      "summaryObservations": 0,
+      "rosterObservations": 2
     },
     {
       "venueId": "SC-000288",
@@ -78,9 +90,24 @@
       "rosterObservations": 25
     },
     {
+      "venueId": "SC-000314",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-000322",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-000324",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-000327",
       "summaryObservations": 2,
-      "rosterObservations": 8
+      "rosterObservations": 9
     },
     {
       "venueId": "SC-000337",
@@ -110,7 +137,7 @@
     {
       "venueId": "SC-000534",
       "summaryObservations": 3,
-      "rosterObservations": 6
+      "rosterObservations": 7
     },
     {
       "venueId": "SC-000573",
@@ -118,9 +145,14 @@
       "rosterObservations": 20
     },
     {
+      "venueId": "SC-000612",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-000631",
       "summaryObservations": 1,
-      "rosterObservations": 2
+      "rosterObservations": 3
     },
     {
       "venueId": "SC-000660",
@@ -128,9 +160,14 @@
       "rosterObservations": 2
     },
     {
+      "venueId": "SC-000686",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-000710",
       "summaryObservations": 8,
-      "rosterObservations": 16
+      "rosterObservations": 17
     },
     {
       "venueId": "SC-000717",
@@ -140,12 +177,17 @@
     {
       "venueId": "SC-000761",
       "summaryObservations": 20,
-      "rosterObservations": 29
+      "rosterObservations": 30
+    },
+    {
+      "venueId": "SC-000788",
+      "summaryObservations": 1,
+      "rosterObservations": 2
     },
     {
       "venueId": "SC-000799",
       "summaryObservations": 19,
-      "rosterObservations": 27
+      "rosterObservations": 28
     },
     {
       "venueId": "SC-000802",
@@ -160,12 +202,12 @@
     {
       "venueId": "SC-000887",
       "summaryObservations": 17,
-      "rosterObservations": 26
+      "rosterObservations": 27
     },
     {
       "venueId": "SC-000934",
       "summaryObservations": 0,
-      "rosterObservations": 3
+      "rosterObservations": 5
     },
     {
       "venueId": "SC-000976",
@@ -175,12 +217,17 @@
     {
       "venueId": "SC-000977",
       "summaryObservations": 0,
-      "rosterObservations": 50
+      "rosterObservations": 51
     },
     {
       "venueId": "SC-000992",
       "summaryObservations": 14,
-      "rosterObservations": 24
+      "rosterObservations": 25
+    },
+    {
+      "venueId": "SC-001052",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "SC-001065",
@@ -220,7 +267,7 @@
     {
       "venueId": "SC-001164",
       "summaryObservations": 15,
-      "rosterObservations": 24
+      "rosterObservations": 25
     },
     {
       "venueId": "SC-001179",
@@ -230,12 +277,12 @@
     {
       "venueId": "SC-001223",
       "summaryObservations": 2,
-      "rosterObservations": 6
+      "rosterObservations": 7
     },
     {
       "venueId": "SC-001237",
       "summaryObservations": 0,
-      "rosterObservations": 2
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-001242",
@@ -243,9 +290,14 @@
       "rosterObservations": 6
     },
     {
+      "venueId": "SC-001243",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
       "venueId": "SC-001244",
       "summaryObservations": 73,
-      "rosterObservations": 82
+      "rosterObservations": 83
     },
     {
       "venueId": "SC-001245",
@@ -263,6 +315,16 @@
       "rosterObservations": 2
     },
     {
+      "venueId": "SC-001278",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-001279",
+      "summaryObservations": 4,
+      "rosterObservations": 6
+    },
+    {
       "venueId": "SC-001282",
       "summaryObservations": 23,
       "rosterObservations": 24
@@ -273,6 +335,11 @@
       "rosterObservations": 31
     },
     {
+      "venueId": "SC-001292",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-001299",
       "summaryObservations": 8,
       "rosterObservations": 11
@@ -280,7 +347,7 @@
     {
       "venueId": "SC-001304",
       "summaryObservations": 2,
-      "rosterObservations": 6
+      "rosterObservations": 8
     },
     {
       "venueId": "SC-001313",
@@ -290,17 +357,17 @@
     {
       "venueId": "SC-001340",
       "summaryObservations": 10,
-      "rosterObservations": 15
+      "rosterObservations": 16
     },
     {
       "venueId": "SC-001360",
       "summaryObservations": 16,
-      "rosterObservations": 18
+      "rosterObservations": 19
     },
     {
       "venueId": "SC-001370",
       "summaryObservations": 1,
-      "rosterObservations": 4
+      "rosterObservations": 5
     },
     {
       "venueId": "SC-001421",
@@ -315,7 +382,7 @@
     {
       "venueId": "SC-001440",
       "summaryObservations": 1,
-      "rosterObservations": 2
+      "rosterObservations": 3
     },
     {
       "venueId": "SC-001469",
@@ -325,12 +392,12 @@
     {
       "venueId": "SC-001528",
       "summaryObservations": 1,
-      "rosterObservations": 4
+      "rosterObservations": 5
     },
     {
       "venueId": "SC-001536",
       "summaryObservations": 15,
-      "rosterObservations": 22
+      "rosterObservations": 23
     },
     {
       "venueId": "SC-001554",
@@ -340,12 +407,12 @@
     {
       "venueId": "SC-001569",
       "summaryObservations": 2,
-      "rosterObservations": 4
+      "rosterObservations": 5
     },
     {
       "venueId": "SC-001664",
       "summaryObservations": 13,
-      "rosterObservations": 15
+      "rosterObservations": 16
     },
     {
       "venueId": "SC-001701",
@@ -358,44 +425,74 @@
       "rosterObservations": 1
     },
     {
+      "venueId": "SC-001735",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-001761",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-001765",
       "summaryObservations": 17,
-      "rosterObservations": 22
+      "rosterObservations": 23
     },
     {
       "venueId": "SC-001783",
       "summaryObservations": 3,
-      "rosterObservations": 4
+      "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-001798",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-001801",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-001806",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "SC-001904",
       "summaryObservations": 0,
-      "rosterObservations": 2
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-002060",
       "summaryObservations": 14,
-      "rosterObservations": 23
+      "rosterObservations": 24
     },
     {
       "venueId": "SC-002835",
       "summaryObservations": 13,
-      "rosterObservations": 19
+      "rosterObservations": 20
+    },
+    {
+      "venueId": "SC-002950",
+      "summaryObservations": 7,
+      "rosterObservations": 8
     },
     {
       "venueId": "SC-003076",
       "summaryObservations": 7,
-      "rosterObservations": 10
+      "rosterObservations": 11
     },
     {
       "venueId": "SC-003680",
       "summaryObservations": 9,
-      "rosterObservations": 14
+      "rosterObservations": 15
     },
     {
       "venueId": "SC-003895",
       "summaryObservations": 11,
-      "rosterObservations": 20
+      "rosterObservations": 21
     },
     {
       "venueId": "SC-005123",
@@ -405,17 +502,17 @@
     {
       "venueId": "SC-005210",
       "summaryObservations": 9,
-      "rosterObservations": 13
+      "rosterObservations": 14
     },
     {
       "venueId": "SC-005483",
       "summaryObservations": 0,
-      "rosterObservations": 1
+      "rosterObservations": 2
     },
     {
       "venueId": "SC-005612",
       "summaryObservations": 8,
-      "rosterObservations": 17
+      "rosterObservations": 18
     },
     {
       "venueId": "SC-005645",
@@ -425,7 +522,7 @@
     {
       "venueId": "SC-006188",
       "summaryObservations": 11,
-      "rosterObservations": 15
+      "rosterObservations": 16
     },
     {
       "venueId": "SC-006255",
@@ -433,29 +530,44 @@
       "rosterObservations": 1
     },
     {
+      "venueId": "SC-006349",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-006353",
+      "summaryObservations": 10,
+      "rosterObservations": 11
+    },
+    {
       "venueId": "SC-006426",
       "summaryObservations": 20,
-      "rosterObservations": 26
+      "rosterObservations": 27
     },
     {
-      "venueId": "SC-006469",
-      "summaryObservations": 16,
-      "rosterObservations": 24
-    },
-    {
-      "venueId": "SC-006489",
+      "venueId": "SC-006455",
       "summaryObservations": 0,
       "rosterObservations": 1
     },
     {
+      "venueId": "SC-006469",
+      "summaryObservations": 16,
+      "rosterObservations": 25
+    },
+    {
+      "venueId": "SC-006489",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
       "venueId": "SC-006510",
       "summaryObservations": 10,
-      "rosterObservations": 13
+      "rosterObservations": 14
     },
     {
       "venueId": "SC-006549",
       "summaryObservations": 5,
-      "rosterObservations": 10
+      "rosterObservations": 11
     },
     {
       "venueId": "SC-006551",
@@ -463,9 +575,14 @@
       "rosterObservations": 1
     },
     {
+      "venueId": "SC-006555",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-006590",
       "summaryObservations": 17,
-      "rosterObservations": 25
+      "rosterObservations": 26
     },
     {
       "venueId": "SC-007223",
@@ -473,9 +590,14 @@
       "rosterObservations": 1
     },
     {
+      "venueId": "SC-007245",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
       "venueId": "SC-007290",
       "summaryObservations": 14,
-      "rosterObservations": 18
+      "rosterObservations": 20
     },
     {
       "venueId": "SC-007325",
@@ -490,12 +612,12 @@
     {
       "venueId": "SC-008030",
       "summaryObservations": 11,
-      "rosterObservations": 12
+      "rosterObservations": 13
     },
     {
       "venueId": "SC-008039",
       "summaryObservations": 11,
-      "rosterObservations": 16
+      "rosterObservations": 17
     },
     {
       "venueId": "SC-008636",
@@ -510,7 +632,7 @@
     {
       "venueId": "SC-009298",
       "summaryObservations": 10,
-      "rosterObservations": 16
+      "rosterObservations": 17
     },
     {
       "venueId": "SC-009446",
@@ -520,7 +642,12 @@
     {
       "venueId": "SC-010265",
       "summaryObservations": 9,
-      "rosterObservations": 15
+      "rosterObservations": 16
+    },
+    {
+      "venueId": "SC-010307",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "SC-011214",
@@ -535,7 +662,7 @@
     {
       "venueId": "SC-012142",
       "summaryObservations": 7,
-      "rosterObservations": 11
+      "rosterObservations": 12
     },
     {
       "venueId": "SC-012155",
@@ -545,15 +672,20 @@
     {
       "venueId": "SC-012178",
       "summaryObservations": 0,
-      "rosterObservations": 1
+      "rosterObservations": 3
     },
     {
       "venueId": "SC-012204",
       "summaryObservations": 22,
-      "rosterObservations": 30
+      "rosterObservations": 31
     },
     {
       "venueId": "SC-012208",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-012240",
       "summaryObservations": 0,
       "rosterObservations": 1
     },
@@ -570,7 +702,12 @@
     {
       "venueId": "SC-013641",
       "summaryObservations": 6,
-      "rosterObservations": 11
+      "rosterObservations": 12
+    },
+    {
+      "venueId": "SC-014484",
+      "summaryObservations": 11,
+      "rosterObservations": 12
     },
     {
       "venueId": "SC-015253",
@@ -590,12 +727,12 @@
     {
       "venueId": "SC-015800",
       "summaryObservations": 22,
-      "rosterObservations": 29
+      "rosterObservations": 30
     },
     {
       "venueId": "SC-016126",
       "summaryObservations": 2,
-      "rosterObservations": 3
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-016195",
@@ -630,20 +767,35 @@
     {
       "venueId": "SC-C0063",
       "summaryObservations": 7,
-      "rosterObservations": 8
+      "rosterObservations": 9
+    },
+    {
+      "venueId": "SC-C0079",
+      "summaryObservations": 1,
+      "rosterObservations": 2
     },
     {
       "venueId": "SC-C0129",
       "summaryObservations": 0,
-      "rosterObservations": 20
+      "rosterObservations": 21
+    },
+    {
+      "venueId": "SC-C0160",
+      "summaryObservations": 0,
+      "rosterObservations": 2
     },
     {
       "venueId": "SC-C0221",
       "summaryObservations": 6,
-      "rosterObservations": 9
+      "rosterObservations": 11
     },
     {
       "venueId": "SC-C0242",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0252",
       "summaryObservations": 0,
       "rosterObservations": 1
     },
@@ -660,12 +812,22 @@
     {
       "venueId": "SC-C0316",
       "summaryObservations": 5,
-      "rosterObservations": 8
+      "rosterObservations": 9
     },
     {
       "venueId": "SC-C0355",
       "summaryObservations": 8,
       "rosterObservations": 11
+    },
+    {
+      "venueId": "SC-C0356",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C0368",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "SC-C0390",
@@ -683,9 +845,14 @@
       "rosterObservations": 1
     },
     {
+      "venueId": "SC-C0423",
+      "summaryObservations": 1,
+      "rosterObservations": 2
+    },
+    {
       "venueId": "SC-C0450",
       "summaryObservations": 10,
-      "rosterObservations": 15
+      "rosterObservations": 17
     },
     {
       "venueId": "SC-C0514",
@@ -700,12 +867,12 @@
     {
       "venueId": "SC-C0590",
       "summaryObservations": 0,
-      "rosterObservations": 1
+      "rosterObservations": 2
     },
     {
       "venueId": "SC-C0596",
       "summaryObservations": 2,
-      "rosterObservations": 3
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-C0645",
@@ -715,6 +882,11 @@
     {
       "venueId": "SC-C0670",
       "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C0773",
+      "summaryObservations": 1,
       "rosterObservations": 2
     },
     {
@@ -738,7 +910,42 @@
       "rosterObservations": 2
     },
     {
+      "venueId": "SC-C1008",
+      "summaryObservations": 3,
+      "rosterObservations": 4
+    },
+    {
+      "venueId": "SC-C1100",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C1138",
+      "summaryObservations": 6,
+      "rosterObservations": 7
+    },
+    {
+      "venueId": "SC-C1232",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "SC-C1489",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C1527",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-C1565",
+      "summaryObservations": 0,
+      "rosterObservations": 2
+    },
+    {
+      "venueId": "SC-C1709",
       "summaryObservations": 0,
       "rosterObservations": 1
     },
@@ -756,6 +963,16 @@
       "venueId": "SC-C3031",
       "summaryObservations": 4,
       "rosterObservations": 5
+    },
+    {
+      "venueId": "SC-C3713",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "SC-SM-03846",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "SC-SM-04121",
@@ -870,7 +1087,7 @@
     {
       "venueId": "SC-SM-04230",
       "summaryObservations": 1,
-      "rosterObservations": 3
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-SM-04238",
@@ -1140,7 +1357,7 @@
     {
       "venueId": "SC-SM-04339",
       "summaryObservations": 2,
-      "rosterObservations": 7
+      "rosterObservations": 8
     },
     {
       "venueId": "SC-SM-04340",
@@ -1160,7 +1377,7 @@
     {
       "venueId": "SC-SM-04344",
       "summaryObservations": 2,
-      "rosterObservations": 3
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-SM-04345",
@@ -1255,7 +1472,7 @@
     {
       "venueId": "SC-SM-04365",
       "summaryObservations": 2,
-      "rosterObservations": 3
+      "rosterObservations": 4
     },
     {
       "venueId": "SC-SM-04366",
@@ -1295,7 +1512,7 @@
     {
       "venueId": "SC-SM-04376",
       "summaryObservations": 1,
-      "rosterObservations": 2
+      "rosterObservations": 3
     },
     {
       "venueId": "SC-SM-04377",
@@ -1309,6 +1526,11 @@
     },
     {
       "venueId": "SC-SM-04379",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-17b9c4016eb0d2",
       "summaryObservations": 0,
       "rosterObservations": 1
     },
@@ -1345,7 +1567,7 @@
     {
       "venueId": "VN-3321e200e1c19c",
       "summaryObservations": 1,
-      "rosterObservations": 2
+      "rosterObservations": 3
     },
     {
       "venueId": "VN-3c18a1e8488e18",
@@ -1378,6 +1600,11 @@
       "rosterObservations": 1
     },
     {
+      "venueId": "VN-565de5ad8eb2c0",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "VN-62a21463715a3a",
       "summaryObservations": 1,
       "rosterObservations": 2
@@ -1390,7 +1617,7 @@
     {
       "venueId": "VN-76b3c63823c8d2",
       "summaryObservations": 0,
-      "rosterObservations": 4
+      "rosterObservations": 5
     },
     {
       "venueId": "VN-794a723a07bbce",
@@ -1398,9 +1625,14 @@
       "rosterObservations": 3
     },
     {
+      "venueId": "VN-7a1719654a5a17",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "VN-7e2155ac67fe96",
       "summaryObservations": 0,
-      "rosterObservations": 5
+      "rosterObservations": 7
     },
     {
       "venueId": "VN-7e2e2b9558eca4",
@@ -1413,6 +1645,11 @@
       "rosterObservations": 2
     },
     {
+      "venueId": "VN-8f7ad79ca43692",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "VN-9715417f177ff3",
       "summaryObservations": 0,
       "rosterObservations": 1
@@ -1421,6 +1658,16 @@
       "venueId": "VN-9a24815cf0f8d5",
       "summaryObservations": 1,
       "rosterObservations": 2
+    },
+    {
+      "venueId": "VN-a263de54d31372",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-af6f8f302b8c83",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "VN-b320a7935f03ab",
@@ -1433,6 +1680,11 @@
       "rosterObservations": 2
     },
     {
+      "venueId": "VN-b577a6924dfdc4",
+      "summaryObservations": 0,
+      "rosterObservations": 1
+    },
+    {
       "venueId": "VN-b5cfabac579ede",
       "summaryObservations": 0,
       "rosterObservations": 1
@@ -1441,6 +1693,11 @@
       "venueId": "VN-c35311e456ef98",
       "summaryObservations": 3,
       "rosterObservations": 4
+    },
+    {
+      "venueId": "VN-c5699042f57a95",
+      "summaryObservations": 0,
+      "rosterObservations": 1
     },
     {
       "venueId": "VN-ca15ade8db7e2f",
@@ -1468,9 +1725,14 @@
       "rosterObservations": 2
     },
     {
-      "venueId": "VN-dc970c0b1ab411",
+      "venueId": "VN-da3a415543b05b",
       "summaryObservations": 0,
       "rosterObservations": 1
+    },
+    {
+      "venueId": "VN-dc970c0b1ab411",
+      "summaryObservations": 0,
+      "rosterObservations": 2
     },
     {
       "venueId": "VN-dce6effc5268f8",
@@ -1480,7 +1742,7 @@
     {
       "venueId": "VN-e08c399f3164d8",
       "summaryObservations": 0,
-      "rosterObservations": 1
+      "rosterObservations": 2
     },
     {
       "venueId": "VN-e5e930bbc56485",
@@ -1501,9 +1763,34 @@
     "Ranking is a contextual editorial priority, not measured visits, sales or footfall.",
     "Dated MLA membership does not establish current operation; existing-outlet corroboration is evidence, not another displayed/source-card count.",
     "Owner assertions are dated owner-reported facts, not new website or field verification; identity or host confirmation alone does not establish current opening.",
+    "Linked research datasets (linkedDatasets) add branches their own sheet of record accepted as located in one registry venue; they are source listings, not field checks, and never change venue cores or primary counts.",
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
   "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
   "venueCoreSha256": "8ae465e87237e53879b9b3b03a73ffa9d2de5a2e63fb3e39e6f9e07303ed4462",
-  "logoManifestSha256": "69ae084fac70cf970eacf6c9ea2ce8a9ac33bd8dd38eecc905ed725871afdbea"
+  "logoManifestSha256": "e10f5e1f28e7d9ddfa4883942296e97e77b899ede47568b2d073d4dfb5583785",
+  "linkedDatasets": {
+    "research.TH.fitness": {
+      "source": "https://github.com/montri-th/fitness",
+      "commit": "6775063d1a2377fb00fa835b391b9a480c0b7bf9",
+      "mergedOn": "2026-10-30",
+      "files": {
+        "data/fitness.json": "19222de8e3d397fec7e2995f35ec487b9a92307d66c232f2b01b17babc0d11af",
+        "data/brand-logos.json": "7c7e2f57017c92e5894f63adeefff40072337f54a9a2ea7b6c3651fbcea20f9b"
+      },
+      "releaseAsOf": "2026-10-26",
+      "productVersion": "0.3.1",
+      "unit": "one branch row of the dataset (02_STORES outlet_id) that its sheet of record links to one registry venue",
+      "gate": "dataset_accepted_host_link: accepted_identity_and_located_in · one registry venue in data/venues.json · source_listed · public source URL · own point within 300 m of the venue point or owner-confirmed",
+      "linkedRows": 147,
+      "publishedItems": 139,
+      "publishedVenueHosts": 124,
+      "withLogo": 139,
+      "logoFiles": 27,
+      "logosHeld": {},
+      "omitted": {
+        "linked_not_current_source_listing": 8
+      }
+    }
+  }
 }

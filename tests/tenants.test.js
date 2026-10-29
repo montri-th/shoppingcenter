@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createTenantLoader, createTenantSelection, rankTenants, tenantRole, TENANT_PAGE_SIZE} from '../js/tenants.js';
+import {createTenantLoader, createTenantSelection, rankTenants, tenantRole, TENANT_PAGE_SIZE, TENANT_ROLE_LABELS} from '../js/tenants.js';
 import {renderTenantList} from '../js/panel.js';
 
 const venue = {id: 'TEST-1', name: 'ศูนย์ตัวอย่าง', group: 'mall'};
@@ -81,6 +81,12 @@ test('role order responds to the venue, never to logo availability or network si
   assert.equal(rankTenants(rows, venue, {sourceUrl: 'https://example.com/centre', roleOrder: ['destination', 'grocery']})[0].id, 'lux');
   assert.deepEqual(rankTenants(rows, venue).map(x => x.id), rankTenants(rows.map(x => ({...x, logo: {file: 'x'}, branches: 999999})), venue).map(x => x.id));
   assert.equal(rankTenants([{id: 'b', brand: 'Same'}, {id: 'a', brand: 'Same'}], venue)[0].id, 'a');
+  // Linked CityMETER Fitness branches: one role from the dataset, never from a category word such as dance or kids.
+  for (const category of ['gym_chain', 'dance_fitness', 'kids_activity', 'climbing_bouldering', 'yoga'])
+    assert.equal(tenantRole({dataset: 'research.TH.fitness', category, storeFormat: 'fitness_or_studio_branch_listing'}), 'fitness');
+  assert.equal(TENANT_ROLE_LABELS.fitness, 'ฟิตเนสและสตูดิโอ');
+  const gym = {id: 'gym', brand: 'Gym', dataset: 'research.TH.fitness', category: 'gym_chain'};
+  assert.deepEqual(rankTenants([gym, rows[1], rows[0]], venue).map(x => x.id), ['lux', 'gym', 'camera'], 'between fashion and specialist retail; an editorial order, not footfall');
 });
 
 test('names are escaped; logo is optional, lazy and restricted to verified local assets; rows keep source links', () => {

@@ -117,6 +117,20 @@ test('luxury link appears only for venues the Luxury Brands page can open', () =
   assert.ok(html.includes(`https://montri-th.github.io/luxurybrands/?place=${details.get(linked.id).luxuryPlace}`));
 });
 
+test('fitness link appears only when the venue roster lists CityMETER Fitness branches, by the same registry id', () => {
+  const row = byId.get('SC-001278');
+  assert.ok(row, 'Erawan Bangkok');
+  const profile = buildVenueProfile({row, detail: details.get(row.id), byId, districts});
+  const fitness = {id: 'research.TH.fitness:02_STORES:POS-FIT-8b70023548ef', name: 'Physique 57 Bangkok · Erawan', brand: 'Physique 57 Bangkok',
+    dataset: 'research.TH.fitness', branch: 'Erawan', status: 'source_listed', sourceUrl: 'https://physique57bangkok.com/find-us'};
+  const withFitness = renderVenue(profile, {asOf, tenants: {roster: {items: [fitness], meta: {asOf: '2026-10-26'}}, limit: 10}});
+  assert.ok(withFitness.includes('href="https://montri-th.github.io/fitness/?venue=SC-001278"'));
+  assert.ok(withFitness.includes('ดูฟิตเนสที่นี่ใน CityMETER Fitness'));
+  assert.ok(withFitness.includes('ฟิตเนสและสตูดิโอ'), 'role label and dataset label');
+  const without = renderVenue(profile, {asOf, tenants: {roster: {items: [{...fitness, id: 'x', dataset: 'research.TH.restaurants'}], meta: {}}, limit: 10}});
+  assert.ok(!without.includes('montri-th.github.io/fitness'));
+});
+
 test('search finds qualified venues, components and pending records without fuzzy matching', () => {
   const r = searchAll('central', {rows, pending});
   assert.ok(r.qualifiedTotal > 0);
