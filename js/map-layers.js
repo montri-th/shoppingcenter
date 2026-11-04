@@ -3,9 +3,14 @@
  *
  * The districts of the province being read (or every district when the country is read)
  * carry a choropleth of venues per km² in the LDS `density.area` family (scales.js). The
- * fill sits beneath the basemap's first line layer so roads and labels stay readable above
- * an exact, opaque data colour; from zoom 14.5 it switches off (hard switch) and only the
- * outlines and HTML labels remain, letting pins and host buildings carry the reading.
+ * fill sits beneath the basemap's water fill (dataFillBeforeId), so rivers stay water and roads
+ * and labels stay readable above an exact, opaque data colour; from zoom 14.5 it switches off
+ * (hard switch) and only the outlines and HTML labels remain, letting pins and host buildings
+ * carry the reading.
+ *
+ * Geometry: data/districts.geojson is coarse (country and province views). Where the page has
+ * loaded the detail polygons of a province (district-detail.js), update() draws those instead
+ * through `geometryOf`; ids, values and colours do not change.
  *
  * Focus + quiet: with a focus (automatic first-Aha districts, an explicit set or one selected
  * district) only those districts keep their fill; the rest of the scope stays as quiet
@@ -14,6 +19,7 @@
  */
 import {buildRamp, classify} from './scales.js';
 import {pointInRing} from './geometry.js';
+import {DATA_FILL_BEFORE} from './map-style.js';
 
 /**
  * maxzoom of every GeoJSON source the page adds. MapLibre 5.6.2 throws in SourceCache._updateRetainedTiles
@@ -47,6 +53,14 @@ export function firstLineLayerId(map) {
   return (layers.find(l => l.type === 'line') || layers.find(l => l.type === 'symbol'))?.id;
 }
 
+/** Where data fills go: before the basemap water fill when the style has it (rivers stay water), else before the first line. */
+export function dataFillBeforeId(map) {
+  return map.getLayer?.(DATA_FILL_BEFORE) ? DATA_FILL_BEFORE : firstLineLayerId(map);
+}
+
+/** Credit line of the district and province polygons (RTSD, the polygons of CityMETER production). */
+export const BOUNDARY_ATTRIBUTION = 'ขอบเขตจังหวัดและเขต/อำเภอ: กรมแผนที่ทหาร (RTSD) 2562 ผ่าน <a href="https://www.geoboundaries.org/" target="_blank" rel="noopener">geoBoundaries</a> / OCHA (CC BY 3.0 IGO)';
+
 export function featureBounds(feature, LngLatBounds) {
   const b = new LngLatBounds();
   const walk = v => { if (typeof v[0] === 'number') b.extend(v); else v.forEach(walk); };
@@ -68,9 +82,9 @@ export function buildDistrictModel(summaries) {
 }
 
 export function installDistrictLayers(map, {onSelect} = {}) {
-  const beforeId = firstLineLayerId(map);
+  const beforeId = dataFillBeforeId(map);
   map.addSource(SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM, promoteId: 'id',
-    attribution: 'ขอบเขตเขต/อำเภอ: <a href="https://github.com/chingchai/OpenGISData-Thailand" target="_blank" rel="noopener">OpenGISData-Thailand</a> (CC BY 4.0)'});
+    attribution: BOUNDARY_ATTRIBUTION});
   const outlineColor = () => ['case', ['==', ['get', 'quiet'], 1], cssVar('--border-default', '#C9D0CB'), cssVar('--border-emphasis', '#7D877F')];
   map.addLayer({
     id: LAYERS.fill, type: 'fill', source: SOURCE, maxzoom: FILL_MAX_ZOOM,
@@ -105,15 +119,16 @@ export function installDistrictLayers(map, {onSelect} = {}) {
   /**
    * summaries: the scoped districts (areas.summarizeDistricts); focusIds: districts with
    * detail (empty = all); selectedId: the open district; minzoom: where the reading starts
-   * (country reading starts at the province fill limit so the frames read first).
+   * (country reading starts at the province fill limit so the frames read first);
+   * geometryOf: id → detail geometry when its province is loaded (else the coarse polygon).
    */
-  function update({summaries = [], selectedId = '', focusIds = [], visible = true, minzoom = 0} = {}) {
+  function update({summaries = [], selectedId = '', focusIds = [], visible = true, minzoom = 0, geometryOf = null} = {}) {
     current = buildDistrictModel(summaries);
     const focus = new Set(selectedId ? [selectedId] : focusIds);
     const focusMode = focus.size > 0;
     for (const a of current.areas) { a.focused = !focusMode || focus.has(a.id); a.quiet = focusMode && !focus.has(a.id); }
     const features = current.areas.map(a => ({
-      type: 'Feature', geometry: a.feature.geometry,
+      type: 'Feature', geometry: (geometryOf && geometryOf(a.id)) || a.feature.geometry,
       properties: {id: a.id, name: a.name, count: a.count, state: a.state, fill: a.fill || '#000000', filled: a.focused ? 1 : 0, quiet: a.quiet ? 1 : 0,
         selected: a.id === selectedId || (!selectedId && focusIds.includes(a.id)) ? 1 : 0},
     }));

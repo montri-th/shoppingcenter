@@ -2046,7 +2046,7 @@
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
   "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
-  "venueCoreSha256": "8ae465e87237e53879b9b3b03a73ffa9d2de5a2e63fb3e39e6f9e07303ed4462",
+  "venueCoreSha256": "07f99419b7e4399e00dc7d879a09eb0eca05c71f1dbb1cdd318d50fb40173387",
   "logoManifestSha256": "e10f5e1f28e7d9ddfa4883942296e97e77b899ede47568b2d073d4dfb5583785",
   "linkedDatasets": {
     "research.TH.fitness": {
@@ -2221,5 +2221,12 @@
     "research.TH.beauty_clinic": "host links recorded as source_supported_candidate (registry identity candidate)",
     "research.TH.car_service": "host links recorded as candidate_not_selected",
     "research.TH.playground": "host links recorded as exact_name_candidate only"
+  },
+  "venueCoreRelocation": {
+    "on": "2026-11-04",
+    "by": "scripts/relocate-districts.py",
+    "reason": "district polygons changed to RTSD (the polygons of CityMETER production); venue rows otherwise unchanged",
+    "venueRowsChanged": 80,
+    "contextRowsChanged": 47
   }
 }

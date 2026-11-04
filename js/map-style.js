@@ -144,8 +144,8 @@ export function buildMapStyle(theme = 'light', {palette = basemapPalette(theme),
       {id: 'park', type: 'fill', source: SOURCE_ID, 'source-layer': 'park', filter: poly, paint: {'fill-color': p.park}},
       {id: 'aeroway-area', type: 'fill', source: SOURCE_ID, 'source-layer': 'aeroway', minzoom: 10, filter: poly, paint: {'fill-color': p.aeroway}},
       {id: 'water', type: 'fill', source: SOURCE_ID, 'source-layer': 'water', filter: ['all', poly, ['!=', ['get', 'brunnel'], 'tunnel']], paint: {'fill-color': p.water}},
-      // Data fills (district/province choropleth) are inserted before this first line layer, so
-      // they sit above the ground but beneath water lines, building footprints and roads.
+      // Data fills (district/province choropleth) are inserted before the water fill above, so they sit above the
+      // ground but beneath water, water lines, building footprints and roads.
       {id: FIRST_LINE_LAYER, type: 'line', source: SOURCE_ID, 'source-layer': 'waterway', filter: ['all', line, ['!=', ['get', 'brunnel'], 'tunnel']],
         layout: {'line-cap': 'round'}, paint: {'line-color': p.waterLine, 'line-width': ['interpolate', ['exponential', 1.3], ['zoom'], 10, ['match', ['get', 'class'], 'river', 1.2, 0.6], 18, ['match', ['get', 'class'], 'river', 7, 3]]}},
       {id: 'building', type: 'fill', source: SOURCE_ID, 'source-layer': 'building', minzoom: 13, paint: {'fill-color': p.building, 'fill-outline-color': p.buildingLine, 'fill-antialias': true}},
@@ -157,8 +157,12 @@ export function buildMapStyle(theme = 'light', {palette = basemapPalette(theme),
   };
 }
 
-/** Data fills go before this layer: above the ground, beneath water lines, footprints, roads and labels. */
-export const DATA_FILL_BEFORE = FIRST_LINE_LAYER;
+/**
+ * Data fills go before the water fill: above the ground and green areas, beneath water, water lines, footprints,
+ * roads and labels — a district whose official boundary runs mid-river never paints the river (owner, 4 Nov 2026).
+ */
+export const WATER_LAYER = 'water';
+export const DATA_FILL_BEFORE = WATER_LAYER;
 /**
  * 3D layers (city/focus massing, host buildings) go before the first label layer:
  * after every line layer, so pitched buildings occlude roads correctly, and before

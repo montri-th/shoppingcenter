@@ -4,12 +4,12 @@
   python3 scripts/build-data.py \
       --master     <dir with the Research Master CSV exports: 01_VENUES, 09_RELATIONSHIPS, 10_VENUE_LOGOS>
       --geometry   <dir with the unzipped CityMETER-retail-venue-host-geometry bundle>
-      --boundaries <dir with OpenGISData-Thailand districts.geojson>
+      --boundaries <dir with districts.geojson from scripts/build-boundaries.py (RTSD polygons, OpenGISData codes)>
       --production <dir with base-info-lv0.json and prod-districts.json (CityMETER production API)>
       [--mapshaper <mapshaper executable>]
 
-Writes data/venues.json, data/pending.json, data/districts.geojson, data/provinces.geojson and
-data/venue-buildings.geojson. Re-run after a new export of the sheet; no code change is needed:
+Writes data/venues.json, data/pending.json, data/districts.geojson, data/provinces.geojson,
+data/districts/<province>.geojson (detail, loaded by the page per province) and data/venue-buildings.geojson. Re-run after a new export of the sheet; no code change is needed:
 every count, the first finding and the class thresholds' inputs are recomputed and recorded in
 meta, and every input file is hashed into meta.inputs.
 
@@ -45,6 +45,22 @@ from shapely.strtree import STRtree
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / 'data'
 SCHEMA_VERSION = '1.0.0'
+
+# District polygons (owner, 4 Nov 2026 21:56: the OpenGISData outline of Samphanthawong crossed the Chao Phraya).
+# RTSD polygons are the ones CityMETER production uses (lv1 extent and areaSqm match); scripts/build-boundaries.py
+# gives each polygon its OpenGISData code, and production's area becomes the km² of venues per km².
+BOUNDARY = {
+    'source': 'Royal Thai Survey Department (RTSD) district polygons 2019 · OCHA ROAP / HDX COD-AB · geoBoundaries gbOpen THA ADM2',
+    'license': 'CC BY 3.0 IGO', 'url': 'https://www.geoboundaries.org/countryDownloads.html',
+    'sameAs': 'CityMETER production district polygons (base/info lv1 extent and areaSqm match these polygons)',
+    'codes': 'CityMETER production base/info lv0 (abbrEn) and lv1 (district code); each polygon takes the '
+             'OpenGISData-Thailand (fafcea1) district code it overlaps most (scripts/build-boundaries.py)',
+    'area': 'CityMETER production lv1 areaSqm',
+}
+# National file: coarse, for country and province views. Per-province detail: arcs simplified to a few metres in small
+# (urban) districts and tens of metres in large ones; the page loads one file per province when it zooms in.
+COARSE_PERCENT = 0.25
+DETAIL_INTERVAL = 'area_sqkm < 25 ? 6 : area_sqkm < 150 ? 15 : 35'
 
 # ---------------------------------------------------------------- definitions
 
@@ -569,6 +585,79 @@ def simplify(districts_geojson, district_meta, mapshaper, percent):
     return d_geo, p_geo
 
 
+def first_finding(located_supply, district_meta, prov_area):
+    """The three densest districts (venues per km²) of the province holding the densest district (D1)."""
+    dist_by_code = {d['code']: d for d in district_meta}
+    per_district = Counter(r['districtCode'] for r in located_supply)
+    per_province = Counter(r['provinceCode'] for r in located_supply)
+    dens = {c: n / dist_by_code[c]['areaKm2'] for c, n in per_district.items()}
+    top = max(dens, key=lambda c: (dens[c], per_district[c], -int(c)))
+    prov = dist_by_code[top]['province']
+    ranked = sorted((c for c in dens if dist_by_code[c]['province'] == prov),
+                    key=lambda c: (-dens[c], -per_district[c], c))[:3]
+    aha = {
+        'province': prov, 'districts': ranked, 'count': sum(per_district[c] for c in ranked), 'total': per_province[prov],
+        'areaKm2': round(sum(dist_by_code[c]['areaKm2'] for c in ranked), 3), 'provinceAreaKm2': round(prov_area[prov], 3),
+        'densities': {c: round(dens[c], 4) for c in ranked},
+    }
+    return aha, per_district, per_province
+
+
+def district_details(districts_geojson, district_meta, prod_provinces, mapshaper):
+    """Per-province detail polygons (DETAIL_INTERVAL metres, topology kept), keyed by province abbreviation."""
+    by_boundary = {d['boundaryCode']: d['code'] for d in district_meta}
+    abbr = {p['code']: p['abbrEn'] for p in prod_provinces}
+    with tempfile.TemporaryDirectory() as tmp:
+        src = Path(tmp) / 'src.geojson'
+        src.write_text(json.dumps(districts_geojson))
+        out = Path(tmp) / 'detail.geojson'
+        subprocess.run([mapshaper, '-i', str(src), '-filter-fields', 'amp_code,pro_code,area_sqkm',
+                        '-simplify', 'variable', f'interval={DETAIL_INTERVAL}', 'keep-shapes',
+                        '-filter-fields', 'amp_code,pro_code', '-o', str(out), 'precision=0.00001', 'format=geojson'],
+                       check=True, capture_output=True)
+        detail = json.loads(out.read_text())
+    files = defaultdict(list)
+    for f in detail['features']:
+        p = f['properties']
+        files[abbr[p['pro_code']]].append({'type': 'Feature', 'properties': {'code': by_boundary[p['amp_code']]},
+                                           'geometry': f['geometry']})
+    return {k: sorted(v, key=lambda f: f['properties']['code']) for k, v in sorted(files.items())}
+
+
+def write_boundary_files(districts_geojson, district_meta, district_geoms, prod_provinces, prov_area, mapshaper, percent, data=None):
+    """data/districts.geojson (coarse), data/provinces.geojson (dissolved from it) and data/districts/<province>.geojson."""
+    data = Path(data or DATA)
+    d_geo, p_geo = simplify(districts_geojson, district_meta, mapshaper, percent)
+    d_geo['metadata'] = {'source': BOUNDARY, 'simplified': f'mapshaper {percent}% keep-shapes (country and province views; '
+                         'membership uses full resolution)', 'detail': 'data/districts/{province}.geojson',
+                         'features': len(d_geo['features'])}
+    from shapely.ops import unary_union
+    prov_geoms = defaultdict(list)
+    for d, g in zip(district_meta, district_geoms):
+        prov_geoms[d['province']].append(g)
+    for f in p_geo['features']:
+        code = f['properties']['pro_code']
+        pm = next(p for p in prod_provinces if p['code'] == code)
+        rp = unary_union(prov_geoms[pm['abbrEn']]).representative_point()
+        f['properties'] = {'code': pm['abbrEn'], 'dopa': code, 'th': pm['nameTh'], 'en': pm['nameEn'],
+                           'areaKm2': round(prov_area[pm['abbrEn']], 3), 'prodId': pm['id'],
+                           'labelLon': round(rp.x, 5), 'labelLat': round(rp.y, 5)}
+    p_geo['metadata'] = {'source': BOUNDARY, 'dissolvedFrom': 'data/districts.geojson', 'features': len(p_geo['features'])}
+    (data / 'districts.geojson').write_text(json.dumps(d_geo, ensure_ascii=False, separators=(',', ':')))
+    (data / 'provinces.geojson').write_text(json.dumps(p_geo, ensure_ascii=False, separators=(',', ':')))
+    detail_dir = data / 'districts'
+    detail_dir.mkdir(exist_ok=True)
+    for old in detail_dir.glob('*.geojson'):
+        old.unlink()
+    details = district_details(districts_geojson, district_meta, prod_provinces, mapshaper)
+    for abbr, feats in details.items():
+        (detail_dir / f'{abbr}.geojson').write_text(json.dumps({
+            'type': 'FeatureCollection', 'metadata': {'source': BOUNDARY, 'province': abbr,
+                                                      'simplified': f'mapshaper variable interval ({DETAIL_INTERVAL}) metres, keep-shapes'},
+            'features': feats}, ensure_ascii=False, separators=(',', ':')))
+    return d_geo, p_geo, details
+
+
 # ---------------------------------------------------------------- main build
 
 def main():
@@ -579,7 +668,7 @@ def main():
     ap.add_argument('--production', required=True)
     ap.add_argument('--mapshaper', default='mapshaper')
     ap.add_argument('--luxury', help='published Luxury Brands data/luxury.json, to link venues the Luxury page can open (?place=)')
-    ap.add_argument('--simplify', type=float, default=14)
+    ap.add_argument('--simplify', type=float, default=COARSE_PERCENT)
     ap.add_argument('--as-of', default=None, help='snapshot date (default: newest checked_on in 01_VENUES)')
     args = ap.parse_args()
 
@@ -592,7 +681,7 @@ def main():
         '09_RELATIONSHIPS': {'file': relations_csv.name.split(' - ')[-1], 'sha256': sha256(relations_csv)},
         '10_VENUE_LOGOS': {'file': logos_csv.name.split(' - ')[-1], 'sha256': sha256(logos_csv)},
         'host_geometry': {'file': 'selected-host-geometry.geojson', 'sha256': sha256(geo_dir / 'selected-host-geometry.geojson')},
-        'districts': {'file': 'OpenGISData-Thailand districts.geojson', 'sha256': sha256(Path(args.boundaries) / 'districts.geojson')},
+        'districts': {'file': 'RTSD districts.geojson (scripts/build-boundaries.py)', 'sha256': sha256(Path(args.boundaries) / 'districts.geojson')},
         'production_provinces': {'file': 'base-info-lv0.json', 'sha256': sha256(Path(args.production) / 'base-info-lv0.json')},
         'production_districts': {'file': 'prod-districts.json', 'sha256': sha256(Path(args.production) / 'prod-districts.json')},
     }
@@ -844,19 +933,7 @@ def main():
     countable = [r for r in rows if r['countable']]
     supply = [r for r in countable if r['status'] == 'supply']
     located_supply = [r for r in supply if r['located'] and r['districtCode']]
-    dist_by_code = {d['code']: d for d in district_meta}
-    per_district = Counter(r['districtCode'] for r in located_supply)
-    per_province = Counter(r['provinceCode'] for r in located_supply)
-    dens = {c: n / dist_by_code[c]['areaKm2'] for c, n in per_district.items()}
-    top = max(dens, key=lambda c: (dens[c], per_district[c], -int(c)))
-    prov = dist_by_code[top]['province']
-    ranked = sorted((c for c in dens if dist_by_code[c]['province'] == prov),
-                    key=lambda c: (-dens[c], -per_district[c], c))[:3]
-    aha = {
-        'province': prov, 'districts': ranked, 'count': sum(per_district[c] for c in ranked), 'total': per_province[prov],
-        'areaKm2': round(sum(dist_by_code[c]['areaKm2'] for c in ranked), 3), 'provinceAreaKm2': round(prov_area[prov], 3),
-        'densities': {c: round(dens[c], 4) for c in ranked},
-    }
+    aha, per_district, per_province = first_finding(located_supply, district_meta, prov_area)
     counts = {
         'registry': len(df), 'qualified': len(rows), 'tiers': dict(Counter(r['tier'] for r in rows)),
         'countable': len(countable), 'supply': len(supply), 'planned': sum(r['status'] == 'planned' for r in countable),
@@ -889,9 +966,7 @@ def main():
         'dataset': 'CityMETER Shopping Centers & Retail Venues Thailand — Research Master',
         'registryId': 'research.TH.shopping', 'productId': 'shoppingCenter',
         'grain': 'one retail venue / site; parent complexes and retail components are separate rows',
-        'boundary': {'source': 'OpenGISData-Thailand (DOPA-credited), CC BY 4.0', 'commit': 'fafcea1',
-                     'url': 'https://github.com/chingchai/OpenGISData-Thailand',
-                     'codes': 'CityMETER production base/info lv0 (abbrEn) and lv1 (district code)'},
+        'boundary': BOUNDARY,
         'definitions': {
             'qualified': 'venue_qualification_status in the definition-supported family (current, historical, planned) '
                          'or a category rule the owner accepted (owner_*_definition_accepted_*, owner_confirmed_*; '
@@ -966,23 +1041,7 @@ def main():
         'fields': ['id', 'name', 'lon', 'lat', 'provinceCode', 'districtCode', 'group', 'state'],
         'rows': sorted(pending, key=lambda r: r[0]),
     }, ensure_ascii=False, separators=(',', ':')))
-    d_geo, p_geo = simplify(districts_geojson, district_meta, args.mapshaper, args.simplify)
-    d_geo['metadata'] = {'source': meta['boundary'], 'simplified': f'mapshaper {args.simplify}% keep-shapes (display only; membership uses full resolution)',
-                         'features': len(d_geo['features'])}
-    from shapely.ops import unary_union
-    prov_geoms = defaultdict(list)
-    for d, g in zip(district_meta, district_geoms):
-        prov_geoms[d['province']].append(g)
-    for f in p_geo['features']:
-        code = f['properties']['pro_code']
-        pm = next(p for p in prod_provinces if p['code'] == code)
-        rp = unary_union(prov_geoms[pm['abbrEn']]).representative_point()
-        f['properties'] = {'code': pm['abbrEn'], 'dopa': code, 'th': pm['nameTh'], 'en': pm['nameEn'],
-                           'areaKm2': round(prov_area[pm['abbrEn']], 3), 'prodId': pm['id'],
-                           'labelLon': round(rp.x, 5), 'labelLat': round(rp.y, 5)}
-    p_geo['metadata'] = {'source': meta['boundary'], 'dissolvedFrom': 'data/districts.geojson', 'features': len(p_geo['features'])}
-    (DATA / 'districts.geojson').write_text(json.dumps(d_geo, ensure_ascii=False, separators=(',', ':')))
-    (DATA / 'provinces.geojson').write_text(json.dumps(p_geo, ensure_ascii=False, separators=(',', ':')))
+    write_boundary_files(districts_geojson, district_meta, district_geoms, prod_provinces, prov_area, args.mapshaper, args.simplify)
     (DATA / 'venue-buildings.geojson').write_text(json.dumps({
         'type': 'FeatureCollection',
         'metadata': {'as_of': (host.get('metadata') or {}).get('checked_on'), 'scope': 'Qualified retained host context, not national building coverage',

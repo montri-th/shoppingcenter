@@ -103,7 +103,7 @@ function statusLists(planned, closed) {
 
 /** Data line: dataset · source · date · boundary — carried by every panel that shows numbers. */
 export function dataLine(asOf) {
-  return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))} · ขอบเขตเขต/อำเภอ OpenGISData-Thailand (กรมการปกครอง) · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+  return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))} · ขอบเขตเขต/อำเภอ กรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
 }
 
 /** Data line of the shop lists (brand view, nearby centres): dataset · source · check dates · boundary. */

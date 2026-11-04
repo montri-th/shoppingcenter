@@ -24,7 +24,7 @@
 | ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน | 1,559 รายการใน 385 สถานที่ที่นับได้ | candidate ไม่นับ |
 | รายชื่อร้านข้างใน (แผงสถานที่ · 4 พ.ย. 2569) | 3,713 รายการ ใน 529 สถานที่ จาก 17 ชุดข้อมูล | ชุดเดิม 2,461 + 7 ชุดใหม่ที่แหล่งทางการระบุชื่อศูนย์ 1,252 (Sport 315 · Apparel 667 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 61 · Nail 23) · ตัวเลขรวมของแผนที่ ย่าน และตารางยังเป็นจำนวนแบบ primary ข้างบน |
 
-ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **49 จาก 856 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.6 จาก 1,566.6 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 99 แห่ง
+ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **50 จาก 861 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 99 แห่ง
 
 ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,017 จาก 6,014 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 238 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 174 · คอมมูนิตี้มอลล์ 128 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
 
@@ -73,13 +73,14 @@ npm test         # Node ≥ 20
 
 - Research Master ใน Google Sheets และ CityMETER Dataset Registry (internal working reference; public demo data: [data/venues.json](data/venues.json))
 - [CityMETER Shopping Center production](https://landometer.com/v3/citymeter?d=shoppingCenter) — รหัสจังหวัด/เขตและ CityMETER id
-- [OpenGISData-Thailand](https://github.com/chingchai/OpenGISData-Thailand) — ขอบเขตจังหวัดและเขต/อำเภอ (CC BY 4.0, อ้างอิงกรมการปกครอง)
+- รูปเขตกรมแผนที่ทหาร (RTSD 2562) ผ่าน [geoBoundaries](https://www.geoboundaries.org/) / OCHA HDX — ขอบเขตจังหวัดและเขต/อำเภอ (CC BY 3.0 IGO) ชุดเดียวกับ CityMETER production
+- [OpenGISData-Thailand](https://github.com/chingchai/OpenGISData-Thailand) — รหัสและชื่อเขต/อำเภอที่ใช้จับคู่ (CC BY 4.0)
 
 ## Assets, สิทธิ์ และการตรวจ
 
 ใช้ LDS **0.9.7 / v0.9.7-owner.1** (`standalone-0.9.7-r1`, `color-srgb-10`, SHA-256 `d3085cbc…d432d96`) เฉพาะค่าที่หน้านี้ใช้: tokens ใน [assets/theme.css](assets/theme.css), LUT 41 ค่าของ `count` และ `density.area` ใน [js/scales.js](js/scales.js) (ใช้ครบทั้ง 41 ค่าบนแผนที่ คำอธิบายแผนที่ และกราฟ), categorical series 1–10, fonts ใน `assets/lds/build-kit/` (OFL) และไอคอน Material Symbols Rounded: ชุด nav-7 ที่อนุมัติ (ไม่แก้ไบต์) กับชุด pictogram/UI 40 ตัว (`assets/icons/material-pictogram-300.*`, test exception ที่เจ้าของอนุมัติ 22 ต.ค. และสั่งเพิ่ม 25 ต.ค. 2569 — ยังไม่ขึ้นทะเบียนใน LDS) ไม่แนบคลัง LDS ทั้งชุด ไฟล์ asset บันทึกขนาดและ SHA-256 ใน [assets/manifest.json](assets/manifest.json) และทุกไฟล์ของ repository ใน `handoff/handoff-manifest.json` (สร้างด้วย `npm run handoff:manifest`) ผล hash ตรงไม่ใช่การรับรองว่าหน้าจอผ่านการตรวจหรือเป็น production
 
-คง attribution ของ OpenFreeMap / OpenMapTiles / OpenStreetMap, OpenGISData-Thailand และ amCharts (โลโก้บนกราฟตาม free licence; [vendor/amcharts5/LICENSE](vendor/amcharts5/LICENSE)) รูปทรงอาคารของสถานที่มาจาก OpenStreetMap (ODbL) ผ่าน geometry bundle ของ CityMETER — README ของ bundle ระบุว่าการที่ production ใช้ได้ไม่ได้พิสูจน์สิทธิ์เผยแพร่ต่อแบบเปิดโดยลำพัง จึงคง field สิทธิ์ของแต่ละรูปทรงไว้ · อาคารที่หมุดตั้งอยู่เป็นรูปทรงจาก tile ของแผนที่ฐาน (© OpenStreetMap contributors) วาดบนเครื่องผู้ใช้ ไม่ได้เก็บเป็นไฟล์ข้อมูล
+คง attribution ของ OpenFreeMap / OpenMapTiles / OpenStreetMap, กรมแผนที่ทหาร (RTSD) ผ่าน geoBoundaries / OCHA (CC BY 3.0 IGO) และ amCharts (โลโก้บนกราฟตาม free licence; [vendor/amcharts5/LICENSE](vendor/amcharts5/LICENSE)) รูปทรงอาคารของสถานที่มาจาก OpenStreetMap (ODbL) ผ่าน geometry bundle ของ CityMETER — README ของ bundle ระบุว่าการที่ production ใช้ได้ไม่ได้พิสูจน์สิทธิ์เผยแพร่ต่อแบบเปิดโดยลำพัง จึงคง field สิทธิ์ของแต่ละรูปทรงไว้ · อาคารที่หมุดตั้งอยู่เป็นรูปทรงจาก tile ของแผนที่ฐาน (© OpenStreetMap contributors) วาดบนเครื่องผู้ใช้ ไม่ได้เก็บเป็นไฟล์ข้อมูล
 
 โลโก้สถานที่มาจากทะเบียน `10_VENUE_LOGOS` ของ Research Master: ครบ 113 ไฟล์ที่ตรวจ SHA-256 ตรงกับทะเบียนแล้ว ผูกกับ 108 สถานที่ที่นับได้ ([data/venue-logos.json](data/venue-logos.json)) สถานที่ที่ไม่มีโลโก้ในทะเบียนแสดงชื่อแทน ใช้ไฟล์ต้นฉบับไม่แก้สีหรือสัดส่วน ค้นด้วย `venue_id` เท่านั้น การรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า สิทธิ์ยังเป็นของเจ้าของ
 
@@ -121,3 +122,12 @@ Owner request 4 November 2026 19:43: review the depth and breadth of the new dat
 - **Seven more datasets in the tenant list** (`scripts/link-research-tenants.py`, gate `build-tenant-data.py#named_gate`): rows whose official source names the host and whose own research sheet matched it to one registry venue by exact or reviewed unique alias — the standard of the canonical `official_chain_exact_named_host_listing` — current, in approved scope, the brand's own shop or counter, within 300 m, one brand once per venue. Sport 315 · Apparel 667 · Furniture, DIY & Kitchenware 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 61 · Nail 23. The list is now 3,713 entries at 529 venues from 17 datasets; every earlier entry is byte-identical. Beauty, Beauty Clinic, Playground and Car Service record their host links as candidates, so they stay out (`build-report.json#excludedDatasets`).
 - **Reading aids for the ICP** (`data/tenant-index.json`, `scripts/build-tenant-index.py`): shop-mix chips in the venue panel; “เทียบศูนย์ใกล้เคียง” — centres with a shop list within 5 km, the roles and brands their lists have that this list does not, and what only this list has; brand search and the brand view with venues, provinces and brands that share venues.
 - Venue cores, primary counts and the map/area/table totals are unchanged (D19). Cache tag `20261104-r14`.
+
+## 0.1.7 - district polygons that follow the river
+
+Owner 4 November 2026 21:56: the Samphanthawong outline crossed the Chao Phraya into Thonburi. The OpenGISData-Thailand polygon had 12 vertices (5 on screen), and the district fill was drawn over water.
+
+- **Polygons of CityMETER production** (D24): RTSD 2019 district polygons via OCHA / geoBoundaries (CC BY 3.0 IGO). Production's district extents and areas match these polygons exactly. `scripts/build-boundaries.py` gives each polygon its OpenGISData code by overlap; areas come from production.
+- **Membership recomputed** with the build's own point-in-polygon (`scripts/relocate-districts.py`): 80 venues and 47 context rows moved. 65 of the 80 now sit in the district their own address names (10 did before). First finding: สัมพันธวงศ์ · พระนคร · บางรัก, 50 of 861.
+- **Smooth at every zoom:** the national file stays coarse. Each province's detailed polygons (`data/districts/<province>.geojson`, Bangkok 59 KB gzipped) load only when that province is read or in view from zoom 9 (`js/district-detail.js`). Data fills now sit under the basemap water, so rivers stay water. Cache tag `20261104-r15`.
+

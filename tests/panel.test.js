@@ -35,7 +35,7 @@ test('overview: Aha numbers, metrics and provenance come from the rows', () => {
   assert.ok(html.includes(`>${insight.count}<`) && html.includes(`จาก ${insight.total.toLocaleString('th-TH')} แห่ง`));
   for (const d of insight.districts) assert.ok(html.includes(`data-id="${d.code}"`));
   assert.ok(html.includes(dataLine(asOf)), 'dataset · source · date · boundary line');
-  for (const part of [PRODUCT_TITLE, 'CityMETER research', 'ตรวจถึง', 'OpenGISData-Thailand']) assert.ok(dataLine(asOf).includes(part), part);
+  for (const part of [PRODUCT_TITLE, 'CityMETER research', 'ตรวจถึง', 'กรมแผนที่ทหาร (RTSD)']) assert.ok(dataLine(asOf).includes(part), part);
   assert.ok(!/caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน/.test(html), 'no caveat on the first view');
   const ratio = densityRatio(insight);
   assert.ok(Math.abs(ratio - (insight.count / insight.areaKm2) / (insight.total / insight.provinceAreaKm2)) < 1e-9, 'share ÷ area share = density ratio');

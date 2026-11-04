@@ -42,6 +42,7 @@ import {installVenueXray} from './venue-xray.js';
 import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
 import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBounds, FILL_MAX_ZOOM} from './map-layers.js';
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
+import {createDistrictDetail, provincesAtPoints, DETAIL_MIN_ZOOM} from './district-detail.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
 import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
@@ -68,6 +69,7 @@ const state = {
   view: 'rank', page: 0,
   focusAreaIds: [], autoFocus: true, focusIds: [],
   panel: {mode: 'overview', id: ''}, history: [],
+  districtDetail: null, districtArgs: null,
   detail: null, detailError: false,
   showPending: true,
   map: null, loaded: false, mapTheme: '', initialCameraDone: false, tileTemplate: '', lastPreset: '',
@@ -619,7 +621,7 @@ function renderLegend() {
     steps.innerHTML = rampLegendHTML(model.ramp, {zero: model.zeroCount > 0, unit: atProvince ? 'แห่ง' : 'แห่ง/ตร.กม.'});
     $('legend-areas').title = atProvince
       ? `${brand ? `จำนวนสถานที่ที่มี ${brand.brand.name} ในรายชื่อร้าน` : 'จำนวนสถานที่'}ต่อจังหวัด · สีไล่ 41 ระดับของ LDS ตามลำดับค่า (ค่าต่ำสุดอ่อนสุด ค่าสูงสุดเข้มสุด) · สีเดียวกันทั้งสองธีม`
-      : `สถานที่ต่อตารางกิโลเมตรของ${word} (ตัวหาร = พื้นที่ตามขอบเขต OpenGISData-Thailand) · สีไล่ 41 ระดับของ LDS ตามลำดับค่า · สีเดียวกันทั้งสองธีม`;
+      : `สถานที่ต่อตารางกิโลเมตรของ${word} (ตัวหาร = พื้นที่เขต/อำเภอของ CityMETER ตามขอบเขตกรมแผนที่ทหาร) · สีไล่ 41 ระดับของ LDS ตามลำดับค่า · สีเดียวกันทั้งสองธีม`;
   }
   $('toggle-pending').setAttribute('aria-pressed', String(state.showPending));
   $('pending-count').textContent = state.pending ? num(state.pending.rows.length) : '';
@@ -780,6 +782,35 @@ function fitMap({instant = false} = {}) {
   fitBounds(new LB(THAILAND[0], THAILAND[1]), {instant});
 }
 
+/** Detail polygon of a district once its province file is loaded (district-detail.js), else null (coarse polygon). */
+const districtGeometry = code => state.districtDetail?.geometry(code) || null;
+
+/**
+ * Load the detail polygons the view needs — the province being read, and the provinces in view once zoomed in —
+ * then redraw only the district layer (same ids, values and colours; a more faithful outline).
+ */
+function requestDistrictDetail() {
+  const detail = state.districtDetail, map = state.map;
+  if (!detail || !map || !state.districtLayers) return;
+  const wanted = [];
+  const readCode = readingProvince();
+  if (readCode) wanted.push(readCode);
+  if (map.getZoom() >= DETAIL_MIN_ZOOM) {
+    // Sample the screen, not the bounds: a pitched camera's bounds reach the horizon, where outlines are too small to matter.
+    const {width, height} = map.getCanvas().getBoundingClientRect(), top = map.getPitch() > 30 ? 0.35 : 0, points = [];
+    for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) {
+      const p = map.unproject([width * (i + 0.5) / 5, height * (top + (1 - top) * (j + 0.5) / 5)]);
+      points.push([p.lng, p.lat]);
+    }
+    wanted.push(...provincesAtPoints(points, state.provinceGeo));
+  }
+  const missing = wanted.filter(code => !detail.loaded(code));
+  if (!missing.length) return;
+  detail.ensure(missing).then(changed => {
+    if (changed && state.loaded && state.districtArgs) state.districtLayers?.update({...state.districtArgs, geometryOf: districtGeometry});
+  });
+}
+
 function updateSpatialLayers() {
   if (!state.loaded) return;
   const map = state.map;
@@ -788,7 +819,9 @@ function updateSpatialLayers() {
   const pm = state.provinceLayers?.update({rows: provinceScopeRows(), readCode, visible: true}) || null;
   if (pm) state.provinceModel = pm;
   state.provinceLabels?.update(pm ? pm.provinces.filter(p => p.count > 0 && (!readCode || p.code === readCode)).map(p => ({...p, quiet: Boolean(readCode)})) : [], {visible: true, LngLatBounds: maplibregl.LngLatBounds, unit: 'แห่ง', maxZoom: readCode ? 7.5 : PROVINCE_LABEL_MAX_ZOOM});
-  const dm = state.districtLayers?.update({summaries: state.districtModel.areas, selectedId: d?.code || '', focusIds: state.focusIds, visible: true, minzoom: readCode ? 0 : PROVINCE_FILL_MAX_ZOOM});
+  state.districtArgs = {summaries: state.districtModel.areas, selectedId: d?.code || '', focusIds: state.focusIds, visible: true, minzoom: readCode ? 0 : PROVINCE_FILL_MAX_ZOOM};
+  const dm = state.districtLayers?.update({...state.districtArgs, geometryOf: districtGeometry});
+  requestDistrictDetail();
   if (dm) state.districtModel = dm;
   const labelAreas = (dm?.areas || []).filter(a => a.count > 0 || a.focused || a.id === d?.code).map(a => ({...a, center: Number.isFinite(a.feature.properties?.labelLon) ? [a.feature.properties.labelLon, a.feature.properties.labelLat] : null}));
   // Quiet (non-focus) district labels wait for a closer zoom so the focus reads first.
@@ -949,6 +982,7 @@ function initMap() {
       avoid: () => state.pinPoints, onLayout: () => state.pins?.layout()});
     state.provinceLabels = installAreaLabels(state.map, $('map'), {className: 'province-label', hostId: 'province-labels', hostLabel: 'จังหวัดบนแผนที่', minZoom: 0, maxZoom: PROVINCE_LABEL_MAX_ZOOM, verb: 'กดเพื่อดูจังหวัด', detailZoomClass: false, onSelect: code => selectProvince(code), reservedBottom: bottomSpace});
     state.map.on('zoomend', () => { if (state.loaded) renderLegend(); });
+    state.map.on('moveend', () => { if (state.loaded) requestDistrictDetail(); });
     // A camera move started by the user (drag, pinch, wheel, keys) — a building found later never moves the camera again.
     state.map.on('movestart', e => { if (e.originalEvent) state.userCamera = true; });
     state.pins = installVenuePins(state.map, $('map'), {
@@ -1185,6 +1219,7 @@ async function init() {
     }
     state.districtGeo = results[1].status === 'fulfilled' ? results[1].value : {type: 'FeatureCollection', features: []};
     state.districts = indexDistricts(state.districtGeo);
+    state.districtDetail = createDistrictDetail({fetchJSON: url => fetchJSON(url)});
     state.provinceGeo = results[2].status === 'fulfilled' ? results[2].value : {type: 'FeatureCollection', features: []};
     state.buildingData = results[3].status === 'fulfilled' ? results[3].value : {type: 'FeatureCollection', features: []};
     const logos = configureVenueLogos(results[4].status === 'fulfilled' ? results[4].value : {assets: []});

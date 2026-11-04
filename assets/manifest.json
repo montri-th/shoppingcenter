@@ -1793,13 +1793,13 @@
     },
     {
       "path": "data/districts.geojson",
-      "sha256": "6655496f25bc08740888522fde4c922859b63a7530726356ed98ba32c62ad89a",
-      "bytes": 558494
+      "sha256": "51d635ab9f9d570f4e3eb4ab31480e70d0f2224bce2856c41e414c4c480fa911",
+      "bytes": 628615
     },
     {
       "path": "data/provinces.geojson",
-      "sha256": "cf128746f84fe7e8585ae479fdd2d9713c641ad9fd28709869168f250b912941",
-      "bytes": 144579
+      "sha256": "16f4a422c76bfe74285ec1e5069782817ea66f58af3e22a53a124950b573fe97",
+      "bytes": 148905
     },
     {
       "path": "data/venue-logos.json",

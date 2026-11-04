@@ -7,16 +7,16 @@
  * carry the reading. When a province is read (filter, district or venue) its own fill steps
  * aside for its districts and the other provinces go quiet (outline only).
  *
- * Boundaries: data/provinces.geojson, dissolved from the same OpenGISData-Thailand districts
- * (DOPA-credited, CC BY 4.0) that assign every venue — frames for navigation, never an
- * administrative claim. Ids are CityMETER production province codes.
+ * Boundaries: data/provinces.geojson, dissolved from the same RTSD district polygons (the
+ * polygons of CityMETER production, CC BY 3.0 IGO) that assign every venue — frames for
+ * navigation, never an administrative claim. Ids are CityMETER production province codes.
  * EVID-05: measured (nonzero), measured_zero (0 venues in the current filter: lowest fill +
  * zero outline). Every province is in the frame set, so nothing is out of scope here.
  */
 import {PROVINCES, provinceByCode} from './model.js';
 import {summarizeProvinces} from './areas.js';
 import {buildRamp, classify} from './scales.js';
-import {featureBounds, firstLineLayerId, GEOJSON_MAXZOOM} from './map-layers.js';
+import {featureBounds, dataFillBeforeId, BOUNDARY_ATTRIBUTION, GEOJSON_MAXZOOM} from './map-layers.js';
 
 export const PROVINCE_FILL_MAX_ZOOM = 9;
 export const PROVINCE_OUTLINE_MAX_ZOOM = 12;
@@ -45,9 +45,9 @@ export function buildProvinceModel(rows, geojson) {
 }
 
 export function installProvinceLayers(map, geojson, {onSelect} = {}) {
-  const beforeId = firstLineLayerId(map);
+  const beforeId = dataFillBeforeId(map);
   map.addSource(SOURCE, {type: 'geojson', data: {type: 'FeatureCollection', features: []}, maxzoom: GEOJSON_MAXZOOM, promoteId: 'code',
-    attribution: 'ขอบเขตจังหวัด: <a href="https://github.com/chingchai/OpenGISData-Thailand" target="_blank" rel="noopener">OpenGISData-Thailand</a> (CC BY 4.0)'});
+    attribution: BOUNDARY_ATTRIBUTION});
   const outlineColor = () => ['case', ['==', ['get', 'quiet'], 1], cssVar('--border-default', '#C9D0CB'), cssVar('--border-emphasis', '#7D877F')];
   map.addLayer({
     id: PROVINCE_LAYERS.fill, type: 'fill', source: SOURCE, maxzoom: PROVINCE_FILL_MAX_ZOOM,

@@ -2,12 +2,13 @@
  * Areas = official districts (เขต/อำเภอ) and provinces.
  *
  * Membership is precomputed by scripts/build-data.py: point-in-polygon of each located
- * venue's reference point against the full-resolution OpenGISData-Thailand boundaries
- * (DOPA-credited, CC BY 4.0), with district ids = CityMETER production district codes.
- * The simplified geometry in data/districts.geojson is display-only, so a dot drawn near
- * a boundary keeps the area it was assigned to. Nothing is ever assigned by name.
+ * venue's reference point against the full-resolution RTSD district polygons (Royal Thai
+ * Survey Department 2019, CC BY 3.0 IGO — the polygons CityMETER production uses), with
+ * district ids = CityMETER production district codes. The simplified geometry in
+ * data/districts.geojson and data/districts/<province>.geojson is display-only, so a dot drawn
+ * near a boundary keeps the area it was assigned to. Nothing is ever assigned by name.
  *
- * Density = countable venues ÷ district area (ตร.กม., `areaKm2` of the same boundary source).
+ * Density = countable venues ÷ district area (ตร.กม., `areaKm2` = CityMETER production area of the same polygons).
  */
 import {hasPoint, districtWord, provinceByCode} from './model.js';
 

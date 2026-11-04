@@ -1,6 +1,6 @@
 # CityMETER Shopping centers — first useful value
 
-This Build Card records the first-use contract of this research demo (release 0.1.6, page tag `20261104-r14`, venue data refreshed from the 25 Oct 2026 16:39 export; shop list from 17 datasets checked to 4 Nov 2026). It uses LDS 0.9.7, release `v0.9.7-owner.1`, standalone document `lds-0.9.7-landometer-standalone-r1`, colour set `color-srgb-10`, SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96`, with `product.citymeter` identity. It is not a blanket conformance or browser-pass certificate.
+This Build Card records the first-use contract of this research demo (release 0.1.7, page tag `20261104-r15`, venue data refreshed from the 25 Oct 2026 16:39 export with district membership on the RTSD polygons of CityMETER production since 4 Nov 2026; shop list from 17 datasets checked to 4 Nov 2026). It uses LDS 0.9.7, release `v0.9.7-owner.1`, standalone document `lds-0.9.7-landometer-standalone-r1`, colour set `color-srgb-10`, SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96`, with `product.citymeter` identity. It is not a blanket conformance or browser-pass certificate.
 
 Titles read **ศูนย์การค้า** / **Shopping centers** (owner instruction 2026-10-25 16:32). The scope does not change: the dataset still covers shopping centres and the retail venues of decision D2 (markets, fuel stations with shops, retail inside projects, host stores), and running copy calls them “สถานที่ค้าปลีก”.
 
@@ -22,15 +22,15 @@ Calculation: `summarizeAreaInsight` in [js/area-insight.js](../js/area-insight.j
 
 1. Rank every district of the country by venues/km² (ties: count, then code) and take the province of the first (or the province the user selected).
 2. Rank that province's districts the same way and take the first three with at least one venue.
-3. Numerator: venues in the three districts. Denominator: countable supply with a selected point in the province. Area context: the three districts' `area_sqkm` over the province total from the same boundary file.
+3. Numerator: venues in the three districts. Denominator: countable supply with a selected point in the province. Area context: the three districts' area over the province total (CityMETER production `areaSqm` of the same RTSD polygons).
 
 | District | Code (production) | Venues | km² | Venues/km² |
 |---|---|---:|---:|---:|
-| สัมพันธวงศ์ | `1013` | 7 | 1.387 | 5.05 |
-| พระนคร | `1001` | 24 | 5.276 | 4.55 |
-| บางรัก | `1004` | 18 | 3.985 | 4.52 |
+| สัมพันธวงศ์ | `1013` | 7 | 1.409 | 4.97 |
+| พระนคร | `1001` | 25 | 5.390 | 4.64 |
+| บางรัก | `1004` | 18 | 4.032 | 4.46 |
 
-The three districts hold **49** of the **856** located countable venues of Bangkok (5.7%) on **10.65 of 1,566.58 km²** (0.7%). Boundaries: OpenGISData-Thailand districts (DOPA-credited, CC BY 4.0, commit `fafcea1`); membership is point-in-polygon of the selected reference point, nothing is assigned by name. These are descriptive shares within the qualified research dataset (5,191 of the 6,135 qualified rows pass by a category rule the owner accepted — markets, fuel stations with shops and others; Owner-stated) — not a census, market share, footfall, sales, rent, vacancy or a claim about market gaps. District fills use all 41 samples of the LDS `density.area` LUT by rank (owner instruction 2026-10-25); the three focus districts take the darkest samples.
+The three districts hold **50** of the **861** located countable venues of Bangkok (5.8%) on **10.83 of 1,571.37 km²** (0.7%). Boundaries: RTSD 2019 district polygons, the polygons CityMETER production uses (OCHA ROAP / geoBoundaries, CC BY 3.0 IGO; D24, 4 Nov 2026 — previously OpenGISData-Thailand: 49 of 856); membership is point-in-polygon of the selected reference point, nothing is assigned by name. These are descriptive shares within the qualified research dataset (5,191 of the 6,135 qualified rows pass by a category rule the owner accepted — markets, fuel stations with shops and others; Owner-stated) — not a census, market share, footfall, sales, rent, vacancy or a claim about market gaps. District fills use all 41 samples of the LDS `density.area` LUT by rank (owner instruction 2026-10-25); the three focus districts take the darkest samples.
 
 If no district has a located venue in the current filter, the panel says how many venues lack a qualifying point and offers the table; it never turns a zero numerator into “no shopping centres here”. An empty filter gets a clear empty state and a reset action.
 

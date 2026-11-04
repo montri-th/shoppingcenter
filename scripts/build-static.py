@@ -41,7 +41,7 @@ def main():
         '<div class="static-summary">',
         f'<p>ศูนย์การค้า ตลาด และสถานที่ค้าปลีกที่เปิดอยู่หรือรอยืนยันสถานะ {len(supply):,} แห่ง '
         f'(มีพิกัด {len(located):,} แห่งใน {len(per)} จังหวัด) · ข้อมูลตรวจถึง {thai_date(as_of)} · '
-        f'ขอบเขตจังหวัดจาก OpenGISData-Thailand (กรมการปกครอง)</p>',
+        f'ขอบเขตจังหวัดและเขต/อำเภอจากกรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER</p>',
         f'<p>ข้อค้นพบแรก: {aha["count"]} จาก {aha["total"]} แห่งของ{provinces.get(aha["province"], aha["province"])} '
         f'({aha["count"] / aha["total"] * 100:.0f}%) อยู่ใน 3 เขตที่แน่นที่สุด</p>',
         '<table><caption>จำนวนสถานที่ต่อจังหวัด</caption><thead><tr><th scope="col">จังหวัด</th><th scope="col">แห่ง</th></tr></thead><tbody>',
@@ -61,7 +61,7 @@ def main():
         'spatialCoverage': {'@type': 'Place', 'name': 'Thailand'},
         'variableMeasured': ['จำนวนสถานที่', 'สถานที่ต่อตารางกิโลเมตร', 'กลุ่มประเภท', 'กลุ่มผู้บริหาร'],
         'distribution': [{'@type': 'DataDownload', 'encodingFormat': 'application/json', 'contentUrl': SITE + 'data/venues.json'}],
-        'isBasedOn': 'https://github.com/chingchai/OpenGISData-Thailand',
+        'isBasedOn': 'https://www.geoboundaries.org/',
     }
     html = (ROOT / 'index.html').read_text()
     html = re.sub(r'(<!-- static-summary:start -->).*?(<!-- static-summary:end -->)',
