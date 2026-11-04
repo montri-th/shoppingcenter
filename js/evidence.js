@@ -99,6 +99,14 @@ export const STORE_DATASETS = Object.freeze({
   'research.TH.camera': 'ร้านกล้อง',
   'research.MLA.PARC': 'ข้อมูลร้านจาก MLA',
   'research.TH.fitness': 'ฟิตเนสและสตูดิโอ',
+  // Named-host research datasets (scripts/link-research-tenants.py, 4 Nov 2026).
+  'research.TH.sport': 'ร้านกีฬา',
+  'research.TH.apparel': 'ร้านเสื้อผ้า',
+  'research.TH.furniture': 'เฟอร์นิเจอร์ DIY และเครื่องครัว',
+  'research.TH.pet': 'สัตว์เลี้ยง',
+  'research.TH.massage_spa': 'นวดและสปา',
+  'research.TH.salon_barber': 'ร้านทำผมและตัดผม',
+  'research.TH.nail': 'ร้านทำเล็บ',
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 

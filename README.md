@@ -22,6 +22,7 @@
 | ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 5 รายการ | ไม่เข้าเกณฑ์ 2 · ร้านผู้เช่า 2 · โครงการแม่ที่เป็นบริบท 1 (ดุสิต เซ็นทรัล พาร์ค — ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
 | ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน | 1,559 รายการใน 385 สถานที่ที่นับได้ | candidate ไม่นับ |
+| รายชื่อร้านข้างใน (แผงสถานที่ · 4 พ.ย. 2569) | 3,713 รายการ ใน 529 สถานที่ จาก 17 ชุดข้อมูล | ชุดเดิม 2,461 + 7 ชุดใหม่ที่แหล่งทางการระบุชื่อศูนย์ 1,252 (Sport 315 · Apparel 667 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 61 · Nail 23) · ตัวเลขรวมของแผนที่ ย่าน และตารางยังเป็นจำนวนแบบ primary ข้างบน |
 
 ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **49 จาก 856 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.6 จาก 1,566.6 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 99 แห่ง
 
@@ -48,7 +49,8 @@ npm test         # Node ≥ 20
 - **breadcrumb:** ประเทศไทย › จังหวัด › เขต/อำเภอ › สถานที่ ด้วยรหัสของ CityMETER production (`?province=BKK&district=1007&venue=<venue_id>`)
 - **กราฟ (amCharts):** เขตที่แน่นที่สุด (สลับเรียงตามแห่ง/ตร.กม. หรือจำนวน สีเดียวกับแผนที่) · ประเภทในแต่ละพื้นที่ (สัดส่วนหรือจำนวน ซ่อน/แสดงประเภทจากปุ่มคำอธิบาย) · ผู้บริหาร (สัดส่วนจำนวนสถานที่ ไม่ใช่ market share) · ชี้เพื่อดูตัวเลข กดหรือ Enter เพื่อเจาะลง · ตารางสถานที่ทีละ 25 แถว
 - **ไอคอน LDS:** Material Symbols Rounded (FILL 0 / wght 300) คู่กับคำสั้น ๆ บนปุ่ม แท็บ และหัวข้อ ไม่ใช้แทนคำหรือหลักฐาน
-- **ค้นหา:** ชื่อไทย/อังกฤษ ชื่อเรียกอื่น ผู้บริหาร และรหัส (substring หลัง normalize ไม่ fuzzy) รายการที่ยังยืนยันไม่ได้ติดป้ายสถานะและว่าไม่นับ
+- **ค้นหา:** ชื่อไทย/อังกฤษ ชื่อเรียกอื่น ผู้บริหาร รหัส และ**แบรนด์ในรายชื่อร้าน** (substring หลัง normalize ไม่ fuzzy) รายการที่ยังยืนยันไม่ได้ติดป้ายสถานะและว่าไม่นับ
+- **ร้านข้างใน (0.1.6):** ชิปส่วนผสมร้านตามหมวด กดเพื่อดูเฉพาะหมวด · “เทียบศูนย์ใกล้เคียง” ในรัศมี 5 กม. บอกหมวดและแบรนด์ที่ศูนย์ใกล้เคียงมีแต่ยังไม่อยู่ในรายชื่อของที่นี่ และแบรนด์ที่มีที่นี่ที่เดียว · หน้าแบรนด์ `?brand=<key>` บอกสถานที่ที่มีแบรนด์ในรายชื่อ จังหวัด และแบรนด์ที่มักอยู่ร่วมกัน โดยแผนที่ระดับประเทศระบายจังหวัดด้วยจำนวนสถานที่ที่มีแบรนด์นั้น
 - ไม่มีลิงก์เอกสารภายในในหน้าเว็บหรือไฟล์ข้อมูล · missing ไม่แสดงเป็น 0
 
 ## อัปเดตข้อมูล
@@ -111,3 +113,11 @@ Only the selected venue x-ray solid moves above road-name symbols, letting its w
 ## 0.1.5 - CityMETER Fitness branches in the tenant list
 
 Owner request 30 October 2026: map the CityMETER Fitness branches to the venues of this registry. The Fitness research sheet links each branch to a registry venue by id only (`accepted_identity_and_located_in`); its public release at commit `6775063` now feeds the tenant list as a linked dataset. 139 branches whose official source still lists them appear at 124 venues with verified brand logos (27 files); 8 announced or unclear rows stay out. Every existing tenant entry, venue core, map count and area figure is unchanged. A venue with Fitness branches links to the same venue in CityMETER Fitness, which links back by the same registry id. Cache tag 20261030-r13.
+
+## 0.1.6 - new research datasets in the tenant list, shop mix, nearby centres and brand view
+
+Owner request 4 November 2026 19:43: review the depth and breadth of the new datasets in the CityMETER Dataset Registry, compare them with the Product Statement and improve the demo for the ICP. The review is in `PRODUCT_STATEMENT.md` §9.
+
+- **Seven more datasets in the tenant list** (`scripts/link-research-tenants.py`, gate `build-tenant-data.py#named_gate`): rows whose official source names the host and whose own research sheet matched it to one registry venue by exact or reviewed unique alias — the standard of the canonical `official_chain_exact_named_host_listing` — current, in approved scope, the brand's own shop or counter, within 300 m, one brand once per venue. Sport 315 · Apparel 667 · Furniture, DIY & Kitchenware 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 61 · Nail 23. The list is now 3,713 entries at 529 venues from 17 datasets; every earlier entry is byte-identical. Beauty, Beauty Clinic, Playground and Car Service record their host links as candidates, so they stay out (`build-report.json#excludedDatasets`).
+- **Reading aids for the ICP** (`data/tenant-index.json`, `scripts/build-tenant-index.py`): shop-mix chips in the venue panel; “เทียบศูนย์ใกล้เคียง” — centres with a shop list within 5 km, the roles and brands their lists have that this list does not, and what only this list has; brand search and the brand view with venues, provinces and brands that share venues.
+- Venue cores, primary counts and the map/area/table totals are unchanged (D19). Cache tag `20261104-r14`.

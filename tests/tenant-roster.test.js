@@ -63,7 +63,7 @@ test('centre character profiles use existing venue IDs, public evidence and supp
 
 test('linked datasets (build-report.linkedDatasets): pinned release, only gated listings, items and logos reconcile', () => {
   const report = read('data/tenants/build-report.json');
-  const linked = report.linkedDatasets || {};
+  const linked = Object.fromEntries(Object.entries(report.linkedDatasets || {}).filter(([, receipt]) => !receipt.kind));
   assert.deepEqual(Object.keys(linked), ['research.TH.fitness']);
   const manifest = read('assets/tenant-logos-manifest.json');
   for (const [dataset, receipt] of Object.entries(linked)) {
@@ -90,4 +90,64 @@ test('linked datasets (build-report.linkedDatasets): pinned release, only gated 
       if (item.logo) assert.deepEqual(item.logo.file, manifest[`${dataset}|${item.brandId}`].file);
     }
   }
+});
+
+const NAMED = ['research.TH.sport', 'research.TH.apparel', 'research.TH.furniture', 'research.TH.pet', 'research.TH.massage_spa', 'research.TH.salon_barber', 'research.TH.nail'];
+const normalize = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase('th-TH').replace(/[\s\u200b'’"`.,·\-–—/()]+/g, '');
+
+test('named-host research datasets: receipts, gated items, one brand once per venue, canonical items untouched', () => {
+  const report = read('data/tenants/build-report.json');
+  const named = Object.entries(report.linkedDatasets || {}).filter(([, receipt]) => receipt.kind === 'named_host_listing');
+  assert.deepEqual(named.map(([dataset]) => dataset), NAMED, 'processing order: Sport before Apparel');
+  assert.deepEqual(Object.keys(report.excludedDatasets || {}).sort(), ['research.TH.beauty', 'research.TH.beauty_clinic', 'research.TH.car_service', 'research.TH.playground']);
+  const byVenue = new Map();
+  for (const file of shards) for (const [id, roster] of Object.entries(read('data/tenants/' + file).venues)) byVenue.set(id, roster.items);
+  for (const [dataset, receipt] of named) {
+    assert.match(receipt.files['02_STORES.csv'], /^[0-9a-f]{64}$/);
+    assert.match(receipt.exportedOn, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(!/docs\.google|drive\.google|spreadsheets\/d\//.test(JSON.stringify(receipt)), 'no private links or sheet ids in the receipt');
+    const items = [], hosts = new Set();
+    for (const [id, list] of byVenue) for (const item of list.filter(x => x.dataset === dataset)) { items.push(item); hosts.add(id); }
+    assert.equal(items.length, receipt.publishedItems, `${dataset}: run scripts/link-research-tenants.py after every roster rebuild`);
+    assert.equal(hosts.size, receipt.publishedVenueHosts);
+    assert.equal(report.datasets[dataset] || 0, receipt.publishedItems);
+    for (const item of items) {
+      assert.equal(item.sourceRole, 'dataset_source_named_host_listing');
+      assert.equal(item.relationshipBasis, 'research_dataset_official_source_explicit_host_label_unique_registry_alias_no_far_point_conflict');
+      assert.equal(item.sourceSha256, receipt.files['02_STORES.csv']);
+      assert.ok(item.sourceArtifactKey.endsWith(`02_STORES export ${receipt.exportedOn}`));
+      assert.equal(item.id, `${dataset}:02_STORES:${item.sourceRowKey}`);
+      assert.ok(item.checkedOn <= receipt.exportedOn);
+      assert.ok(/^https?:\/\/\S+$/.test(item.sourceUrl) && !/google\.[a-z.]+\/maps|docs\.google|drive\.google/.test(item.sourceUrl));
+      assert.ok(!/(?:\+66|0)\s?\d[\d\s-]{6,}/.test(item.unitFloor || ''), 'no phone numbers as units');
+      assert.ok(!/held|historical|planned|announced|closed|candidate/.test(item.status), item.status);
+      assert.equal(item.logo, undefined, 'no brand logos were collected for these datasets');
+      if (item.sourceObservationCount > 1) assert.equal(item.sourceObservationIds.length, item.sourceObservationCount);
+    }
+  }
+  // One brand once per venue: a named-host item never repeats a brand already listed at its venue.
+  for (const [id, list] of byVenue) {
+    const keys = list.map(item => normalize(item.displayBrand || item.brand || item.name));
+    for (const [i, item] of list.entries()) {
+      if (item.sourceRole !== 'dataset_source_named_host_listing') continue;
+      assert.equal(keys.filter(k => k === keys[i]).length, 1, `${id}: ${item.brand}`);
+    }
+  }
+});
+
+test('tenant index (data/tenant-index.json) reconciles row by row with the published shards', () => {
+  const index = read('data/tenant-index.json');
+  const report = read('data/tenants/build-report.json');
+  const rows = [];
+  for (const file of shards) for (const [id, roster] of Object.entries(read('data/tenants/' + file).venues).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    for (const item of roster.items) rows.push([id, normalize(item.displayBrand || item.brand || item.name), item.dataset, item.category || '', item.storeFormat || '']);
+  }
+  assert.equal(index.meta.items, report.publishedItems);
+  assert.equal(index.meta.venues, report.publishedVenueHosts);
+  assert.equal(index.rows.length, rows.length);
+  const decoded = index.rows.map(([v, b, d, c, f]) => [index.venueIds[v], index.brands[b][0], index.datasets[d], index.categories[c], index.formats[f]]);
+  const key = row => row.join('|');
+  assert.deepEqual(decoded.map(key).sort(), rows.map(key).sort());
+  for (const [k, name] of index.brands) assert.equal(normalize(name), k, `brand key of ${name}`);
+  assert.ok(index.venueIds.every(id => core.has(id)));
 });

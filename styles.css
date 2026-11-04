@@ -325,6 +325,31 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .tenant-pagination { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .tenant-pagination .btn { min-height: 40px; }
 .tenant-datasets { margin-top: 12px; font-size: 11px; }
+/* Shop mix chips (one role of the list), nearby centres and brand lists: neutral tokens only, no data colour. */
+.tenant-mix { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.mix-chip { color: var(--text-primary); }
+.mix-chip .data-number { color: var(--text-metadata); font-size: 11px; }
+.mix-chip[aria-pressed="true"] .data-number { color: var(--text-primary); }
+.mix-chip:focus-visible, .brand-pill:focus-visible, .brand-row:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.peer-list { margin-top: 6px; }
+.peer-label { margin: 14px 0 6px; font-size: 12px; font-weight: 600; line-height: 1.5; color: var(--text-secondary); }
+.peer-label .hint { font-weight: 400; }
+.peer-roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.peer-role { display: inline-flex; align-items: baseline; gap: 4px; min-height: 30px; padding: 4px 10px; font-size: 12px; border: 1px solid var(--border-hairline); border-radius: 999px; background: var(--surface-soft); }
+.peer-role small { color: var(--text-metadata); font-size: 10px; }
+.brand-list { list-style: none; padding: 0; display: grid; }
+.brand-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 7px 8px; border: 0; border-bottom: 1px solid var(--border-hairline); border-radius: 0; background: transparent; text-align: left; white-space: normal; }
+.brand-row:hover { background: var(--surface-alt); }
+.brand-row .pictogram { width: 18px; height: 18px; font-size: 18px; color: var(--text-metadata); }
+.brand-name { font-size: 13px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.brand-name small { display: block; font-size: 11px; font-weight: 400; color: var(--text-metadata); }
+.brand-pills { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.brand-pill { min-height: 32px; padding: 3px 10px; font-size: 12px; border: 1px solid var(--border-default); border-radius: 999px; background: var(--surface-card); color: var(--text-primary); white-space: normal; text-align: left; }
+.brand-pill:hover { background: var(--surface-alt); }
+.brand-head .metrics.compact { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 280px; }
+.brand-groups { margin-top: 4px; }
+.map-card-mark { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 40px; border: 1px solid var(--border-hairline); border-radius: var(--radius-md); background: var(--surface-soft); }
+.map-card-mark .pictogram { width: 22px; height: 22px; font-size: 22px; }
 
 /* Brand chips */
 .chip-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -568,9 +593,9 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .map-status { display: none; }
   /* Map card: the reading of the current level over the map; its primary button opens the sheet. */
   .map-aha { display: grid; gap: 8px; position: absolute; left: 8px; right: 8px; bottom: calc(var(--bottom-panel-height) + 74px); z-index: 5; padding: 10px 12px; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); }
-  .map-panel:is([data-card="venue"], [data-card="pending"]) .map-aha { bottom: calc(var(--bottom-panel-height) + 8px); }
-  .map-panel:is([data-card="venue"], [data-card="pending"]) .map-legend { display: none; }
-  .map-panel:is([data-card="venue"], [data-card="pending"]) :is(.maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left) { bottom: calc(var(--bottom-panel-height) + var(--map-card-space, 0px) + 8px); }
+  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) .map-aha { bottom: calc(var(--bottom-panel-height) + 8px); }
+  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) .map-legend { display: none; }
+  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) :is(.maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left) { bottom: calc(var(--bottom-panel-height) + var(--map-card-space, 0px) + 8px); }
   .map-card-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .map-card-text { min-width: 0; flex: 1 1 auto; }
   .map-aha h2 { font-size: 15px; line-height: 1.35; font-family: var(--font-body); font-weight: 600; overflow-wrap: anywhere; }

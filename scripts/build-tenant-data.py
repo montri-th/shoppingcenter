@@ -15,6 +15,10 @@ A linked research dataset (role dataset_accepted_host_link, e.g. research.TH.fit
 the dataset's sheet of record accepted the branch as identical with and located in exactly one registry venue
 (accepted_identity_and_located_in), its public source still lists it, and the published release it comes from is
 pinned by commit and SHA-256 (scripts/link-dataset-tenants.py). It never changes venue cores or primary counts.
+Named-host research datasets (role dataset_source_named_host_listing: Sport, Apparel, Furniture, Pet, Massage & Spa,
+Salon & Barber, Nail) enter through named_gate: the dataset's official source names the host and its own sheet matched it to
+one registry venue by exact or reviewed unique alias (the standard of official_chain_exact_named_host_listing), the row is
+a current source listing, and the exported 02_STORES file is pinned by SHA-256 (scripts/link-research-tenants.py).
 """
 import argparse
 import hashlib
@@ -36,6 +40,28 @@ LINKED_BASIS = 'research_sheet_accepted_identity_and_located_in_single_registry_
 LINKED_HOST_STATUS = 'accepted_identity_and_located_in'
 LINKED_DATASETS = {'research.TH.fitness'}
 LINKED_STATUSES = {'source_listed'}
+# Named-host research datasets (scripts/link-research-tenants.py): the dataset's official source names the host and its
+# own sheet matched that name to exactly one registry venue by exact or reviewed unique alias — the standard of
+# official_chain_exact_named_host_listing below. Vocabularies are the datasets' own; anything else stays out.
+NAMED_ROLE = 'dataset_source_named_host_listing'
+NAMED_BASIS = 'research_dataset_official_source_explicit_host_label_unique_registry_alias_no_far_point_conflict'
+NAMED_DATASETS = {'research.TH.sport', 'research.TH.apparel', 'research.TH.furniture', 'research.TH.pet',
+                  'research.TH.massage_spa', 'research.TH.salon_barber', 'research.TH.nail'}
+NAMED_HOST_STATUSES = {'named_host_evidence_not_field_verified', 'source_named_host_not_field_verified',
+                       'named_host_exact_or_curated_alias', 'source_explicit_named_host', 'source_qualified_named_host_identity',
+                       'unique_registry_name_with_source_host_context', 'matched_exact_host_context',
+                       'source_named_host_unique_canonical_alias'}
+NAMED_JOIN_METHODS = {'source_named_host_unique_registry_match', 'reviewed_named_host_and_full_address',
+                      'source_exact_named_host_registry_alias', 'source_exact_named_existing_registry_host_context',
+                      'source_named_host_exact_or_curated_alias', 'source_explicit_host_label_normalized_exact_unique',
+                      'source_explicit_host_alias_reviewed_against_registry', 'source_explicit_nested_host_alias_reviewed_parent_venue_only',
+                      'source_explicit_host_normalized_exact_existing_context',
+                      'explicit_primary_host_label_plus_unique_registry_name_province_and_postcode_agreement',
+                      'unique_registry_name_with_source_host_context', 'matched_exact_host_context',
+                      'source_named_host_unique_canonical_alias'}
+NAMED_STATUSES = {'source_listed', 'source_listed_current_operation_not_field_verified', 'source_listed_current_operation_unconfirmed',
+                  'source_listed_not_field_verified', 'source_listed_current_operation_unverified', 'publisher_OPEN_current_operation_unverified',
+                  'source_listed_operation_unverified', 'publisher_listed_not_field_verified', 'source_listed_operation_not_field_verified'}
 MLA_AUTHORITIES = {
     'google_business_profile_listing_observed_by_mla',
     'third_party_branch_directory_observed_by_mla',
@@ -214,6 +240,33 @@ def linked_gate(observation, as_of):
         return 'linked_public_source_provenance'
     if observation.get('farPointConflict') is True:
         return 'linked_far_point_conflict'
+    return None
+
+
+def named_gate(observation, as_of):
+    """A listing whose official source names the host and whose research sheet matched it to one registry venue."""
+    if observation.get('accepted') is not True or observation.get('primary') is not False:
+        return 'named_not_accepted'
+    if (observation.get('dataset') not in NAMED_DATASETS or observation.get('sourceRole') != NAMED_ROLE
+            or observation.get('relationshipBasis') != NAMED_BASIS
+            or observation.get('hostIdentityStatus') not in NAMED_HOST_STATUSES
+            or observation.get('sourceGate') not in NAMED_JOIN_METHODS):
+        return 'named_host_evidence_gate'
+    ids = observation.get('venueIds')
+    if not isinstance(ids, list) or len(ids) != 1 or not isinstance(ids[0], str) or not ids[0].strip():
+        return 'named_single_exact_host_required'
+    if observation.get('status') not in NAMED_STATUSES or observation.get('eventType') or observation.get('movementType'):
+        return 'named_not_current_source_listing'
+    checked = iso_date(observation.get('checkedOn'))
+    if not checked or checked > iso_date(as_of):
+        return 'named_missing_or_future_check_date'
+    if (not public_url(observation.get('sourceUrl'))
+            or not re.fullmatch(r'[a-fA-F0-9]{64}', str(observation.get('sourceSha256') or ''))
+            or not str(observation.get('sourceArtifactKey') or '').strip()
+            or not str(observation.get('sourceRowKey') or '').strip()):
+        return 'named_public_source_provenance'
+    if observation.get('farPointConflict') is True:
+        return 'named_far_point_conflict'
     return None
 
 

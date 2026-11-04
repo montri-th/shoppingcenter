@@ -20,10 +20,12 @@
  * scope are quiet GPU dots (venue-points.js), and pending records (D4) are lighter dots that
  * are never counted. One click router decides what a map click opens.
  * Camera: 3D presets (camera.js), basemap generated (map-style.js) on OpenFreeMap tiles.
- * Panel modes: overview | district | venue | pending (with a back stack); search results
- * replace the overview while a query is typed.
- * URL: q, status, group, operator, province, district, venue, record, pending, areas, view,
- * view3d, cam — restored on load. Resilience: core data first; map, details, pending and
+ * Panel modes: overview | district | venue | pending | brand (with a back stack); search results
+ * replace the overview while a query is typed. Brand view (?brand=<key>): the venues whose shop
+ * list has the brand (data/tenant-index.json, loaded on demand, like the nearby-centre comparison
+ * of the venue panel); its pins are those venues and no district is focused.
+ * URL: q, status, group, operator, province, district, venue, brand, record, pending, areas, view,
+ * view3d — restored on load. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
 import {GROUPS, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, operatorRanking, districtWord, groupById, contextState, BANGKOK} from './model.js';
@@ -41,13 +43,13 @@ import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
 import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBounds, FILL_MAX_ZOOM} from './map-layers.js';
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch} from './panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing} from './camera.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
-import {createTenantSelection} from './tenants.js';
+import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 
@@ -73,6 +75,8 @@ const state = {
   // Venue camera (two-point fit): what was framed, how often it was re-framed as buildings arrived, and
   // whether the user has moved the camera since (then a late building never moves it again).
   framed: null, userCamera: false,
+  // Shop-list index (brand search, brand view, nearby centres): loaded on demand; brand from the URL waits for it.
+  tenantIndex: null, tenantIndexState: 'idle', pendingBrand: '', brandLimit: 30,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
 };
 const tenantSelection = createTenantSelection({changed: selection => {
@@ -95,6 +99,13 @@ const animate = () => !reduced();
 const currentVenue = () => (state.panel.mode === 'venue' ? state.byId.get(state.panel.id) || null : null);
 const selectedDistrict = () => (state.panel.mode === 'district' ? state.districts.get(state.panel.id) || null : null);
 const pendingCard = () => (state.panel.mode === 'pending' ? buildPendingCard(state.pending, Number(state.panel.id), state.districts) : null);
+let brandMemo = {key: '', index: null, value: null};
+/** Brand view: where the brand of the shop lists is (null until the index is loaded). */
+function currentBrand() {
+  if (state.panel.mode !== 'brand' || !state.tenantIndex) return null;
+  if (brandMemo.key !== state.panel.id || brandMemo.index !== state.tenantIndex) brandMemo = {key: state.panel.id, index: state.tenantIndex, value: brandPresence(state.tenantIndex, state.panel.id, state.byId)};
+  return brandMemo.value;
+}
 const asList = value => Array.isArray(value) ? value : (typeof value === 'string' ? (() => { try { const x = JSON.parse(value); return Array.isArray(x) ? x : []; } catch { return []; } })() : []);
 const subjectWord = () => { const g = values().group; return g ? groupById(g).th : SUBJECT; };
 
@@ -105,6 +116,7 @@ function readingProvince() {
   if (state.panel.mode === 'district') return selectedDistrict()?.province || '';
   if (state.panel.mode === 'venue') { const r = currentVenue(); return r ? rowProvince(r) : ''; }
   if (state.panel.mode === 'pending') return pendingCard()?.province?.code || '';
+  if (state.panel.mode === 'brand') { const b = currentBrand(); return b?.provinces.length === 1 ? b.provinces[0].code : ''; }
   if (state.focusAreaIds.length) return state.districts.get(state.focusAreaIds[0])?.province || '';
   if (state.autoFocus && !f.search) return state.insight?.province || '';
   return '';
@@ -116,6 +128,7 @@ function saveURL() {
   if (state.panel.mode === 'district') p.set('district', state.panel.id);
   if (state.panel.mode === 'venue') p.set('venue', state.panel.id);
   if (state.panel.mode === 'pending') { const c = pendingCard(); if (c) p.set('record', c.id); }
+  if (state.panel.mode === 'brand') p.set('brand', state.panel.id);
   if (state.focusAreaIds.length) p.set('areas', state.focusAreaIds.join(','));
   else if (!state.autoFocus) p.set('areas', 'all');
   if (!state.showPending) p.set('pending', '0');
@@ -144,7 +157,8 @@ function applyTheme() {
 }
 
 /* ---------- selection ---------- */
-const provinceScopeRows = () => filterVenues(state.all, {...values(), province: ''});
+// Province fills and labels: the filtered venues; in brand view the places whose shop list has the brand (one per complex).
+const provinceScopeRows = () => (state.panel.mode === 'brand' && currentBrand() ? currentBrand().placeRows : filterVenues(state.all, {...values(), province: ''}));
 
 function update({fit = false, camera = true} = {}) {
   const f = values();
@@ -152,7 +166,7 @@ function update({fit = false, camera = true} = {}) {
   state.scopeRows = filterVenues(state.all, f);
   state.baseRows = district ? state.scopeRows.filter(r => r.districtCode === district.code) : state.scopeRows;
   state.insight = summarizeAreaInsight(state.scopeRows, state.districts, {province: f.province});
-  state.focusIds = district ? [] : state.focusAreaIds.length ? state.focusAreaIds : (state.autoFocus && !f.search ? state.insight.districtIds : []);
+  state.focusIds = district || state.panel.mode === 'brand' ? [] : state.focusAreaIds.length ? state.focusAreaIds : (state.autoFocus && !f.search ? state.insight.districtIds : []);
   state.rows = state.focusIds.length ? filterDistrictRows(state.baseRows, new Set(state.focusIds)) : state.baseRows;
   state.page = 0;
   const readCode = readingProvince();
@@ -194,6 +208,7 @@ function detailRows() {
     return family;
   }
   if (state.panel.mode === 'pending') return [];
+  if (state.panel.mode === 'brand') return currentBrand()?.rows || [];
   return state.rows;
 }
 
@@ -220,7 +235,8 @@ function renderCrumbs() {
   const c = pendingCard();
   const district = selectedDistrict() || (v?.districtCode ? state.districts.get(v.districtCode) : null) || c?.district || null;
   const province = values().province || (v ? rowProvince(v) : '') || c?.province?.code || (focusMode() !== 'none' && !values().search ? state.insight?.province : '') || '';
-  const crumbs = buildBreadcrumb({province, district, venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : null});
+  const b = currentBrand();
+  const crumbs = buildBreadcrumb({province: b ? '' : province, district: b ? null : district, venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : b ? {id: '', label: b.brand.name} : null});
   $('crumbs').innerHTML = renderBreadcrumb(crumbs);
   document.title = `${breadcrumbText(crumbs)} · ${PRODUCT_TITLE} · CityMETER`;
   return crumbs;
@@ -256,17 +272,27 @@ function renderPanel() {
     const v = currentVenue();
     const detail = state.detail?.id === v?.id ? state.detail : cachedDetail(v?.id, state.data.meta?.detail?.shards);
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
-    html = renderVenue(profile, {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants: tenantSelection.state.id === v?.id ? tenantSelection.state : null});
-    cardHtml = mapCardVenue(profile); cardLabel = 'สถานที่ที่เลือก';
+    const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
+    const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
+    html = renderVenue(profile, {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers});
+    cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
     html = renderPending(c, {asOf});
     cardHtml = mapCardPending(c); cardLabel = 'รายการที่เลือก';
+  } else if (mode === 'brand') {
+    const b = currentBrand();
+    html = b ? renderBrand(b, {meta: state.tenantIndex.meta, limit: state.brandLimit})
+      : state.tenantIndexState === 'error' ? '<p class="hint">โหลดรายชื่อร้านไม่สำเร็จ <button type="button" class="link-button" data-action="retry-index">ลองอีกครั้ง</button></p>'
+      : '<p class="hint" role="status">กำลังโหลดรายชื่อร้าน…</p>';
+    cardHtml = mapCardBrand(b); cardLabel = 'แบรนด์ที่เลือก';
   }
   if (!html && f.search) {
     const results = searchAll(f.search, {rows: state.all, pending: state.pending});
-    html = renderSearch(results, {pending: state.pending, districts: state.districts, asOf});
-    cardHtml = mapCardSearch(results); cardLabel = 'ผลค้นหา';
+    ensureTenantIndex();
+    const brands = state.tenantIndex ? searchBrands(state.tenantIndex, f.search) : null;
+    html = renderSearch(results, {pending: state.pending, districts: state.districts, asOf, brands});
+    cardHtml = mapCardSearch(results, {brands}); cardLabel = 'ผลค้นหา';
   } else if (!html) {
     const readCode = readingProvince();
     const insight = state.insight;
@@ -335,6 +361,7 @@ function selectDistrict(code, {fromMap = false} = {}) {
 
 function openVenueDetail(id) {
   tenantSelection.select(id);
+  ensureTenantIndex();
   state.detail = cachedDetail(id, state.data.meta?.detail?.shards);
   state.detailError = false;
   if (state.detail) return;
@@ -370,6 +397,45 @@ function selectPending(index, {fromMap = false} = {}) {
   update({camera: false});
   if (state.loaded) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: boxOffset(), animate: animate()}); state.lastPreset = cameraPreset(); }
   announce(`${contextState(c.reviewed)} ${c.name}`);
+}
+
+/** Load the shop-list index once (brand search, brand view, nearby centres); a brand from the URL opens when it arrives. */
+function ensureTenantIndex() {
+  if (state.tenantIndex || state.tenantIndexState === 'loading') return;
+  state.tenantIndexState = 'loading';
+  loadTenantIndex().then(index => {
+    state.tenantIndex = index; state.tenantIndexState = 'ready';
+    const key = state.pendingBrand;
+    state.pendingBrand = '';
+    if (key && index.brands.has(key) && state.panel.mode === 'overview') { state.panel = {mode: 'brand', id: key}; update({fit: true}); return; }
+    if (state.panel.mode === 'brand') { update({camera: false}); fitBrand(); return; }
+    if (['venue', 'overview'].includes(state.panel.mode)) renderPanel();
+  }).catch(e => { console.warn('Tenant index unavailable', e); state.tenantIndexState = 'error'; if (state.panel.mode === 'brand') renderPanel(); });
+}
+
+/** Brand view: the venues whose shop list has the brand, framed together; no district focus. */
+function selectBrand(key) {
+  if (!key) return;
+  if (state.panel.mode !== 'brand' || state.panel.id !== key) pushHistory();
+  state.panel = {mode: 'brand', id: key};
+  state.brandLimit = 30;
+  ensureTenantIndex();
+  closeMobilePanel({refit: false, focus: false});
+  update({camera: false});
+  fitBrand();
+  const b = currentBrand();
+  if (b) announce(`${b.brand.name} พบใน ${num(b.places)} สถานที่`);
+}
+function fitBrand({instant = false} = {}) {
+  const b = currentBrand();
+  if (!state.loaded || !b) return;
+  const pts = b.rows.filter(hasPoint);
+  if (!pts.length) return;
+  const LB = maplibregl.LngLatBounds;
+  const bounds = new LB();
+  pts.forEach(r => bounds.extend([r.lon, r.lat]));
+  fitBounds(bounds, {instant, maxZoom: 15.5, points: pts.map(r => [r.lon, r.lat])});
+  state.lastPreset = cameraPreset();
 }
 
 /**
@@ -514,6 +580,15 @@ function onPanelAction(event) {
       }
       break;
     }
+    case 'select-brand': selectBrand(id); break;
+    case 'tenant-role':
+      if (state.panel.mode === 'venue' && state.panel.id === id && tenantSelection.setRole(id, target.dataset.role || '')) {
+        const role = tenantSelection.state.role;
+        $('panel-view').querySelector(`.mix-chip[data-role="${CSS.escape(role)}"]`)?.focus({preventScroll: true});
+      }
+      break;
+    case 'more-brand-venues': if (state.panel.mode === 'brand' && state.panel.id === id) { state.brandLimit += 30; renderPanel(); } break;
+    case 'retry-index': state.tenantIndexState = 'idle'; ensureTenantIndex(); renderPanel(); break;
     case 'retry-tenants':
       if (state.panel.mode === 'venue' && state.panel.id === id) { tenantSelection.select(id, {retry: true}); renderPanel(); }
       break;
@@ -537,12 +612,13 @@ function renderLegend() {
   const steps = $('legend-steps');
   const readCode = readingProvince();
   const word = readCode ? districtWord(readCode) : 'เขต/อำเภอ';
-  $('legend-title').textContent = atProvince ? 'จังหวัด · จำนวนสถานที่' : `${word} · แห่ง/ตร.กม.`;
+  const brand = state.panel.mode === 'brand' ? currentBrand() : null;
+  $('legend-title').textContent = atProvince ? (brand ? `จังหวัด · สถานที่ที่มี ${brand.brand.name}` : 'จังหวัด · จำนวนสถานที่') : `${word} · แห่ง/ตร.กม.`;
   if (!model || !model.ramp.levels.length) steps.innerHTML = '<span class="hint">ไม่มีสถานที่ในตัวกรองนี้</span>';
   else {
     steps.innerHTML = rampLegendHTML(model.ramp, {zero: model.zeroCount > 0, unit: atProvince ? 'แห่ง' : 'แห่ง/ตร.กม.'});
     $('legend-areas').title = atProvince
-      ? `จำนวนสถานที่ต่อจังหวัด · สีไล่ 41 ระดับของ LDS ตามลำดับค่า (ค่าต่ำสุดอ่อนสุด ค่าสูงสุดเข้มสุด) · สีเดียวกันทั้งสองธีม`
+      ? `${brand ? `จำนวนสถานที่ที่มี ${brand.brand.name} ในรายชื่อร้าน` : 'จำนวนสถานที่'}ต่อจังหวัด · สีไล่ 41 ระดับของ LDS ตามลำดับค่า (ค่าต่ำสุดอ่อนสุด ค่าสูงสุดเข้มสุด) · สีเดียวกันทั้งสองธีม`
       : `สถานที่ต่อตารางกิโลเมตรของ${word} (ตัวหาร = พื้นที่ตามขอบเขต OpenGISData-Thailand) · สีไล่ 41 ระดับของ LDS ตามลำดับค่า · สีเดียวกันทั้งสองธีม`;
   }
   $('toggle-pending').setAttribute('aria-pressed', String(state.showPending));
@@ -673,6 +749,7 @@ function fitMap({instant = false} = {}) {
   if (v) { frameVenue(v, {instant}); return; }
   const c = pendingCard();
   if (c) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: boxOffset(), animate: animate() && !instant}); return; }
+  if (state.panel.mode === 'brand') { fitBrand({instant}); return; }
   const LB = maplibregl.LngLatBounds;
   const focus = state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
   if (focus.length) {
@@ -1018,6 +1095,7 @@ function restoreFromURL() {
   state.showPending = p.get('pending') !== '0';
   if (p.get('venue') && state.byId.has(p.get('venue'))) { state.panel = {mode: 'venue', id: p.get('venue')}; openVenueDetail(state.panel.id); }
   else if (p.get('district') && state.districts.has(p.get('district'))) state.panel = {mode: 'district', id: p.get('district')};
+  else if (p.get('brand')) { state.pendingBrand = p.get('brand'); ensureTenantIndex(); }
   state.pendingRecord = p.get('record') || '';
 }
 

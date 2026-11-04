@@ -4,7 +4,8 @@
  * Every actionable element carries data-action (and data-id) and the app binds one delegated
  * click handler. Actions: select-district · select-venue · select-pending · select-province ·
  * back · explore-top · all-districts · country · open-charts · open-table · open-panel ·
- * clear-filter · set-group · set-status · toggle-pending. The back button of a detail view lives
+ * clear-filter · set-group · set-status · toggle-pending · select-brand · tenant-role (data-role) ·
+ * more-tenants · more-brand-venues · retry-tenants · retry-index. The back button of a detail view lives
  * in the panel's top row (index.html #panel-back), next to the breadcrumb.
  *
  * Copy (owner instruction 2026-10-25): Aha first, no caveats on screen, natural Thai in the
@@ -16,13 +17,13 @@
  * instead of one. Units: แห่ง = one qualified retail venue; แห่ง/ตร.กม. = venues per km².
  * Missing is never zero: an unknown key field says “ยังไม่มีข้อมูล”.
  */
-import {GROUPS, groupById, STATUSES, tierReading, contextState, provinceByCode, districtWord, hasPoint, BANGKOK} from './model.js';
+import {GROUPS, groupById, STATUSES, tierReading, contextState, provinceByCode, districtWord, hasPoint, rowProvince, BANGKOK} from './model.js';
 import {venueLogoMarkup, getVenueLogo} from './venue-logos.js';
 import {formatDensity} from './scales.js';
 import {cueSVG} from './cues.js';
 import {nameBasis, typeEvidence, operationReading, statusTone, coordinateReading, hoursScope, legacyBasis, storeDataset, hierarchyReading} from './evidence.js';
 import {buildingHeightLabel} from './buildings.js';
-import {rankTenants, tenantRole, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE} from './tenants.js';
+import {rankTenants, tenantRole, tenantMix, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE} from './tenants.js';
 
 const NUMBER = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0});
 const PCT = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 1});
@@ -80,13 +81,13 @@ function groupBars(groups, total) {
       <span class="mix-value data-number" aria-hidden="true">${num(g.count)}${total ? `<small> ${PCT.format((g.count / total) * 100)}%</small>` : ''}</span></button></li>`).join('')}</ul>`;
 }
 
-function venueRow(r, {meta = '', hideStatus = false} = {}) {
+function venueRow(r, {meta = '', hideStatus = false, count = r.storeCount, unit = 'ร้าน', countLabel = 'ร้านข้างใน'} = {}) {
   const g = groupById(r.group);
   const logo = getVenueLogo(r.id, r.name);
   const sub = [meta || g.th, r.operatorLabel].filter(Boolean).join(' · ');
   const flags = [!hasPoint(r) ? 'ยังไม่มีพิกัด' : '', r.status !== 'supply' && !hideStatus ? STATUSES[r.status] : ''].filter(Boolean).join(' · ');
-  return `<li><button type="button" class="venue-row${logo ? ' has-logo' : ''}" data-action="select-venue" data-id="${esc(r.id)}" aria-label="${esc(r.name)} · ${esc(g.th)}${flags ? ' · ' + esc(flags) : ''}${r.storeCount ? ` · ร้านข้างใน ${num(r.storeCount)}` : ''}">
-    ${logo ? venueLogoMarkup(r.id, {name: r.name, size: 'sm'}) : groupSwatch(g)}<span class="venue-name">${esc(r.name)}<small>${esc(sub)}${flags ? ` · <em>${esc(flags)}</em>` : ''}</small></span>${r.storeCount ? `<span class="venue-count data-number" title="ร้านข้างใน">${num(r.storeCount)}<small>ร้าน</small></span>` : '<span></span>'}</button></li>`;
+  return `<li><button type="button" class="venue-row${logo ? ' has-logo' : ''}" data-action="select-venue" data-id="${esc(r.id)}" aria-label="${esc(r.name)} · ${esc(sub)}${flags ? ' · ' + esc(flags) : ''}${count ? ` · ${esc(countLabel)} ${num(count)}` : ''}">
+    ${logo ? venueLogoMarkup(r.id, {name: r.name, size: 'sm'}) : groupSwatch(g)}<span class="venue-name">${esc(r.name)}<small>${esc(sub)}${flags ? ` · <em>${esc(flags)}</em>` : ''}</small></span>${count ? `<span class="venue-count data-number" title="${esc(countLabel)}">${num(count)}<small>${esc(unit)}</small></span>` : '<span></span>'}</button></li>`;
 }
 
 function venueList(rows, {limit = 12, label = '', hideStatus = false} = {}) {
@@ -104,6 +105,20 @@ function statusLists(planned, closed) {
 export function dataLine(asOf) {
   return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))} · ขอบเขตเขต/อำเภอ OpenGISData-Thailand (กรมการปกครอง) · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
 }
+
+/** Data line of the shop lists (brand view, nearby centres): dataset · source · check dates · boundary. */
+export function tenantDataLine(meta = {}) {
+  const sets = Object.keys(meta.datasets || {}).length;
+  const range = meta.checkedFrom && meta.checkedTo ? `${thaiDate(meta.checkedFrom)}–${thaiDate(meta.checkedTo)}` : thaiDate(meta.checkedTo || '');
+  return `<p class="hint panel-foot">รายชื่อร้านข้างใน · CityMETER research${sets ? ` ${num(sets)} ชุดข้อมูลร้านค้า` : ''}${range ? ` · ตรวจ ${esc(range)}` : ''} · ขอบเขต: สถานที่ค้าปลีกที่ผ่านนิยามในทะเบียนศูนย์การค้า · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+}
+
+/** A brand as a button that opens where it is listed (brand view). */
+function brandRow(b, sub) {
+  return `<li><button type="button" class="brand-row" data-action="select-brand" data-id="${esc(b.key)}" aria-label="${esc(b.name)} · ${esc(sub)} · ดูว่าอยู่ที่ไหนบ้าง"><span class="brand-name">${esc(b.name)}<small>${esc(sub)}</small></span>${icon('next')}</button></li>`;
+}
+const brandPill = b => `<button type="button" class="brand-pill" data-action="select-brand" data-id="${esc(b.key)}">${esc(b.name)}</button>`;
+const kmText = km => `${km.toFixed(1)} กม.`;
 
 /* ---------- Overview ---------- */
 
@@ -178,7 +193,7 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
 
 /* ---------- Search results ---------- */
 
-export function renderSearch(results, {pending = null, districts = null, asOf = ''} = {}) {
+export function renderSearch(results, {pending = null, districts = null, asOf = '', brands = null} = {}) {
   const pendingRow = i => {
     const r = pending?.rows?.[i];
     if (!r) return '';
@@ -187,10 +202,18 @@ export function renderSearch(results, {pending = null, districts = null, asOf = 
     const stateText = contextState(r[7] === 'reviewed');
     return `<li><button type="button" class="venue-row is-pending" data-action="select-pending" data-id="${esc(i)}" aria-label="${esc(r[1])} · ${esc(stateText)} · ไม่นับ"><i class="pending-swatch" aria-hidden="true"></i><span class="venue-name">${esc(r[1])}<small>${esc(stateText)} · ${esc(g.th)}${d ? ` · ${esc(unitWord(d.province))}${esc(d.th)}` : ''}</small></span><span></span></button></li>`;
   };
-  const total = results.qualifiedTotal + results.components.length + results.pendingTotal;
+  const brandHits = brands?.total || 0;
+  const total = results.qualifiedTotal + results.components.length + results.pendingTotal + brandHits;
+  const counts = [results.qualifiedTotal || !brandHits ? `${num(results.qualifiedTotal)} แห่ง${results.otherStatus ? ` (กำลังจะเปิดหรือปิดแล้ว ${num(results.otherStatus)})` : ''}` : '',
+    brandHits ? `แบรนด์ ${num(brandHits)}` : '', results.components.length ? `ไม่นับแยก ${num(results.components.length)}` : '',
+    results.pendingTotal ? `ยังยืนยันไม่ได้ ${num(results.pendingTotal)}` : ''].filter(Boolean).join(' · ');
+  // Brands of the shop lists: where each is listed (brand view). Shown first when a name is both a brand and a place.
+  const brandSection = brandHits ? `<section class="panel-section" aria-labelledby="brand-hits"><div class="section-heading">${heading('brand', 'แบรนด์ในรายชื่อร้าน', 'brand-hits')}<span class="hint">${num(brandHits)}</span></div>
+      <ul class="brand-list">${brands.brands.map(b => brandRow(b, `${TENANT_ROLE_LABELS[b.role] || ''} · พบใน ${num(b.venues.size)} สถานที่`)).join('')}</ul>${brandHits > brands.brands.length ? `<p class="hint">แสดง ${num(brands.brands.length)} แบรนด์แรก</p>` : ''}</section>` : '';
   return `<section class="aha is-focused" aria-label="ผลค้นหา"><p class="eyebrow">${icon('search')}ผลค้นหา</p><h2>“${esc(results.query)}”</h2>
-      <p class="aha-copy">${total ? `${num(results.qualifiedTotal)} แห่ง${results.otherStatus ? ` (กำลังจะเปิดหรือปิดแล้ว ${num(results.otherStatus)})` : ''}${results.components.length ? ` · ไม่นับแยก ${num(results.components.length)}` : ''}${results.pendingTotal ? ` · ยังยืนยันไม่ได้ ${num(results.pendingTotal)}` : ''}` : 'ไม่พบชื่อหรือรหัสนี้'}</p>
+      <p class="aha-copy">${total ? counts : 'ไม่พบชื่อ แบรนด์ หรือรหัสนี้'}</p>
       <div class="aha-actions"><button type="button" data-action="clear-filter" data-id="search" class="btn">ล้างคำค้น</button></div></section>
+    ${brandSection}
     ${results.qualified.length ? `<section class="panel-section"><div class="section-heading">${heading('venue', 'สถานที่')}<span class="hint">${num(results.qualifiedTotal)}</span></div>${venueList(results.qualified, {limit: 30})}</section>` : ''}
     ${results.components.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยและรายการที่อาจซ้ำ')}<span class="hint">ไม่นับแยก</span></div>${venueList(results.components, {limit: 30})}</section>` : ''}
     ${results.pending.length ? `<section class="panel-section"><div class="section-heading"><h3><i class="pending-swatch" aria-hidden="true"></i>ยังยืนยันไม่ได้</h3><span class="hint">ไม่นับ · ${num(results.pendingTotal)}</span></div><ul class="venue-list">${results.pending.map(pendingRow).join('')}</ul>${results.pendingTotal > results.pending.length ? `<p class="hint">แสดง ${num(results.pending.length)} รายการแรก</p>` : ''}</section>` : ''}
@@ -296,8 +319,11 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
 export function renderTenantList(row, selection) {
   if (selection?.error) return `<p class="hint">โหลดรายชื่อร้านไม่สำเร็จ <button type="button" class="link-button" data-action="retry-tenants" data-id="${esc(row.id)}">ลองอีกครั้ง</button></p>`;
   if (!selection?.roster) return '<p class="hint" role="status">กำลังโหลดรายชื่อร้าน…</p>';
-  const items = rankTenants(selection.roster.items || [], row, selection.roster.profile);
-  if (!items.length) return '<p class="hint">ยังไม่มีรายชื่อร้านในข้อมูลที่เชื่อมไว้</p>';
+  const ranked = rankTenants(selection.roster.items || [], row, selection.roster.profile);
+  if (!ranked.length) return '<p class="hint">ยังไม่มีรายชื่อร้านในข้อมูลที่เชื่อมไว้</p>';
+  // One role of the list (mix chips); a role that is not in this list shows every shop.
+  const role = selection.role && ranked.some(item => tenantRole(item) === selection.role) ? selection.role : '';
+  const items = role ? ranked.filter(item => tenantRole(item) === role) : ranked;
   const limit = Math.max(TENANT_PAGE_SIZE, selection.limit || TENANT_PAGE_SIZE);
   const shown = items.slice(0, limit);
   const logoMarkup = item => {
@@ -306,8 +332,8 @@ export function renderTenantList(row, selection) {
     const backing = /^#[0-9a-f]{6}$/i.test(logo?.background || '') ? logo.background : '#E5E9E6';
     return `<span class="tenant-logo" aria-hidden="true"${valid ? ` style="--tenant-logo-bg:${esc(backing)}"` : ''}>${icon('store')}${valid ? `<img src="${esc(logo.file)}" alt="" loading="lazy" decoding="async"${logo.width > 0 && logo.height > 0 ? ` width="${Math.round(logo.width)}" height="${Math.round(logo.height)}"` : ''}>` : ''}</span>`;
   };
-  return `<p class="hint tenant-order">เรียงตามบทบาทต่อศูนย์</p>
-    <ol class="tenant-list" aria-label="ร้านข้างใน ${esc(row.name)}">${shown.map((item, index) => {
+  return `<p class="hint tenant-order">${role ? `${esc(TENANT_ROLE_LABELS[role])} · ` : ''}เรียงตามบทบาทต่อศูนย์</p>
+    <ol class="tenant-list" aria-label="ร้านข้างใน ${esc(row.name)}${role ? ` · ${esc(TENANT_ROLE_LABELS[role])}` : ''}">${shown.map((item, index) => {
       const name = item.displayName || item.brand || item.name;
       const position = item.unitFloor && !/ชั้น|ห้อง|floor|unit/i.test(item.unitFloor) ? `ตำแหน่ง ${item.unitFloor}` : item.unitFloor;
       const sub = [TENANT_ROLE_LABELS[tenantRole(item)], item.displayQualifier, position || item.branch].filter(Boolean).filter(value => value !== name);
@@ -317,6 +343,72 @@ export function renderTenantList(row, selection) {
       return `<li class="tenant-row" data-tenant-index="${index}" data-tenant-id="${esc(item.id)}" tabindex="-1">${logoMarkup(item)}<span class="tenant-name"><strong>${esc(name)}</strong><small>${sub.map(esc).join(' · ')}${status ? ` · ${esc(status)}` : ''}</small></span>${source ? `<a class="source-link tenant-source" href="${esc(source)}" target="_blank" rel="noopener" title="${esc(name + checked)}" aria-label="${esc('หลักฐาน ' + name + checked)}">แหล่ง</a>` : ''}</li>`;
     }).join('')}</ol>
     <div class="tenant-pagination"><span class="hint">แสดง ${num(shown.length)} จาก ${num(items.length)} ร้าน</span>${shown.length < items.length ? `<button type="button" class="btn" data-action="more-tenants" data-id="${esc(row.id)}" aria-label="ดูเพิ่มอีก ${num(Math.min(TENANT_PAGE_SIZE, items.length - shown.length))} ร้านใน ${esc(row.name)}">ดูเพิ่ม ${num(Math.min(TENANT_PAGE_SIZE, items.length - shown.length))} ร้าน</button>` : ''}</div>`;
+}
+
+/** Shop mix of one venue: one chip per role with its count; a chip shows only that role in the list. */
+export function renderTenantMix(row, selection) {
+  const items = selection?.roster?.items || [];
+  const mix = tenantMix(items);
+  if (mix.length < 2) return '';
+  const active = mix.some(m => m.role === selection.role) ? selection.role : '';
+  const chip = (role, label, count) => `<button type="button" class="chip-toggle mix-chip" data-action="tenant-role" data-id="${esc(row.id)}" data-role="${esc(role)}" aria-pressed="${active === role}">${esc(label)} <span class="data-number">${num(count)}</span></button>`;
+  return `<div class="tenant-mix" role="group" aria-label="ดูร้านข้างในตามหมวด">${chip('', 'ทั้งหมด', items.length)}${mix.map(m => chip(m.role, TENANT_ROLE_LABELS[m.role] || m.role, m.count)).join('')}</div>`;
+}
+
+/**
+ * Nearby centres (tenants.js#comparePeers): the centres with a shop list within the radius, the roles and
+ * brands their lists have that this list does not, and what only this list has. For leasing teams: who is
+ * next door and which names to talk to. Counts read “in the list”.
+ */
+export function renderPeers(cmp, row) {
+  if (!cmp) return '';
+  const title = `<div class="section-heading">${heading('area', 'เทียบศูนย์ใกล้เคียง', 'peer-title')}<span class="hint">${cmp.peers.length ? `${num(cmp.peers.length)} แห่งในรัศมี ${num(cmp.radiusKm)} กม.` : `รัศมี ${num(cmp.radiusKm)} กม.`}</span></div>`;
+  if (!cmp.peers.length) return `<section class="panel-section peer-section" aria-labelledby="peer-title">${title}<p class="hint">ยังไม่มีศูนย์อื่นที่มีรายชื่อร้านในรัศมีนี้</p></section>`;
+  const peers = `<ul class="venue-list peer-list">${cmp.peers.map(p => venueRow(p.row, {meta: `${kmText(p.km)} · ${groupById(p.row.group).th}`, hideStatus: true, count: p.items, countLabel: 'ร้านในรายชื่อ'})).join('')}</ul>`;
+  const roles = cmp.missingRoles.length ? `<p class="peer-label">หมวดที่ศูนย์ใกล้เคียงมี แต่ยังไม่อยู่ในรายชื่อของที่นี่</p>
+      <p class="peer-roles">${cmp.missingRoles.map(m => `<span class="peer-role">${esc(TENANT_ROLE_LABELS[m.role] || m.role)} <span class="data-number">${num(m.peers)}</span><small> แห่ง</small></span>`).join('')}</p>` : '';
+  const need = Math.min(2, cmp.peers.length);
+  const brands = cmp.missingBrands.length ? `<p class="peer-label">แบรนด์ที่อยู่ในศูนย์ใกล้เคียง${need > 1 ? `ตั้งแต่ ${num(need)} แห่ง` : ''} แต่ยังไม่อยู่ในรายชื่อของที่นี่</p>
+      <ul class="brand-list">${cmp.missingBrands.slice(0, 10).map(m => brandRow(m.brand, `${TENANT_ROLE_LABELS[m.brand.role] || ''} · อยู่ใน ${num(m.peers)} จาก ${num(cmp.peers.length)} แห่งใกล้เคียง`)).join('')}</ul>
+      ${cmp.missingBrands.length > 10 ? `<p class="hint">และอีก ${num(cmp.missingBrands.length - 10)} แบรนด์</p>` : ''}` : '';
+  const only = cmp.onlyHere.length ? `<p class="peer-label">มีที่นี่ และยังไม่อยู่ในรายชื่อของศูนย์ใกล้เคียง <span class="hint">${num(cmp.onlyHere.length)} แบรนด์</span></p>
+      <p class="brand-pills">${cmp.onlyHere.slice(0, 12).map(brandPill).join('')}${cmp.onlyHere.length > 12 ? `<span class="hint">+${num(cmp.onlyHere.length - 12)}</span>` : ''}</p>` : '';
+  return `<section class="panel-section peer-section" aria-labelledby="peer-title">${title}${peers}${roles}${brands}${only}</section>`;
+}
+
+/* ---------- Brand (where a brand of the shop lists is) ---------- */
+
+/** Brand view (tenants.js#brandPresence): how many places list it, where, and what is usually next to it. */
+export function renderBrand(bp, {meta = {}, limit = 30} = {}) {
+  if (!bp) return '';
+  const b = bp.brand;
+  const role = TENANT_ROLE_LABELS[b.role] || '';
+  const shown = bp.rows.slice(0, limit);
+  const provinces = bp.provinces.filter(p => p.code);
+  const unlocated = bp.provinces.filter(p => !p.code).reduce((n, p) => n + p.count, 0);
+  const groups = bp.groups.map(x => `${esc(groupById(x.id).th)} <span class="data-number">${num(x.count)}</span>`).join(' · ');
+  const rows = shown.map(r => venueRow(r, {meta: [groupById(r.group).th, provinceShort(rowProvince(r)) || r.addrProvince || ''].filter(Boolean).join(' · '), hideStatus: true, count: 0})).join('');
+  return `<section class="detail-head brand-head">
+      <p class="eyebrow">${icon('brand')}แบรนด์ในรายชื่อร้าน${role ? ` · ${esc(role)}` : ''}</p>
+      <h2>${esc(b.name)}</h2>
+      <p class="subtle">พบใน ${num(bp.places)} สถานที่ · ${num(provinces.length)} จังหวัด</p>
+      <div class="metrics compact">${metricTile(bp.places, 'สถานที่', 'venue')}${metricTile(provinces.length, 'จังหวัด', 'province')}</div>
+      ${groups ? `<p class="subtle brand-groups">${groups}</p>` : ''}
+    </section>
+    ${provinces.length > 1 ? `<section class="panel-section"><div class="section-heading">${heading('province', 'จังหวัด')}<span class="hint">สถานที่</span></div><ul class="plain-list">${provinces.slice(0, 10).map(p => `<li><span>${esc(provinceShort(p.code))}</span><span class="data-number">${num(p.count)}</span></li>`).join('')}</ul>${provinces.length > 10 ? `<p class="hint">และอีก ${num(provinces.length - 10)} จังหวัด</p>` : ''}${unlocated ? `<p class="hint">อีก ${num(unlocated)} แห่งยังระบุจังหวัดไม่ได้</p>` : ''}</section>` : ''}
+    <section class="panel-section" aria-labelledby="brand-venues"><div class="section-heading">${heading('venue', 'สถานที่ที่มีในรายชื่อ', 'brand-venues')}<span class="hint">${num(bp.rows.length)} แห่ง</span></div>
+      <ul class="venue-list">${rows}</ul>
+      ${bp.rows.length > shown.length ? `<div class="tenant-pagination"><span class="hint">แสดง ${num(shown.length)} จาก ${num(bp.rows.length)} แห่ง</span><button type="button" class="btn" data-action="more-brand-venues" data-id="${esc(b.key)}">ดูเพิ่ม ${num(Math.min(30, bp.rows.length - shown.length))} แห่ง</button></div>` : ''}</section>
+    ${bp.coBrands.length ? `<section class="panel-section" aria-labelledby="brand-co"><div class="section-heading">${heading('mix', 'มักอยู่ในที่เดียวกับ', 'brand-co')}<span class="hint">สถานที่ร่วมกัน</span></div>
+      <ul class="brand-list">${bp.coBrands.map(x => brandRow(x.brand, `${TENANT_ROLE_LABELS[x.brand.role] || ''} · อยู่ร่วมกัน ${num(x.shared)} แห่ง`)).join('')}</ul></section>` : ''}
+    ${tenantDataLine(meta)}`;
+}
+
+/** Brand card (phones). */
+export function mapCardBrand(bp) {
+  if (!bp) return '';
+  const role = TENANT_ROLE_LABELS[bp.brand.role] || '';
+  return card({mark: `<span class="map-card-mark">${icon('brand')}</span>`, crumb: `แบรนด์ในรายชื่อร้าน${role ? ` · ${esc(role)}` : ''}`, title: esc(bp.brand.name), line: `พบใน ${num(bp.places)} สถานที่ · ${num(bp.provinces.filter(p => p.code).length)} จังหวัด`, actions: `${cardBack}${cardOpen()}`});
 }
 
 /**
@@ -342,7 +434,7 @@ export function buildingReading(row, buildings = [], pinState) {
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError = false, tenants = null} = {}) {
+export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError = false, tenants = null, peers = null} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -367,7 +459,7 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
     ? link(`${FITNESS_SITE}?venue=${encodeURIComponent(r.id)}`, 'ดูฟิตเนสที่นี่ใน CityMETER Fitness', 'source-link strong-link') : '';
   const datasetIds = tenants?.roster ? [...new Set((tenants.roster.items || []).map(item => item.dataset))].sort() : stores.datasets;
   const storeSources = listedStores && datasetIds.length ? datasetIds.map(x => esc(storeDataset(x))).join(' · ') : '';
-  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
+  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${tenants?.roster ? renderTenantMix(r, tenants) : ''}${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
   const building = buildingReading(r, buildings, pinState);
@@ -395,6 +487,7 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
       ${!d && !detailError ? '<p class="hint">กำลังโหลดรายละเอียด…</p>' : ''}${detailError ? '<p class="hint">โหลดรายละเอียดไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</p>' : ''}
     </section>
     ${storeBlock}
+    ${renderPeers(peers, r)}
     ${children}
     <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
@@ -434,12 +527,13 @@ export function mapCardAha(insight, {mode = 'auto', subject = SUBJECT} = {}) {
 }
 
 /** Venue card: logo, name, type · area and the strongest figure. */
-export function mapCardVenue(p) {
+export function mapCardVenue(p, {tenants = null} = {}) {
   if (!p) return '';
   const r = p.row, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
   const where = [esc(g.th), p.district ? `${esc(unitWord(p.district.province))}${esc(p.district.th)}` : ''].filter(Boolean).join(' · ');
-  const stores = p.detail?.stores?.confirmed || r.storeCount || 0;
+  // The same figure as the panel's tile: the loaded shop list, else the venue's linked count.
+  const stores = tenants?.roster ? tenants.roster.items?.length || 0 : p.detail?.stores?.confirmed || r.storeCount || 0;
   const line = [stores ? `ร้านข้างใน ${num(stores)} ร้าน` : '', r.operatorLabel ? esc(r.operatorLabel) : ''].filter(Boolean).join(' · ');
   return card({mark: logo ? venueLogoMarkup(r.id, {name: r.name, size: 'md'}) : groupSwatch(g), crumb: where, title: esc(r.name), line, actions: `${cardBack}${cardOpen()}`});
 }
@@ -458,9 +552,10 @@ export function mapCardPending(c) {
 }
 
 /** Search card: the query, how many places, and the list. */
-export function mapCardSearch(results) {
+export function mapCardSearch(results, {brands = null} = {}) {
   if (!results) return '';
-  return card({crumb: 'ผลค้นหา', title: `“${esc(results.query)}”`, line: results.qualifiedTotal ? `${num(results.qualifiedTotal)} แห่ง` : 'ไม่พบชื่อหรือรหัสนี้', actions: `<button type="button" class="btn quiet" data-action="clear-filter" data-id="search">ล้างคำค้น</button>${cardOpen('ดูรายการ')}`});
+  const line = [results.qualifiedTotal ? `${num(results.qualifiedTotal)} แห่ง` : '', brands?.total ? `แบรนด์ ${num(brands.total)}` : ''].filter(Boolean).join(' · ');
+  return card({crumb: 'ผลค้นหา', title: `“${esc(results.query)}”`, line: line || 'ไม่พบชื่อหรือรหัสนี้', actions: `<button type="button" class="btn quiet" data-action="clear-filter" data-id="search">ล้างคำค้น</button>${cardOpen('ดูรายการ')}`});
 }
 
 /* ---------- Active filter chips ---------- */
