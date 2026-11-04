@@ -1,0 +1,82 @@
+{
+ "meta": {
+  "schemaVersion": "1",
+  "exportedOn": "2026-11-04",
+  "kinds": {
+   "pet-area": "พื้นที่สำหรับสัตว์เลี้ยง"
+  },
+  "datasets": {
+   "research.TH.pet": {
+    "source": "CityMETER Pet Thailand — Research Master 2026-11-04 · 02_STORES (internal research master; exported CSV)",
+    "sha256": "5c031265222b4989290ee406accb030a1cf7478a1c2ae5d009944dab4bf187f4"
+   }
+  },
+  "gate": "the dataset names the facility as the centre's own (store_format), links it to one registry venue (source_explicit_named_host) and gives a public source; basis official_host = the centre's own page, owner_reported = the owner's report (shown as such)",
+  "counts": {
+   "published": 5
+  },
+  "limits": "A facility the source names; not a policy that pets are allowed everywhere in the centre, not a field check."
+ },
+ "venues": {
+  "SC-000977": [
+   {
+    "kind": "pet-area",
+    "name": "Pet Parc",
+    "sourceUrl": "https://www.facebook.com/profile.php?id=61560849335807",
+    "checkedOn": "2026-11-04",
+    "basis": "owner_reported",
+    "dataset": "research.TH.pet",
+    "sourceRowKey": "OUT-9f974f78d3903b34",
+    "sourceSha256": "5c031265222b4989290ee406accb030a1cf7478a1c2ae5d009944dab4bf187f4"
+   }
+  ],
+  "SC-001664": [
+   {
+    "kind": "pet-area",
+    "name": "Pet Park",
+    "sourceUrl": "https://shoppingcenter.centralpattana.co.th/th/branch/central-eastville/branch-information",
+    "checkedOn": "2026-11-04",
+    "basis": "official_host",
+    "dataset": "research.TH.pet",
+    "sourceRowKey": "OUT-9e17fe9c2b6f3701",
+    "sourceSha256": "5c031265222b4989290ee406accb030a1cf7478a1c2ae5d009944dab4bf187f4"
+   }
+  ],
+  "SC-006353": [
+   {
+    "kind": "pet-area",
+    "name": "Pet Park / Buddy Yard",
+    "sourceUrl": "https://www.centralpattana.co.th/en/shopping/shopping-update/lifestyle-activities/1154/new-landmark-central-westville",
+    "checkedOn": "2026-11-04",
+    "basis": "official_host",
+    "dataset": "research.TH.pet",
+    "sourceRowKey": "OUT-27717627b587dd6d",
+    "sourceSha256": "5c031265222b4989290ee406accb030a1cf7478a1c2ae5d009944dab4bf187f4"
+   }
+  ],
+  "SC-007290": [
+   {
+    "kind": "pet-area",
+    "name": "Pet Zociety",
+    "sourceUrl": "https://www.futurepark.co.th/en/whats-new/pet-zociety-a-happy-place-for-you-and-your-beloved-pets/",
+    "checkedOn": "2026-11-04",
+    "basis": "official_host",
+    "dataset": "research.TH.pet",
+    "sourceRowKey": "OUT-9782c3a93b9bb101",
+    "sourceSha256": "5c031265222b4989290ee406accb030a1cf7478a1c2ae5d009944dab4bf187f4"
+   }
+  ],
+  "SC-012204": [
+   {
+    "kind": "pet-area",
+    "name": "Mega Park",
+    "sourceUrl": "https://www.mega-bangna.com/blog/blog-how-to-get-to-mega-park/318",
+    "checkedOn": "2026-11-04",
+    "basis": "official_host",
+    "dataset": "research.TH.pet",
+    "sourceRowKey": "OUT-ed611d3d4e586d4c",
+    "sourceSha256": "5c031265222b4989290ee406accb030a1cf7478a1c2ae5d009944dab4bf187f4"
+   }
+  ]
+ }
+}

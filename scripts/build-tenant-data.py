@@ -46,11 +46,15 @@ LINKED_STATUSES = {'source_listed'}
 NAMED_ROLE = 'dataset_source_named_host_listing'
 NAMED_BASIS = 'research_dataset_official_source_explicit_host_label_unique_registry_alias_no_far_point_conflict'
 NAMED_DATASETS = {'research.TH.sport', 'research.TH.apparel', 'research.TH.furniture', 'research.TH.pet',
-                  'research.TH.massage_spa', 'research.TH.salon_barber', 'research.TH.nail'}
+                  'research.TH.massage_spa', 'research.TH.salon_barber', 'research.TH.nail',
+                  # candidate host links confirmed by scripts/review-candidate-hosts.py (owner, 4 Nov 2026 21:23)
+                  'research.TH.beauty', 'research.TH.beauty_clinic', 'research.TH.playground', 'research.TH.car_service'}
+REVIEWED_HOST_STATUS = 'candidate_confirmed_by_citymeter_review'
+REVIEWED_JOIN_METHOD = 'official_label_unique_registry_name'
 NAMED_HOST_STATUSES = {'named_host_evidence_not_field_verified', 'source_named_host_not_field_verified',
                        'named_host_exact_or_curated_alias', 'source_explicit_named_host', 'source_qualified_named_host_identity',
                        'unique_registry_name_with_source_host_context', 'matched_exact_host_context',
-                       'source_named_host_unique_canonical_alias'}
+                       'source_named_host_unique_canonical_alias', REVIEWED_HOST_STATUS}
 NAMED_JOIN_METHODS = {'source_named_host_unique_registry_match', 'reviewed_named_host_and_full_address',
                       'source_exact_named_host_registry_alias', 'source_exact_named_existing_registry_host_context',
                       'source_named_host_exact_or_curated_alias', 'source_explicit_host_label_normalized_exact_unique',
@@ -58,7 +62,7 @@ NAMED_JOIN_METHODS = {'source_named_host_unique_registry_match', 'reviewed_named
                       'source_explicit_host_normalized_exact_existing_context',
                       'explicit_primary_host_label_plus_unique_registry_name_province_and_postcode_agreement',
                       'unique_registry_name_with_source_host_context', 'matched_exact_host_context',
-                      'source_named_host_unique_canonical_alias'}
+                      'source_named_host_unique_canonical_alias', REVIEWED_JOIN_METHOD}
 NAMED_STATUSES = {'source_listed', 'source_listed_current_operation_not_field_verified', 'source_listed_current_operation_unconfirmed',
                   'source_listed_not_field_verified', 'source_listed_current_operation_unverified', 'publisher_OPEN_current_operation_unverified',
                   'source_listed_operation_unverified', 'publisher_listed_not_field_verified', 'source_listed_operation_not_field_verified'}

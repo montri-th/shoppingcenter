@@ -24,11 +24,12 @@
  * replace the overview while a query is typed. Brand view (?brand=<key>): the venues whose shop
  * list has the brand (data/tenant-index.json, loaded on demand, like the nearby-centre comparison
  * of the venue panel); its pins are those venues and no district is focused.
- * URL: q, status, group, operator, province, district, venue, brand, record, pending, areas, view,
- * view3d — restored on load. Resilience: core data first; map, details, pending and
+ * URL: q, status, group, operator, province, role, district, venue, brand, record, pending, areas, view,
+ * view3d — restored on load. Shop counts (“ร้านข้างใน”) and the filter “ข้างในมี” (role) come from the shop-list index
+ * and the centre facilities, loaded right after the core data (D22): until they arrive a shop figure reads “—”. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
-import {GROUPS, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, operatorRanking, districtWord, groupById, contextState, BANGKOK} from './model.js';
+import {GROUPS, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, applyShopLists, operatorRanking, districtWord, groupById, contextState, BANGKOK} from './model.js';
 import {indexDistricts, summarizeDistricts, districtsInScope, districtLabel} from './areas.js';
 import {summarizeAreaInsight, filterDistrictRows} from './area-insight.js';
 import {renderInsightChart} from './charts.js';
@@ -50,13 +51,14 @@ import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing} from './camera.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
-import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands} from './tenants.js';
+import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 
 const $ = id => document.getElementById(id);
-const FIELDS = ['search', 'status', 'group', 'operator', 'province'];
-const URL_KEYS = Object.freeze({search: 'q', status: 'status', group: 'group', operator: 'operator', province: 'province'});
+const FIELDS = ['search', 'status', 'group', 'operator', 'province', 'role'];
+const URL_KEYS = Object.freeze({search: 'q', status: 'status', group: 'group', operator: 'operator', province: 'province', role: 'role'});
+const INSIDE_LABELS = Object.freeze({...TENANT_ROLE_LABELS, ...AMENITY_LABELS});
 const BANGKOK_VIEW = {center: [100.536, 13.742], zoom: 12.4};
 const THAILAND = [[97.3, 5.6], [105.7, 20.5]];
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -79,6 +81,8 @@ const state = {
   framed: null, userCamera: false,
   // Shop-list index (brand search, brand view, nearby centres): loaded on demand; brand from the URL waits for it.
   tenantIndex: null, tenantIndexState: 'idle', pendingBrand: '', brandLimit: 30,
+  // D22: centre facilities (data/venue-amenities.json) and a ?role= that waits for the options it names.
+  amenities: new Map(), pendingRole: '',
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
 };
 const tenantSelection = createTenantSelection({changed: selection => {
@@ -109,7 +113,10 @@ function currentBrand() {
   return brandMemo.value;
 }
 const asList = value => Array.isArray(value) ? value : (typeof value === 'string' ? (() => { try { const x = JSON.parse(value); return Array.isArray(x) ? x : []; } catch { return []; } })() : []);
-const subjectWord = () => { const g = values().group; return g ? groupById(g).th : SUBJECT; };
+const subjectWord = () => {
+  const f = values(), base = f.group ? groupById(f.group).th : SUBJECT;
+  return f.role ? `${f.group ? base : 'สถานที่'}ที่มี${INSIDE_LABELS[f.role] || f.role}` : base;
+};
 
 /** The province whose districts are drawn and ranked ('' = the whole country). */
 function readingProvince() {
@@ -179,7 +186,7 @@ function update({fit = false, camera = true} = {}) {
   const s = summarize(state.rows);
   $('result-count').textContent = num(s.venues);
   $('filter-count').textContent = activeFilterCount(f) ? String(activeFilterCount(f)) : '';
-  $('filter-chips').innerHTML = renderFilterChips(f, {status: STATUS_FILTERS, operator: operatorLabels()});
+  $('filter-chips').innerHTML = renderFilterChips(f, {status: STATUS_FILTERS, operator: operatorLabels(), role: INSIDE_LABELS});
   renderPanel();
   renderLegend();
   updatePins();
@@ -254,6 +261,9 @@ function statusRows(extra) {
   };
 }
 
+/** The shop-list index meta once loaded (dataset count, check dates): the source of every “ร้านข้างใน” figure. */
+const shopMeta = () => state.tenantIndex?.meta || null;
+
 function renderPanel() {
   const view = $('panel-view');
   const mode = state.panel.mode;
@@ -268,7 +278,7 @@ function renderPanel() {
     const area = state.districtModel.areas.find(a => a.id === d.code) || {...d, count: 0, density: 0};
     const rank = ranked.findIndex(a => a.id === d.code) + 1;
     const profile = buildDistrictProfile({area, rows: state.baseRows, rank, of: ranked.length, ...statusRows({district: d.code, province: ''})});
-    html = renderDistrict(profile, {asOf});
+    html = renderDistrict(profile, {asOf, shops: shopMeta()});
     cardHtml = mapCardDistrict(profile); cardLabel = 'เขตที่เลือก';
   } else if (mode === 'venue') {
     const v = currentVenue();
@@ -276,7 +286,7 @@ function renderPanel() {
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
-    html = renderVenue(profile, {asOf, buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers});
+    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -293,7 +303,7 @@ function renderPanel() {
     const results = searchAll(f.search, {rows: state.all, pending: state.pending});
     ensureTenantIndex();
     const brands = state.tenantIndex ? searchBrands(state.tenantIndex, f.search) : null;
-    html = renderSearch(results, {pending: state.pending, districts: state.districts, asOf, brands});
+    html = renderSearch(results, {pending: state.pending, districts: state.districts, asOf, brands, shops: shopMeta()});
     cardHtml = mapCardSearch(results, {brands}); cardLabel = 'ผลค้นหา';
   } else if (!html) {
     const readCode = readingProvince();
@@ -301,7 +311,7 @@ function renderPanel() {
     const areas = state.districtModel.areas;
     const model = buildOverviewModel({rows: state.rows, scopeRows: state.scopeRows, areas, kind: 'district', readCode, ...statusRows({province: readCode || f.province})});
     const provinces = (state.provinceModel?.provinces || []).filter(p => p.count > 0).sort((a, b) => b.count - a.count);
-    html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces});
+    html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces, shops: shopMeta()});
     cardHtml = mapCardAha(insight, {mode: focusMode(), subject: subjectWord()});
   }
   view.innerHTML = html;
@@ -407,12 +417,49 @@ function ensureTenantIndex() {
   state.tenantIndexState = 'loading';
   loadTenantIndex().then(index => {
     state.tenantIndex = index; state.tenantIndexState = 'ready';
+    const role = shopListsChanged();
     const key = state.pendingBrand;
     state.pendingBrand = '';
     if (key && index.brands.has(key) && state.panel.mode === 'overview') { state.panel = {mode: 'brand', id: key}; update({fit: true}); return; }
     if (state.panel.mode === 'brand') { update({camera: false}); fitBrand(); return; }
-    if (['venue', 'overview'].includes(state.panel.mode)) renderPanel();
+    // Shop figures change everywhere at once (panel, lists, table); a ?role= from the URL now filters the map.
+    update({fit: Boolean(role), camera: Boolean(role)});
   }).catch(e => { console.warn('Tenant index unavailable', e); state.tenantIndexState = 'error'; if (state.panel.mode === 'brand') renderPanel(); });
+}
+
+/** Centre facilities named by research datasets with an official source (D22 filter, venue panel); optional. */
+async function loadAmenities() {
+  try {
+    state.amenities = buildAmenities(await fetchJSON('data/venue-amenities.json', {timeout: 20000}));
+    if (state.tenantIndex) { const role = shopListsChanged(); update({fit: Boolean(role), camera: Boolean(role)}); }
+  } catch (e) { console.warn('Venue amenities unavailable', e); }
+}
+
+/**
+ * D22: shop counts and what each venue has inside (roles of its shop list, sourced facilities) on every row, and the
+ * options of the filter “ข้างในมี” (roles by how many countable venues list them, then facilities). Returns the role a
+ * URL asked for once its option exists.
+ */
+function shopListsChanged() {
+  applyShopLists(state.all, state.tenantIndex, state.amenities);
+  const select = $('role'), current = select.value || state.pendingRole;
+  const roles = roleVenueCounts(state.tenantIndex, state.all);
+  const facilities = Object.keys(AMENITY_LABELS).map(kind => ({kind, venues: state.all.filter(r => r.countable && r._inside?.has(kind)).length})).filter(x => x.venues);
+  select.replaceChildren(new Option('ทุกหมวด', ''));
+  const shops = document.createElement('optgroup'); shops.label = 'ร้านในรายชื่อ';
+  for (const {role, venues} of roles) shops.append(new Option(`${TENANT_ROLE_LABELS[role] || role} · ${num(venues)} แห่ง`, role));
+  if (roles.length) select.append(shops);
+  if (facilities.length) {
+    const group = document.createElement('optgroup'); group.label = 'สิ่งอำนวยความสะดวก';
+    for (const {kind, venues} of facilities) group.append(new Option(`${AMENITY_LABELS[kind]} · ${num(venues)} แห่ง`, kind));
+    select.append(group);
+  }
+  select.disabled = !roles.length && !facilities.length;
+  const ok = [...select.options].some(o => o.value === current);
+  select.value = ok ? current : '';
+  const restored = ok && current === state.pendingRole ? current : '';
+  if (ok && current === state.pendingRole) state.pendingRole = '';
+  return restored;
 }
 
 /** Brand view: the venues whose shop list has the brand, framed together; no district focus. */
@@ -693,7 +740,7 @@ function renderTable() {
       <td>${r.operatorLabel ? esc(r.operatorLabel) : '<span class="hint">ยังไม่มีข้อมูล</span>'}</td>
       <td>${d ? esc(districtLabel(d)) : `<span class="hint">${hasPoint(r) ? 'หมุดอยู่นอกเส้นเขต' : 'ยังไม่มีพิกัด'}</span>`}<small>${esc(provinceByCode(rowProvince(r))?.th || r.addrProvince || '')}</small></td>
       <td>${statusPill(r)}</td>
-      <td class="data-number">${r.storeCount ? num(r.storeCount) : '<span class="hint">—</span>'}</td>
+      <td class="data-number">${r.shopCount ? num(r.shopCount) : '<span class="hint">—</span>'}</td>
       <td><small class="data-number">${esc(r.id)}</small></td></tr>`;
   }).join('') || '<tr><td colspan="7">ไม่พบสถานที่ตามตัวกรอง</td></tr>';
   $('page-label').textContent = list.length ? `${num(start + 1)}–${num(Math.min(start + pageSize, list.length))} / ${num(list.length)}` : '0 แห่ง';
@@ -1131,6 +1178,7 @@ function restoreFromURL() {
   else if (p.get('district') && state.districts.has(p.get('district'))) state.panel = {mode: 'district', id: p.get('district')};
   else if (p.get('brand')) { state.pendingBrand = p.get('brand'); ensureTenantIndex(); }
   state.pendingRecord = p.get('record') || '';
+  state.pendingRole = p.get('role') || '';
 }
 
 function wireEvents() {
@@ -1236,6 +1284,8 @@ async function init() {
     window.dispatchEvent(new CustomEvent('citymeter:ready'));
     startMap();
     loadPending();
+    ensureTenantIndex();
+    loadAmenities();
   } catch (e) {
     window.dispatchEvent(new CustomEvent('citymeter:load-error', {detail: {message: 'โหลดข้อมูลสถานที่ไม่สำเร็จ กรุณาลองอีกครั้ง', resource: e.resource, status: e.status, phase: e.phase || 'startup', diagnostic: e.message}}));
     console.error(e);

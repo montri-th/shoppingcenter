@@ -91,6 +91,8 @@ export const DATASET_ROLES = Object.freeze({
   'research.th.fitness': 'fitness', 'research.th.apparel': 'apparel', 'research.th.sport': 'sport',
   'research.th.furniture': 'home', 'research.th.pet': 'pet', 'research.th.massage_spa': 'spa',
   'research.th.salon_barber': 'hair', 'research.th.nail': 'nail',
+  'research.th.beauty': 'beauty', 'research.th.beauty_clinic': 'clinic', 'research.th.playground': 'family',
+  'research.th.car_service': 'car',
 });
 
 /** Role is a display judgement, not a footfall score. No network size, sales, GLA or logo bonus. */
@@ -121,11 +123,12 @@ export function tenantRole(item) {
 export const TENANT_ROLE_LABELS = Object.freeze({
   entertainment: 'ความบันเทิง', department: 'ห้างสรรพสินค้า', grocery: 'ซูเปอร์มาร์เก็ตและของใช้',
   convenience: 'ร้านสะดวกซื้อ', destination: 'แฟชั่นและแบรนด์หรู', apparel: 'เสื้อผ้าและแฟชั่น', sport: 'กีฬาและเอาท์ดอร์', beauty: 'ความงาม', dining: 'ร้านอาหาร', food: 'อาหารและเครื่องดื่ม', cafe: 'คาเฟ่และเครื่องดื่ม', technology: 'เทคโนโลยีและอุปกรณ์',
-  camera: 'กล้องและอุปกรณ์', home: 'บ้านและเฟอร์นิเจอร์', gold: 'ทองและเครื่องประดับ', spa: 'นวดและสปา', hair: 'ทำผมและตัดผม', nail: 'ทำเล็บ', pharmacy: 'ยาและสุขภาพ', pet: 'สัตว์เลี้ยง', optical: 'แว่นตา', bank: 'บริการธนาคาร', fitness: 'ฟิตเนสและสตูดิโอ', shop: 'ร้านค้าและบริการ',
+  camera: 'กล้องและอุปกรณ์', home: 'บ้านและเฟอร์นิเจอร์', gold: 'ทองและเครื่องประดับ', spa: 'นวดและสปา', hair: 'ทำผมและตัดผม', nail: 'ทำเล็บ', pharmacy: 'ยาและสุขภาพ', pet: 'สัตว์เลี้ยง', optical: 'แว่นตา', bank: 'บริการธนาคาร', fitness: 'ฟิตเนสและสตูดิโอ',
+  family: 'เครื่องเล่นและครอบครัว', clinic: 'คลินิกความงาม', car: 'บริการรถยนต์', shop: 'ร้านค้าและบริการ',
 });
 
 // Editorial display priority, not visits or sales: anchors and destinations first, then everyday shopping and services.
-const BASE = {department: 100, entertainment: 95, grocery: 90, destination: 85, apparel: 80, sport: 76, beauty: 72, dining: 70, food: 68, technology: 67, fitness: 66, camera: 65, home: 64, gold: 60, spa: 58, cafe: 55, hair: 52, nail: 51, pharmacy: 50, pet: 48, optical: 45, convenience: 40, bank: 35, shop: 30};
+const BASE = {department: 100, entertainment: 95, grocery: 90, destination: 85, apparel: 80, sport: 76, family: 74, beauty: 72, dining: 70, food: 68, technology: 67, fitness: 66, camera: 65, home: 64, gold: 60, spa: 58, clinic: 57, cafe: 55, hair: 52, nail: 51, pharmacy: 50, pet: 48, optical: 45, convenience: 40, bank: 35, car: 33, shop: 30};
 
 export function tenantPriority(item, venue = {}, profile = null) {
   const role = tenantRole(item);
@@ -286,6 +289,33 @@ export function brandPresence(index, key, byId) {
   rows.sort((a, b) => (rank.get(codeOf(a)) ?? byProvince.length) - (rank.get(codeOf(b)) ?? byProvince.length) || collator.compare(a.name, b.name));
   return {brand, rows, placeRows, places: places.size, provinces: byProvince,
     groups: [...groups].map(([id, count]) => ({id, count})).sort((a, b) => b.count - a.count), coBrands};
+}
+
+/**
+ * Shop roles across venues (D22, owner 4 Nov 2026): how many countable venues list each role, largest first
+ * (ties by display priority). The filter “ข้างในมี” keeps the venues whose shop list has the role; a venue
+ * without a list is unknown, never “none”.
+ */
+export function roleVenueCounts(index, rows) {
+  const counts = new Map();
+  for (const r of rows) {
+    if (!r.countable) continue;
+    for (const role of index?.venues.get(r.id)?.roles.keys() || []) counts.set(role, (counts.get(role) || 0) + 1);
+  }
+  return [...counts].map(([role, venues]) => ({role, venues})).sort((a, b) => b.venues - a.venues || (BASE[b.role] || 0) - (BASE[a.role] || 0));
+}
+
+/** Centre facilities the research datasets name with an official source (data/venue-amenities.json). */
+export const AMENITY_LABELS = Object.freeze({'pet-area': 'พื้นที่สำหรับสัตว์เลี้ยง'});
+
+/** data/venue-amenities.json → venue id → [{kind, name, sourceUrl, checkedOn, basis}] (kinds in AMENITY_LABELS only). */
+export function buildAmenities(json) {
+  const out = new Map();
+  for (const [id, list] of Object.entries(json?.venues || {})) {
+    const ok = (Array.isArray(list) ? list : []).filter(a => AMENITY_LABELS[a?.kind] && /^https?:\/\//.test(a.sourceUrl || '') && /^\d{4}-\d{2}-\d{2}$/.test(a.checkedOn || ''));
+    if (ok.length) out.set(id, ok);
+  }
+  return out;
 }
 
 /** Role counts of a roster, largest first (ties by display priority): the shop mix of one venue. */

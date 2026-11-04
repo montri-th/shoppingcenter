@@ -4,7 +4,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, readdirSync} from 'node:fs';
-import {filterVenues, prepareRows, summarize, tierReading, hasPoint, rowProvince} from '../js/model.js';
+import {filterVenues, prepareRows, applyShopLists, summarize, tierReading, hasPoint, rowProvince} from '../js/model.js';
+import {buildTenantIndex, buildAmenities, roleVenueCounts} from '../js/tenants.js';
 import {hierarchyReading} from '../js/evidence.js';
 import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.js';
 import {summarizeAreaInsight} from '../js/area-insight.js';
@@ -17,6 +18,9 @@ import {rankAreas, groupMatrix} from '../js/chart-model.js';
 const read = p => JSON.parse(readFileSync(new URL(`../${p}`, import.meta.url), 'utf8'));
 const venues = read('data/venues.json');
 const rows = prepareRows(venues.rows.map(r => ({...r})));
+// D22: shop counts and what is inside come from the published shop-list index and the centre facilities.
+const shopIndex = buildTenantIndex(read('data/tenant-index.json'));
+applyShopLists(rows, shopIndex, buildAmenities(read('data/venue-amenities.json')));
 const byId = new Map(rows.map(r => [r.id, r]));
 const districts = indexDistricts(read('data/districts.geojson'));
 const pending = indexPending(read('data/pending.json'));
@@ -213,15 +217,15 @@ test('opening: the exact date once when the source gives it, else the year', () 
 
 test('venue panel: name and logo first, key figures from reported values, contact chips, qualifiers in the evidence list', () => {
   configureVenueLogos(read('data/venue-logos.json'));
-  const branded = rows.find(r => r.countable && getVenueLogo(r.id, r.name) && details.get(r.id)?.stores?.confirmed);
-  assert.ok(branded, 'fixture: a counted venue with a logo and confirmed stores');
+  const branded = rows.find(r => r.countable && getVenueLogo(r.id, r.name) && r.shopCount && details.get(r.id));
+  assert.ok(branded, 'fixture: a counted venue with a logo and a shop list');
   const d = details.get(branded.id);
   const html = renderVenue(buildVenueProfile({row: branded, detail: d, byId, districts}), {asOf});
   const at = needle => html.indexOf(needle);
   assert.ok(at('detail-venue-logo') > -1 && at('detail-venue-logo') < at('<h2>'), 'logo before the name');
   assert.ok(at('<h2>') < at('venue-metrics') && at('venue-metrics') < at('<dl class="facts">'), 'name → key figures → facts');
   assert.ok(!html.includes('data-action="back"'), 'the back button lives in the panel top row, not in the view');
-  assert.ok(html.includes(`>${d.stores.confirmed.toLocaleString('th-TH')}<`) && html.includes('ร้านข้างใน'));
+  assert.ok(html.includes(`>${branded.shopCount.toLocaleString('th-TH')}<`) && html.includes('ร้านข้างใน'), 'D22: the shop-list count, not the older link count');
   // A legacy estimate is never a key figure: tiles carry reported values only.
   const legacyOnly = rows.find(r => { const x = details.get(r.id); return r.countable && x?.size?.legacy?.gla && !x.size.glaReported; });
   if (legacyOnly) {
@@ -255,9 +259,9 @@ test('phone map cards: the reading of each level with one primary button that op
   const insight = summarizeAreaInsight(supply, districts);
   const aha = mapCardAha(insight, {mode: 'auto'});
   assert.ok(aha.includes(`${Math.round(insight.share)}%`) && aha.includes('data-action="open-panel"') && aha.includes('data-action="all-districts"'));
-  const branded = rows.find(r => r.countable && getVenueLogo(r.id, r.name) && r.storeCount);
+  const branded = rows.find(r => r.countable && getVenueLogo(r.id, r.name) && r.shopCount);
   const venue = mapCardVenue(buildVenueProfile({row: branded, detail: null, byId, districts}));
-  assert.ok(venue.includes(branded.name.replace(/&/g, '&amp;')) && venue.includes('venue-logo') && venue.includes(`ร้านข้างใน ${branded.storeCount.toLocaleString('th-TH')} ร้าน`));
+  assert.ok(venue.includes(branded.name.replace(/&/g, '&amp;')) && venue.includes('venue-logo') && venue.includes(`ร้านข้างใน ${branded.shopCount.toLocaleString('th-TH')} ร้าน`));
   assert.equal((venue.match(/class="btn primary"/g) || []).length, 1, 'one emphasised button');
   assert.ok(venue.includes('data-action="open-panel"') && venue.includes('data-action="back"'));
   const model = buildDistrictModel(summarizeDistricts(supply, districtsInScope(districts, 'BKK')));
@@ -266,4 +270,32 @@ test('phone map cards: the reading of each level with one primary button that op
   assert.ok(district.includes('แน่นอันดับ 1 จาก 50') && district.includes(`${top.count.toLocaleString('th-TH')} แห่ง`));
   const search = mapCardSearch(searchAll('เซ็นทรัล', {rows, pending}));
   assert.ok(search.includes('ดูรายการ') && search.includes('data-id="search"'));
+});
+
+test('D22: shop figures from the shop list everywhere; missing is not zero; “ข้างในมี” filters by role or facility', () => {
+  const listed = supply.filter(r => r.shopCount > 0);
+  const sum = summarize(supply);
+  assert.equal(sum.stores, listed.reduce((n, r) => n + r.shopCount, 0));
+  assert.equal(sum.storeVenues, listed.length);
+  assert.equal(sum.stores, [...shopIndex.venues].filter(([id]) => supply.some(r => r.id === id)).reduce((n, [, e]) => n + e.items, 0), 'the index items of the counted venues');
+  const none = supply.filter(r => !r.shopCount).slice(0, 5);
+  assert.equal(summarize(none).stores, null, 'no list at all reads “—”, never 0');
+  const html = renderOverview({insight: summarizeAreaInsight(none, districts), model: buildOverviewModel({rows: none, scopeRows: none, areas: [], readCode: ''}), focusMode: 'none', asOf, shops: shopIndex.meta});
+  assert.ok(html.includes('>—<') && !/>0<\/strong><span>ร้านข้างใน/.test(html));
+  assert.ok(html.includes('ร้านข้างในจากรายชื่อร้าน') && html.includes('ชุดข้อมูล'), 'the shop source joins the one provenance line');
+  // Role filter: the venues whose list has the role; a venue without a list never matches.
+  const roles = roleVenueCounts(shopIndex, rows);
+  assert.ok(roles.length > 5 && roles[0].venues >= roles.at(-1).venues);
+  const fitness = filterVenues(rows, {role: 'fitness'});
+  assert.ok(fitness.length > 0 && fitness.every(r => shopIndex.venues.get(r.id)?.roles.has('fitness')));
+  assert.equal(fitness.length, roles.find(r => r.role === 'fitness').venues - rows.filter(r => r.countable && r.status !== 'supply' && shopIndex.venues.get(r.id)?.roles.has('fitness')).length);
+  for (const role of ['beauty', 'clinic', 'family', 'car']) assert.ok(roles.some(r => r.role === role), `${role}: the reviewed datasets have their own role`);
+  // Centre facilities: the five pet areas with an official host page (or the owner's report), dated.
+  const pets = filterVenues(rows, {role: 'pet-area'});
+  assert.equal(pets.length, 5);
+  const megabangna = pets.find(r => r.id === 'SC-012204');
+  assert.ok(megabangna, 'Mega Park at Mega Bangna');
+  const page = renderVenue(buildVenueProfile({row: megabangna, detail: details.get(megabangna.id), byId, districts}), {asOf, shops: shopIndex.meta});
+  assert.ok(page.includes('มีพื้นที่สำหรับสัตว์เลี้ยง · Mega Park'));
+  assert.ok(/สิ่งอำนวยความสะดวก<\/span><span class="ev-text">พื้นที่สำหรับสัตว์เลี้ยง · หน้าเว็บของศูนย์/.test(page), 'source and basis in the evidence list');
 });

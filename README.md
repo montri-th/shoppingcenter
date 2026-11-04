@@ -21,8 +21,8 @@
 | ตรวจแล้ว ยังยืนยันไม่ได้ | 4,869 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,851 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
 | ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 5 รายการ | ไม่เข้าเกณฑ์ 2 · ร้านผู้เช่า 2 · โครงการแม่ที่เป็นบริบท 1 (ดุสิต เซ็นทรัล พาร์ค — ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
-| ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน | 1,559 รายการใน 385 สถานที่ที่นับได้ | candidate ไม่นับ |
-| รายชื่อร้านข้างใน (แผงสถานที่ · 4 พ.ย. 2569) | 3,713 รายการ ใน 529 สถานที่ จาก 17 ชุดข้อมูล | ชุดเดิม 2,461 + 7 ชุดใหม่ที่แหล่งทางการระบุชื่อศูนย์ 1,252 (Sport 315 · Apparel 667 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 61 · Nail 23) · ตัวเลขรวมของแผนที่ ย่าน และตารางยังเป็นจำนวนแบบ primary ข้างบน |
+| ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ของ snapshot 25 ต.ค.) | 1,559 รายการใน 385 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) |
+| รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 5 พ.ย. 2569) | 5,493 สาขา ใน 619 สถานที่ จาก 21 ชุดข้อมูล | หนึ่งรายการคือหนึ่งสาขา (D23) · ชุดเดิม 2,461 · 7 ชุดที่ sheet จับคู่ชื่อศูนย์ (Sport 319 · Apparel 681 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 62 · Nail 23) · 4 ชุดที่ผ่านการตรวจลิงก์ศูนย์ (Beauty 1,075 · Beauty Clinic 436 · Playground 103 · Car Service 147) · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
 
 ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **50 จาก 861 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 99 แห่ง
 
@@ -131,3 +131,12 @@ Owner 4 November 2026 21:56: the Samphanthawong outline crossed the Chao Phraya 
 - **Membership recomputed** with the build's own point-in-polygon (`scripts/relocate-districts.py`): 80 venues and 47 context rows moved. 65 of the 80 now sit in the district their own address names (10 did before). First finding: สัมพันธวงศ์ · พระนคร · บางรัก, 50 of 861.
 - **Smooth at every zoom:** the national file stays coarse. Each province's detailed polygons (`data/districts/<province>.geojson`, Bangkok 59 KB gzipped) load only when that province is read or in view from zoom 9 (`js/district-detail.js`). Data fills now sit under the basemap water, so rivers stay water. Cache tag `20261104-r15`.
 
+## 0.1.8 - shop counts from the list, branches, reviewed host links and “ข้างในมี”
+
+Owner 4 November 2026 21:23–21:24: do D22, research the candidate host links carefully (“ผูกกับศูนย์การค้าให้ถูกต้อง อย่าเดา”), fix the registry sync, add a pet-friendly filter and brand logos; count branches, not brands (“เมกาบางนา มี Starbucks 3 สาขา”).
+
+- **Branches (D23):** one entry is one shop or counter the official source lists as its own entry; distinct entries of one brand at one venue stay separate; the same branch from another publisher or dataset is one entry with every outlet id.
+- **Reviewed host links:** `scripts/review-candidate-hosts.py` accepts a candidate host of Beauty, Beauty Clinic, Playground or Car Service only when the source is the brand's or the host's own, the published branch label names the candidate and no other venue (not “before/near” it), the province agrees and the row's own point is near the venue or inside its footprint. Names are compared after one fixed normalisation (case, spacing, Thai silent letters, the operators' documented renamings) plus one sourced official name — nothing fuzzy. 1,769 of 2,789 candidate rows pass; 1,761 branches enter. The other 1,020 rows, with a reason each, are in an internal review sheet for the research team.
+- **Shop counts everywhere from the list (D22):** overview, area, venue lists, table, cards and the venue panel read the same list — 5,493 branches at 619 venues from 21 datasets. A venue without a list reads “—”, never 0.
+- **Filter “ข้างในมี” (`?role=`):** venues whose list has a shop role (roles of the new datasets included), or a centre pet area from the Pet dataset (`data/venue-amenities.json`, 5 venues, the centre's own page or the owner's report).
+- Brand logos: the research masters hold verified logo files for 13 Apparel brands only, so none were added. The registry sync was repaired outside this repository. Cache tag `20261105-r16`.

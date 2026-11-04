@@ -1,6 +1,6 @@
 # CityMETER Shopping centers — first useful value
 
-This Build Card records the first-use contract of this research demo (release 0.1.7, page tag `20261104-r15`, venue data refreshed from the 25 Oct 2026 16:39 export with district membership on the RTSD polygons of CityMETER production since 4 Nov 2026; shop list from 17 datasets checked to 4 Nov 2026). It uses LDS 0.9.7, release `v0.9.7-owner.1`, standalone document `lds-0.9.7-landometer-standalone-r1`, colour set `color-srgb-10`, SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96`, with `product.citymeter` identity. It is not a blanket conformance or browser-pass certificate.
+This Build Card records the first-use contract of this research demo (release 0.1.8, page tag `20261105-r16`, venue data refreshed from the 25 Oct 2026 16:39 export with district membership on the RTSD polygons of CityMETER production since 4 Nov 2026; shop list from 21 datasets checked to 4 Nov 2026, one entry per branch). It uses LDS 0.9.7, release `v0.9.7-owner.1`, standalone document `lds-0.9.7-landometer-standalone-r1`, colour set `color-srgb-10`, SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96`, with `product.citymeter` identity. It is not a blanket conformance or browser-pass certificate.
 
 Titles read **ศูนย์การค้า** / **Shopping centers** (owner instruction 2026-10-25 16:32). The scope does not change: the dataset still covers shopping centres and the retail venues of decision D2 (markets, fuel stations with shops, retail inside projects, host stores), and running copy calls them “สถานที่ค้าปลีก”.
 
@@ -14,7 +14,7 @@ Default copy (snapshot checked to 25 Oct 2026, counting rules with owner decisio
 
 ## After the first view — shop lists for the ICP (D20–D21, 4 Nov 2026)
 
-Not part of AHA-01 and never a prerequisite: the venue panel's shop mix (role chips over the list), “เทียบศูนย์ใกล้เคียง” (centres with a shop list within 5 km and the roles and brands their lists have that this list does not) and the brand view from search (`?brand=`) load `data/tenant-index.json` only when a venue is opened, a query is typed or a brand link is followed. They read the shop list (3,713 entries at 529 venues from 17 datasets), never change the first-view numbers, and say “ยังไม่อยู่ในรายชื่อของที่นี่” rather than claiming a shop is absent or a market gap.
+Not part of AHA-01 and never a prerequisite: the shop figures (“ร้านข้างใน” in the overview, areas, lists, table, cards and venue panel — D22), the filter “ข้างในมี” (`?role=`), the venue panel's shop mix, “เทียบศูนย์ใกล้เคียง” and the brand view (`?brand=`) read `data/tenant-index.json` (5,493 branches at 619 venues from 21 datasets), loaded right after the core data; until it arrives a shop figure reads “—”. The Aha numbers (venues per km²) never depend on it unless the user picks a role, which then narrows every number to the venues whose list has that role. Copy says “ยังไม่อยู่ในรายชื่อของที่นี่” rather than claiming a shop is absent or a market gap.
 
 ## Evidence cue and calculation
 

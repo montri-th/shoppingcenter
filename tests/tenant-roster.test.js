@@ -93,24 +93,35 @@ test('linked datasets (build-report.linkedDatasets): pinned release, only gated 
 });
 
 const NAMED = ['research.TH.sport', 'research.TH.apparel', 'research.TH.furniture', 'research.TH.pet', 'research.TH.massage_spa', 'research.TH.salon_barber', 'research.TH.nail'];
-const normalize = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase('th-TH').replace(/[\s\u200b'’"`.,·\-–—/()]+/g, '');
+// Candidate hosts confirmed by scripts/review-candidate-hosts.py (owner 4 Nov 2026 21:23: “ผูกกับศูนย์การค้าให้ถูกต้อง อย่าเดา”).
+const REVIEWED = ['research.TH.beauty', 'research.TH.beauty_clinic', 'research.TH.playground', 'research.TH.car_service'];
+const normalize = value => String(value ?? '').normalize('NFKC').toLocaleLowerCase('th-TH').replace(/[\s​'’"`.,·\-–—/()]+/g, '');
 
-test('named-host research datasets: receipts, gated items, one brand once per venue, canonical items untouched', () => {
+test('named-host research datasets: receipts, gated items, one item per branch (D23), canonical items untouched', () => {
   const report = read('data/tenants/build-report.json');
-  const named = Object.entries(report.linkedDatasets || {}).filter(([, receipt]) => receipt.kind === 'named_host_listing');
+  const linked = Object.entries(report.linkedDatasets || {});
+  const named = linked.filter(([, receipt]) => receipt.kind === 'named_host_listing');
+  const reviewed = linked.filter(([, receipt]) => receipt.kind === 'reviewed_candidate_host');
   assert.deepEqual(named.map(([dataset]) => dataset), NAMED, 'processing order: Sport before Apparel');
-  assert.deepEqual(Object.keys(report.excludedDatasets || {}).sort(), ['research.TH.beauty', 'research.TH.beauty_clinic', 'research.TH.car_service', 'research.TH.playground']);
+  assert.deepEqual(reviewed.map(([dataset]) => dataset), REVIEWED);
+  assert.deepEqual(report.excludedDatasets || {}, {}, 'no dataset is left out; candidates enter only through the review');
   const byVenue = new Map();
   for (const file of shards) for (const [id, roster] of Object.entries(read('data/tenants/' + file).venues)) byVenue.set(id, roster.items);
-  for (const [dataset, receipt] of named) {
+  for (const [dataset, receipt] of [...named, ...reviewed]) {
     assert.match(receipt.files['02_STORES.csv'], /^[0-9a-f]{64}$/);
     assert.match(receipt.exportedOn, /^\d{4}-\d{2}-\d{2}$/);
+    assert.match(receipt.unit, /one branch/);
     assert.ok(!/docs\.google|drive\.google|spreadsheets\/d\//.test(JSON.stringify(receipt)), 'no private links or sheet ids in the receipt');
     const items = [], hosts = new Set();
     for (const [id, list] of byVenue) for (const item of list.filter(x => x.dataset === dataset)) { items.push(item); hosts.add(id); }
     assert.equal(items.length, receipt.publishedItems, `${dataset}: run scripts/link-research-tenants.py after every roster rebuild`);
     assert.equal(hosts.size, receipt.publishedVenueHosts);
     assert.equal(report.datasets[dataset] || 0, receipt.publishedItems);
+    assert.equal(items.reduce((n, x) => n + (x.sourceObservationCount || 1), 0), receipt.publishedSourceObservations);
+    if (receipt.kind === 'reviewed_candidate_host') {
+      assert.ok(receipt.candidateRows >= receipt.reviewAccepted && receipt.reviewAccepted >= receipt.publishedSourceObservations, dataset);
+      assert.match(receipt.gate, /review-candidate-hosts\.py/);
+    }
     for (const item of items) {
       assert.equal(item.sourceRole, 'dataset_source_named_host_listing');
       assert.equal(item.relationshipBasis, 'research_dataset_official_source_explicit_host_label_unique_registry_alias_no_far_point_conflict');
@@ -121,16 +132,21 @@ test('named-host research datasets: receipts, gated items, one brand once per ve
       assert.ok(/^https?:\/\/\S+$/.test(item.sourceUrl) && !/google\.[a-z.]+\/maps|docs\.google|drive\.google/.test(item.sourceUrl));
       assert.ok(!/(?:\+66|0)\s?\d[\d\s-]{6,}/.test(item.unitFloor || ''), 'no phone numbers as units');
       assert.ok(!/held|historical|planned|announced|closed|candidate/.test(item.status), item.status);
-      assert.equal(item.logo, undefined, 'no brand logos were collected for these datasets');
+      if (receipt.kind === 'reviewed_candidate_host') {
+        assert.equal(item.hostIdentityStatus, 'candidate_confirmed_by_citymeter_review');
+        assert.equal(item.sourceGate, 'official_label_unique_registry_name');
+        assert.match(item.identityNote, /^(brand|host) source · label “[^”]+”/);
+      }
       if (item.sourceObservationCount > 1) assert.equal(item.sourceObservationIds.length, item.sourceObservationCount);
     }
   }
-  // One brand once per venue: a named-host item never repeats a brand already listed at its venue.
+  // D23: a brand may have several branches at one venue, but never the same branch twice.
   for (const [id, list] of byVenue) {
-    const keys = list.map(item => normalize(item.displayBrand || item.brand || item.name));
-    for (const [i, item] of list.entries()) {
-      if (item.sourceRole !== 'dataset_source_named_host_listing') continue;
-      assert.equal(keys.filter(k => k === keys[i]).length, 1, `${id}: ${item.brand}`);
+    const seen = new Set();
+    for (const item of list.filter(x => x.sourceRole === 'dataset_source_named_host_listing')) {
+      const key = [normalize(item.displayBrand || item.brand), normalize(item.name), item.unitFloor || '', item.displayQualifier || ''].join('|');
+      assert.ok(!seen.has(key), `${id}: ${item.name} listed twice`);
+      seen.add(key);
     }
   }
 });

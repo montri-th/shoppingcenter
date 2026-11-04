@@ -198,6 +198,8 @@ export function filterVenues(rows, f = {}) {
     if (f.operator && (f.operator === '__none__' ? r.operatorGroup : f.operator === '__other__' ? r.operatorGroup !== 'other' : r.operatorGroup !== f.operator)) return false;
     if (f.province && rowProvince(r) !== f.province) return false;
     if (f.district && r.districtCode !== f.district) return false;
+    // D22: what the venue's shop list (or a sourced centre facility) has; a venue without a list never matches.
+    if (f.role && !r._inside?.has(f.role)) return false;
     return !q || (r._search || searchKey(r)).includes(q);
   });
 }
@@ -218,8 +220,10 @@ export function summarize(rows) {
     operatorKnown: rows.filter(r => r.operatorLabel).length,
     districts: new Set(areaRows(rows).map(r => r.districtCode)).size,
     provinces: new Set(areaRows(rows).map(r => r.provinceCode)).size,
-    storeVenues: rows.filter(r => r.storeCount > 0).length,
-    stores: rows.reduce((s, r) => s + (r.storeCount || 0), 0),
+    // D22 (owner 4 Nov 2026): shops from the published shop list, one item per branch (D23); a venue with no list is
+    // missing, so a selection with no list at all reads null (“—”), never 0.
+    storeVenues: rows.filter(r => r.shopCount > 0).length,
+    stores: rows.some(r => r.shopCount > 0) ? rows.reduce((s, r) => s + (r.shopCount || 0), 0) : null,
   };
 }
 
@@ -234,6 +238,22 @@ export function operatorRanking(rows) {
     by.set(key, e);
   }
   return [...by.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, 'th'));
+}
+
+/**
+ * D22: shop counts and what is inside, from the shop-list index (tenants.js#buildTenantIndex) and the centre
+ * facilities (tenants.js#buildAmenities). Non-enumerable, like the search key; source values unchanged.
+ */
+export function applyShopLists(rows, index, amenities = new Map()) {
+  for (const r of rows) {
+    const entry = index?.venues.get(r.id);
+    const inside = new Set(entry ? entry.roles.keys() : []);
+    for (const a of amenities.get(r.id) || []) inside.add(a.kind);
+    Object.defineProperty(r, 'shopCount', {value: entry ? entry.items : undefined, configurable: true, writable: true, enumerable: false});
+    Object.defineProperty(r, '_inside', {value: inside, configurable: true, writable: true, enumerable: false});
+    Object.defineProperty(r, '_amenities', {value: amenities.get(r.id) || [], configurable: true, writable: true, enumerable: false});
+  }
+  return rows;
 }
 
 /** Prepare rows once after load: search key and nothing else (source values unchanged). */

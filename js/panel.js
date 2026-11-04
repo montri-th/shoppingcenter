@@ -23,7 +23,7 @@ import {formatDensity} from './scales.js';
 import {cueSVG} from './cues.js';
 import {nameBasis, typeEvidence, operationReading, statusTone, coordinateReading, hoursScope, legacyBasis, storeDataset, hierarchyReading} from './evidence.js';
 import {buildingHeightLabel} from './buildings.js';
-import {rankTenants, tenantRole, tenantMix, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE} from './tenants.js';
+import {rankTenants, tenantRole, tenantMix, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE, AMENITY_LABELS} from './tenants.js';
 
 const NUMBER = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0});
 const PCT = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 1});
@@ -81,7 +81,7 @@ function groupBars(groups, total) {
       <span class="mix-value data-number" aria-hidden="true">${num(g.count)}${total ? `<small> ${PCT.format((g.count / total) * 100)}%</small>` : ''}</span></button></li>`).join('')}</ul>`;
 }
 
-function venueRow(r, {meta = '', hideStatus = false, count = r.storeCount, unit = 'ร้าน', countLabel = 'ร้านข้างใน'} = {}) {
+function venueRow(r, {meta = '', hideStatus = false, count = r.shopCount, unit = 'ร้าน', countLabel = 'ร้านข้างใน'} = {}) {
   const g = groupById(r.group);
   const logo = getVenueLogo(r.id, r.name);
   const sub = [meta || g.th, r.operatorLabel].filter(Boolean).join(' · ');
@@ -102,8 +102,15 @@ function statusLists(planned, closed) {
 }
 
 /** Data line: dataset · source · date · boundary — carried by every panel that shows numbers. */
-export function dataLine(asOf) {
-  return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))} · ขอบเขตเขต/อำเภอ กรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+export function dataLine(asOf, shops = null) {
+  return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))}${shops ? ` · ${shopSource(shops)}` : ''} · ขอบเขตเขต/อำเภอ กรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+}
+
+/** Where the shop numbers come from (D22): the shop-list index meta — dataset count and check dates. */
+function shopSource(meta = {}) {
+  const sets = Object.keys(meta.datasets || {}).length;
+  const range = meta.checkedFrom && meta.checkedTo ? `${thaiDate(meta.checkedFrom)}–${thaiDate(meta.checkedTo)}` : thaiDate(meta.checkedTo || '');
+  return `ร้านข้างในจากรายชื่อร้าน${sets ? ` ${num(sets)} ชุดข้อมูล` : ''}${range ? ` ตรวจ ${esc(range)}` : ''}`;
 }
 
 /** Data line of the shop lists (brand view, nearby centres): dataset · source · check dates · boundary. */
@@ -131,7 +138,7 @@ export function densityRatio(insight) {
  * focusMode: 'auto' (first-Aha districts carry the detail), 'explicit' (chosen districts) or
  * 'none' (every district of the reading in detail).
  */
-export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = []}) {
+export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = [], shops = null}) {
   const s = model.summary;
   const count = insight.districts.length;
   const pCode = insight.province;
@@ -168,7 +175,7 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
     ${metricTile(s.venues, 'แห่ง', 'venue')}
     ${metricTile(s.districts, readCode || narrowed ? unitWord(readCode || pCode) : 'เขต/อำเภอ', 'area')}
     ${metricTile(s.operators, 'ผู้บริหาร', 'operator')}
-    ${metricTile(s.stores, 'ร้านข้างใน', 'store')}
+    ${metricTile(s.stores ?? '—', 'ร้านข้างใน', 'store')}
   </section>`;
   const mix = model.groups.length ? `<section class="panel-section" aria-labelledby="mix-title"><div class="section-heading">${heading('segment', 'ประเภท', 'mix-title')}<span class="hint">${num(s.venues)} แห่ง</span></div>${groupBars(model.groups, s.venues)}</section>` : '';
   let areaList = '';
@@ -188,12 +195,12 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
   }
   // Rows that no district holds (no point, or a point outside every boundary line): named once, listed in the table.
   const unlocated = model.unlocated.length ? `<p class="hint">อีก ${num(model.unlocated.length)} แห่งยังระบุ${readCode ? unitWord(readCode) : 'เขต/อำเภอ'}ไม่ได้ · <button type="button" class="link-button" data-action="open-table">ดูในตาราง</button></p>` : '';
-  return `${aha}${metrics}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf)}`;
+  return `${aha}${metrics}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf, shops)}`;
 }
 
 /* ---------- Search results ---------- */
 
-export function renderSearch(results, {pending = null, districts = null, asOf = '', brands = null} = {}) {
+export function renderSearch(results, {pending = null, districts = null, asOf = '', brands = null, shops = null} = {}) {
   const pendingRow = i => {
     const r = pending?.rows?.[i];
     if (!r) return '';
@@ -217,28 +224,33 @@ export function renderSearch(results, {pending = null, districts = null, asOf = 
     ${results.qualified.length ? `<section class="panel-section"><div class="section-heading">${heading('venue', 'สถานที่')}<span class="hint">${num(results.qualifiedTotal)}</span></div>${venueList(results.qualified, {limit: 30})}</section>` : ''}
     ${results.components.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยและรายการที่อาจซ้ำ')}<span class="hint">ไม่นับแยก</span></div>${venueList(results.components, {limit: 30})}</section>` : ''}
     ${results.pending.length ? `<section class="panel-section"><div class="section-heading"><h3><i class="pending-swatch" aria-hidden="true"></i>ยังยืนยันไม่ได้</h3><span class="hint">ไม่นับ · ${num(results.pendingTotal)}</span></div><ul class="venue-list">${results.pending.map(pendingRow).join('')}</ul>${results.pendingTotal > results.pending.length ? `<p class="hint">แสดง ${num(results.pending.length)} รายการแรก</p>` : ''}</section>` : ''}
-    ${dataLine(asOf)}`;
+    ${dataLine(asOf, shops)}`;
 }
 
 /* ---------- District ---------- */
 
-export function renderDistrict(p, {asOf = ''} = {}) {
+export function renderDistrict(p, {asOf = '', shops = null} = {}) {
   if (!p) return '';
   const word = unitWord(p.province);
   return `<section class="detail-head">
       <p class="eyebrow">${esc(word)}${p.rank ? ` · แน่นอันดับ ${num(p.rank)} จาก ${num(p.of)} ของ${esc(provinceShort(p.province))}` : ''}</p>
       <h2>${esc(p.label)}</h2><p class="subtle">${esc(p.provinceName)} · ${esc(formatDensity(p.areaKm2))} ตร.กม.</p>
-      <div class="metrics compact">${metricTile(p.summary.venues, 'แห่ง', 'venue')}${metricTile(formatDensity(p.density), 'แห่ง/ตร.กม.', 'area')}${metricTile(p.summary.operators, 'ผู้บริหาร', 'operator')}${metricTile(p.summary.stores, 'ร้านข้างใน', 'store')}</div>
+      <div class="metrics compact">${metricTile(p.summary.venues, 'แห่ง', 'venue')}${metricTile(formatDensity(p.density), 'แห่ง/ตร.กม.', 'area')}${metricTile(p.summary.operators, 'ผู้บริหาร', 'operator')}${metricTile(p.summary.stores ?? '—', 'ร้านข้างใน', 'store')}</div>
       <div class="detail-actions"><button type="button" class="btn" data-action="open-table">${icon('table')}รายการ</button><button type="button" class="btn quiet" data-action="open-charts">${icon('chart')}เทียบ${esc(word)}</button></div>
     </section>
     ${p.groups.length ? `<section class="panel-section"><div class="section-heading">${heading('segment', 'ประเภท')}<span class="hint">แห่ง</span></div>${groupBars(p.groups, p.summary.venues)}</section>` : ''}
     <section class="panel-section"><div class="section-heading">${heading('venue', `สถานที่ใน${word}นี้`)}<span class="hint">${num(p.venues.length)} แห่ง</span></div>${p.venues.length ? venueList(p.venues, {limit: 20}) : '<p class="hint">ไม่มีสถานที่ในตัวกรองนี้ (0 แห่ง)</p>'}</section>
     ${p.operators.length ? `<section class="panel-section"><div class="section-heading">${heading('operator', 'ผู้บริหาร')}<span class="hint">แห่ง</span></div><ul class="plain-list">${p.operators.map(o => `<li><span>${esc(o.label)}</span><span class="data-number">${num(o.count)}</span></li>`).join('')}</ul></section>` : ''}
     ${statusLists(p.planned, p.closed)}
-    ${dataLine(asOf)}`;
+    ${dataLine(asOf, shops)}`;
 }
 
 /* ---------- Venue ---------- */
+
+/** Centre facilities (D22): the facility's own name from the official source, never a policy claim. */
+function amenityFacts(list = []) {
+  return list.map(a => `มี${esc(AMENITY_LABELS[a.kind] || a.kind)}${a.name ? ` · ${esc(a.name)}` : ''}`).join('<br>');
+}
 
 function fact(role, label, value) {
   return value ? `<dt>${icon(role)}${esc(label)}</dt><dd>${value}</dd>` : '';
@@ -301,6 +313,7 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   else item('พิกัด', 'ยังไม่มีพิกัด', '');
   if (buildingNote) note('อาคาร', buildingNote);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
+  for (const a of row._amenities || []) item('สิ่งอำนวยความสะดวก', `${AMENITY_LABELS[a.kind] || a.kind} · ${a.basis === 'owner_reported' ? 'เจ้าของข้อมูลแจ้ง' : 'หน้าเว็บของศูนย์'}`, a.sourceUrl, a.checkedOn);
   if (tenants?.roster) {
     note('รายชื่อร้าน', `รายการที่เชื่อมสถานที่แล้วจากชุดข้อมูลในทะเบียน · ตรวจทะเบียน ${esc(thaiDate(tenants.roster.meta?.asOf || ''))} · รายชื่ออาจยังไม่ครบทั้งศูนย์และไม่ได้ยืนยันว่าทุกร้านเปิดอยู่วันนี้ ลิงก์ข้างชื่อร้านเปิดหลักฐานต้นทางตามวันที่ของแต่ละรายการ`);
     const ownerFacts = (tenants.roster.items || []).flatMap(item => [item, ...(item.corroboratingMembershipEvidence || [])])
@@ -309,7 +322,7 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
     note('ลำดับร้าน', 'ประเมินบทบาทต่อศูนย์: ร้านหลักที่แหล่งระบุ → ร้านที่ตรงกับเอกลักษณ์หรือรูปแบบศูนย์ → ห้างและความบันเทิง ซูเปอร์มาร์เก็ต ร้านปลายทาง อาหาร และบริการ ตามบริบทของศูนย์ บทบาทเดียวกันเรียงตามชื่อ ไม่ใช่อันดับจากยอดขายหรือจำนวนผู้เข้าชม โลโก้ไม่เพิ่มลำดับ');
     const profile = tenants.roster.profile;
     if (profile?.sourceUrl) item('เอกลักษณ์ศูนย์', profile.label, profile.sourceUrl, profile.checkedOn);
-    if (d.stores?.confirmed !== tenants.roster.items?.length) note('ขอบเขตรายชื่อ', `ตัวเลขและรายชื่อในแผงนี้ใช้รายการร้านที่เชื่อมไว้ล่าสุด ส่วนตัวเลขรวมของแผนที่ยังใช้ชุดความสัมพันธ์เดิม${d.stores?.confirmed ? ` (${num(d.stores.confirmed)} รายการสำหรับสถานที่นี้)` : ''} บัตรต้นทางที่ยังแยกตัวตนสาขาไม่ได้เก็บรวมภายใต้รายการเดียว`);
+    note('นับร้าน', 'หนึ่งรายการคือหนึ่งสาขาที่แหล่งทางการลงไว้ แบรนด์เดียวมีได้หลายสาขาในศูนย์เดียว แหล่งสองแห่งที่ระบุสาขาเดียวกันนับครั้งเดียว ตัวเลขร้านข้างในของแผนที่ ตาราง และพื้นที่ใช้รายชื่อชุดเดียวกันนี้');
   }
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
   return rowsHtml.join('');
@@ -434,15 +447,15 @@ export function buildingReading(row, buildings = [], pinState) {
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError = false, tenants = null, peers = null} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
   const word = p.district ? unitWord(p.district.province) : '';
   const area = p.district ? `<button type="button" class="link-button" data-action="select-district" data-id="${esc(p.district.code)}">${esc(word)}${esc(p.district.th)}</button>` : '';
   const hierarchy = hierarchyReading(r);
-  const stores = d?.stores || {confirmed: r.storeCount || 0, datasets: []};
-  const listedStores = tenants?.roster ? tenants.roster.items?.length || 0 : stores.confirmed;
+  // D22: the same list everywhere — the loaded roster, else the venue's count in the shop-list index.
+  const listedStores = tenants?.roster ? tenants.roster.items?.length || 0 : r.shopCount || 0;
   const size = d?.size || null;
   // Key figures: reported values only (the D3 estimate stays a fact line that reads “ราว”).
   // Opening: the exact date when the source gives it, else the year (Buddhist era).
@@ -457,7 +470,8 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
   const luxury = d?.luxuryPlace ? link(`${LUXURY_SITE}?place=${encodeURIComponent(d.luxuryPlace)}`, 'ดูแบรนด์หรูที่นี่ใน Luxury Brands', 'source-link strong-link') : '';
   const fitness = (tenants?.roster?.items || []).some(item => item.dataset === 'research.TH.fitness')
     ? link(`${FITNESS_SITE}?venue=${encodeURIComponent(r.id)}`, 'ดูฟิตเนสที่นี่ใน CityMETER Fitness', 'source-link strong-link') : '';
-  const datasetIds = tenants?.roster ? [...new Set((tenants.roster.items || []).map(item => item.dataset))].sort() : stores.datasets;
+  // The datasets of the list itself (once loaded); never the older link snapshot's datasets.
+  const datasetIds = tenants?.roster ? [...new Set((tenants.roster.items || []).map(item => item.dataset))].sort() : [];
   const storeSources = listedStores && datasetIds.length ? datasetIds.map(x => esc(storeDataset(x))).join(' · ') : '';
   const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${tenants?.roster ? renderTenantMix(r, tenants) : ''}${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
@@ -483,6 +497,7 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
         ${fact('gla', 'ขนาด', sizeFacts(size, {shown}))}
         ${fact('address', 'ที่อยู่', d?.address ? esc(d.address) : '')}
         ${fact('building', 'อาคาร', drawn ? esc(drawn) : '')}
+        ${fact('checked', 'สัตว์เลี้ยง', amenityFacts(r._amenities))}
       </dl>
       ${!d && !detailError ? '<p class="hint">กำลังโหลดรายละเอียด…</p>' : ''}${detailError ? '<p class="hint">โหลดรายละเอียดไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</p>' : ''}
     </section>
@@ -491,7 +506,7 @@ export function renderVenue(p, {asOf = '', buildings = [], pinState, detailError
     ${children}
     <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
-    ${dataLine(asOf)}`;
+    ${dataLine(asOf, shops)}`;
 }
 
 /* ---------- Context record (not counted) ---------- */
@@ -533,7 +548,7 @@ export function mapCardVenue(p, {tenants = null} = {}) {
   const logo = getVenueLogo(r.id, r.name);
   const where = [esc(g.th), p.district ? `${esc(unitWord(p.district.province))}${esc(p.district.th)}` : ''].filter(Boolean).join(' · ');
   // The same figure as the panel's tile: the loaded shop list, else the venue's linked count.
-  const stores = tenants?.roster ? tenants.roster.items?.length || 0 : p.detail?.stores?.confirmed || r.storeCount || 0;
+  const stores = tenants?.roster ? tenants.roster.items?.length || 0 : r.shopCount || 0;
   const line = [stores ? `ร้านข้างใน ${num(stores)} ร้าน` : '', r.operatorLabel ? esc(r.operatorLabel) : ''].filter(Boolean).join(' · ');
   return card({mark: logo ? venueLogoMarkup(r.id, {name: r.name, size: 'md'}) : groupSwatch(g), crumb: where, title: esc(r.name), line, actions: `${cardBack}${cardOpen()}`});
 }
@@ -568,6 +583,7 @@ export function renderFilterChips(values, labels) {
   if (values.group) push('group', groupById(values.group).th);
   if (values.operator) push('operator', labels.operator[values.operator] || values.operator);
   if (values.province) push('province', provinceByCode(values.province)?.th || values.province);
+  if (values.role) push('role', `ข้างในมี${labels.role?.[values.role] || values.role}`);
   return chips.length ? `<ul class="filter-chips" aria-label="ตัวกรองที่ใช้อยู่">${chips.join('')}<li><button type="button" class="filter-chip clear-all" data-action="clear-filter" data-id="all">ล้างทั้งหมด</button></li></ul>` : '';
 }
 
