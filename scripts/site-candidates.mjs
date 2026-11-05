@@ -208,7 +208,7 @@ if (cmd === 'candidates') {
   if (opt('drafts')) {
     sheet = readRows(opt('drafts')).find(r => (r.venue_id || '').trim() === row.id);
     if (!sheet) fail(`${row.id} is not in ${opt('drafts')}`);
-    if (!sheet.outline_geojson) fail(`${row.id}: no draft (${sheet.draft_class || 'no class'}${sheet.draft_note ? `: ${sheet.draft_note}` : ''}) — do this site by hand (brief §4), or give --osm way/<id> of an outline you checked`);
+    if (!sheet.outline_geojson) fail(`${row.id}: no draft (${sheet.draft_class || 'no class'}${sheet.draft_note ? `: ${sheet.draft_note}` : ''}) — do this site by hand (brief §6), or give --osm way/<id> of an outline you checked`);
     polys = outlinePolys(JSON.parse(sheet.outline_geojson));
     osmRef = (sheet.osm_outline || '').trim();
   } else if (opt('osm')) {
