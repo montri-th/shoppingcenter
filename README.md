@@ -168,3 +168,7 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## Multi-building sites in research — 5 November 2026 (no page change)
+
+Owner 5 November 2026 08:41: “Megabangna มีหลายอาคาร ในที่ดินใหญ่มาก แต่ปัจจุบันแสดงไม่ครบ ควรทำยังไง” — the research team does it. Today the map highlights one building per venue, the registry's checked outline or the building its pin stands in (for Mega Bangna one OpenStreetMap outline), while 48 CityMETER Building V4 buildings stand within 300 m of its pin. The team works from an internal brief and site tab (381 malls, community malls and outlets, Mega Bangna first) with `scripts/site-candidates.mjs`, which reads the buildings with the map's own code (`candidates`, `row`, `check`, `rank`). Nothing changes on the page until checked rows are rebuilt with `scripts/build-venue-sites.py --sites` and released.
+

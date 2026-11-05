@@ -3,16 +3,17 @@
 
   python3 scripts/build-venue-sites.py [--sites <CSV of the research site tab>] [--exported-on YYYY-MM-DD]
 
-Input: a CSV with the columns of the site tab of CityMETER · Hotel (49_SITE_BOUNDARY_CHECK), filled with the
-campus-site-join workflow: venue_id, boundary_status, buildings_in_boundary ("lon,lat;lon,lat", one interior point
-per building), boundary_source, boundary_evidence_url, checked_on. Only rows with boundary_status = checked are read.
+Input: a CSV export of the research site tab SITE_BOUNDARY_CHECK (the columns of CityMETER · Hotel's
+49_SITE_BOUNDARY_CHECK), filled with the campus-site-join workflow and scripts/site-candidates.mjs: venue_id,
+boundary_status, buildings_in_boundary ("lon,lat;lon,lat", one interior point per building), boundary_source,
+boundary_evidence_url, checked_on. Only rows with boundary_status = checked are read.
 
 Published per venue: the interior points, their count, the source in words, a public https layout link and the check
 date. The boundary, deed numbers, parcel data, notes and reviewers stay in the sheet. A building more than 600 m from
 the venue's own point, or a point outside Thailand, stops the build (a sheet error, not a site).
 
-Without --sites the file lists no site: the research has no shopping-centre site tab yet (5 Nov 2026), so the page reads
-an existing file and draws no site.
+Without --sites the file lists no site and the page draws none. The site tab opened on 5 Nov 2026 with no checked
+row, so the committed file is empty until the team checks rows.
 """
 import argparse
 import csv
@@ -112,7 +113,7 @@ def main():
             'input': source_file,
             'counts': {**counts, 'sites': len(sites), 'buildings': sum(s['n'] for s in sites.values())},
             'builtOn': datetime.date.today().isoformat(),
-            'status': 'sites from the research site tab' if a.sites else 'no shopping-centre site research yet: no site is drawn',
+            'status': 'sites from the research site tab' if a.sites else 'no site tab given: no site is drawn',
         },
         'sites': dict(sorted(sites.items())),
     }
