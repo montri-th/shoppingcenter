@@ -25,8 +25,12 @@ export function frame(row, candidates) {
   return {W: WIDTH, H, scale, P};
 }
 
+// `marks`: [lon, lat] points of buildings CityMETER does not have (the map draws the OpenStreetMap outline there),
+// drawn as an orange diamond labelled OSM.
+const MARK_NOTE = 'orange diamond = OpenStreetMap building';
+
 /** SVG: for a browser. */
-export function siteSvg(row, candidates, picked = new Set(), site = null) {
+export function siteSvg(row, candidates, picked = new Set(), site = null, marks = []) {
   const {W, H, scale, P} = frame(row, candidates), C = PICTURE_COLOURS;
   const path = ring => ring.map((p, i) => `${i ? 'L' : 'M'}${P(p).map(v => v.toFixed(1)).join(',')}`).join('') + 'Z';
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
@@ -35,9 +39,10 @@ export function siteSvg(row, candidates, picked = new Set(), site = null) {
   const siteRings = site ? site.map(r => `<path d="${path(r)}" fill="none" stroke="${C.site}" stroke-width="3"/>`).join('') : '';
   const [px, py] = P([row.lon, row.lat]);
   const bar = 100 * scale;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H + FOOTER}" viewBox="0 0 ${W} ${H + FOOTER}"><rect width="100%" height="100%" fill="#fff"/>${shapes}${siteRings}${labels}` +
+  const markSvg = marks.map(m => { const [x, y] = P(m).map(v => +v.toFixed(1)); return `<path d="M${x},${y - 9}L${x + 9},${y}L${x},${y + 9}L${x - 9},${y}Z" fill="${C.site}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y - 16}" font-size="12" text-anchor="middle" font-family="sans-serif" fill="${C.ink}" stroke="#fff" stroke-width="3" paint-order="stroke">OSM</text>`; }).join('');
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H + FOOTER}" viewBox="0 0 ${W} ${H + FOOTER}"><rect width="100%" height="100%" fill="#fff"/>${shapes}${siteRings}${labels}${markSvg}` +
     `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="8" fill="${C.pin}" stroke="#fff" stroke-width="2"/>` +
-    `<text x="16" y="${H + 26}" font-size="16" font-family="sans-serif">${esc(row.name)} · ${esc(row.id)} · north up · numbered by distance from the pin (red) · CityMETER Building V4</text>` +
+    `<text x="16" y="${H + 26}" font-size="16" font-family="sans-serif">${esc(row.name)} · ${esc(row.id)} · north up · numbered by distance from the pin (red) · CityMETER Building V4${marks.length ? ` · ${MARK_NOTE}` : ''}</text>` +
     `<line x1="16" y1="${H + 44}" x2="${(16 + bar).toFixed(1)}" y2="${H + 44}" stroke="${C.ink}" stroke-width="3"/><text x="${(22 + bar).toFixed(1)}" y="${H + 49}" font-size="13" font-family="sans-serif">100 m</text></svg>`;
 }
 
@@ -58,7 +63,7 @@ const glyph = ch => { const bits = FONT[ch] ?? FONT['?']; return {bits, w: bits.
 export const textWidth = (str, sc) => [...String(str).toUpperCase()].reduce((a, ch) => a + (glyph(ch).w + 1) * sc, 0) - sc;
 
 /** PNG: for any image viewer. Same frame, colours and numbers as the SVG; the footer carries the id, not the name. */
-export function sitePng(row, candidates, picked = new Set(), site = null) {
+export function sitePng(row, candidates, picked = new Set(), site = null, marks = []) {
   const {W, H, scale, P} = frame(row, candidates), h = H + FOOTER;
   const C = Object.fromEntries(Object.entries(PICTURE_COLOURS).map(([k, v]) => [k, [1, 3, 5].map(i => parseInt(v.slice(i, i + 2), 16))]));
   const img = new Uint8Array(W * h * 3).fill(255);
@@ -111,10 +116,17 @@ export function sitePng(row, candidates, picked = new Set(), site = null) {
   if (site) for (const r of site) outline(r, C.site, 3);
   // Small buildings first, so a large building's number is never covered by a neighbour's.
   for (const c of [...candidates].sort((a, b) => a.area_m2 - b.area_m2 || b.cid - a.cid)) text(c.cid, ...P(c.point), c.area_m2 >= 1500 ? 3 : 2);
+  const diamond = ([cx, cy], r, c) => { for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (Math.abs(dx) + Math.abs(dy) <= r) set(cx + dx, cy + dy, c); };
+  for (const m of marks) {
+    const q = P(m);
+    diamond(q, 11, C.paper);
+    diamond(q, 9, C.site);
+    text('OSM', q[0], q[1] - 18, 2);
+  }
   const pin = P([row.lon, row.lat]);
   disc(pin, 10, C.paper);
   disc(pin, 8, C.pin);
-  text(`${row.id} · north up · red dot = pin · numbered by distance from the pin · CityMETER Building V4`, 16, H + 22, 2, {start: true, plate: false});
+  text(`${row.id} · north up · red dot = pin · numbered by distance from the pin · CityMETER Building V4${marks.length ? ` · ${MARK_NOTE}` : ''}`, 16, H + 22, 2, {start: true, plate: false});
   line([16, H + 44], [16 + 100 * scale, H + 44], C.ink, 3);
   text('100 m', 24 + 100 * scale, H + 44, 2, {start: true, plate: false});
   return encodePng(W, h, img);

@@ -9,10 +9,15 @@
 //   node scripts/site-candidates.mjs candidates <venue_id> [--reach 250]
 //       → sites/<venue_id>/candidates.json · candidates.csv · candidates.png and .svg (numbered buildings, north up, pin red)
 //   node scripts/site-candidates.mjs row <venue_id> (--pick 1,2,5 | --site site.geojson [--add 3,7] [--drop 12])
+//       [--osm-point "lon,lat;lon,lat"]
 //       --source site_layout|dol_parcels+site_layout --evidence <https page of the layout> [--main "…"] [--notes "…"] [--by "…"]
 //       → sites/<venue_id>/row.json · picked.png and .svg and the row in sites/site_rows.csv (one row per venue_id)
-//   node scripts/site-candidates.mjs check <venue_id> --points "lon,lat;lon,lat"
-//       → which drawn building holds each point (a sheet row's buildings_in_boundary); exits 1 if one is outside
+//       --osm-point: a building of the site that CityMETER does not have. The map then draws its OpenStreetMap outline
+//       (js/pin-buildings.js matchInUnit), so the point must stand in no CityMETER building and in an OpenStreetMap one
+//       (read from the map's OpenFreeMap tiles, scripts/site-osm.mjs); the row's notes name it.
+//   node scripts/site-candidates.mjs check <venue_id> --points "lon,lat;lon,lat" [--osm "lon,lat"]
+//       → which drawn building holds each point (a sheet row's buildings_in_boundary); exits 1 if one is outside.
+//       Points of the row's --osm-point go in --osm as well.
 //   node scripts/site-candidates.mjs rank [--groups mall,community,outlet] [--reach 250] [--min-area 2000]
 //       → sites/rank.csv: an internal work list for the research team, never published (D3: the legacy GLA/GFA estimates
 //         stay out of rankings on the page). Largest reported floor area first (legacy GFA, an approximate value: big
@@ -29,6 +34,7 @@ import {zonesOf, zoneAt, cmTileUrl, CM_SOURCE_LAYER} from '../js/building-units.
 import {cmParts, interiorPoint, pointInRing} from '../js/pin-buildings.js';
 import {tileBox} from '../js/massing.js';
 import {sitePng, siteSvg} from './site-picture.mjs';
+import {createOsmReader} from './site-osm.mjs';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
 const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels'];
@@ -113,9 +119,29 @@ function venueOf(id) {
 }
 
 /** The pictures of one venue: PNG for any image viewer, SVG for a browser (scripts/site-picture.mjs). */
-function pictures(base, row, candidates, picked = new Set(), site = null) {
-  writeFileSync(`${base}.png`, sitePng(row, candidates, picked, site));
-  writeFileSync(`${base}.svg`, siteSvg(row, candidates, picked, site));
+function pictures(base, row, candidates, picked = new Set(), site = null, marks = []) {
+  writeFileSync(`${base}.png`, sitePng(row, candidates, picked, site, marks));
+  writeFileSync(`${base}.svg`, siteSvg(row, candidates, picked, site, marks));
+}
+
+const osmBuildingAt = createOsmReader({headers: UA});
+const pointList = (s, flag) => {
+  const pts = (s || '').split(/[;\s]+/).filter(Boolean).map(p => p.split(',').map(Number));
+  if (pts.some(p => p.length !== 2 || !p.every(Number.isFinite))) fail(`${flag} must be "lon,lat;lon,lat"`);
+  return pts.map(p => p.map(v => +v.toFixed(6)));
+};
+/** A site building CityMETER does not have: no CityMETER building holds the point and an OpenStreetMap building does. */
+async function osmPoint(row, p) {
+  const {kx, ky} = metres(row.lat);
+  const d = Math.hypot((p[0] - row.lon) * kx, (p[1] - row.lat) * ky);
+  if (d > MAX_SITE_M) fail(`${p.join(',')} is ${Math.round(d)} m from the venue point (more than ${MAX_SITE_M} m)`);
+  const near = await buildingsNear({...row, lon: p[0], lat: p[1]}, 40);
+  const held = near.zone ? near.candidates.find(c => c.dist_m === 0) : null;
+  if (held) fail(`${p.join(',')}: CityMETER has a building here (${held.area_m2} m²) — pick its number from candidates, not --osm-point`);
+  let osm;
+  try { osm = await osmBuildingAt(p); } catch (e) { fail(`${p.join(',')}: could not read the OpenStreetMap buildings (${e.message})`); }
+  if (!osm) fail(`${p.join(',')}: no OpenStreetMap building here either — the map would draw nothing`);
+  return {point: p, area_m2: osm.areaM2, dist_m: Math.round(d)};
 }
 
 const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -151,12 +177,20 @@ if (cmd === 'candidates') {
   const cand = JSON.parse(readFileSync(`${dir}/candidates.json`, 'utf8')).candidates;
   const inside = (c, p) => pointInRing(p, c.outer) && !c.holes.some(h => pointInRing(p, h));
   if (cmd === 'check') {
-    const pts = opt('points').split(/[;\s]+/).filter(Boolean).map(p => p.split(',').map(Number));
-    if (!pts.length || pts.some(p => p.length !== 2 || !p.every(Number.isFinite))) fail('--points must be "lon,lat;lon,lat"');
-    let outside = 0;
+    const pts = pointList(opt('points'), '--points'), osmPts = pointList(opt('osm'), '--osm');
+    if (!pts.length) fail('--points must be "lon,lat;lon,lat"');
+    const same = (a, b) => Math.abs(a[0] - b[0]) < 2e-6 && Math.abs(a[1] - b[1]) < 2e-6;
+    let outside = 0, fromOsm = 0;
     const buildings = new Set();
-    for (const p of pts) { const held = cand.filter(c => inside(c, p)).map(c => c.cid); if (!held.length) outside++; held.forEach(c => buildings.add(c)); console.log(`${p.join(',')} → ${held.length ? `building ${held.join(' + ')}` : 'OUTSIDE every drawn building'}`); }
-    console.log(`${pts.length - outside} of ${pts.length} points stand in a drawn building; ${buildings.size} buildings`);
+    for (const p of pts) {
+      const held = cand.filter(c => inside(c, p)).map(c => c.cid);
+      held.forEach(c => buildings.add(c));
+      if (held.length) { console.log(`${p.join(',')} → building ${held.join(' + ')}`); continue; }
+      if (osmPts.some(q => same(p, q))) { const o = await osmPoint(row, p); fromOsm++; console.log(`${p.join(',')} → OpenStreetMap building ≈${o.area_m2} m² (CityMETER has none here)`); continue; }
+      outside++;
+      console.log(`${p.join(',')} → OUTSIDE every drawn building`);
+    }
+    console.log(`${pts.length - outside} of ${pts.length} points stand in a drawn building; ${buildings.size + fromOsm} buildings${fromOsm ? ` (${fromOsm} from OpenStreetMap)` : ''}`);
     process.exit(outside ? 1 : 0);
   }
   const source = opt('source'), evidence = opt('evidence');
@@ -173,21 +207,24 @@ if (cmd === 'candidates') {
     ids(opt('drop')).forEach(i => picked.delete(i));
   }
   const chosen = cand.filter(c => picked.has(c.cid));
-  if (!chosen.length) fail('no building picked (--pick 1,2 or --site site.geojson)');
+  const osm = [];
+  for (const p of pointList(opt('osm-point'), '--osm-point')) if (!osm.some(o => o.point.join() === p.join())) osm.push(await osmPoint(row, p));
+  if (!chosen.length && !osm.length) fail('no building picked (--pick 1,2 or --site site.geojson)');
   const unknown = [...picked].filter(i => !cand.some(c => c.cid === i));
   if (unknown.length) fail(`not a candidate number: ${unknown.join(', ')}`);
   const far = chosen.filter(c => Math.hypot(...[c.point[0] - row.lon, c.point[1] - row.lat].map((d, i) => d * [metres(row.lat).kx, metres(row.lat).ky][i])) > MAX_SITE_M);
   if (far.length) fail(`buildings ${far.map(c => c.cid).join(', ')} are more than ${MAX_SITE_M} m from the venue point`);
   const record = {venue_id: row.id, venue_name: row.name, boundary_status: 'checked', boundary_source: source, boundary_evidence_url: evidence,
     boundary_geojson: siteRings ? JSON.stringify({type: 'MultiPolygon', coordinates: siteRings.map(r => [r.map(p => p.map(v => +v.toFixed(6)))])}) : '',
-    buildings_in_boundary: chosen.map(c => c.point.join(',')).join(';'), building_count: chosen.length, main_building_note: opt('main'),
-    checked_by: opt('by'), checked_on: new Date().toISOString().slice(0, 10), notes: opt('notes')};
+    buildings_in_boundary: [...chosen.map(c => c.point.join(',')), ...osm.map(o => o.point.join(','))].join(';'), building_count: chosen.length + osm.length,
+    main_building_note: opt('main'), checked_by: opt('by'), checked_on: new Date().toISOString().slice(0, 10),
+    notes: [opt('notes'), osm.length ? `OpenStreetMap outline (CityMETER has no building): ${osm.map(o => `${o.point.join(',')} ≈${o.area_m2} m²`).join('; ')}` : ''].filter(Boolean).join(' · ')};
   writeFileSync(`${dir}/row.json`, JSON.stringify(record, null, 1));
-  pictures(`${dir}/picked`, row, cand, picked, siteRings);
+  pictures(`${dir}/picked`, row, cand, picked, siteRings, osm.map(o => o.point));
   const all = readRows('sites/site_rows.csv').filter(r => r.venue_id !== row.id);
   all.push(record);
   writeFileSync('sites/site_rows.csv', [COLUMNS.join(','), ...all.map(r => COLUMNS.map(k => csvCell(r[k])).join(','))].join('\n') + '\n');
-  console.log(`${row.id}: ${chosen.length} buildings → sites/site_rows.csv · check ${dir}/picked.png (also .svg) against the layout`);
+  console.log(`${row.id}: ${chosen.length + osm.length} buildings${osm.length ? ` (${osm.length} from OpenStreetMap)` : ''} → sites/site_rows.csv · check ${dir}/picked.png (also .svg) against the layout`);
 } else {
   // rank: a work list of venues whose point has several large buildings around it.
   const groups = new Set(opt('groups', 'mall,community,outlet').split(','));

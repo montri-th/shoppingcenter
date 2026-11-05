@@ -62,6 +62,10 @@ test('the site PNG draws the SVG frame: picked blue, others grey, holes open, pi
   const svg = siteSvg(row, candidates, new Set([1]), site);
   assert.match(svg, new RegExp(`width="${W}" height="${H + 60}"`));
   assert.match(svg, />1<\/text>/);
+  // A building CityMETER does not have: an orange diamond labelled OSM, and the footer says what it is.
+  const marked = decode(sitePng(row, candidates, new Set([1]), site, [at(0, 30)]));
+  assert.equal(marked.px(...P(at(0, 30)).map(Math.floor)), PICTURE_COLOURS.site, 'OSM mark');
+  assert.match(siteSvg(row, candidates, new Set([1]), site, [at(0, 30)]), /OpenStreetMap building/);
 });
 
 test('the pixel font has every character of the venue ids and the PNG footer', () => {
