@@ -167,3 +167,11 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Live: commit `af946ed`, Pages success (01:16 UTC); `npm run handoff:manifest` (1,203 files) then `npm run verify:live` **1150 ok · 1 failed** — a transient 503 on `data/details/167.json`; refetched 200 with the same SHA-256 (`df300462…`).
 - Owner's Chrome, real tiles, 08:24: Mega Bangna on `?v=20261105-r19` — source line “ร้านเสื้อผ้า · ธนาคาร · ร้านความงาม · คลินิกความงาม · ร้านกล้อง · บริการรถยนต์ · … · เครื่องเล่นและครอบครัว · …”, no `research.TH` text anywhere in the panel; theme select on Auto.
 
+## 0.1.12 - phone first view and map credit (`20261105-r20`)
+
+- Owner 5 Nov 2026 08:34, on a phone: the first view showed empty map with the three districts under the card. Cause: the zoom-in to 13.1 applied to any whole-district fit from 11.5 and centred the venues on the canvas.
+- Tests: `npm test` **167 pass** (`map-style.test.js`: `cityPortrait`).
+- Live: commit `e14656f`, Pages success (02:19 UTC); `npm run handoff:manifest` (1,203 files) then `npm run verify:live` **1151 ok · 0 failed**.
+- Container render against the live URL (MapLibre from npm, OpenFreeMap stubbed): 390×844 — zoom 11.84, pitch 40°, bearing 0°, all 19 focus-district vertices inside the free box; 430×932 — zoom 12.02, all inside; desktop 1280×860 — zoom 13.1, pitch 56°, bearing 28° as before. Map credit, legend and card do not overlap at either width; no console errors, no horizontal overflow. Phone venue card (Mega Bangna): credit above the card.
+- Not checked: the owner's phone with real tiles.
+
