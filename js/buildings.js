@@ -10,7 +10,10 @@
  *     https://landometer.com/api/v2/citymeter-v3/building.
  *  2. Pin buildings (pin-buildings.js, owner instruction 2026-10-25): for a counted venue
  *     without host geometry, the basemap building its pin stands in. Drawn the same blue; the
- *     panel names which kind it is.
+ *     panel names which kind it is. A venue's research site (data/venue-sites.json) adds its
+ *     other buildings even when the venue has host geometry; a site building the host
+ *     footprint already holds is not drawn twice (owner 2026-11-05: Mega Bangna showed one
+ *     building of a whole project).
  *
  * Original polygons © OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/copyright
  * No generated footprints, name joins, sales or measured-height claims.
@@ -22,6 +25,27 @@ const OUTLINE = 'venue-buildings-outline';
 /** Layer ids, exported so the massing tiers can be inserted BEFORE the host extrusion (draw order = depth order). */
 export const HOST_LAYERS = Object.freeze({extrusion: EXTRUSION, outline: OUTLINE, source: SOURCE});
 const active = new WeakMap();
+
+const insideRing = ([x, y], ring) => {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+/** A point inside a ring: its vertex average, else the midpoint of a diagonal that falls inside. */
+function ringPoint(ring) {
+  const n = ring.length - 1;
+  if (n < 3) return ring[0];
+  let cx = 0, cy = 0;
+  for (let i = 0; i < n; i++) { cx += ring[i][0]; cy += ring[i][1]; }
+  const c = [cx / n, cy / n];
+  if (insideRing(c, ring)) return c;
+  for (let k = 2; k < n; k++) { const m = [(ring[0][0] + ring[k][0]) / 2, (ring[0][1] + ring[k][1]) / 2]; if (insideRing(m, ring)) return m; }
+  return ring[0];
+}
+const outerRingsOf = g => (g?.type === 'Polygon' ? [g.coordinates[0]] : g?.type === 'MultiPolygon' ? g.coordinates.map(p => p[0]) : []).filter(r => Array.isArray(r) && r.length >= 4);
 
 function list(value) {
   if (Array.isArray(value)) return value;
@@ -142,12 +166,25 @@ export function installVenueBuildings(map, geojson, options = {}) {
         height_label: buildingHeightLabel(properties),
       }});
     }
-    // Pin buildings only for venues without host geometry (host geometry always wins).
+    // Pin buildings only for venues without host geometry (host geometry always wins) — except the other buildings of a
+    // research site (match_method 'site'), drawn for a hosted venue too unless its host footprint already holds them.
+    const hostRings = new Map();
+    for (const f of displayed) for (const id of f.properties.selected_venue_ids) {
+      if (!hostRings.has(id)) hostRings.set(id, []);
+      hostRings.get(id).push(...outerRingsOf(f.geometry));
+    }
+    const heldByHost = (id, feature) => {
+      const ring = feature._ring || feature.geometry?.coordinates?.[0];
+      const p = Array.isArray(ring) && ring.length >= 4 ? ringPoint(ring) : null;
+      return !p || (hostRings.get(id) || []).some(r => insideRing(p, r));
+    };
     const pinVenues = new Set();
-    let pinParts = 0;
+    let pinParts = 0, sitePartsOnHosts = 0;
     for (const feature of pins) {
-      const ids = list(feature.properties?.venue_ids).map(String).filter(id => byId.has(id) && !matched.has(id));
+      const site = feature.properties?.match_method === 'site';
+      const ids = list(feature.properties?.venue_ids).map(String).filter(id => byId.has(id) && (!matched.has(id) || (site && !heldByHost(id, feature))));
       if (!ids.length) continue;
+      if (ids.some(id => matched.has(id))) sitePartsOnHosts++;
       ids.forEach(id => pinVenues.add(id));
       pinParts++;
       const {_ring, ...plain} = feature;
@@ -160,7 +197,7 @@ export function installVenueBuildings(map, geojson, options = {}) {
       hostBuildings: hosts.size, features: displayed.length,
       unknownHeightBuildings: unknownHosts.size, estimatedHeightBuildings: estimatedHosts.size,
       disputedHeightBuildings: disputedHosts.size,
-      pinVenues: pinVenues.size, pinParts,
+      pinVenues: pinVenues.size, pinParts, sitePartsOnHosts,
       unmatchedRowIds: unmatchedRows.map(r => r.id), enabled,
       geometryRole: 'host_building_not_shop_unit', fallbackHeightM: 3,
     };

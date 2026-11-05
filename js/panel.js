@@ -312,7 +312,7 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url, '', ` · <span class="data-number">${row.lat.toFixed(6)}, ${row.lon.toFixed(6)}</span>${addressNote}`);
   else item('พิกัด', 'ยังไม่มีพิกัด', '');
   if (buildingNote) note('อาคาร', buildingNote);
-  if (site) note('ไซต์', `${esc(site.source)}${site.url ? ` · ${link(site.url, 'ผังโครงการ')}` : ''}${site.checkedOn ? ` · ตรวจ ${esc(thaiDate(site.checkedOn))}` : ''}`);
+  if (site) note('ไซต์', `${esc(site.source)}${site.url ? ` · ${link(site.url, siteLinkLabel(site.url))}` : ''}${site.checkedOn ? ` · ตรวจ ${esc(thaiDate(site.checkedOn))}` : ''}`);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
   for (const a of row._amenities || []) item('สิ่งอำนวยความสะดวก', `${AMENITY_LABELS[a.kind] || a.kind} · ${a.basis === 'owner_reported' ? 'เจ้าของข้อมูลแจ้ง' : 'หน้าเว็บของศูนย์'}`, a.sourceUrl, a.checkedOn);
   if (tenants?.roster) {
@@ -425,6 +425,9 @@ export function mapCardBrand(bp) {
   return card({mark: `<span class="map-card-mark">${icon('brand')}</span>`, crumb: `แบรนด์ในรายชื่อร้าน${role ? ` · ${esc(role)}` : ''}`, title: esc(bp.brand.name), line: `พบใน ${num(bp.places)} สถานที่ · ${num(bp.provinces.filter(p => p.code).length)} จังหวัด`, actions: `${cardBack}${cardOpen()}`});
 }
 
+/** The words of a site's evidence link: its OpenStreetMap outline, or the project's own layout page. */
+export const siteLinkLabel = url => (/^https:\/\/(www\.)?openstreetmap\.org\//.test(url || '') ? 'ขอบเขตใน OpenStreetMap' : 'ผังโครงการ');
+
 const PIN_ROLES = new Set(['pin_building_basemap', 'pin_building_citymeter']);
 /**
  * What the panel says about the venue's building. buildings: features drawn for this venue;
@@ -433,6 +436,14 @@ const PIN_ROLES = new Set(['pin_building_basemap', 'pin_building_citymeter']);
  */
 export function buildingReading(row, buildings = [], pinState, site = null) {
   const pins = buildings.filter(f => PIN_ROLES.has(f.properties?.geometry_role));
+  const siteParts = site ? pins.filter(f => f.properties.match_method === 'site') : [];
+  if (row.hasBuilding && siteParts.length) {
+    // A hosted venue with a research site: its checked footprint plus the site's other buildings.
+    const cm = siteParts.some(f => f.properties.geometry_role === 'pin_building_citymeter'), osm = siteParts.some(f => f.properties.geometry_role === 'pin_building_basemap');
+    const from = ['รูปทรงอาคารที่ตรวจแล้ว', cm ? 'CityMETER Building V4' : '', osm ? 'แผนที่ฐาน OpenStreetMap (OpenFreeMap)' : ''].filter(Boolean).join(' · ');
+    return {text: `ทั้งโครงการ ${num(site.n)} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`,
+      note: esc(`อาคารของไซต์ตามงานวิจัย ${site.n} หลัง (อาคารหลักตามรูปทรงที่ตรวจแล้ว และพบบนแผนที่อีก ${new Set(siteParts.map(f => f.properties.host_id)).size} ส่วนอาคาร) จาก ${from} · หนึ่งจุดต่ออาคาร ไม่ใช่ขอบเขตกรรมสิทธิ์ · ความสูงของ CityMETER ประมาณจากแบบจำลอง`)};
+  }
   if (row.hasBuilding) {
     const heights = [...new Set(buildings.filter(f => !PIN_ROLES.has(f.properties?.geometry_role)).map(f => buildingHeightLabel(f.properties)))];
     return {text: 'อาคารของสถานที่ · สีน้ำเงินบนแผนที่ 3 มิติ', note: ['รูปทรงอาคารที่ตรวจแล้ว © OpenStreetMap / CityMETER', ...heights].map(esc).join(' · ')};

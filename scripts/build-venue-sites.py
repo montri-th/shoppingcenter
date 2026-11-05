@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Write data/venue-sites.json: the buildings of each checked multi-building site (campus style) as interior points.
 
-  python3 scripts/build-venue-sites.py [--sites <CSV of the research site tab>] [--exported-on YYYY-MM-DD]
+  python3 scripts/build-venue-sites.py [--sites <CSV of the research site tab>] [--exported-on YYYY-MM-DD] [--staged]
 
 Input: a CSV export of the research site tab SITE_BOUNDARY_CHECK (the columns of CityMETER · Hotel's
 49_SITE_BOUNDARY_CHECK), filled with the campus-site-join workflow and scripts/site-candidates.mjs (by hand, or from a
@@ -14,7 +14,10 @@ date. The boundary, deed numbers, parcel data, notes and reviewers stay in the s
 the venue's own point, or a point outside Thailand, stops the build (a sheet error, not a site).
 
 Without --sites the file lists no site and the page draws none. The site tab opened on 5 Nov 2026 with no checked
-row, so the committed file is empty until the team checks rows.
+row. --staged: the CSV is sites/site_rows.csv (rows that `site-candidates.mjs row` staged for the tab), not an export
+of the tab — the meta says so (input.kind, status) until the tab holds the same rows and the file is rebuilt from its
+export (owner 2026-11-05 23:57 “พี่ทำให้จบเลยได้มั้ย”: Claude reviewed the drafts; writing the team's tab waits for the
+owner's explicit OK).
 """
 import argparse
 import csv
@@ -36,6 +39,9 @@ SITE_SOURCES = {  # boundary_source codes → the words of the evidence line
     'dol_parcels': 'รูปแปลงกรมที่ดิน',
     'osm_outline': 'ขอบเขตพื้นที่จาก OpenStreetMap',
     'osm_outline+site_layout': 'ขอบเขตพื้นที่จาก OpenStreetMap + ผังโครงการ',
+    # a draft that Claude's automated checks passed (owner 2026-11-05 23:57 “พี่ทำให้จบเลยได้มั้ย”); a person's later
+    # check turns it into osm_outline
+    'osm_outline_auto': 'ขอบเขตพื้นที่จาก OpenStreetMap · ตรวจด้วยกฎอัตโนมัติ',
 }
 
 
@@ -71,14 +77,16 @@ def metres(a, b):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--sites', default='', help='CSV of the research site tab (its SHA-256 is recorded)')
-    ap.add_argument('--exported-on', default='', help='date of the export (YYYY-MM-DD)')
+    ap.add_argument('--exported-on', default='', help='date of the export, or of the staged rows (YYYY-MM-DD)')
+    ap.add_argument('--staged', action='store_true', help='the CSV holds rows staged for the site tab, not its export')
     a = ap.parse_args()
 
     venues = {r['id']: r for r in json.loads((ROOT / 'data' / 'venues.json').read_text())['rows']}
     sites, counts, source_file = {}, {'rowsRead': 0, 'notChecked': 0, 'unmatched': 0, 'noPoint': 0, 'noBuildings': 0}, None
     if a.sites:
         raw = Path(a.sites).read_bytes()
-        source_file = {'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw), 'exportedOn': a.exported_on}
+        source_file = {'sha256': hashlib.sha256(raw).hexdigest(), 'bytes': len(raw), 'exportedOn': a.exported_on,
+                       'kind': 'staged_rows' if a.staged else 'site_tab_export'}
         for r in csv.DictReader(raw.decode('utf-8-sig').splitlines()):
             counts['rowsRead'] += 1
             if (r.get('boundary_status') or '').strip() not in SITE_STATUS:
@@ -115,8 +123,10 @@ def main():
             'maxDistanceM': SITE_MAX_M,
             'input': source_file,
             'counts': {**counts, 'sites': len(sites), 'buildings': sum(s['n'] for s in sites.values())},
-            'builtOn': datetime.date.today().isoformat(),
-            'status': 'sites from the research site tab' if a.sites else 'no site tab given: no site is drawn',
+            'builtOn': datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=7))).date().isoformat(),  # ICT
+            'status': ('sites from rows staged for the research site tab (sites/site_rows.csv), not yet written to the '
+                       'tab' if a.staged else 'sites from the research site tab') if a.sites else
+                      'no site tab given: no site is drawn',
         },
         'sites': dict(sorted(sites.items())),
     }

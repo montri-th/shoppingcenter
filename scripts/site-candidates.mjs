@@ -10,7 +10,7 @@
 //       → sites/<venue_id>/candidates.json · candidates.csv · candidates.png and .svg (numbered buildings, north up, pin red)
 //   node scripts/site-candidates.mjs row <venue_id> (--pick 1,2,5 | --site site.geojson [--add 3,7] [--drop 12])
 //       [--osm-point "lon,lat;lon,lat"]
-//       --source site_layout|dol_parcels+site_layout|osm_outline|osm_outline+site_layout --evidence <https page of the layout
+//       --source site_layout|dol_parcels+site_layout|osm_outline|osm_outline+site_layout|osm_outline_auto --evidence <https page of the layout
 //       or of the OpenStreetMap outline> [--main "…"] [--notes "…"] [--by "…"]
 //       → sites/<venue_id>/row.json · picked.png and .svg and the row in sites/site_rows.csv (one row per venue_id)
 //       --osm-point: a building of the site that CityMETER does not have. The map then draws its OpenStreetMap outline
@@ -46,7 +46,7 @@ import {createOsmReader} from './site-osm.mjs';
 import {outlinePolys, polysFromOverpass, polysGeoJson, outlineStats, otherPinsIn, draftReach, draftPick, edgeHints, osmOnly, boxMeets} from './site-draft.mjs';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
-const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels', 'osm_outline', 'osm_outline+site_layout'];
+const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels', 'osm_outline', 'osm_outline+site_layout', 'osm_outline_auto'];
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const COLUMNS = ['venue_id', 'venue_name', 'boundary_status', 'boundary_source', 'boundary_evidence_url', 'boundary_geojson', 'buildings_in_boundary',
   'building_count', 'main_building_note', 'checked_by', 'checked_on', 'notes'];
@@ -56,6 +56,8 @@ const argv = process.argv.slice(cmd === 'rank' ? 3 : 4);
 const opt = (k, d = '') => { const i = argv.indexOf(`--${k}`); return i >= 0 && i + 1 < argv.length ? argv[i + 1] : d; };
 const ids = s => (s ? s.split(',').map(x => Number(x.trim())).filter(Number.isInteger) : []);
 const fail = msg => { console.error(`STOP: ${msg}`); process.exit(1); };
+// The team's calendar day (ICT, UTC+7 all year): toISOString() alone is UTC, the day before until 07:00 in Thailand.
+const ictDay = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
 if (!['candidates', 'row', 'check', 'draft', 'rank'].includes(cmd) || (cmd !== 'rank' && !venueArg)) fail('usage: node scripts/site-candidates.mjs candidates|draft|row|check <venue_id> [options] · rank [options]');
 if (!existsSync('js/massing.js') || !existsSync('data/venues.json')) fail('run from the root of a clone of montri-th/shoppingcenter');
 
@@ -168,7 +170,7 @@ function readRows(path) {
 function writeCandidates(row, res, reach) {
   const dir = `sites/${row.id}`;
   mkdirSync(dir, {recursive: true});
-  writeFileSync(`${dir}/candidates.json`, JSON.stringify({venue_id: row.id, name: row.name, point: [row.lon, row.lat], unit: res.zone.name, reach, read_on: new Date().toISOString().slice(0, 10), candidates: res.candidates}));
+  writeFileSync(`${dir}/candidates.json`, JSON.stringify({venue_id: row.id, name: row.name, point: [row.lon, row.lat], unit: res.zone.name, reach, read_on: ictDay(), candidates: res.candidates}));
   writeFileSync(`${dir}/candidates.csv`, ['cid,dist_m,area_m2,height_m,lon,lat', ...res.candidates.map(c => [c.cid, c.dist_m, c.area_m2, c.height_m, ...c.point].join(','))].join('\n') + '\n');
   return dir;
 }
@@ -203,7 +205,7 @@ if (cmd === 'candidates') {
   for (const {v, held} of others) console.log(`  other venue: ${v.id} ${v.name} (${v.group})${held ? ` — its pin stands in building ${held.cid}` : ''}`);
   for (const c of res.candidates.slice(0, 12)) console.log(`  ${String(c.cid).padStart(3)}  ${String(c.dist_m).padStart(4)} m  ${String(c.area_m2).padStart(7)} m²  ${c.height_m ?? '–'} m  ${c.point.join(',')}`);
 } else if (cmd === 'draft') {
-  const row = venueOf(venueArg), today = new Date().toISOString().slice(0, 10);
+  const row = venueOf(venueArg), today = ictDay();
   let polys, osmRef = '', tags = {}, sheet = null;
   if (opt('drafts')) {
     sheet = readRows(opt('drafts')).find(r => (r.venue_id || '').trim() === row.id);
@@ -301,7 +303,7 @@ if (cmd === 'candidates') {
   const record = {venue_id: row.id, venue_name: row.name, boundary_status: 'checked', boundary_source: source, boundary_evidence_url: evidence,
     boundary_geojson: sitePolys ? JSON.stringify({type: 'MultiPolygon', coordinates: sitePolys}) : '',
     buildings_in_boundary: [...chosen.map(c => c.point.join(',')), ...osm.map(o => o.point.join(','))].join(';'), building_count: chosen.length + osm.length,
-    main_building_note: opt('main'), checked_by: opt('by'), checked_on: new Date().toISOString().slice(0, 10),
+    main_building_note: opt('main'), checked_by: opt('by'), checked_on: ictDay(),
     notes: [opt('notes'), osm.length ? `OpenStreetMap outline (CityMETER has no building): ${osm.map(o => `${o.point.join(',')} ≈${o.area_m2} m²`).join('; ')}` : ''].filter(Boolean).join(' · ')};
   writeFileSync(`${dir}/row.json`, JSON.stringify(record, null, 1));
   pictures(`${dir}/picked`, row, cand, picked, siteRings, osm.map(o => o.point));
