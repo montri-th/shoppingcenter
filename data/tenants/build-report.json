@@ -69,7 +69,7 @@
     "newDisplayedListings": 14,
     "corroboratingExistingListings": 1
   },
-  "withLogo": 2461,
+  "withLogo": 4269,
   "retailerIdentity": {
     "manufacturerLogosSuppressed": 8,
     "monoBrandRetailerNames": 4,
@@ -2783,7 +2783,7 @@
       "publishedItems": 319,
       "publishedVenueHosts": 100,
       "publishedSourceObservations": 322,
-      "withLogo": 17,
+      "withLogo": 303,
       "omitted": {
         "map_audit_status_out_of_scope": 5,
         "named_far_point_conflict": 23,
@@ -2833,7 +2833,7 @@
       "publishedItems": 107,
       "publishedVenueHosts": 74,
       "publishedSourceObservations": 110,
-      "withLogo": 0,
+      "withLogo": 106,
       "omitted": {
         "named_far_point_conflict": 5,
         "not_counting_status": 17,
@@ -2854,7 +2854,7 @@
       "publishedItems": 58,
       "publishedVenueHosts": 48,
       "publishedSourceObservations": 58,
-      "withLogo": 0,
+      "withLogo": 45,
       "omitted": {
         "named_far_point_conflict": 1,
         "not_count_role": 17,
@@ -2875,7 +2875,7 @@
       "publishedItems": 21,
       "publishedVenueHosts": 16,
       "publishedSourceObservations": 21,
-      "withLogo": 0,
+      "withLogo": 18,
       "omitted": {}
     },
     "research.TH.salon_barber": {
@@ -2891,7 +2891,7 @@
       "publishedItems": 62,
       "publishedVenueHosts": 41,
       "publishedSourceObservations": 62,
-      "withLogo": 0,
+      "withLogo": 62,
       "omitted": {
         "duplicate_review_recorded": 2,
         "not_evidence_status": 5,
@@ -2913,7 +2913,7 @@
       "publishedItems": 23,
       "publishedVenueHosts": 14,
       "publishedSourceObservations": 23,
-      "withLogo": 0,
+      "withLogo": 18,
       "omitted": {
         "not_evidence_status": 3,
         "not_operating_status": 39,
@@ -2936,7 +2936,7 @@
       "publishedItems": 1075,
       "publishedVenueHosts": 357,
       "publishedSourceObservations": 1075,
-      "withLogo": 0,
+      "withLogo": 1075,
       "omitted": {
         "dedup_review_status_out_of_scope": 1,
         "label_also_names_another_venue": 4,
@@ -2994,7 +2994,7 @@
       "publishedItems": 103,
       "publishedVenueHosts": 68,
       "publishedSourceObservations": 103,
-      "withLogo": 0,
+      "withLogo": 92,
       "omitted": {
         "no_registry_host_name_in_label": 4,
         "not_common_retail_venue_link_status": 1,
@@ -3019,7 +3019,7 @@
       "publishedItems": 147,
       "publishedVenueHosts": 135,
       "publishedSourceObservations": 147,
-      "withLogo": 0,
+      "withLogo": 106,
       "omitted": {
         "candidate_outside_public_registry": 33,
         "label_places_shop_beside_host": 4,
@@ -3048,13 +3048,12 @@
   "researchLogos": {
     "exportedOn": "2026-11-05",
     "rule": "logo bytes equal the sheet SHA-256 (logo_sha256); brand_primary role only",
-    "manifestSha256": "12c8fd92b358c3f9375c07fb12963119643acbd7cceaac72410606fdaa581c83",
+    "manifestSha256": "979350fa9bef7eca5650c0b717d5ffd1149ea98d16ea22737439a39a0677fb36",
     "datasets": {
       "research.TH.sport": {
         "brands": 40,
-        "fileNotSupplied": 36,
-        "heldNotBrandPrimary": 2,
-        "files": 2
+        "files": 38,
+        "heldNotBrandPrimary": 2
       },
       "research.TH.apparel": {
         "brands": 90,
@@ -3062,31 +3061,32 @@
       },
       "research.TH.furniture": {
         "brands": 17,
-        "fileNotSupplied": 16,
+        "files": 16,
         "heldNotBrandPrimary": 1
       },
       "research.TH.pet": {
         "brands": 13,
         "heldNotBrandPrimary": 2,
-        "fileNotSupplied": 11
+        "files": 11
       },
       "research.TH.massage_spa": {
         "brands": 5,
-        "fileNotSupplied": 4,
+        "files": 4,
         "heldNotBrandPrimary": 1
       },
       "research.TH.salon_barber": {
         "brands": 23,
-        "fileNotSupplied": 23
+        "files": 23
       },
       "research.TH.nail": {
         "brands": 18,
-        "fileNotSupplied": 14,
+        "files": 14,
         "noLogo": 4
       },
       "research.TH.beauty": {
         "brands": 58,
-        "fileNotSupplied": 58
+        "files": 58,
+        "surfaceConflict": 1
       },
       "research.TH.beauty_clinic": {
         "brands": 49,
@@ -3094,12 +3094,12 @@
       },
       "research.TH.playground": {
         "brands": 30,
-        "fileNotSupplied": 27,
+        "files": 27,
         "heldNotBrandPrimary": 3
       },
       "research.TH.car_service": {
         "brands": 13,
-        "fileNotSupplied": 12,
+        "files": 12,
         "heldNotBrandPrimary": 1
       }
     },

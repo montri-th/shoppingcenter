@@ -52,12 +52,25 @@ def logo_role(notes):
 
 
 def stated_surface(notes):
-    """'light' / 'dark' when the sheet states which surface the mark is drawn for."""
+    """'light' / 'dark' when the sheet states the one surface a mark is drawn for; '' when it states either surface
+    (light_or_dark, light_and_dark, any, "checked on light and dark backgrounds") or nothing — then the image decides."""
     n = notes or ''
-    if re.search(r'surface\s*=\s*dark|พื้นหลัง\s*:\s*พื้นมืด|dark background|on dark', n, re.I):
+    m = re.search(r'surface\s*=\s*([A-Za-z_]+)', n)
+    if m:
+        v = m.group(1).lower()
+        if v in ('dark', 'dark_neutral', 'dark_or_mid_neutral'):
+            return 'dark'
+        if v in ('light', 'neutral_or_light', 'light_or_neutral'):
+            return 'light'
+        return ''
+    m = re.search(r'พื้นหลัง\s*:\s*([^;|·\n]+)', n)
+    if m:
+        v = m.group(1).strip()
+        return 'dark' if v.startswith(('พื้นมืด', 'พื้นเข้ม')) else 'light' if v.startswith('พื้นสว่าง') else ''
+    if re.search(r'light and dark|light or dark|light/dark', n, re.I):
+        return ''
+    if re.search(r'(?:use|recommended|visible|inspected)\s+on\s+(?:a\s+)?dark|dark background for|use dark background|พื้นแนะนำ\s*:\s*dark', n, re.I):
         return 'dark'
-    if re.search(r'surface\s*=\s*light|พื้นหลัง\s*:\s*พื้นสว่าง', n, re.I):
-        return 'light'
     return ''
 
 
@@ -90,12 +103,36 @@ def svg_size(text):
     return (round(w, 2), round(h, 2)) if w and h else (None, None)
 
 
+def contrast(a, b):
+    """WCAG contrast ratio of two relative luminances."""
+    return (max(a, b) + 0.05) / (min(a, b) + 0.05)
+
+
+def lost_shares(lums):
+    """(on the soft surface, on the dark plate): the share of the mark's outline pixels (or colours) that would nearly
+    vanish — contrast under 2:1."""
+    if not lums:
+        return 0.0, 0.0
+    return (sum(1 for v in lums if contrast(v, L_LIGHT) < 2) / len(lums), sum(1 for v in lums if contrast(v, L_DARK) < 2) / len(lums))
+
+
+def plate_for(lost):
+    """The plate a mark reads on. The dark plate when at least a fifth of the mark's outline would nearly vanish on the
+    soft surface (white, light grey, pastel, gold) and almost none of it (5 % or less) on the dark plate (black text, navy
+    outlines); otherwise the soft surface."""
+    lost_light, lost_dark = lost
+    return DARK if lost_light >= 0.2 and lost_dark <= 0.05 else LIGHT
+
+
 def luminance(rgb):
     def ch(c):
         c = c / 255
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
     r, g, b = (ch(x) for x in rgb[:3])
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+L_LIGHT, L_DARK = (luminance(tuple(int(c[i:i + 2], 16) for i in (1, 3, 5))) for c in (LIGHT, DARK))
 
 
 def svg_colours(text):
@@ -120,8 +157,8 @@ def svg_colours(text):
 
 
 def raster_backing(data):
-    """(width, height, backing) of a raster logo: an opaque canvas keeps its tone; light marks on a transparent canvas
-    get the dark plate; everything else the panel's soft surface."""
+    """(width, height, backing) of a raster logo: an opaque canvas keeps its tone; on a transparent canvas plate_for
+    decides from the mark's own pixels."""
     from PIL import Image
     im = Image.open(io.BytesIO(data))
     w, h = im.size
@@ -136,11 +173,16 @@ def raster_backing(data):
     opaque = [p for p in border if p[3] >= 250]
     if len(opaque) >= 0.9 * len(border):
         lum = sum(luminance(p) for p in opaque) / len(opaque)
-        return w, h, PLATE if lum >= 0.85 else DARK if lum <= 0.2 else LIGHT
-    marks = [px[x, y] for x in range(W) for y in range(H) if px[x, y][3] >= 128]
-    if marks and sum(1 for p in marks if luminance(p) >= 0.7) >= 0.8 * len(marks):
-        return w, h, DARK
-    return w, h, LIGHT
+        return w, h, PLATE if lum >= 0.85 else DARK if lum <= 0.2 else LIGHT, None
+    # Only the mark's outline meets the plate: a pixel of the mark next to a transparent one (or the canvas edge).
+    # Black text inside a white badge never touches the plate, so it does not vote.
+    edge = []
+    for y in range(H):
+        for x in range(W):
+            if px[x, y][3] >= 128 and (x in (0, W - 1) or y in (0, H - 1) or min(px[x - 1, y][3], px[x + 1, y][3], px[x, y - 1][3], px[x, y + 1][3]) < 128):
+                edge.append(luminance(px[x, y]))
+    lost = lost_shares(edge)
+    return w, h, plate_for(lost), lost
 
 
 NOT_DRAWN = re.compile(r'<(clipPath|mask|defs|title|desc|metadata)\b.*?</\1>', re.I | re.S)
@@ -148,7 +190,7 @@ SHAPE = re.compile(r'<(path|rect|circle|ellipse|polygon|polyline|text|use)\b([^>
 
 
 def svg_backing(text):
-    """(width, height, backing) of an SVG logo from the colours it paints: only light marks → the dark plate. What is not
+    """(width, height, backing) of an SVG logo from the colours it paints (plate_for, one vote per colour). What is not
     drawn (clip paths, masks, definitions) is left out; `currentColor` and shapes with no fill paint black in an image."""
     w, h = svg_size(text)
     drawn = NOT_DRAWN.sub('', text)
@@ -158,9 +200,8 @@ def svg_backing(text):
     styled = bool(re.search(r'<style\b[^>]*>[^<]*fill\s*:', drawn, re.I))
     if not styled:
         colours += [(0, 0, 0) for _, attrs in SHAPE.findall(drawn) if not re.search(r'\bfill\s*=|fill\s*:', attrs, re.I)]
-    if colours and sum(1 for c in colours if luminance(c) >= 0.7) >= 0.8 * len(colours):
-        return w, h, DARK
-    return w, h, LIGHT
+    lost = lost_shares([luminance(c) for c in colours])
+    return w, h, plate_for(lost), lost
 
 
 def index_files(paths):
@@ -236,17 +277,25 @@ def main():
                 if re.search(r'<script|\bon[a-z]+\s*=|javascript:', text, re.I):
                     counts['svgWithScript'] += 1
                     continue
-                width, height, backing = svg_backing(text)
+                width, height, backing, lost = svg_backing(text)
                 render = Path(a.svg_renders) / f'{sha[:20]}.png' if a.svg_renders else None
                 if render and render.is_file():
-                    backing = raster_backing(render.read_bytes())[2]
+                    _, _, backing, lost = raster_backing(render.read_bytes())
             else:
-                width, height, backing = raster_backing(data)
+                width, height, backing, lost = raster_backing(data)
+            # The sheet's stated surface decides, unless the image shows the mark would nearly vanish on it (a fifth of
+            # its outline under 2:1): then the image decides and the conflict is counted for the research team.
             surface = stated_surface(r.get('logo_notes'))
             if surface == 'dark':
-                backing = DARK
+                if lost and lost[1] >= 0.2:
+                    counts['surfaceConflict'] += 1
+                else:
+                    backing = DARK
             elif surface == 'light' and backing == DARK:
-                backing = LIGHT
+                if lost and lost[0] >= 0.2:
+                    counts['surfaceConflict'] += 1
+                else:
+                    backing = LIGHT
             file = f'assets/tenant-logos/{sha[:20]}.{EXT[mime]}'
             (ROOT / file).write_bytes(data)
             entry = {'file': file, 'sha256': sha, 'mime': mime, 'width': width, 'height': height, 'background': backing,
