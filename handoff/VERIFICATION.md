@@ -158,5 +158,12 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Tests: `npm test` **166 pass**.
 - Live: commit `c1458af`, Pages success (00:57 UTC); `npm run handoff:manifest` (1,202 files) then `npm run verify:live` **1151 ok · 0 failed**.
 - Container render against the live URL (Playwright, MapLibre from npm, OpenFreeMap stubbed, CityMETER tiles real — layout and logic, not a visual check of the basemap): centralWorld light 1280 px, Mega Bangna dark, Robinson Kanchanaburi, centralWorld 390×844 dark, ตลาดดอยเวา 390×844 light, overview 390×844 dark — every module at `?v=20261105-r18`, logos loaded 10/10 · 10/10 · 9/9 · 10/10 with none broken, CityMETER tiles 0 failed, no console errors, no horizontal overflow.
-- Not checked: the new logos in the owner's Chrome with real tiles (the extension disconnected at 07:58), a real phone, terrain in the container (the DEM host is blocked there).
+- Owner's Chrome, real tiles, 5 Nov 2026 08:12 (after the extension reconnected): Mega Bangna `?venue=SC-012204` on `?v=20261105-r18` — “ความงาม” light: BEAUTRIUM (dark plate), Boots, Chanel, Clé de Peau, COVERMARK, Creed, Cute Press, Dr.PONG; 10 of 10 logos loaded · “เครื่องเล่นและครอบครัว” dark: Blu-O, HarborLand, Joyliday, Kidzooona, Sub-Zero. The same view showed raw ids of the four reviewed datasets in the source line under the list (present since 0.1.8) — fixed in 0.1.11. Theme returned to Auto.
+- Not checked: a real phone, terrain in the container (the DEM host is blocked there).
+
+## 0.1.11 - Thai names for the reviewed datasets in the source line (`20261105-r19`)
+
+- Fix: `STORE_DATASETS` (js/evidence.js) names research.TH.beauty, beauty_clinic, playground and car_service; new `tests/dataset-labels.test.js` (fails on the 0.1.10 code, passes now). `npm test` **167 pass**.
+- Live: commit `af946ed`, Pages success (01:16 UTC); `npm run handoff:manifest` (1,203 files) then `npm run verify:live` **1150 ok · 1 failed** — a transient 503 on `data/details/167.json`; refetched 200 with the same SHA-256 (`df300462…`).
+- Owner's Chrome, real tiles, 08:24: Mega Bangna on `?v=20261105-r19` — source line “ร้านเสื้อผ้า · ธนาคาร · ร้านความงาม · คลินิกความงาม · ร้านกล้อง · บริการรถยนต์ · … · เครื่องเล่นและครอบครัว · …”, no `research.TH` text anywhere in the panel; theme select on Auto.
 
