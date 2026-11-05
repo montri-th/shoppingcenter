@@ -10,11 +10,19 @@
 //       → sites/<venue_id>/candidates.json · candidates.csv · candidates.png and .svg (numbered buildings, north up, pin red)
 //   node scripts/site-candidates.mjs row <venue_id> (--pick 1,2,5 | --site site.geojson [--add 3,7] [--drop 12])
 //       [--osm-point "lon,lat;lon,lat"]
-//       --source site_layout|dol_parcels+site_layout --evidence <https page of the layout> [--main "…"] [--notes "…"] [--by "…"]
+//       --source site_layout|dol_parcels+site_layout|osm_outline|osm_outline+site_layout --evidence <https page of the layout
+//       or of the OpenStreetMap outline> [--main "…"] [--notes "…"] [--by "…"]
 //       → sites/<venue_id>/row.json · picked.png and .svg and the row in sites/site_rows.csv (one row per venue_id)
 //       --osm-point: a building of the site that CityMETER does not have. The map then draws its OpenStreetMap outline
 //       (js/pin-buildings.js matchInUnit), so the point must stand in no CityMETER building and in an OpenStreetMap one
 //       (read from the map's OpenFreeMap tiles, scripts/site-osm.mjs); the row's notes name it.
+//   node scripts/site-candidates.mjs draft <venue_id> (--drafts <CSV of the SITE_DRAFTS tab> | --osm way/<id> | --outline <file.geojson>)
+//       → sites/<venue_id>/draft.png and .svg (drafted buildings blue, the OpenStreetMap outline orange), draft.json,
+//         draft-site.geojson and candidates.json, and the `row` command that accepts the draft once it is reviewed.
+//       A draft is every CityMETER building whose interior point stands in the OpenStreetMap area that holds the pin
+//       (landuse=retail, a shop=mall area or amenity=marketplace; scripts/site-draft.mjs; owner 2026-11-05 20:38). It
+//       also lists the buildings the outline cuts, OpenStreetMap buildings CityMETER does not have (for --osm-point) and
+//       other counted venues whose pin is in the outline. --osm reads the outline from Overpass (overpass-api.de).
 //   node scripts/site-candidates.mjs check <venue_id> --points "lon,lat;lon,lat" [--osm "lon,lat"]
 //       → which drawn building holds each point (a sheet row's buildings_in_boundary); exits 1 if one is outside.
 //       Points of the row's --osm-point go in --osm as well.
@@ -35,9 +43,11 @@ import {cmParts, interiorPoint, pointInRing} from '../js/pin-buildings.js';
 import {tileBox} from '../js/massing.js';
 import {sitePng, siteSvg} from './site-picture.mjs';
 import {createOsmReader} from './site-osm.mjs';
+import {outlinePolys, polysFromOverpass, polysGeoJson, outlineStats, otherPinsIn, draftReach, draftPick, edgeHints, osmOnly, boxMeets} from './site-draft.mjs';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
-const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels'];
+const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels', 'osm_outline', 'osm_outline+site_layout'];
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const COLUMNS = ['venue_id', 'venue_name', 'boundary_status', 'boundary_source', 'boundary_evidence_url', 'boundary_geojson', 'buildings_in_boundary',
   'building_count', 'main_building_note', 'checked_by', 'checked_on', 'notes'];
 const UA = {'User-Agent': 'citymeter-shoppingcenter-research/0.1'};
@@ -46,7 +56,7 @@ const argv = process.argv.slice(cmd === 'rank' ? 3 : 4);
 const opt = (k, d = '') => { const i = argv.indexOf(`--${k}`); return i >= 0 && i + 1 < argv.length ? argv[i + 1] : d; };
 const ids = s => (s ? s.split(',').map(x => Number(x.trim())).filter(Number.isInteger) : []);
 const fail = msg => { console.error(`STOP: ${msg}`); process.exit(1); };
-if (!['candidates', 'row', 'check', 'rank'].includes(cmd) || (cmd !== 'rank' && !venueArg)) fail('usage: node scripts/site-candidates.mjs candidates|row|check <venue_id> [options] · rank [options]');
+if (!['candidates', 'row', 'check', 'draft', 'rank'].includes(cmd) || (cmd !== 'rank' && !venueArg)) fail('usage: node scripts/site-candidates.mjs candidates|draft|row|check <venue_id> [options] · rank [options]');
 if (!existsSync('js/massing.js') || !existsSync('data/venues.json')) fail('run from the root of a clone of montri-th/shoppingcenter');
 
 const venues = JSON.parse(readFileSync('data/venues.json', 'utf8')).rows;
@@ -147,11 +157,35 @@ async function osmPoint(row, p) {
 const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 function readRows(path) {
   if (!existsSync(path)) return [];
-  const lines = readFileSync(path, 'utf8').split('\n').filter(Boolean), out = [];
+  const lines = readFileSync(path, 'utf8').replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean), out = [];
   const parse = line => { const cells = []; let cur = '', q = false; for (let i = 0; i < line.length; i++) { const ch = line[i]; if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; } else if (ch === '"') q = true; else if (ch === ',') { cells.push(cur); cur = ''; } else cur += ch; } cells.push(cur); return cells; };
   const head = parse(lines[0]);
   for (const line of lines.slice(1)) { const cells = parse(line); out.push(Object.fromEntries(head.map((h, i) => [h, cells[i] ?? '']))); }
   return out;
+}
+
+/** sites/<venue_id>/candidates.json and .csv: the numbered buildings `row` and `check` read. */
+function writeCandidates(row, res, reach) {
+  const dir = `sites/${row.id}`;
+  mkdirSync(dir, {recursive: true});
+  writeFileSync(`${dir}/candidates.json`, JSON.stringify({venue_id: row.id, name: row.name, point: [row.lon, row.lat], unit: res.zone.name, reach, read_on: new Date().toISOString().slice(0, 10), candidates: res.candidates}));
+  writeFileSync(`${dir}/candidates.csv`, ['cid,dist_m,area_m2,height_m,lon,lat', ...res.candidates.map(c => [c.cid, c.dist_m, c.area_m2, c.height_m, ...c.point].join(','))].join('\n') + '\n');
+  return dir;
+}
+
+/** The polygons of one OpenStreetMap way or relation, read from Overpass with `out geom`. */
+async function overpassOutline(type, id) {
+  const q = `[out:json][timeout:60];${type === 'way' ? 'way' : 'rel'}(${id});out tags geom;`;
+  let res;
+  try {
+    res = await fetch(OVERPASS_URL, {method: 'POST', headers: {...UA, 'Content-Type': 'application/x-www-form-urlencoded'}, body: `data=${encodeURIComponent(q)}`});
+  } catch (e) { fail(`could not reach Overpass (${e.message}) — try again later, or give --outline <file.geojson>`); }
+  if (!res.ok) fail(`Overpass answered HTTP ${res.status} — try again in a minute`);
+  const e = (await res.json()).elements?.find(x => x.type === type && String(x.id) === String(id));
+  if (!e) fail(`${type}/${id} is not in OpenStreetMap (deleted, or a typo)`);
+  const polys = polysFromOverpass(e);
+  if (!polys) fail(`${type}/${id} is not a closed area`);
+  return {polys, tags: e.tags || {}};
 }
 
 if (cmd === 'candidates') {
@@ -159,10 +193,7 @@ if (cmd === 'candidates') {
   if (!(reach > 0 && reach <= MAX_SITE_M)) fail(`--reach must be 1–${MAX_SITE_M} m`);
   const res = await buildingsNear(row, reach);
   if (!res.zone) fail(`${row.id}: ${res.reason} — skip the row as osm_area`);
-  const dir = `sites/${row.id}`;
-  mkdirSync(dir, {recursive: true});
-  writeFileSync(`${dir}/candidates.json`, JSON.stringify({venue_id: row.id, name: row.name, point: [row.lon, row.lat], unit: res.zone.name, reach, read_on: new Date().toISOString().slice(0, 10), candidates: res.candidates}));
-  writeFileSync(`${dir}/candidates.csv`, ['cid,dist_m,area_m2,height_m,lon,lat', ...res.candidates.map(c => [c.cid, c.dist_m, c.area_m2, c.height_m, ...c.point].join(','))].join('\n') + '\n');
+  const dir = writeCandidates(row, res, reach);
   pictures(`${dir}/candidates`, row, res.candidates);
   console.log(`${row.id} ${row.name}: ${res.candidates.length} CityMETER buildings within ${reach} m (unit ${res.zone.name}) → ${dir}/candidates.png (also .svg)`);
   // Other counted venues with their own pin nearby: their buildings are theirs unless the site plan says otherwise.
@@ -171,6 +202,60 @@ if (cmd === 'candidates') {
     .map(v => ({v, held: res.candidates.find(c => pointInRing([v.lon, v.lat], c.outer) && !c.holes.some(h => pointInRing([v.lon, v.lat], h)))}));
   for (const {v, held} of others) console.log(`  other venue: ${v.id} ${v.name} (${v.group})${held ? ` — its pin stands in building ${held.cid}` : ''}`);
   for (const c of res.candidates.slice(0, 12)) console.log(`  ${String(c.cid).padStart(3)}  ${String(c.dist_m).padStart(4)} m  ${String(c.area_m2).padStart(7)} m²  ${c.height_m ?? '–'} m  ${c.point.join(',')}`);
+} else if (cmd === 'draft') {
+  const row = venueOf(venueArg), today = new Date().toISOString().slice(0, 10);
+  let polys, osmRef = '', tags = {}, sheet = null;
+  if (opt('drafts')) {
+    sheet = readRows(opt('drafts')).find(r => (r.venue_id || '').trim() === row.id);
+    if (!sheet) fail(`${row.id} is not in ${opt('drafts')}`);
+    if (!sheet.outline_geojson) fail(`${row.id}: no draft (${sheet.draft_class || 'no class'}${sheet.draft_note ? `: ${sheet.draft_note}` : ''}) — do this site by hand (brief §4), or give --osm way/<id> of an outline you checked`);
+    polys = outlinePolys(JSON.parse(sheet.outline_geojson));
+    osmRef = (sheet.osm_outline || '').trim();
+  } else if (opt('osm')) {
+    const m = /^(way|relation)\/(\d+)$/.exec(opt('osm'));
+    if (!m) fail('--osm must be way/<id> or relation/<id> (the part after openstreetmap.org/)');
+    ({polys, tags} = await overpassOutline(m[1], m[2]));
+    osmRef = opt('osm');
+  } else if (opt('outline')) {
+    polys = outlinePolys(JSON.parse(readFileSync(opt('outline'), 'utf8')));
+  } else fail('draft needs --drafts <CSV of the SITE_DRAFTS tab>, --osm way/<id> or --outline <file.geojson>');
+  if (!polys.length) fail(`${row.id}: the outline holds no polygon`);
+  const stats = outlineStats(row, polys);
+  if (stats.maxDistM > MAX_SITE_M) fail(`${row.id}: the outline reaches ${stats.maxDistM} m from the venue point (more than ${MAX_SITE_M} m) — do this site by hand`);
+  const reach = draftReach(stats.maxDistM);
+  const res = await buildingsNear(row, reach);
+  if (!res.zone) fail(`${row.id}: ${res.reason} — skip the row as osm_area`);
+  const dir = writeCandidates(row, res, reach);
+  pictures(`${dir}/candidates`, row, res.candidates);   // the same numbers as draft.png (an older candidates picture would not match)
+  const picked = draftPick(res.candidates, polys);
+  const hints = edgeHints(res.candidates, picked, polys);
+  const others = otherPinsIn(row, polys, venues);
+  let osm = null, osmNote = '';
+  try { osm = osmOnly(await osmBuildingAt.partsIn(stats.bbox), res.candidates, polys); } catch (e) { osmNote = `could not read the OpenStreetMap buildings (${e.message})`; }
+  const {kx, ky} = metres(row.lat), pad = 40;
+  const [w, s, e, n] = stats.bbox, box = [w - pad / kx, s - pad / ky, e + pad / kx, n + pad / ky];
+  const inView = res.candidates.filter(c => boxMeets(c.outer, box));
+  pictures(`${dir}/draft`, row, inView, picked, polys.flat(), (osm || []).map(o => o.point));
+  writeFileSync(`${dir}/draft-site.geojson`, JSON.stringify(polysGeoJson(polys, {venue_id: row.id, osm: osmRef, source: 'OpenStreetMap contributors (ODbL)', drafted_on: today})));
+  const points = res.candidates.filter(c => picked.has(c.cid)).map(c => c.point);
+  const draft = {venue_id: row.id, name: row.name, osm: osmRef, tags, unit: res.zone.name, reach, pin_m: stats.pinM, max_dist_m: stats.maxDistM,
+    outline_m2: stats.areaM2, building_count: points.length, points, cids: [...picked].sort((a, b) => a - b), mostly_outside: hints.mostlyOutside,
+    mostly_inside: hints.mostlyInside, osm_only: osm, other_venues: others.map(v => ({id: v.id, name: v.name, group: v.group})), drafted_on: today};
+  writeFileSync(`${dir}/draft.json`, JSON.stringify(draft, null, 1));
+  console.log(`${row.id} ${row.name}: draft of ${points.length} CityMETER buildings in ${osmRef || 'the outline'} (${stats.areaM2.toLocaleString('en')} m², farthest vertex ${stats.maxDistM} m${stats.pinM ? `, the pin ${stats.pinM} m outside it` : ''}) → ${dir}/draft.png (also .svg)`);
+  if (sheet) {
+    const was = pointList(sheet.draft_points, 'draft_points');
+    const same = (a, b) => Math.abs(a[0] - b[0]) < 2e-6 && Math.abs(a[1] - b[1]) < 2e-6;
+    const gone = was.filter(p => !points.some(q => same(p, q))).length, added = points.filter(p => !was.some(q => same(p, q))).length;
+    console.log(gone || added ? `  CityMETER buildings changed since the sheet's draft: ${added} new, ${gone} gone — review the picture as usual` : `  same ${points.length} buildings as the draft in the sheet`);
+  }
+  if (hints.mostlyOutside.length) console.log(`  check: drafted but mostly outside the outline: ${hints.mostlyOutside.join(', ')}`);
+  if (hints.mostlyInside.length) console.log(`  check: not drafted but mostly inside the outline: ${hints.mostlyInside.join(', ')}`);
+  if (others.length) console.log(`  other counted venues have their pin in this outline (their buildings are theirs — --drop them): ${others.map(v => `${v.id} ${v.name} (${v.group})`).join(' · ')}`);
+  if (osm?.length) console.log(`  OpenStreetMap buildings CityMETER does not have (add with --osm-point only if they belong to the centre): ${osm.map(o => `${o.point.join(',')} ≈${o.area_m2} m²`).join('; ')}`);
+  if (osmNote) console.log(`  ${osmNote} — run draft again online to see OpenStreetMap buildings CityMETER does not have`);
+  const evidence = osmRef ? `https://www.openstreetmap.org/${osmRef}` : '<https page of the layout>';
+  console.log(`  accept after review: node scripts/site-candidates.mjs row ${row.id} --site ${dir}/draft-site.geojson --source osm_outline --evidence ${evidence} --main "…" --by "…"   [--add n,n] [--drop n,n] [--osm-point "lon,lat"]`);
 } else if (cmd === 'row' || cmd === 'check') {
   const row = venueOf(venueArg), dir = `sites/${row.id}`;
   if (!existsSync(`${dir}/candidates.json`)) fail(`run candidates for ${row.id} first`);
@@ -196,13 +281,12 @@ if (cmd === 'candidates') {
   const source = opt('source'), evidence = opt('evidence');
   if (!SOURCES.includes(source)) fail(`--source must be one of ${SOURCES.join(' | ')}`);
   if (!/^https:\/\//.test(evidence) || /docs\.google|drive\.google|google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(evidence)) fail('--evidence must be a public https page of the site layout (no Google Maps, Drive or Docs link)');
-  let picked = new Set(ids(opt('pick'))), siteRings = null;
+  let picked = new Set(ids(opt('pick'))), siteRings = null, sitePolys = null;
   if (opt('site')) {
-    const g = JSON.parse(readFileSync(opt('site'), 'utf8'));
-    const geom = g.type === 'FeatureCollection' ? g.features[0].geometry : g.type === 'Feature' ? g.geometry : g;
-    const polys = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
-    siteRings = polys.map(p => p[0]);
-    picked = new Set(cand.filter(c => polys.some(p => pointInRing(c.point, p[0]) && !p.slice(1).some(h => pointInRing(c.point, h)))).map(c => c.cid));
+    sitePolys = outlinePolys(JSON.parse(readFileSync(opt('site'), 'utf8')));
+    if (!sitePolys.length) fail(`${opt('site')} holds no polygon`);
+    siteRings = sitePolys.flat();
+    picked = draftPick(cand, sitePolys);   // interior point in the site: the rule of `draft` as well
     ids(opt('add')).forEach(i => picked.add(i));
     ids(opt('drop')).forEach(i => picked.delete(i));
   }
@@ -215,7 +299,7 @@ if (cmd === 'candidates') {
   const far = chosen.filter(c => Math.hypot(...[c.point[0] - row.lon, c.point[1] - row.lat].map((d, i) => d * [metres(row.lat).kx, metres(row.lat).ky][i])) > MAX_SITE_M);
   if (far.length) fail(`buildings ${far.map(c => c.cid).join(', ')} are more than ${MAX_SITE_M} m from the venue point`);
   const record = {venue_id: row.id, venue_name: row.name, boundary_status: 'checked', boundary_source: source, boundary_evidence_url: evidence,
-    boundary_geojson: siteRings ? JSON.stringify({type: 'MultiPolygon', coordinates: siteRings.map(r => [r.map(p => p.map(v => +v.toFixed(6)))])}) : '',
+    boundary_geojson: sitePolys ? JSON.stringify({type: 'MultiPolygon', coordinates: sitePolys}) : '',
     buildings_in_boundary: [...chosen.map(c => c.point.join(',')), ...osm.map(o => o.point.join(','))].join(';'), building_count: chosen.length + osm.length,
     main_building_note: opt('main'), checked_by: opt('by'), checked_on: new Date().toISOString().slice(0, 10),
     notes: [opt('notes'), osm.length ? `OpenStreetMap outline (CityMETER has no building): ${osm.map(o => `${o.point.join(',')} ≈${o.area_m2} m²`).join('; ')}` : ''].filter(Boolean).join(' · ')};

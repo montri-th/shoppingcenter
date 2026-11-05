@@ -3,13 +3,16 @@
 // (js/pin-buildings.js matchInUnit). This reads the same OpenFreeMap tiles as the map (js/map-style.js TILEJSON_URL,
 // z14 `building` layer) with the map's own decoder, so a point it accepts stands in a building the map draws.
 // Research tool only: nothing here enters the page.
-import {parseVectorTile, lonLatToTile} from '../js/mvt.js';
+import {parseVectorTile, lonLatToTile, tilesForBBox} from '../js/mvt.js';
 import {cmParts, pointInRing} from '../js/pin-buildings.js';
 import {TILEJSON_URL} from '../js/map-style.js';
 
 export const OSM_TILE_ZOOM = 14;
 
-/** A reader of OpenStreetMap buildings: `osmBuildingAt([lon, lat])` → {areaM2, outer} of the building holding the point, or null. */
+/**
+ * A reader of OpenStreetMap buildings: `osmBuildingAt([lon, lat])` → {areaM2, outer} of the building holding the point, or
+ * null; `osmBuildingAt.partsIn(bbox)` → the parts of every tile over a box (scripts/site-draft.mjs osmOnly). One tile cache.
+ */
 export function createOsmReader({fetchImpl = globalThis.fetch, headers = {}, tileJsonUrl = TILEJSON_URL} = {}) {
   let template = null;
   const tiles = new Map();
@@ -31,10 +34,17 @@ export function createOsmReader({fetchImpl = globalThis.fetch, headers = {}, til
     }
     return tiles.get(key);
   }
-  return async function osmBuildingAt([lon, lat]) {
+  async function osmBuildingAt([lon, lat]) {
     const t = lonLatToTile(lon, lat, OSM_TILE_ZOOM);
     const layer = await buildingLayer(t);
     const part = cmParts(layer, t).find(p => pointInRing([lon, lat], p.outer) && !p.holes.some(h => pointInRing([lon, lat], h)));
     return part ? {areaM2: Math.round(part.areaM2), outer: part.outer} : null;
+  }
+  /** Every building part of the z14 tiles over a [west, south, east, north] box (a building cut by a tile edge is two parts). */
+  osmBuildingAt.partsIn = async bbox => {
+    const parts = [];
+    for (const t of tilesForBBox(bbox, OSM_TILE_ZOOM)) parts.push(...cmParts(await buildingLayer(t), t));
+    return parts;
   };
+  return osmBuildingAt;
 }

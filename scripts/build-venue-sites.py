@@ -4,7 +4,8 @@
   python3 scripts/build-venue-sites.py [--sites <CSV of the research site tab>] [--exported-on YYYY-MM-DD]
 
 Input: a CSV export of the research site tab SITE_BOUNDARY_CHECK (the columns of CityMETER · Hotel's
-49_SITE_BOUNDARY_CHECK), filled with the campus-site-join workflow and scripts/site-candidates.mjs: venue_id,
+49_SITE_BOUNDARY_CHECK), filled with the campus-site-join workflow and scripts/site-candidates.mjs (by hand, or from a
+reviewed draft of the OpenStreetMap outline: `draft`, boundary_source osm_outline; owner 2026-11-05 20:38): venue_id,
 boundary_status, buildings_in_boundary ("lon,lat;lon,lat", one interior point per building), boundary_source,
 boundary_evidence_url, checked_on. Only rows with boundary_status = checked are read.
 
@@ -33,6 +34,8 @@ SITE_SOURCES = {  # boundary_source codes → the words of the evidence line
     'dol_parcels+site_layout': 'รูปแปลงกรมที่ดิน + ผังโครงการ',
     'site_layout': 'ผังโครงการ',
     'dol_parcels': 'รูปแปลงกรมที่ดิน',
+    'osm_outline': 'ขอบเขตพื้นที่จาก OpenStreetMap',
+    'osm_outline+site_layout': 'ขอบเขตพื้นที่จาก OpenStreetMap + ผังโครงการ',
 }
 
 

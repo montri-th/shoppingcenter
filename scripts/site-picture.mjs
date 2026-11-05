@@ -1,5 +1,5 @@
 // Pictures for the site research helper (scripts/site-candidates.mjs). Both show the same frame: north up, the
-// candidates' extent plus 30 m, 1200 px wide with a 60 px footer. Buildings grey, picked buildings blue, the site
+// candidates' extent (and the site boundary's and the marks', when given) plus 30 m, 1200 px wide with a 60 px footer. Buildings grey, picked buildings blue, the site
 // boundary orange, the venue's pin red, every building numbered (1 = nearest the pin).
 // The PNG needs no packages (node:zlib) and opens in any image viewer; the SVG is the same picture for a browser.
 // Research tool only: these pictures never enter the page.
@@ -8,11 +8,11 @@ import {deflateSync} from 'node:zlib';
 export const PICTURE_COLOURS = {paper: '#ffffff', building: '#d7dbd8', picked: '#5aa9d6', edge: '#4a5550', site: '#e46a1f', pin: '#d62828', ink: '#111111'};
 const WIDTH = 1200, FOOTER = 60, PAD_M = 30;
 
-/** The frame both pictures share: local metres round the venue's point, north up. */
-export function frame(row, candidates) {
+/** The frame both pictures share: local metres round the venue's point, north up. `extra`: further [lon, lat] points to hold. */
+export function frame(row, candidates, extra = []) {
   const kx = 111320 * Math.cos((row.lat * Math.PI) / 180), ky = 110574;
   let minX = 0, maxX = 0, minY = 0, maxY = 0;
-  for (const c of candidates) for (const [lon, lat] of c.outer) {
+  for (const [lon, lat] of [...candidates.flatMap(c => c.outer), ...extra]) {
     const x = (lon - row.lon) * kx, y = (lat - row.lat) * ky;
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
@@ -31,7 +31,7 @@ const MARK_NOTE = 'orange diamond = OpenStreetMap building';
 
 /** SVG: for a browser. */
 export function siteSvg(row, candidates, picked = new Set(), site = null, marks = []) {
-  const {W, H, scale, P} = frame(row, candidates), C = PICTURE_COLOURS;
+  const {W, H, scale, P} = frame(row, candidates, [...(site || []).flat(), ...marks]), C = PICTURE_COLOURS;
   const path = ring => ring.map((p, i) => `${i ? 'L' : 'M'}${P(p).map(v => v.toFixed(1)).join(',')}`).join('') + 'Z';
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
   const shapes = candidates.map(c => `<path d="${[c.outer, ...c.holes].map(path).join('')}" fill="${picked.has(c.cid) ? C.picked : C.building}" fill-rule="evenodd" stroke="${C.edge}" stroke-width="1"/>`).join('');
@@ -64,7 +64,7 @@ export const textWidth = (str, sc) => [...String(str).toUpperCase()].reduce((a, 
 
 /** PNG: for any image viewer. Same frame, colours and numbers as the SVG; the footer carries the id, not the name. */
 export function sitePng(row, candidates, picked = new Set(), site = null, marks = []) {
-  const {W, H, scale, P} = frame(row, candidates), h = H + FOOTER;
+  const {W, H, scale, P} = frame(row, candidates, [...(site || []).flat(), ...marks]), h = H + FOOTER;
   const C = Object.fromEntries(Object.entries(PICTURE_COLOURS).map(([k, v]) => [k, [1, 3, 5].map(i => parseInt(v.slice(i, i + 2), 16))]));
   const img = new Uint8Array(W * h * 3).fill(255);
   const set = (x, y, c) => {

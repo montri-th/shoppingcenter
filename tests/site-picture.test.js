@@ -44,7 +44,8 @@ test('the site PNG draws the SVG frame: picked blue, others grey, holes open, pi
     {cid: 2, outer: square(-70, -20, -30, 20), holes: [square(-60, -10, -40, 10)], point: at(-65, 0), area_m2: 1200},
   ];
   const site = [square(20, -30, 80, 30)];
-  const {W, H, P} = frame(row, candidates);
+  const {W, H, P} = frame(row, candidates, site.flat());   // the frame holds the site boundary as well
+  assert.ok(P(at(80, 30))[1] > 0 && P(at(80, -30))[1] < H, 'site boundary inside the frame');
   const {w, h, px} = decode(sitePng(row, candidates, new Set([1]), site));
   assert.deepEqual([w, h], [W, H + 60]);
   const pixel = (x, y) => px(...P(at(x, y)).map(Math.floor));
@@ -64,7 +65,8 @@ test('the site PNG draws the SVG frame: picked blue, others grey, holes open, pi
   assert.match(svg, />1<\/text>/);
   // A building CityMETER does not have: an orange diamond labelled OSM, and the footer says what it is.
   const marked = decode(sitePng(row, candidates, new Set([1]), site, [at(0, 30)]));
-  assert.equal(marked.px(...P(at(0, 30)).map(Math.floor)), PICTURE_COLOURS.site, 'OSM mark');
+  const P2 = frame(row, candidates, [...site.flat(), at(0, 30)]).P;
+  assert.equal(marked.px(...P2(at(0, 30)).map(Math.floor)), PICTURE_COLOURS.site, 'OSM mark');
   assert.match(siteSvg(row, candidates, new Set([1]), site, [at(0, 30)]), /OpenStreetMap building/);
 });
 
