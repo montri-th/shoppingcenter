@@ -22,9 +22,19 @@
  * Display: each part is drawn enclosing the basemap's own copy (offset DRAW_OFFSET_M outward,
  * lifted DRAW_LIFT_M) so the two never z-fight. Heights are OpenMapTiles render_height /
  * render_min_height: context for the picture, not a measurement.
+ *
+ * CityMETER Building V4 (owner 2026-11-05 00:34: “ใช้แหล่งข้อมูลอาคารเสริมจาก CityMETER: building ด้วย เพื่อซ่อมพื้นที่
+ * ต่างจังหวัดที่ OSM มีข้อมูลอาคารจำกัด”): inside a CityMETER unit (js/building-units.js, the 1.15 rule) a point is
+ * matched to the CityMETER buildings of its z14 tile first, by the same rules — except where OSM maps the building in
+ * parts (an outline with building:parts, LOD2), which stays OSM; when CityMETER has no building there, the OSM one is
+ * kept. Heights of CityMETER buildings are the dataset's model estimates (`height_m`).
+ *
+ * Sites (several buildings of one venue, “campus style”, as CityMETER · Hotel 0.3.6): a venue with research site points
+ * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour.
  */
 
-import {lonLatToTile} from './mvt.js';
+import {lonLatToTile, tileToLonLat} from './mvt.js';
+import {tileBox, cmHeight} from './massing.js';
 
 export const PIN_TOLERANCE_M = 3;
 export const MAX_PART_AREA_M2 = 150000;
@@ -184,6 +194,7 @@ export function matchVenue(point, index, {toleranceM = PIN_TOLERANCE_M} = {}) {
   }
   const outlines = containing.filter(p => p.hide3d).sort((a, b) => a.areaM2 - b.areaM2);
   let members = containing.filter(p => !p.hide3d);
+  const viaOutline = outlines.length > 0;
   if (outlines.length) {
     const outline = outlines[0];
     const inside = candidatesInBox(index, outline.bbox).filter(p => !p.hide3d && sizeOK(p) && insidePart(interiorPoint(p), outline));
@@ -199,7 +210,88 @@ export function matchVenue(point, index, {toleranceM = PIN_TOLERANCE_M} = {}) {
       if (deepOverlap(m, q)) all.add(q);
     }
   }
-  return {parts: [...all], method};
+  return {parts: [...all], method, ...(viaOutline ? {viaOutline: true} : {})};
+}
+
+/**
+ * Parts of one CityMETER Building V4 tile (decoded MVT layer `building-detail`, read for one tile unit). The API sends
+ * every building that touches the tile whole, so a part is the whole building (no tile continuation); `seen` keeps
+ * one copy of a building two tiles or tile units share. Each part: {fid: null, tile: '', outer, holes, bbox, areaM2,
+ * height (height_m, model estimate), base: 0, hide3d: false, source: 'cm'}.
+ */
+export function cmParts(layer, tile, seen = new Set()) {
+  const parts = [];
+  if (!layer?.features?.length) return parts;
+  const extent = layer.extent || 4096;
+  for (const f of layer.features) {
+    if (f.type !== 3) continue;
+    const height = cmHeight(f.properties);
+    let current = null, outerSign = 0;
+    for (const raw of f.rings()) {
+      const ring = raw.map(([px, py]) => tileToLonLat(px, py, tile, extent));
+      if (ring.length < 4) continue;
+      const first = ring[0], last = ring[ring.length - 1];
+      if (first[0] !== last[0] || first[1] !== last[1]) ring.push([first[0], first[1]]);
+      // A feature's first ring is an outer; rings winding the same way are further outers, the other way its holes
+      // (MVT outers are clockwise as drawn, in tile space and on the map alike).
+      const bbox = bboxOf(ring);
+      const {kx, ky} = metresPerDegree((bbox[1] + bbox[3]) / 2);
+      const area = ringArea(ring, kx, ky);
+      if (!area) continue;
+      if (!outerSign) outerSign = Math.sign(area);
+      if (Math.sign(area) === outerSign || !current) {
+        const key = `${ring.length}|${ring[0][0].toFixed(7)},${ring[0][1].toFixed(7)}|${ring[1][0].toFixed(7)},${ring[1][1].toFixed(7)}`;
+        if (seen.has(key)) { current = {skip: true}; continue; }
+        seen.add(key);
+        current = {fid: null, tile: '', outer: ring, holes: [], bbox, areaM2: Math.abs(area), height, base: 0, hide3d: false, source: 'cm'};
+        parts.push(current);
+      } else if (!current.skip) {
+        current.holes.push(ring);
+        current.areaM2 -= Math.abs(area);
+      }
+    }
+  }
+  return parts;
+}
+
+/** z14 tiles a point needs from CityMETER: its own, and a neighbour when the point is within `edgeM` of its edge. */
+export function pointTiles([lon, lat], {edgeM = PIN_TOLERANCE_M + 2} = {}) {
+  const t = lonLatToTile(lon, lat, PIN_TILE_ZOOM);
+  const [w, s, e, n] = tileBox(t);
+  const {kx, ky} = metresPerDegree(lat);
+  const out = [t];
+  const dx = (lon - w) * kx < edgeM ? -1 : (e - lon) * kx < edgeM ? 1 : 0;
+  const dy = (n - lat) * ky < edgeM ? -1 : (lat - s) * ky < edgeM ? 1 : 0;
+  if (dx) out.push({z: t.z, x: t.x + dx, y: t.y});
+  if (dy) out.push({z: t.z, x: t.x, y: t.y + dy});
+  if (dx && dy) out.push({z: t.z, x: t.x + dx, y: t.y + dy});
+  return out;
+}
+
+/** CityMETER requests of a point in a zone: one per tile and tile unit of the zone meeting it. */
+export function cmRequestsFor(point, zone) {
+  const out = [];
+  for (const tile of pointTiles(point)) {
+    const tb = tileBox(tile);
+    for (const tu of zone.tileUnits || []) {
+      if (tu.bbox[0] <= tb[2] && tb[0] <= tu.bbox[2] && tu.bbox[1] <= tb[3] && tb[1] <= tu.bbox[3]) {
+        out.push({tile, zone, tileUnit: tu, tileType: zone.tileType, key: `${tile.z}/${tile.x}/${tile.y}|${tu.id}`});
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * The building of one point in a CityMETER unit: OSM parts (LOD2) when OSM maps the building there in parts, else the
+ * CityMETER building, else the OSM building (CityMETER has none there). `osm`/`cm`: indexes from indexParts.
+ */
+export function matchInUnit(point, osm, cm, options) {
+  const fromOsm = matchVenue(point, osm, options);
+  if (fromOsm?.viaOutline) return fromOsm;
+  const fromCm = matchVenue(point, cm, options);
+  if (fromCm) return {...fromCm, source: 'cm'};
+  return fromOsm;
 }
 
 /* ---------- display shapes ---------- */
@@ -249,9 +341,14 @@ export function growRingM(ring, d) {
  * GeoJSON features for one venue's matched parts, in the property shape buildings.js draws
  * (render_as extrusion, display_height_m / display_base_m) plus the pin semantics.
  */
+export const PIN_SOURCES = Object.freeze({
+  osm: {role: 'pin_building_basemap', heightStatus: 'basemap_render_height', source: 'OpenMapTiles building (OpenFreeMap) © OpenStreetMap contributors'},
+  cm: {role: 'pin_building_citymeter', heightStatus: 'citymeter_model_estimate', source: 'CityMETER Building V4'},
+});
 export function pinFeatures(venueId, match) {
   if (!match?.parts?.length) return [];
   return match.parts.map((part, i) => {
+    const kind = PIN_SOURCES[part.source === 'cm' ? 'cm' : 'osm'];
     const height = Number.isFinite(part.height) && part.height > 0 ? part.height : null;
     const base = Math.max(0, part.base || 0);
     const top = Math.max(base + MIN_DISPLAY_HEIGHT_M, height ?? MIN_DISPLAY_HEIGHT_M);
@@ -260,12 +357,12 @@ export function pinFeatures(venueId, match) {
       geometry: {type: 'Polygon', coordinates: [growRingM(part.outer, DRAW_OFFSET_M), ...part.holes.map(h => growRingM(h, -DRAW_OFFSET_M))]},
       properties: {
         host_id: `pin:${venueId}:${i}`, venue_ids: [venueId], selected_venue_ids: [venueId],
-        geometry_role: 'pin_building_basemap', render_as: 'extrusion', match_method: match.method,
-        height_status: 'basemap_render_height', height_m: height, base_m: base,
+        geometry_role: kind.role, render_as: 'extrusion', match_method: part.site ? 'site' : match.method,
+        height_status: kind.heightStatus, height_m: height, base_m: base,
         display_height_m: top + DRAW_LIFT_M, display_base_m: base,
-        source: 'OpenMapTiles building (OpenFreeMap) © OpenStreetMap contributors',
+        source: kind.source,
       },
-      // Exact basemap rings, for the massing tiers to recognise the same building.
+      // Exact source rings, for the massing tiers to recognise the same building.
       _ring: part.outer,
     };
   });
@@ -274,28 +371,65 @@ export function pinFeatures(venueId, match) {
 /* ---------- live installer ---------- */
 
 /**
- * Match pins to basemap buildings whenever the map settles. `onChange({byVenue, features})`
- * fires when the matched set changes. Venue rows: [{id, lon, lat}]. A venue is matched once its
- * z14 tile is on screen (the map is idle with the pin inside the viewport) and then kept; a
- * venue with no building there is remembered as `null` so the panel can say so.
+ * Match pins to buildings whenever the map settles. `onChange({byVenue, features, cm})` fires when the matched set
+ * changes (`cm`: how many matched venues stand in a CityMETER building). Venue rows: [{id, lon, lat, province?,
+ * points?}] — `points`: the venue's site points (one interior point per building, data/venue-sites.json). A venue is
+ * matched once its z14 tile is on screen (the map is idle with the pin inside the viewport) and then kept; a venue with
+ * no building there is remembered as `null` so the panel can say so.
+ *
+ * `cm` (CityMETER Building V4, js/building-units.js): {settled(province) → the province's unit file is known,
+ * zoneAt([lon, lat]) → the CityMETER unit there or null, load(request) → decoded tile layer}. A venue in a province
+ * whose units are not known yet waits (one small file); a CityMETER tile that fails leaves that point on OSM.
  */
-export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = PIN_TILE_ZOOM, onChange = null, limit = 3000} = {}) {
+export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = PIN_TILE_ZOOM, onChange = null, limit = 3000, cm = null} = {}) {
   let rows = [], enabled = true, disposed = false, timer = 0, signature = '';
-  const cache = new Map(); // venueId → match | null
+  const cache = new Map(); // venueId → match | null (every point decided)
+  const partial = new Map(); // venueId → match | null: the pin decided, a site point still waits for its tile
+  const cmTiles = new Map(); // request key → parts[] (loaded) | null (failed) ; pending keys are in `loading`
+  const loading = new Set();
 
   function emit() {
     const byVenue = new Map();
     const features = [];
+    let fromCm = 0;
     for (const r of rows) {
-      if (!cache.has(r.id)) continue;
-      const match = cache.get(r.id);
+      if (!cache.has(r.id) && !partial.has(r.id)) continue;
+      const match = cache.has(r.id) ? cache.get(r.id) : partial.get(r.id);
       byVenue.set(r.id, match ? match.method : null);
-      if (match) features.push(...pinFeatures(r.id, match));
+      if (match) {
+        features.push(...pinFeatures(r.id, match));
+        if (match.parts.some(p => p.source === 'cm')) fromCm++;
+      }
     }
-    const next = [...byVenue].map(([id, m]) => `${id}:${m || '-'}`).join('|');
+    const next = [...byVenue].map(([id, m]) => `${id}:${m || '-'}:${cache.get(id)?.parts?.length || 0}`).join('|');
     if (next === signature) return;
     signature = next;
-    if (typeof onChange === 'function') { try { onChange({byVenue, features}); } catch (e) { console.warn('Pin buildings', e); } }
+    if (typeof onChange === 'function') { try { onChange({byVenue, features, cm: fromCm}); } catch (e) { console.warn('Pin buildings', e); } }
+  }
+
+  /** CityMETER parts of a point in a zone: null while a tile is still loading (it is requested). */
+  function cmIndexFor(point, zone) {
+    const requests = cmRequestsFor(point, zone);
+    let waiting = false;
+    const parts = [], seen = new Set();
+    for (const q of requests) {
+      if (cmTiles.has(q.key)) {
+        const layerParts = cmTiles.get(q.key);
+        if (layerParts) for (const p of layerParts) {
+          const key = `${p.outer.length}|${p.outer[0][0].toFixed(7)},${p.outer[0][1].toFixed(7)}`;
+          if (!seen.has(key)) { seen.add(key); parts.push(p); }
+        }
+        continue;
+      }
+      waiting = true;
+      if (loading.has(q.key) || typeof cm?.load !== 'function') continue;
+      loading.add(q.key);
+      Promise.resolve(cm.load(q))
+        .then(layer => { cmTiles.set(q.key, cmParts(layer, q.tile)); })
+        .catch(() => { cmTiles.set(q.key, null); })
+        .finally(() => { loading.delete(q.key); while (cmTiles.size > 160) cmTiles.delete(cmTiles.keys().next().value); if (!disposed) schedule(); });
+    }
+    return waiting ? null : indexParts(parts);
   }
 
   function recompute() {
@@ -303,6 +437,7 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
     if (map.getZoom() < minZoom) { emit(); return; }
     const bounds = map.getBounds();
     const visible = rows.filter(r => !cache.has(r.id) && bounds.contains([r.lon, r.lat]));
+    for (const id of [...partial.keys()]) if (!rows.some(r => r.id === id)) partial.delete(id);
     if (!visible.length) { emit(); return; }
     let features;
     try { features = map.querySourceFeatures(sourceId, {sourceLayer: 'building'}); } catch { return; }
@@ -310,11 +445,32 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
     const index = indexParts(parts);
     const read = new Set(parts.map(p => p.tile));
     for (const r of visible) {
-      const match = matchVenue([r.lon, r.lat], index);
-      const t = lonLatToTile(r.lon, r.lat, PIN_TILE_ZOOM);
-      // "No building here" is only remembered when the pin's own z14 tile was read; a distant
-      // part of a pitched view may still be drawn from a coarser tile.
-      if (match || read.has(`${t.z}/${t.x}/${t.y}`)) cache.set(r.id, match);
+      // A venue in a province whose CityMETER units are not known yet waits for them (one small file).
+      if (cm && typeof cm.settled === 'function' && !cm.settled(r.province)) continue;
+      const points = [[r.lon, r.lat], ...(Array.isArray(r.points) ? r.points.filter(p => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1])) : [])];
+      let pending = false, pinPending = false, method = null;
+      const all = [], taken = new Set();
+      points.forEach((point, k) => {
+        const zone = cm && typeof cm.zoneAt === 'function' ? cm.zoneAt(point) : null;
+        let match;
+        if (zone) {
+          const cmIndex = cmIndexFor(point, zone);
+          if (!cmIndex) { pending = true; if (k === 0) pinPending = true; return; }
+          match = matchInUnit(point, index, cmIndex);
+        } else match = matchVenue(point, index);
+        const t = lonLatToTile(point[0], point[1], PIN_TILE_ZOOM);
+        // "No building here" is only known when the point's own z14 tile was read; a distant part of a pitched view
+        // may still be drawn from a coarser tile.
+        if (!match && !read.has(`${t.z}/${t.x}/${t.y}`)) { pending = true; if (k === 0) pinPending = true; return; }
+        if (!match) return;
+        if (k === 0) method = match.method;
+        for (const part of match.parts) if (!taken.has(part)) { taken.add(part); all.push(k === 0 ? part : {...part, site: true}); }
+      });
+      const result = all.length ? {parts: all, method: method || 'site', sitePoints: points.length - 1} : null;
+      // The pin's own building shows as soon as it is known; site points in tiles not read yet join it later.
+      if (pending) { if (!pinPending) partial.set(r.id, result); continue; }
+      partial.delete(r.id);
+      cache.set(r.id, result);
     }
     while (cache.size > limit) cache.delete(cache.keys().next().value);
     emit();
@@ -329,12 +485,17 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
     emit();
     schedule();
   }
+  /** Forget the matches of venues whose province's units just arrived (they may now stand in a CityMETER unit). */
+  function invalidate(predicate = () => true) {
+    for (const r of rows) if ((cache.has(r.id) || partial.has(r.id)) && predicate(r)) { cache.delete(r.id); partial.delete(r.id); }
+    schedule();
+  }
   function dispose() {
     disposed = true;
     clearTimeout(timer);
     map.off('idle', onIdle);
   }
-  /** 'inside' | 'edge' when matched, null when the pin's tile was read and no building is there, undefined when not read yet. */
-  const stateOf = id => (cache.has(id) ? (cache.get(id)?.method || null) : undefined);
-  return {update, dispose, recompute, stateOf, get size() { return cache.size; }};
+  /** 'inside' | 'edge' | 'site' when matched, null when the pin's tile was read and no building is there, undefined when not read yet. */
+  const stateOf = id => (cache.has(id) ? (cache.get(id)?.method || null) : partial.has(id) ? (partial.get(id)?.method || null) : undefined);
+  return {update, dispose, recompute, invalidate, stateOf, get size() { return cache.size; }};
 }

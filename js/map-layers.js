@@ -120,9 +120,11 @@ export function installDistrictLayers(map, {onSelect} = {}) {
    * summaries: the scoped districts (areas.summarizeDistricts); focusIds: districts with
    * detail (empty = all); selectedId: the open district; minzoom: where the reading starts
    * (country reading starts at the province fill limit so the frames read first);
-   * geometryOf: id → detail geometry when its province is loaded (else the coarse polygon).
+   * geometryOf: id → detail geometry when its province is loaded (else the coarse polygon);
+   * fillMaxZoom: where the fill switches off — FILL_MAX_ZOOM, or TERRAIN.minZoom while terrain mode reads the
+   * relief (js/terrain.js; a hard switch, never a fade).
    */
-  function update({summaries = [], selectedId = '', focusIds = [], visible = true, minzoom = 0, geometryOf = null} = {}) {
+  function update({summaries = [], selectedId = '', focusIds = [], visible = true, minzoom = 0, geometryOf = null, fillMaxZoom = FILL_MAX_ZOOM} = {}) {
     current = buildDistrictModel(summaries);
     const focus = new Set(selectedId ? [selectedId] : focusIds);
     const focusMode = focus.size > 0;
@@ -136,7 +138,7 @@ export function installDistrictLayers(map, {onSelect} = {}) {
     for (const id of Object.values(LAYERS)) {
       if (!map.getLayer(id)) continue;
       map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
-      const max = id === LAYERS.fill || id === LAYERS.zero ? FILL_MAX_ZOOM : 24;
+      const max = id === LAYERS.fill || id === LAYERS.zero ? Math.max(minzoom, fillMaxZoom) : 24;
       map.setLayerZoomRange(id, minzoom, max);
     }
     return current;

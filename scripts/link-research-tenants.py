@@ -536,7 +536,10 @@ def main():
     ap.add_argument('--venues', default=str(ROOT / 'data/venues.json'))
     ap.add_argument('--details', default=str(ROOT / 'data/details'))
     ap.add_argument('--buildings', default=str(ROOT / 'data/venue-buildings.geojson'))
+    ap.add_argument('--manifest', default=str(ROOT / 'assets/tenant-logos-manifest.json'),
+                    help='verified logos (scripts/collect-research-logos.py writes the research datasets\' entries)')
     a = ap.parse_args()
+    logos = json.loads(Path(a.manifest).read_text()) if Path(a.manifest).is_file() else {}
     if not builder.iso_date(a.exported_on):
         raise SystemExit('--exported-on must be an ISO date')
     exports = Path(a.exports)
@@ -637,6 +640,10 @@ def main():
                     omitted['same_branch_already_listed_at_venue'] += len(cluster)
                     continue
                 item = builder.clean_item(merged(cluster))
+                # The brand's own logo when its bytes match the sheet (scripts/collect-research-logos.py, verified again here).
+                logo = builder.verified_logo(logos.get(f"{dataset}|{item.get('brandId', '')}"), ROOT)
+                if logo:
+                    item['logo'] = logo
                 rosters.setdefault(vid, []).append(item)
                 added.append(item)
                 hosts_added.add(vid)
@@ -664,6 +671,7 @@ def main():
             'linkedRows': sum(1 for r in rows if (r.get(adapter['venue']) or '').strip()),
             'publishedItems': len(added), 'publishedVenueHosts': len(hosts_added),
             'publishedSourceObservations': sum(x.get('sourceObservationCount', 1) for x in added),
+            'withLogo': sum(bool(x.get('logo')) for x in added),
             'omitted': dict(sorted(omitted.items())),
         }
         if adapter.get('review'):

@@ -430,6 +430,10 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 .legend-massing.is-focus { background: var(--basemap-massing-focus); }
 .legend-massing.is-quiet { background: var(--basemap-massing-quiet); }
 .legend-massing-item { gap: 5px; }
+/* Terrain mode key: a hillshade swatch in the basemap's foundation tones (never a data colour). */
+.legend-terrain-item { gap: 5px; }
+.legend-terrain { width: 14px; height: 12px; border: 1px solid var(--border-default); border-radius: 2px; background: linear-gradient(135deg, var(--basemap-halo) 0 30%, var(--basemap-label-quiet) 65%, var(--basemap-label) 100%); }
+.map-panel:not(.is-3d) .legend-terrain-item { display: none; }
 .map-panel:not(.is-3d) .legend-massing-item.is-quiet-item { display: none; }
 #category-key summary { cursor: pointer; text-decoration: underline; text-underline-offset: 3px; min-height: 24px; display: inline-flex; align-items: center; }
 #category-key > div { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; padding-top: 8px; }

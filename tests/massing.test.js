@@ -14,7 +14,7 @@ const whole = [[-10, -10], [4106, -10], [4106, 4106], [-10, 4106], [-10, -10]].m
 test('focus massing keeps only buildings inside the focus region, lifts them and encloses the original', () => {
   const r = roundingRadiusM(15.5), d = encloseOffsetM(r);
   const out = shapeTile(tile, layer, {regions: [region], radiusM: r, offsetM: d});
-  const ids = out.features.map(f => f.id).sort();
+  const ids = out.features.map(f => f.properties.osm_id).sort();
   assert.deepEqual(ids, [101], 'only the square at tile x≈1147 lies in the left half');
   const f = out.features[0];
   assert.equal(f.properties.height, 20 + HEIGHT_LIFT_M);
@@ -28,12 +28,13 @@ test('focus massing keeps only buildings inside the focus region, lifts them and
 test('hide_3d features are skipped, holes are kept and edge-crossing buildings are clipped to the tile', () => {
   const r = roundingRadiusM(16), d = encloseOffsetM(r);
   const out = shapeTile(tile, layer, {regions: [whole], radiusM: r, offsetM: d});
-  const ids = out.features.map(f => f.id).sort((a, b) => a - b);
+  const ids = out.features.map(f => f.properties.osm_id).sort((a, b) => a - b);
   assert.deepEqual(ids, [101, 102, 103, 103, 105], 'hide_3d (104) is out; the merged feature yields one polygon per outer ring');
-  const l = out.features.find(f => f.id === 102);
+  assert.equal(new Set(out.features.map(f => f.id)).size, out.features.length, 'stable focus ids are unique per polygon');
+  const l = out.features.find(f => f.properties.osm_id === 102);
   assert.equal(l.geometry.coordinates.length, 2, 'outer + hole');
   assert.ok(Math.abs(signedArea(l.geometry.coordinates[1])) < Math.abs(signedArea(l.geometry.coordinates[0])));
-  const edge = out.features.find(f => f.id === 105);
+  const edge = out.features.find(f => f.properties.osm_id === 105);
   const [east] = tileToLonLat(4096, 0, tile);
   const maxLon = Math.max(...edge.geometry.coordinates[0].map(p => p[0]));
   const slackDeg = (d * 1.5) / 111320; // the outward offset may exceed the tile edge by ≈d metres, never by the 64-unit buffer
@@ -44,7 +45,7 @@ test('host overlap removes the OSM twin from the focus tier and reports its id f
   const host = layer.features.find(x => x.id === 101).rings()[0].map(([px, py]) => tileToLonLat(px, py, tile));
   const r = roundingRadiusM(16), d = encloseOffsetM(r);
   const out = shapeTile(tile, layer, {regions: [whole], hosts: [host], radiusM: r, offsetM: d});
-  assert.ok(!out.features.some(f => f.id === 101));
+  assert.ok(!out.features.some(f => f.properties.osm_id === 101));
   assert.deepEqual([...out.hiddenIds], [101]);
   assert.equal(out.dropped, 1);
 });
@@ -188,21 +189,27 @@ test('city tier fades with distance from the focus anchors: near → quiet tone,
   massing.dispose();
 });
 
-test('a merged multi-part feature loses only the overlapping polygon and is never hidden by id', () => {
+test('a merged multi-part feature loses only the overlapping polygon: hidden from the city tier as a whole, its other buildings stay — in the focus tier, or as context outside the focus', () => {
   // Fixture feature 103 is one feature with two polygons (OpenFreeMap merges equal-height buildings).
   const polys = layer.features.find(x => x.id === 103).rings().map(r => r.map(([px, py]) => tileToLonLat(px, py, tile)));
   const r = roundingRadiusM(16), d = encloseOffsetM(r);
   const out = shapeTile(tile, layer, {regions: [whole], hosts: [polys[0]], radiusM: r, offsetM: d});
-  assert.equal(out.features.filter(f => f.id === 103).length, 1, 'the other polygon of 103 stays in the focus tier');
-  assert.ok(!out.hiddenIds.has(103), 'a multi-part id is not hidden from the city tier');
+  assert.equal(out.features.filter(f => f.properties.osm_id === 103).length, 1, 'the other polygon of 103 stays in the focus tier');
+  assert.ok(out.hiddenIds.has(103), 'MapLibre filters features, not polygons: the city copy of 103 is hidden as a whole');
   assert.equal(out.dropped, 1);
+  // A focus round the host only: the other polygon of 103 is outside it and comes back as context (never blanked out).
+  const near = polys[0].map(([lon, lat]) => [lon, lat]);
+  const tight = shapeTile(tile, layer, {regions: [near], hosts: [polys[0]], radiusM: r, offsetM: d});
+  assert.ok(tight.hiddenIds.has(103));
+  assert.equal(tight.context.length, 1, 'the other building of the hidden feature is drawn as context');
+  assert.deepEqual(tight.context[0].properties, {height: layer.features.find(x => x.id === 103).properties.render_height, base: 0});
 });
 
 test('pin buildings drop exactly the same tile building from the focus tier; a neighbour sharing a wall stays', () => {
   const ring101 = layer.features.find(x => x.id === 101).rings()[0].map(([px, py]) => tileToLonLat(px, py, tile));
   const r = roundingRadiusM(16), d = encloseOffsetM(r);
   const out = shapeTile(tile, layer, {regions: [whole], pins: [ring101], radiusM: r, offsetM: d});
-  assert.ok(!out.features.some(f => f.id === 101));
+  assert.ok(!out.features.some(f => f.properties.osm_id === 101));
   assert.ok(out.hiddenIds.has(101), 'single-part twin hidden in the city tier');
   const a = [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]];
   const wall = [[10, 0], [20, 0], [20, 10], [10, 10], [10, 0]];

@@ -173,13 +173,30 @@ test('detail shards hold every venue exactly once, at the shard the client compu
 });
 
 test('public files carry no Drive/Docs links, no internal sheet ids and no credentials', () => {
-  const files = ['data/venues.json', 'data/pending.json', 'data/venue-buildings.geojson', 'data/venue-logos.json',
+  const files = ['data/venues.json', 'data/pending.json', 'data/venue-buildings.geojson', 'data/venue-logos.json', 'data/venue-sites.json',
     ...readdirSync(new URL('../data/details/', import.meta.url)).map(f => `data/details/${f}`)];
   for (const f of files) {
     const text = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
     assert.ok(!/docs\.google\.com|drive\.google\.com|googleusercontent/.test(text), `${f} has a private link`);
     // “secret” as a word or key, not inside a host name such as secreta.doae.go.th (a public government site)
     assert.ok(!/api[_-]?key|(?<![a-z])secret(?![a-z.])|password|token=/i.test(text), `${f} looks like it holds a credential`);
+  }
+});
+
+test('venue sites publish interior points only, within 600 m of the venue, with public https links', () => {
+  const doc = read('data/venue-sites.json');
+  const byId = new Map(rows.map(r => [r.id, r]));
+  assert.equal(doc.meta.maxDistanceM, 600);
+  assert.equal(doc.meta.counts.sites, Object.keys(doc.sites).length);
+  for (const [id, site] of Object.entries(doc.sites)) {
+    const r = byId.get(id);
+    assert.ok(r && Number.isFinite(r.lat) && Number.isFinite(r.lon), `${id} is a venue with a point`);
+    assert.deepEqual(Object.keys(site).sort(), ['checkedOn', 'n', 'points', 'source', 'url'], `${id} publishes only points, count, source, link and date`);
+    assert.equal(site.n, site.points.length);
+    const kx = 111320 * Math.cos(r.lat * Math.PI / 180);
+    for (const [lon, lat] of site.points) assert.ok(Math.hypot((lon - r.lon) * kx, (lat - r.lat) * 110574) <= 600, `${id} point ${lon},${lat}`);
+    assert.ok(site.url === '' || /^https:\/\//.test(site.url), `${id} link`);
+    assert.ok(site.checkedOn === '' || /^\d{4}-\d{2}-\d{2}$/.test(site.checkedOn));
   }
 });
 

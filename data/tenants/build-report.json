@@ -69,7 +69,7 @@
     "newDisplayedListings": 14,
     "corroboratingExistingListings": 1
   },
-  "withLogo": 1763,
+  "withLogo": 2461,
   "retailerIdentity": {
     "manufacturerLogosSuppressed": 8,
     "monoBrandRetailerNames": 4,
@@ -2783,6 +2783,7 @@
       "publishedItems": 319,
       "publishedVenueHosts": 100,
       "publishedSourceObservations": 322,
+      "withLogo": 17,
       "omitted": {
         "map_audit_status_out_of_scope": 5,
         "named_far_point_conflict": 23,
@@ -2808,6 +2809,7 @@
       "publishedItems": 681,
       "publishedVenueHosts": 137,
       "publishedSourceObservations": 681,
+      "withLogo": 681,
       "omitted": {
         "cross_dataset_outlet_reference": 100,
         "named_far_point_conflict": 35,
@@ -2831,6 +2833,7 @@
       "publishedItems": 107,
       "publishedVenueHosts": 74,
       "publishedSourceObservations": 110,
+      "withLogo": 0,
       "omitted": {
         "named_far_point_conflict": 5,
         "not_counting_status": 17,
@@ -2851,6 +2854,7 @@
       "publishedItems": 58,
       "publishedVenueHosts": 48,
       "publishedSourceObservations": 58,
+      "withLogo": 0,
       "omitted": {
         "named_far_point_conflict": 1,
         "not_count_role": 17,
@@ -2871,6 +2875,7 @@
       "publishedItems": 21,
       "publishedVenueHosts": 16,
       "publishedSourceObservations": 21,
+      "withLogo": 0,
       "omitted": {}
     },
     "research.TH.salon_barber": {
@@ -2886,6 +2891,7 @@
       "publishedItems": 62,
       "publishedVenueHosts": 41,
       "publishedSourceObservations": 62,
+      "withLogo": 0,
       "omitted": {
         "duplicate_review_recorded": 2,
         "not_evidence_status": 5,
@@ -2907,6 +2913,7 @@
       "publishedItems": 23,
       "publishedVenueHosts": 14,
       "publishedSourceObservations": 23,
+      "withLogo": 0,
       "omitted": {
         "not_evidence_status": 3,
         "not_operating_status": 39,
@@ -2929,6 +2936,7 @@
       "publishedItems": 1075,
       "publishedVenueHosts": 357,
       "publishedSourceObservations": 1075,
+      "withLogo": 0,
       "omitted": {
         "dedup_review_status_out_of_scope": 1,
         "label_also_names_another_venue": 4,
@@ -2959,6 +2967,7 @@
       "publishedItems": 436,
       "publishedVenueHosts": 100,
       "publishedSourceObservations": 436,
+      "withLogo": 0,
       "omitted": {
         "closure_source_conflict_recorded": 6,
         "label_also_names_another_venue": 1,
@@ -2985,6 +2994,7 @@
       "publishedItems": 103,
       "publishedVenueHosts": 68,
       "publishedSourceObservations": 103,
+      "withLogo": 0,
       "omitted": {
         "no_registry_host_name_in_label": 4,
         "not_common_retail_venue_link_status": 1,
@@ -3009,6 +3019,7 @@
       "publishedItems": 147,
       "publishedVenueHosts": 135,
       "publishedSourceObservations": 147,
+      "withLogo": 0,
       "omitted": {
         "candidate_outside_public_registry": 33,
         "label_places_shop_beside_host": 4,
@@ -3033,5 +3044,121 @@
   },
   "reviewInputs": {
     "R04_VENUE_CROSSWALK.csv": "856a170b8619635572b69edd94ba2a1fdea9e9e01fadec3c7341351406220147"
+  },
+  "researchLogos": {
+    "exportedOn": "2026-11-05",
+    "rule": "logo bytes equal the sheet SHA-256 (logo_sha256); brand_primary role only",
+    "manifestSha256": "12c8fd92b358c3f9375c07fb12963119643acbd7cceaac72410606fdaa581c83",
+    "datasets": {
+      "research.TH.sport": {
+        "brands": 40,
+        "fileNotSupplied": 36,
+        "heldNotBrandPrimary": 2,
+        "files": 2
+      },
+      "research.TH.apparel": {
+        "brands": 90,
+        "files": 90
+      },
+      "research.TH.furniture": {
+        "brands": 17,
+        "fileNotSupplied": 16,
+        "heldNotBrandPrimary": 1
+      },
+      "research.TH.pet": {
+        "brands": 13,
+        "heldNotBrandPrimary": 2,
+        "fileNotSupplied": 11
+      },
+      "research.TH.massage_spa": {
+        "brands": 5,
+        "fileNotSupplied": 4,
+        "heldNotBrandPrimary": 1
+      },
+      "research.TH.salon_barber": {
+        "brands": 23,
+        "fileNotSupplied": 23
+      },
+      "research.TH.nail": {
+        "brands": 18,
+        "fileNotSupplied": 14,
+        "noLogo": 4
+      },
+      "research.TH.beauty": {
+        "brands": 58,
+        "fileNotSupplied": 58
+      },
+      "research.TH.beauty_clinic": {
+        "brands": 49,
+        "noLogo": 49
+      },
+      "research.TH.playground": {
+        "brands": 30,
+        "fileNotSupplied": 27,
+        "heldNotBrandPrimary": 3
+      },
+      "research.TH.car_service": {
+        "brands": 13,
+        "fileNotSupplied": 12,
+        "heldNotBrandPrimary": 1
+      }
+    },
+    "exports": {
+      "research.TH.sport": {
+        "file": "01_BRANDS.csv",
+        "sha256": "5ea6685892fb4388174c95883f979a800e5975e46145d23b711c9f63b2aa4c43",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.apparel": {
+        "file": "01_BRANDS.csv",
+        "sha256": "e0fb940588784e22effb12c5a772b580f6019ef84a773178e2c66fc8e0acceb4",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.furniture": {
+        "file": "01_BRANDS.csv",
+        "sha256": "465a969358980890d3984ab81fc76229bb78196e4837d835a016479c2f001c33",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.pet": {
+        "file": "01_BRANDS.csv",
+        "sha256": "d07934542e103477d8bbe8e162159334fc98bc11068c9ff8b08962176517c5e3",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.massage_spa": {
+        "file": "01_BRANDS.csv",
+        "sha256": "902d02886a62cc5d2b104f0e1864750b50526b01584c9e80808726de46403a73",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.salon_barber": {
+        "file": "01_BRANDS.csv",
+        "sha256": "ce3612f3ff9a92802c1d0d29204f7074c2ca2e02e3112d30e17bf99d777906e6",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.nail": {
+        "file": "01_BRANDS.csv",
+        "sha256": "fea1780bb811a3646f34799918e3046e15bff834884e4f84d93c7ff9a7354448",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.beauty": {
+        "file": "01_BRANDS.csv",
+        "sha256": "532fd24b4eb6de666676d57abcc7eb99aa7876eddc57d7a36ed649f518537008",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.beauty_clinic": {
+        "file": "01_BRANDS.csv",
+        "sha256": "8726b8c726f0edebc50052b9cd1b44402cc1cd733d906c2e3ba5f4ff5d334573",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.playground": {
+        "file": "01_BRANDS.csv",
+        "sha256": "acc5ad131ecf91360d3d9d269b00f6627df5446792c443b47f5bcfe4cdb5d2db",
+        "exportedOn": "2026-11-05"
+      },
+      "research.TH.car_service": {
+        "file": "01_BRANDS.csv",
+        "sha256": "e6338c7c997683144ae12c0c7eb11ca89cdcccfdbfe4c932015a9b4df1ccdadd",
+        "exportedOn": "2026-11-05"
+      }
+    }
   }
 }

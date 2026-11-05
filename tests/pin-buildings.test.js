@@ -125,3 +125,98 @@ test('live matcher: matches visible pins when the map settles, remembers "no bui
   pins.dispose();
   assert.equal((handlers.idle || []).length, 0);
 });
+
+/* ---------- CityMETER Building V4 in CityMETER units, and research sites (owner 2026-11-05 00:34) ---------- */
+import {cmParts, matchInUnit, pointTiles, cmRequestsFor, PIN_SOURCES} from '../js/pin-buildings.js';
+import {parseVectorTile, tileToLonLat, lonLatToTileUnits} from '../js/mvt.js';
+import {tileBox} from '../js/massing.js';
+import {encodeTile} from './mvt-encode.js';
+
+const T14 = lonLatToTile(LON, LAT, 14);
+/** Tile-unit square (clockwise on screen, as MVT outers) of a rectangle given in metres east/north of (LON, LAT). */
+const tileRect = (x0, y0, x1, y1) => {
+  const r = [[x0, y1], [x1, y1], [x1, y0], [x0, y0], [x0, y1]].map(([x, y]) => lonLatToTileUnits(LON + x / kx, LAT + y / ky, T14, 4096).map(Math.round));
+  return r;
+};
+const cmLayer = features => parseVectorTile(encodeTile([{name: 'building-detail', features}])).layers['building-detail'];
+
+test('CityMETER parts: whole buildings in lon/lat with their model height; holes kept; a building two tiles share is one part', () => {
+  const layer = cmLayer([{properties: {height_m: '21.40'}, rings: [tileRect(0, 0, 40, 40), tileRect(10, 10, 20, 20).reverse()]}, {properties: {}, rings: [tileRect(100, 0, 120, 20)]}]);
+  const seen = new Set();
+  const parts = cmParts(layer, T14, seen);
+  assert.equal(parts.length, 2);
+  assert.equal(parts[0].source, 'cm'); assert.equal(parts[0].tile, '', 'whole buildings: no tile continuation');
+  assert.equal(parts[0].height, 21.4); assert.equal(parts[1].height, 3, 'no height_m → the 3 m default');
+  assert.equal(parts[0].holes.length, 1);
+  assert.ok(Math.abs(parts[0].areaM2 - (1600 - 100)) < 60, `area ≈ 1,500 m², got ${parts[0].areaM2}`);
+  assert.ok(pointInRing(at(30, 30), parts[0].outer));
+  assert.equal(cmParts(layer, T14, seen).length, 0, 'the same buildings read again (another tile or tile unit) add nothing');
+});
+
+test('in a CityMETER unit the pin maps to the CityMETER building; OSM parts (LOD2) stay OSM; without a CityMETER building the OSM one is kept', () => {
+  const cm = indexParts(cmParts(cmLayer([{properties: {height_m: '15'}, rings: [tileRect(0, 0, 40, 40)]}]), T14));
+  const osmPlain = indexOf([feature(60, [rect(2, 2, 38, 38)])]);
+  const viaCm = matchInUnit(at(20, 20), osmPlain, cm);
+  assert.equal(viaCm.source, 'cm'); assert.equal(viaCm.parts[0].source, 'cm');
+  const lod2 = indexOf([feature(61, [rect(0, 0, 50, 50)], {hide_3d: true}), feature(62, [rect(5, 5, 45, 45)], {render_height: 60})]);
+  const kept = matchInUnit(at(20, 20), lod2, cm);
+  assert.ok(kept.viaOutline && kept.parts.every(p => p.source !== 'cm'), 'a building OSM maps in parts stays OSM');
+  const noCm = matchInUnit(at(200, 200), indexOf([feature(63, [rect(190, 190, 220, 220)])]), cm);
+  assert.equal(noCm.parts[0].fid, 63, 'CityMETER has no building there: the OSM building is kept');
+  assert.equal(matchInUnit(at(500, 500), osmPlain, cm), null);
+  const f = pinFeatures('V', viaCm)[0];
+  assert.equal(f.properties.geometry_role, PIN_SOURCES.cm.role);
+  assert.equal(f.properties.height_status, 'citymeter_model_estimate');
+  assert.equal(f.properties.source, 'CityMETER Building V4');
+  assert.equal(f.properties.height_m, 15);
+  assert.deepEqual(f._ring, viaCm.parts[0].outer, 'the exact CityMETER ring, for the massing tier to drop the same building');
+});
+
+test('CityMETER requests of a point: its z14 tile (and the neighbour within a few metres of an edge), per tile unit meeting it', () => {
+  const [w, s, e, n] = tileBox(T14);
+  const zone = {id: 'z', tileType: 'MUNICIPALITY', tileUnits: [{id: 'z', bbox: [w - 0.1, s - 0.1, e + 0.1, n + 0.1]}]};
+  const mid = [(w + e) / 2, (s + n) / 2];
+  assert.equal(pointTiles(mid).length, 1);
+  assert.deepEqual(cmRequestsFor(mid, zone).map(q => q.key), [`14/${T14.x}/${T14.y}|z`]);
+  const nearEast = [e - 1 / metresPerDegree(mid[1]).kx, mid[1]];
+  assert.deepEqual(pointTiles(nearEast).map(t => t.x), [T14.x, T14.x + 1]);
+});
+
+test('live matcher in a CityMETER unit: waits for the province units and the tile, then maps the pin and every site point; CityMETER pins are counted for the credit', async () => {
+  const handlers = {};
+  const map = {
+    getSource: id => (id === 'openmaptiles' ? {} : null), getZoom: () => 16,
+    getBounds: () => ({contains: ([lon, lat]) => Math.abs(lon - LON) < 0.05 && Math.abs(lat - LAT) < 0.05}),
+    features: [feature(70, [rect(300, 300, 320, 320)])],
+    querySourceFeatures() { return this.features; },
+    on(e, h) { (handlers[e] ||= []).push(h); }, off(e, h) { handlers[e] = (handlers[e] || []).filter(x => x !== h); },
+  };
+  const [w, s, e, n] = tileBox(T14);
+  const zone = {id: 'z', tileType: 'MUNICIPALITY', tileUnits: [{id: 'z', bbox: [w, s, e, n]}]};
+  let settled = false;
+  const loads = [];
+  const cm = {
+    settled: code => code !== 'NPT' || settled,
+    zoneAt: () => zone,
+    load: async q => { loads.push(q.key); return cmLayer([{properties: {height_m: '18'}, rings: [tileRect(0, 0, 40, 40)]}, {properties: {height_m: '6'}, rings: [tileRect(100, 0, 130, 30)]}]); },
+  };
+  const changes = [];
+  const pins = installPinBuildings(map, {cm, onChange: c => changes.push(c)});
+  pins.update({rows: [{id: 'S', lon: at(20, 20)[0], lat: at(20, 20)[1], province: 'NPT', points: [at(115, 15), at(310, 310), at(900, 900)]}]});
+  await new Promise(r => setTimeout(r, 220));
+  assert.equal(pins.stateOf('S'), undefined, 'the province units are not known yet: waits');
+  assert.equal(loads.length, 0);
+  settled = true;
+  (handlers.idle || []).forEach(h => h());
+  await new Promise(r => setTimeout(r, 450));
+  const last = changes.at(-1);
+  assert.equal(pins.stateOf('S'), 'inside');
+  const roles = last.features.map(f => [f.properties.geometry_role, f.properties.match_method]);
+  assert.deepEqual(roles, [['pin_building_citymeter', 'inside'], ['pin_building_citymeter', 'site'], ['pin_building_basemap', 'site']],
+    'the pin and the site points each map to the building they stand in (CityMETER first, the OSM one where CityMETER has none); a point in no building adds nothing');
+  assert.equal(last.cm, 1, 'one venue stands in a CityMETER building');
+  assert.ok(loads.length >= 1 && loads.every(k => k.endsWith('|z')));
+  // The fourth site point lies in a tile not read yet: the venue shows what is known and keeps that point open.
+  assert.equal(pins.size, 0, 'not final while a site point waits for its tile');
+  pins.dispose();
+});

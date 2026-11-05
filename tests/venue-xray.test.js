@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {buildSolid, screenBoxOf, solidHit, mat4Multiply, mat4Translation, transformPoint, installVenueXray, XRAY_LAYER, XRAY_MIN_ZOOM} from '../js/venue-xray.js';
-import {installMassing, CITY_LAYER, FOCUS_LAYER, OCCLUDER_LAYER} from '../js/massing.js';
+import {installMassing, CITY_LAYER, CONTEXT_LAYER, CM_CREDIT_LAYER, FOCUS_LAYER, OCCLUDER_LAYER} from '../js/massing.js';
 import {HOST_LAYERS} from '../js/buildings.js';
 import {buildMapStyle, MASSING_BEFORE, VENUE_XRAY_BEFORE} from '../js/map-style.js';
 
@@ -160,8 +160,10 @@ test('draw order contract: massing tiers are inserted before the host extrusion 
   map.getSource = id => (id === 'openmaptiles' ? {} : null);
   map.addLayer({id: 'water-name', type: 'symbol'});
   map.addLayer({id: HOST_LAYERS.extrusion, type: 'fill-extrusion'}, 'water-name');
-  installMassing(map, {beforeId: HOST_LAYERS.extrusion, colors: {}, tileUrl: () => ''});
-  assert.deepEqual(map.layers, [CITY_LAYER, FOCUS_LAYER, OCCLUDER_LAYER, HOST_LAYERS.extrusion, 'water-name']);
+  installMassing(map, {beforeId: HOST_LAYERS.extrusion, colors: {}, tileUrl: () => '', cmLoad: async () => null, cmAttribution: 'อาคาร: CityMETER Building V4'});
+  // City tier → its hidden features' other buildings (context) → the CityMETER credit carrier → focus → see-through
+  // occluders → the host (data) layer: a translucent context building never cuts the venue away.
+  assert.deepEqual(map.layers, [CITY_LAYER, CONTEXT_LAYER, CM_CREDIT_LAYER, FOCUS_LAYER, OCCLUDER_LAYER, HOST_LAYERS.extrusion, 'water-name']);
 });
 
 test('selected venue solid masks road text while preserving road labels outside it and the existing massing order', () => {

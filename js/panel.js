@@ -292,7 +292,7 @@ function phoneLink(phone) {
   return first.replace(/\D/g, '').length >= 6 ? `<a class="chip-link" href="tel:${esc(first)}">${icon('contact')}${esc(text)}</a>` : (text ? `<span class="chip-link is-text">${icon('contact')}${esc(text)}</span>` : '');
 }
 
-function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null} = {}) {
+function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null, site = null} = {}) {
   const ev = d?.ev || {};
   const rowsHtml = [];
   const item = (label, text, url, date, extra = '') => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${esc(text || 'ตามแหล่งที่บันทึก')}${date ? ` · ${esc(thaiDate(date))}` : ''}${extra}</span>${url ? link(url, 'แหล่ง') : '<span class="hint">ไม่มีลิงก์สาธารณะ</span>'}</li>`);
@@ -312,6 +312,7 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   if (hasPoint(row)) item('พิกัด', coordinateReading(d?.coordinateRole, d?.coordinateStatus), ev.coordinate?.url, '', ` · <span class="data-number">${row.lat.toFixed(6)}, ${row.lon.toFixed(6)}</span>${addressNote}`);
   else item('พิกัด', 'ยังไม่มีพิกัด', '');
   if (buildingNote) note('อาคาร', buildingNote);
+  if (site) note('ไซต์', `${esc(site.source)}${site.url ? ` · ${link(site.url, 'ผังโครงการ')}` : ''}${site.checkedOn ? ` · ตรวจ ${esc(thaiDate(site.checkedOn))}` : ''}`);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
   for (const a of row._amenities || []) item('สิ่งอำนวยความสะดวก', `${AMENITY_LABELS[a.kind] || a.kind} · ${a.basis === 'owner_reported' ? 'เจ้าของข้อมูลแจ้ง' : 'หน้าเว็บของศูนย์'}`, a.sourceUrl, a.checkedOn);
   if (tenants?.roster) {
@@ -424,18 +425,31 @@ export function mapCardBrand(bp) {
   return card({mark: `<span class="map-card-mark">${icon('brand')}</span>`, crumb: `แบรนด์ในรายชื่อร้าน${role ? ` · ${esc(role)}` : ''}`, title: esc(bp.brand.name), line: `พบใน ${num(bp.places)} สถานที่ · ${num(bp.provinces.filter(p => p.code).length)} จังหวัด`, actions: `${cardBack}${cardOpen()}`});
 }
 
+const PIN_ROLES = new Set(['pin_building_basemap', 'pin_building_citymeter']);
 /**
  * What the panel says about the venue's building. buildings: features drawn for this venue;
- * pinState (pin-buildings.js): 'inside' | 'edge' matched, null read with no building, undefined not read yet.
+ * pinState (pin-buildings.js): 'inside' | 'edge' | 'site' matched, null read with no building, undefined not read yet;
+ * site: the venue's research site (data/venue-sites.json: {n, source, url, checkedOn}) or null.
  */
-export function buildingReading(row, buildings = [], pinState) {
-  const pin = buildings.some(f => f.properties?.geometry_role === 'pin_building_basemap');
+export function buildingReading(row, buildings = [], pinState, site = null) {
+  const pins = buildings.filter(f => PIN_ROLES.has(f.properties?.geometry_role));
   if (row.hasBuilding) {
-    const heights = [...new Set(buildings.filter(f => f.properties?.geometry_role !== 'pin_building_basemap').map(f => buildingHeightLabel(f.properties)))];
+    const heights = [...new Set(buildings.filter(f => !PIN_ROLES.has(f.properties?.geometry_role)).map(f => buildingHeightLabel(f.properties)))];
     return {text: 'อาคารของสถานที่ · สีน้ำเงินบนแผนที่ 3 มิติ', note: ['รูปทรงอาคารที่ตรวจแล้ว © OpenStreetMap / CityMETER', ...heights].map(esc).join(' · ')};
   }
-  if (pin) return {text: 'อาคารที่หมุดตั้งอยู่ · สีน้ำเงินบนแผนที่ 3 มิติ', note: esc(`อาคารในแผนที่ฐาน OpenStreetMap (OpenFreeMap) ที่หมุดอยู่ข้างใน${pinState === 'edge' ? 'หรือห่างขอบไม่เกิน 3 ม.' : ''} · ความสูงตามแผนที่ฐาน`)};
-  if (pinState === null) return {text: 'ยังไม่พบอาคารที่ตำแหน่งหมุด', note: esc('ไม่มีอาคารในแผนที่ฐาน OpenStreetMap ที่ตำแหน่งนี้')};
+  if (pins.length) {
+    const cm = pins.some(f => f.properties.geometry_role === 'pin_building_citymeter'), osm = pins.some(f => f.properties.geometry_role === 'pin_building_basemap');
+    const from = cm && osm ? 'CityMETER Building V4 และแผนที่ฐาน OpenStreetMap (OpenFreeMap)' : cm ? 'CityMETER Building V4' : 'แผนที่ฐาน OpenStreetMap (OpenFreeMap)';
+    const heights = cm && osm ? 'ความสูงของ CityMETER ประมาณจากแบบจำลอง ของ OpenStreetMap ตามแผนที่ฐาน' : cm ? 'ความสูงประมาณจากแบบจำลอง' : 'ความสูงตามแผนที่ฐาน';
+    const sited = site && pins.some(f => f.properties.match_method === 'site');
+    if (sited) {
+      const built = new Set(pins.map(f => f.properties.host_id)).size;
+      return {text: `ทั้งโครงการ ${num(site.n)} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`,
+        note: esc(`อาคารของไซต์ตามงานวิจัย ${site.n} หลัง (พบบนแผนที่ ${built} ส่วนอาคาร) จาก ${from} · หนึ่งจุดต่ออาคาร ไม่ใช่ขอบเขตกรรมสิทธิ์ · ${heights}`)};
+    }
+    return {text: 'อาคารที่หมุดตั้งอยู่ · สีน้ำเงินบนแผนที่ 3 มิติ', note: esc(`อาคารใน ${from} ที่หมุดอยู่ข้างใน${pinState === 'edge' ? 'หรือห่างขอบไม่เกิน 3 ม.' : ''} · ${heights}`)};
+  }
+  if (pinState === null) return {text: 'ยังไม่พบอาคารที่ตำแหน่งหมุด', note: esc('ไม่มีอาคารในแผนที่ฐาน OpenStreetMap หรือ CityMETER Building V4 ที่ตำแหน่งนี้')};
   return {text: '', note: ''};
 }
 
@@ -447,7 +461,7 @@ export function buildingReading(row, buildings = [], pinState) {
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -476,7 +490,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
   const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${tenants?.roster ? renderTenantMix(r, tenants) : ''}${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
-  const building = buildingReading(r, buildings, pinState);
+  const building = buildingReading(r, buildings, pinState, site);
   const drawn = building.text && building.text !== 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? building.text.split(' · ')[0] : '';
   const addressNote = p.addressDiffers ? ` · ที่อยู่อยู่ใน${esc(p.addressProvince || '')} จุดอยู่ใน${esc(p.province?.th || '')}` : '';
   return `<section class="detail-head venue${logo ? ' has-venue-logo' : ''}">
@@ -504,7 +518,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
     ${storeBlock}
     ${renderPeers(peers, r)}
     ${children}
-    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants}) : ''}</ul>
+    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants, site}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
     ${dataLine(asOf, shops)}`;
 }

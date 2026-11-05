@@ -1,6 +1,6 @@
 # CityMETER Shopping centers — first useful value
 
-This Build Card records the first-use contract of this research demo (release 0.1.8, page tag `20261105-r16`, venue data refreshed from the 25 Oct 2026 16:39 export with district membership on the RTSD polygons of CityMETER production since 4 Nov 2026; shop list from 21 datasets checked to 4 Nov 2026, one entry per branch). It uses LDS 0.9.7, release `v0.9.7-owner.1`, standalone document `lds-0.9.7-landometer-standalone-r1`, colour set `color-srgb-10`, SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96`, with `product.citymeter` identity. It is not a blanket conformance or browser-pass certificate.
+This Build Card records the first-use contract of this research demo (release 0.1.9, page tag `20261105-r17`, venue data refreshed from the 25 Oct 2026 16:39 export with district membership on the RTSD polygons of CityMETER production since 4 Nov 2026; shop list from 21 datasets checked to 4 Nov 2026, one entry per branch). It uses LDS 0.9.7, release `v0.9.7-owner.1`, standalone document `lds-0.9.7-landometer-standalone-r1`, colour set `color-srgb-10`, SHA-256 `d3085cbc0a50195f1cbf0c77b1d77c0d19b84364daf2948eb367348d65432d96`, with `product.citymeter` identity. It is not a blanket conformance or browser-pass certificate.
 
 Titles read **ศูนย์การค้า** / **Shopping centers** (owner instruction 2026-10-25 16:32). The scope does not change: the dataset still covers shopping centres and the retail venues of decision D2 (markets, fuel stations with shops, retail inside projects, host stores), and running copy calls them “สถานที่ค้าปลีก”.
 
@@ -40,6 +40,7 @@ If no district has a located venue in the current filter, the panel says how man
 - **Not prerequisites:** sign-in, personal data, location permission, sharing, WebGL, map tiles, building geometry, the context layer, detail shards, the chart library or a logo image. The textual finding, filters, table and the HTML fallback of every chart work when the map, tiles or amCharts fail; `data/pending.json` loads after the first view and its failure changes no number.
 - Narrow portrait screens put the map first (owner decision D17): the same finding sits in a compact card over the map with the area action and one primary button, “ดูรายละเอียด”, that opens the bottom sheet; no selection opens the sheet by itself. No onboarding modal, decorative left rail or bracket accent.
 - **Venue view (D16, D18):** tapping a pin or a building turns the camera corner-on to the venue's building (two-point perspective, eye preset) and fills the free part of the map with its footprint and roof; the panel starts with the logo and the name, then the key figures.
+- **Buildings and terrain (D25, 5 Nov 2026):** not prerequisites. `data/building-units/` (per-province files), CityMETER Building V4 tiles and the terrain DEM load only for the 3D view; when any of them fails the page keeps OpenStreetMap buildings and flat ground, and no number changes.
 
 ## Verification scope
 

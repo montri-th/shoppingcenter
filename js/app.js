@@ -48,7 +48,10 @@ import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendin
 import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
-import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing} from './camera.js';
+import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing, groundAt} from './camera.js';
+import {createBuildingUnitStore, createCmTileLoader, CM_ATTRIBUTION} from './building-units.js';
+import {installTerrain, TERRAIN} from './terrain.js';
+import {guardRetainedTiles, guardElevationFreeze} from './maplibre-guard.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
 import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
@@ -84,6 +87,10 @@ const state = {
   // D22: centre facilities (data/venue-amenities.json) and a ?role= that waits for the options it names.
   amenities: new Map(), pendingRole: '',
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
+  // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
+  // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
+  buildingUnits: null, cmLoad: null, terrain: null, terrainActive: false, buildingSources: {osm: 0, cm: 0}, cmPins: 0,
+  sites: new Map(), siteMeta: null,
 };
 const tenantSelection = createTenantSelection({changed: selection => {
   if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel();
@@ -155,6 +162,7 @@ function applyTheme() {
   if (state.map && next !== state.mapTheme) {
     state.loaded = false;
     state.xray?.dispose(); state.xray = null;
+    state.terrain?.dispose(); state.terrain = null; state.terrainActive = false;
     state.pinBuildings?.dispose(); state.pinBuildings = null;
     state.buildings?.dispose(); state.buildings = null;
     state.massing?.dispose(); state.massing = null;
@@ -286,7 +294,7 @@ function renderPanel() {
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
-    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers});
+    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -512,14 +520,44 @@ function boxOffset() {
   return [Math.round((b.left + b.right - el.clientWidth) / 2), Math.round((b.top + b.bottom - el.clientHeight) / 2)];
 }
 
-/** Footprint and roof vertices of the venue's buildings, or a 90 m box round the pin while no building is known. */
+/**
+ * Footprint and roof vertices of the venue's buildings, or a 90 m box round the pin while no building is known. On
+ * terrain each point carries the ground it stands on as drawn (4th value, js/camera.js#fitBuilding): the roof at the
+ * ground under the piece's centroid — where MapLibre lifts a fill-extrusion — the base at the lowest ground under it.
+ */
 function venuePoints(row, targets) {
-  if (targets.length) return targets.flatMap(t => t.ring.flatMap(([lng, lat]) => [[lng, lat, 0], [lng, lat, t.height]]));
+  const terrain = Boolean(state.map?.terrain) && state.view3d;
+  if (targets.length) return targets.flatMap(t => {
+    if (!terrain) return t.ring.flatMap(([lng, lat]) => [[lng, lat, 0], [lng, lat, t.height]]);
+    const {g, low} = ringGrounds(t.ring);
+    return t.ring.flatMap(([lng, lat]) => [[lng, lat, 0, low], [lng, lat, t.height, g]]);
+  });
   if (!hasPoint(row)) return [];
   const dLat = 45 / 110574, dLng = 45 / (111320 * Math.cos((row.lat * Math.PI) / 180));
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].flatMap(([a, b]) => [[row.lon + a * dLng, row.lat + b * dLat, 0], [row.lon + a * dLng, row.lat + b * dLat, 12]]);
 }
 const targetsKey = targets => targets.map(t => `${t.ring.length}:${t.ring[0][0].toFixed(6)},${t.ring[0][1].toFixed(6)}:${t.height}`).sort().join('|');
+
+/** Vertex mean of a ring ([lon, lat]): where MapLibre samples the ground of a fill-extrusion. */
+function ringCentroid(ring) {
+  const n = Math.max(1, ring.length - 1);
+  let x = 0, y = 0;
+  for (let i = 0; i < n; i++) { x += ring[i]?.[0] || 0; y += ring[i]?.[1] || 0; }
+  return [x / n, y / n];
+}
+/**
+ * Ground of a drawn piece on terrain (0 without): `g` at its centroid — its roof is at height + g — and `low`, the
+ * lowest ground under its outline's vertices, where its walls meet the slope (CityMETER · Hotel 0.3.2). A sample whose
+ * DEM tile has not arrived (0) is left out; `fallback` stands in for a missing centroid sample.
+ */
+function ringGrounds(ring, fallback = 0) {
+  const map = state.map;
+  if (!map?.terrain || !ring?.length) return {g: 0, low: 0};
+  const g = groundAt(map, ringCentroid(ring)) || fallback;
+  let low = g;
+  for (let i = 0; i < ring.length - 1; i++) { const e = groundAt(map, ring[i]); if (e && e < low) low = e; }
+  return {g, low};
+}
 
 /**
  * Venue camera (owner instruction 2026-10-25 18:49: “tap a pin or a building → the 3D building
@@ -536,7 +574,9 @@ function frameVenue(row, {instant = false} = {}) {
   if (!points.length) return;
   const box = visibleBox();
   state.userCamera = false;
-  state.framed = {id: row.id, key: targetsKey(targets), refits: state.framed?.id === row.id ? state.framed.refits : 0};
+  // The ground the frame was computed on (0 off terrain or before its DEM tile arrives): onGroundChange refits when it moves.
+  state.framed = {id: row.id, key: targetsKey(targets), refits: state.framed?.id === row.id ? state.framed.refits : 0,
+    ground: hasPoint(row) ? groundAt(map, [row.lon, row.lat]) : 0};
   if (!state.view3d) {
     const b = points.reduce((acc, q) => acc.extend([q[0], q[1]]), new maplibregl.LngLatBounds([points[0][0], points[0][1]], [points[0][0], points[0][1]]));
     const W = map.getContainer().clientWidth, H = map.getContainer().clientHeight;
@@ -547,7 +587,25 @@ function frameVenue(row, {instant = false} = {}) {
   const others = (state.buildings?.displayedFeatures() || []).filter(f => !asList(f.properties?.venue_ids).includes(row.id) && f.properties?.render_as === 'extrusion')
     .flatMap(f => outerRings(f).map(ring => ({ring, height: Number(f.properties?.display_height_m) || 3})));
   const bearing = targets.length ? twoPointBearing(targets.map(t => t.ring), map.getBearing(), others) : map.getBearing();
-  fitBuilding(map, points, {box, bearing, maxZoom: targets.length ? 19.5 : 18, animate: animate() && !instant});
+  // On terrain: the other corners, opposite first (downhill of a building on a slope), when MapLibre would lift the
+  // camera out of the ground (js/camera.js#fitBuilding).
+  const alternates = targets.length ? [180, 90, -90].map(d => bearing + d) : [];
+  fitBuilding(map, points, {box, bearing, alternates, maxZoom: targets.length ? 19.5 : 18, animate: animate() && !instant});
+}
+
+/**
+ * The ground changed under the venue being looked at (terrain on or off, its DEM tiles arrived): the x-ray moves with
+ * it, and the venue camera frames it again on the ground as drawn — unless the user moved the map; the re-frames of
+ * refitVenueOnNewBuilding count here too (≤ 2).
+ */
+function onGroundChange() {
+  if (!state.loaded) return;
+  refreshMassing();
+  const v = currentVenue();
+  if (!v || !hasPoint(v) || !state.framed || state.framed.id !== v.id || state.userCamera || state.framed.refits >= 2) return;
+  if (Math.abs(groundAt(state.map, [v.lon, v.lat]) - (state.framed.ground || 0)) < 3) return; // the frame still holds
+  state.framed.refits++;
+  frameVenue(v);
 }
 
 /** The pin's building arrived (or changed) after the venue was framed: turn to it, unless the user moved the map. */
@@ -654,6 +712,14 @@ function onPanelAction(event) {
 }
 
 /* ---------- legend ---------- */
+const cssVar = (name, fallback = '') => (getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback);
+/** Hillshade in the theme's basemap tones (foundation colours, never data colours), as CityMETER · Hotel. */
+function terrainColors() {
+  const dark = theme() === 'dark';
+  return dark
+    ? {shadow: cssVar('--basemap-sky', '#0D1418'), highlight: cssVar('--basemap-label-quiet', '#8D9D99'), accent: cssVar('--basemap-sky', '#0D1418'), dark}
+    : {shadow: cssVar('--basemap-label', '#5F635A'), highlight: cssVar('--basemap-halo', '#F6F7F3'), accent: cssVar('--basemap-label-quiet', '#7B877D'), dark};
+}
 const provinceZoom = () => Boolean(state.provinceModel) && !readingProvince() && (state.map?.getZoom?.() ?? 6) < PROVINCE_FILL_MAX_ZOOM;
 function renderLegend() {
   const atProvince = provinceZoom();
@@ -672,6 +738,13 @@ function renderLegend() {
   }
   $('toggle-pending').setAttribute('aria-pressed', String(state.showPending));
   $('pending-count').textContent = state.pending ? num(state.pending.rows.length) : '';
+  const terrainItem = $('legend-terrain');
+  if (terrainItem) terrainItem.hidden = !(state.terrainActive && state.view3d);
+  // Which outlines the buildings come from: CityMETER Building V4 inside CityMETER units, OpenStreetMap elsewhere.
+  const src = state.buildingSources || {}, cmNow = (src.cm || 0) > 0 || state.cmPins > 0, osmNow = (src.osm || 0) > 0 || !cmNow;
+  const sources = cmNow && osmNow ? 'CityMETER Building V4 และ OpenStreetMap (OpenFreeMap)' : cmNow ? 'CityMETER Building V4' : 'OpenStreetMap ผ่าน OpenFreeMap';
+  const massingItem = document.querySelector('.legend-massing-item');
+  if (massingItem) massingItem.title = `รูปทรงอาคารจาก ${sources}${cmNow ? ' · ความสูงของ CityMETER เป็นค่าประมาณจากแบบจำลอง' : ''}`;
   document.querySelector('.map-panel').classList.toggle('is-3d', state.view3d);
   document.querySelector('.map-panel').classList.toggle('is-province-zoom', atProvince);
 }
@@ -861,12 +934,15 @@ function requestDistrictDetail() {
 function updateSpatialLayers() {
   if (!state.loaded) return;
   const map = state.map;
+  // Terrain mode reads the land at hilly sites (CityMETER · Hotel 0.3): 3D view only; on is decided at the next move end.
+  state.terrain?.setEnabled(state.view3d);
   const readCode = readingProvince();
   const d = selectedDistrict();
   const pm = state.provinceLayers?.update({rows: provinceScopeRows(), readCode, visible: true}) || null;
   if (pm) state.provinceModel = pm;
   state.provinceLabels?.update(pm ? pm.provinces.filter(p => p.count > 0 && (!readCode || p.code === readCode)).map(p => ({...p, quiet: Boolean(readCode)})) : [], {visible: true, LngLatBounds: maplibregl.LngLatBounds, unit: 'แห่ง', maxZoom: readCode ? 7.5 : PROVINCE_LABEL_MAX_ZOOM});
-  state.districtArgs = {summaries: state.districtModel.areas, selectedId: d?.code || '', focusIds: state.focusIds, visible: true, minzoom: readCode ? 0 : PROVINCE_FILL_MAX_ZOOM};
+  state.districtArgs = {summaries: state.districtModel.areas, selectedId: d?.code || '', focusIds: state.focusIds, visible: true, minzoom: readCode ? 0 : PROVINCE_FILL_MAX_ZOOM,
+    fillMaxZoom: state.terrainActive ? TERRAIN.minZoom : FILL_MAX_ZOOM};
   const dm = state.districtLayers?.update({...state.districtArgs, geometryOf: districtGeometry});
   requestDistrictDetail();
   if (dm) state.districtModel = dm;
@@ -875,11 +951,36 @@ function updateSpatialLayers() {
   state.districtLabels?.update(labelAreas, {selectedId: d?.code || '', visible: true, LngLatBounds: maplibregl.LngLatBounds, unit: 'แห่ง', minZoom: readCode ? 9.2 : 10, quietMinZoom: 13.2});
   renderLegend();
   const detail = detailRows();
-  state.pinBuildings?.update({rows: detail.filter(r => r.countable && hasPoint(r)), enabled: true});
+  state.buildingUnits?.ensureMany(unitProvinces(detail));
+  state.pinBuildings?.update({rows: detail.filter(r => r.countable && hasPoint(r)).map(pinRow), enabled: true});
   state.buildings?.update({rows: detail, enabled: true, theme: theme()});
   refreshMassing(detail);
   updatePendingMarker();
   state.pins?.layout();
+}
+
+/** A venue as the pin matcher reads it: its point, province (for its building units) and site points, if any. */
+function pinRow(r) {
+  const site = state.sites.get(r.id);
+  return {id: r.id, lon: r.lon, lat: r.lat, province: r.provinceCode || rowProvince(r), ...(site ? {points: site.points} : {})};
+}
+
+/**
+ * Provinces whose building units the view needs (js/building-units.js; one small file each): the province being
+ * read, the open venue's, the focus districts', and — from zoom 13 — the provinces of the venues in view.
+ */
+function unitProvinces(detail = detailRows()) {
+  const codes = new Set();
+  const v = currentVenue();
+  if (v) codes.add(v.provinceCode || rowProvince(v));
+  const read = readingProvince();
+  if (read) codes.add(read);
+  for (const id of state.focusIds) { const p = state.districts.get(id)?.province; if (p) codes.add(p); }
+  if (state.map && state.map.getZoom() >= 13) {
+    const b = state.map.getBounds();
+    for (const r of detail) if (hasPoint(r) && b.contains([r.lon, r.lat])) codes.add(r.provinceCode || rowProvince(r));
+  }
+  return [...codes].filter(Boolean);
 }
 
 /**
@@ -891,7 +992,7 @@ function updateSpatialLayers() {
 function focusGeometry(detail) {
   const venues = detail.filter(hasPoint);
   const v = currentVenue();
-  if (v && hasPoint(v)) return {regions: circleRegions([v], 650), anchors: [[v.lon, v.lat]]};
+  if (v && hasPoint(v)) return {regions: circleRegions([v], Math.max(650, siteReach(v))), anchors: [[v.lon, v.lat]]};
   const d = selectedDistrict();
   const districts = d ? [d] : state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
   if (!districts.length) return {regions: [], anchors: []};
@@ -914,14 +1015,49 @@ function refreshMassing(detail = detailRows()) {
   const pinRings = hostFeatures.filter(f => f._ring).map(f => f._ring);
   const hosts = hostFeatures.filter(f => !f._ring).flatMap(outerRings);
   const {regions, anchors} = focusGeometry(detail);
-  state.massing?.update({
-    regions, hosts, pins: pinRings, anchors,
-    enabled: true, city: state.view3d, zoom: map.getZoom(), latitude: map.getCenter().lat,
-  })?.catch(e => console.warn('Massing', e));
+  // The buildings of a CityMETER unit replace OSM there; wait for the provinces' unit files (small) so the focus is
+  // shaped once, from the right source. A file that fails leaves the area on OSM.
+  const codes = focusProvinces(regions, detail);
+  state.buildingUnits?.ensureMany(codes);
+  if (!state.buildingUnits || codes.every(c => state.buildingUnits.settled(c))) {
+    const zones = state.buildingUnits?.zonesFor(regions) || [];
+    state.massing?.update({
+      regions, hosts, pins: pinRings, anchors, zones,
+      enabled: true, city: state.view3d, zoom: map.getZoom(), latitude: map.getCenter().lat,
+    })?.catch(e => console.warn('Massing', e));
+  }
   state.massing?.setScene(cameraPreset() === 'eye' ? 'eye' : 'default', venueTargets(hostFeatures));
   const hostColors = () => { const s = getComputedStyle(document.documentElement); return {fill: s.getPropertyValue('--map-active-layer').trim(), stroke: s.getPropertyValue('--map-selected-stroke').trim()}; };
-  state.xray?.update(venueLevel() ? venueHostFeatures(hostFeatures).filter(f => f.properties?.render_as === 'extrusion') : [], {colors: hostColors()});
+  // On terrain every piece stands on the ground at its centroid, as MapLibre lifts fill-extrusions; the x-ray is drawn
+  // over the ground, so its walls go down to the lowest ground under the piece, never deeper (CityMETER · Hotel 0.3.2).
+  const solid = venueLevel() ? venueHostFeatures(hostFeatures).filter(f => f.properties?.render_as === 'extrusion') : [];
+  const lifted = state.view3d && map.terrain ? solid.map(f => {
+    const {g, low} = ringGrounds(outerRings(f)[0] || []);
+    const top = Number(f.properties?.display_height_m) || 3, base = Number(f.properties?.display_base_m) || 0;
+    return {...f, properties: {...f.properties, display_height_m: top + g, display_base_m: base > 0 ? base + g : low}};
+  }) : solid;
+  state.xray?.update(lifted, {colors: hostColors()});
   state.xray?.setEnabled(state.view3d);
+}
+
+/** Provinces of the massing focus (the regions' venues and districts): their unit files decide the focus's buildings. */
+function focusProvinces(regions, detail) {
+  const codes = new Set();
+  const v = currentVenue();
+  if (v) codes.add(v.provinceCode || rowProvince(v));
+  const d = selectedDistrict();
+  if (d?.province) codes.add(d.province);
+  for (const id of state.focusIds) { const p = state.districts.get(id)?.province; if (p) codes.add(p); }
+  if (!codes.size && regions.length) for (const r of detail.slice(0, 60)) if (hasPoint(r)) codes.add(r.provinceCode || rowProvince(r));
+  return [...codes].filter(Boolean);
+}
+
+/** Half-size (m) of the ring round a venue's pin that holds every building of its site, with a margin; 0 without one. */
+function siteReach(r) {
+  const site = state.sites.get(r?.id);
+  if (!site?.points?.length || !hasPoint(r)) return 0;
+  const kx = 111320 * Math.cos((r.lat * Math.PI) / 180), ky = 110574;
+  return 80 + Math.max(...site.points.map(([lon, lat]) => Math.hypot((lon - r.lon) * kx, (lat - r.lat) * ky)));
 }
 
 /** 24-gon rings of radius r metres around points (focus massing for large districts). */
@@ -991,27 +1127,58 @@ function routeHover(e) {
 function installSpatialLayers() {
   const map = state.map;
   state.loaded = true;
+  // MapLibre 5.6.2 throws in its tile cover when the pitched venue camera zooms out through 13–14, and after an ease
+  // on terrain stops clamping the centre to the ground (js/maplibre-guard.js, from CityMETER · Hotel; 5.6.2 only).
+  guardRetainedTiles(map, maplibregl.getVersion?.());
+  guardElevationFreeze(map, maplibregl.getVersion?.());
   const palette = basemapPalette(theme());
   state.provinceLayers = state.provinceGeo?.features?.length ? installProvinceLayers(map, state.provinceGeo) : null;
   state.districtLayers = state.districtGeo?.features?.length ? installDistrictLayers(map) : null;
   // Draw order is depth order in MapLibre's 3D pass: the host (data) layer first, massing inserted BEFORE it.
   state.buildings = installVenueBuildings(map, state.buildingData, {rows: detailRows(), enabled: true, theme: theme(), beforeId: MASSING_BEFORE});
   // Pin buildings: the basemap building each counted pin stands in (owner instruction 2026-10-25).
+  // Inside a CityMETER unit the pin's building comes from CityMETER Building V4 (same rules; OSM parts stay, LOD2).
+  const units = state.buildingUnits;
   state.pinBuildings = installPinBuildings(map, {
-    onChange: ({features}) => {
+    cm: units && state.cmLoad ? {settled: code => units.settled(code), zoneAt: point => units.zoneAt(point), load: state.cmLoad} : null,
+    onChange: ({features, cm}) => {
+      state.cmPins = cm || 0;
+      state.massing?.creditPinBuildings(state.cmPins > 0);
       state.buildings?.setPinFeatures(features);
       refreshMassing();
+      renderLegend();
       if (venueLevel()) { renderPanel(); refitVenueOnNewBuilding(); }
     },
   });
   state.massing = installMassing(map, {
     beforeId: map.getLayer(HOST_LAYERS.extrusion) ? HOST_LAYERS.extrusion : MASSING_BEFORE, colors: {quiet: palette.massingQuiet, focus: palette.massingFocus, ground: palette.ground},
     tileUrl: t => (state.tileTemplate ? state.tileTemplate.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y) : ''),
-    onResult: result => { state.massingResult = result; $('map-status').dataset.massing = `${result.features || 0}`; },
+    // CityMETER Building V4 inside CityMETER units (js/building-units.js); credited in the attribution while drawn.
+    cmLoad: state.cmLoad, cmAttribution: CM_ATTRIBUTION,
+    onResult: result => {
+      state.massingResult = result;
+      const status = $('map-status');
+      status.dataset.massing = `${result.features || 0}`;
+      status.dataset.cmBuildings = `${result.cm?.kept || 0}`;
+      state.buildingSources = {osm: result.osm || 0, cm: result.cm?.kept || 0};
+      renderLegend();
+    },
   });
   // Redraw only the selected solid over road text; retain nearby road/place labels.
   try { state.xray = installVenueXray(map, {beforeId: VENUE_XRAY_BEFORE}); }
   catch (e) { state.xray = null; console.warn('Venue x-ray unavailable', e); }
+  // Terrain mode at hilly sites (js/terrain.js, as CityMETER · Hotel): 3D ground + hillshade under the data fills;
+  // the district fill switches off from TERRAIN.minZoom so the relief reads. Flat Bangkok never draws it.
+  try {
+    const hillBefore = ['province-fill', 'district-fill', 'water'].find(id => map.getLayer(id));
+    state.terrain = installTerrain(map, {beforeId: hillBefore, colors: terrainColors(), onChange: active => {
+      state.terrainActive = active;
+      if (state.districtArgs) state.districtLayers?.update({...state.districtArgs, fillMaxZoom: active ? TERRAIN.minZoom : FILL_MAX_ZOOM, geometryOf: districtGeometry});
+      renderLegend();
+      onGroundChange();
+    }, onLoaded: onGroundChange, site: () => { const v = venueLevel() ? currentVenue() : null; return v && hasPoint(v) ? [v.lon, v.lat] : null; }});
+    state.terrain.setEnabled(state.view3d);
+  } catch (e) { state.terrain = null; console.warn('Terrain unavailable', e); }
   // Venue and pending dots sit above every 3D layer so they are never hidden inside a building.
   state.points = installVenuePoints(map);
   updatePins();
@@ -1234,6 +1401,30 @@ function wireEvents() {
   matchMedia('(max-width: 760px) and (orientation: portrait)').addEventListener?.('change', () => { if (!mobilePortrait()) $('panel').classList.remove('is-open'); renderPanel(); });
 }
 
+/**
+ * Research sites (several buildings of one venue, “campus style”, as CityMETER · Hotel 0.3.6): one interior point per
+ * building (data/venue-sites.json, scripts/build-venue-sites.py). A point more than SITE_MAX_M from the venue's pin, or a
+ * venue not in the data, is left out; nothing else changes when the file is missing.
+ */
+const SITE_MAX_M = 600;
+async function loadSites() {
+  try {
+    const doc = await fetchJSON('data/venue-sites.json', {timeout: 30000});
+    state.siteMeta = doc?.meta || null;
+    const out = new Map();
+    for (const [id, site] of Object.entries(doc?.sites || {})) {
+      const r = state.byId.get(id);
+      if (!r || !hasPoint(r) || !Array.isArray(site?.points)) continue;
+      const kx = 111320 * Math.cos((r.lat * Math.PI) / 180), ky = 110574;
+      const points = site.points.filter(p => Array.isArray(p) && p.length >= 2 && p.every(Number.isFinite) && Math.hypot((p[0] - r.lon) * kx, (p[1] - r.lat) * ky) <= SITE_MAX_M);
+      if (points.length) out.set(id, {points, n: Number(site.n) || points.length, source: String(site.source || ''), url: site.url || '', checkedOn: site.checkedOn || ''});
+    }
+    state.sites = out;
+    if (state.loaded) updateSpatialLayers();
+    if (venueLevel()) renderPanel();
+  } catch (e) { if (e?.status !== 404) console.warn('Venue sites unavailable', e); }
+}
+
 /** Pending records (D4) load after the first paint: context dots and search, never counts. */
 async function loadPending() {
   try {
@@ -1268,6 +1459,12 @@ async function init() {
     state.districtGeo = results[1].status === 'fulfilled' ? results[1].value : {type: 'FeatureCollection', features: []};
     state.districts = indexDistricts(state.districtGeo);
     state.districtDetail = createDistrictDetail({fetchJSON: url => fetchJSON(url)});
+    // Buildings per area (the CityMETER · Hotel rule, owner 2026-11-05): the national index first, a province's units
+    // when the view needs them; one shared reader of CityMETER Building V4 tiles for the focus tier and the pins.
+    state.cmLoad = createCmTileLoader();
+    state.buildingUnits = createBuildingUnitStore({fetchJSON, onLoad: () => { if (state.loaded) updateSpatialLayers(); },
+      onError: (code, e) => { console.warn('Building units unavailable', code, e?.message || e); if (state.loaded) updateSpatialLayers(); }});
+    state.buildingUnits.loadIndex();
     state.provinceGeo = results[2].status === 'fulfilled' ? results[2].value : {type: 'FeatureCollection', features: []};
     state.buildingData = results[3].status === 'fulfilled' ? results[3].value : {type: 'FeatureCollection', features: []};
     const logos = configureVenueLogos(results[4].status === 'fulfilled' ? results[4].value : {assets: []});
@@ -1286,6 +1483,7 @@ async function init() {
     loadPending();
     ensureTenantIndex();
     loadAmenities();
+    loadSites();
   } catch (e) {
     window.dispatchEvent(new CustomEvent('citymeter:load-error', {detail: {message: 'โหลดข้อมูลสถานที่ไม่สำเร็จ กรุณาลองอีกครั้ง', resource: e.resource, status: e.status, phase: e.phase || 'startup', diagnostic: e.message}}));
     console.error(e);
