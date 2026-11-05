@@ -7,10 +7,10 @@
 // stays the record; outputs go to sites/ (git-ignored).
 //
 //   node scripts/site-candidates.mjs candidates <venue_id> [--reach 250]
-//       → sites/<venue_id>/candidates.json · candidates.csv · candidates.svg (numbered buildings, north up, pin red)
+//       → sites/<venue_id>/candidates.json · candidates.csv · candidates.png and .svg (numbered buildings, north up, pin red)
 //   node scripts/site-candidates.mjs row <venue_id> (--pick 1,2,5 | --site site.geojson [--add 3,7] [--drop 12])
 //       --source site_layout|dol_parcels+site_layout --evidence <https page of the layout> [--main "…"] [--notes "…"] [--by "…"]
-//       → sites/<venue_id>/row.json · picked.svg and the row in sites/site_rows.csv (one row per venue_id)
+//       → sites/<venue_id>/row.json · picked.png and .svg and the row in sites/site_rows.csv (one row per venue_id)
 //   node scripts/site-candidates.mjs check <venue_id> --points "lon,lat;lon,lat"
 //       → which drawn building holds each point (a sheet row's buildings_in_boundary); exits 1 if one is outside
 //   node scripts/site-candidates.mjs rank [--groups mall,community,outlet] [--reach 250] [--min-area 2000]
@@ -28,6 +28,7 @@ import {parseVectorTile, tilesForBBox} from '../js/mvt.js';
 import {zonesOf, zoneAt, cmTileUrl, CM_SOURCE_LAYER} from '../js/building-units.js';
 import {cmParts, interiorPoint, pointInRing} from '../js/pin-buildings.js';
 import {tileBox} from '../js/massing.js';
+import {sitePng, siteSvg} from './site-picture.mjs';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
 const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels'];
@@ -111,25 +112,10 @@ function venueOf(id) {
   return row;
 }
 
-/** North-up SVG of the candidates: pin red, picked buildings blue, every building numbered. */
-function svg(row, candidates, picked = new Set(), site = null) {
-  const {kx, ky} = metres(row.lat);
-  const pts = candidates.flatMap(c => c.outer);
-  const xs = pts.map(p => (p[0] - row.lon) * kx), ys = pts.map(p => (p[1] - row.lat) * ky);
-  const pad = 30, minX = Math.min(0, ...xs) - pad, maxX = Math.max(0, ...xs) + pad, minY = Math.min(0, ...ys) - pad, maxY = Math.max(0, ...ys) + pad;
-  const W = 1200, scale = W / (maxX - minX), H = Math.round((maxY - minY) * scale);
-  const P = ([lon, lat]) => [((lon - row.lon) * kx - minX) * scale, (maxY - (lat - row.lat) * ky) * scale];
-  const path = ring => ring.map((p, i) => `${i ? 'L' : 'M'}${P(p).map(v => v.toFixed(1)).join(',')}`).join('') + 'Z';
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-  const shapes = candidates.map(c => `<path d="${[c.outer, ...c.holes].map(path).join('')}" fill="${picked.has(c.cid) ? '#5aa9d6' : '#d7dbd8'}" fill-rule="evenodd" stroke="#4a5550" stroke-width="1"/>`).join('');
-  const labels = candidates.map(c => { const [x, y] = P(c.point); const fs = c.area_m2 >= 1500 ? 16 : 11; return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" font-size="${fs}" text-anchor="middle" dominant-baseline="central" font-family="sans-serif" fill="#111" stroke="#fff" stroke-width="3" paint-order="stroke">${c.cid}</text>`; }).join('');
-  const siteRings = site ? site.map(r => `<path d="${path(r)}" fill="none" stroke="#e46a1f" stroke-width="3"/>`).join('') : '';
-  const [px, py] = P([row.lon, row.lat]);
-  const bar = 100 * scale;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H + 60}" viewBox="0 0 ${W} ${H + 60}"><rect width="100%" height="100%" fill="#fff"/>${shapes}${siteRings}${labels}` +
-    `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="8" fill="#d62828" stroke="#fff" stroke-width="2"/>` +
-    `<text x="16" y="${H + 26}" font-size="16" font-family="sans-serif">${esc(row.name)} · ${esc(row.id)} · north up · numbered by distance from the pin (red) · CityMETER Building V4</text>` +
-    `<line x1="16" y1="${H + 44}" x2="${(16 + bar).toFixed(1)}" y2="${H + 44}" stroke="#111" stroke-width="3"/><text x="${(22 + bar).toFixed(1)}" y="${H + 49}" font-size="13" font-family="sans-serif">100 m</text></svg>`;
+/** The pictures of one venue: PNG for any image viewer, SVG for a browser (scripts/site-picture.mjs). */
+function pictures(base, row, candidates, picked = new Set(), site = null) {
+  writeFileSync(`${base}.png`, sitePng(row, candidates, picked, site));
+  writeFileSync(`${base}.svg`, siteSvg(row, candidates, picked, site));
 }
 
 const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -151,8 +137,8 @@ if (cmd === 'candidates') {
   mkdirSync(dir, {recursive: true});
   writeFileSync(`${dir}/candidates.json`, JSON.stringify({venue_id: row.id, name: row.name, point: [row.lon, row.lat], unit: res.zone.name, reach, read_on: new Date().toISOString().slice(0, 10), candidates: res.candidates}));
   writeFileSync(`${dir}/candidates.csv`, ['cid,dist_m,area_m2,height_m,lon,lat', ...res.candidates.map(c => [c.cid, c.dist_m, c.area_m2, c.height_m, ...c.point].join(','))].join('\n') + '\n');
-  writeFileSync(`${dir}/candidates.svg`, svg(row, res.candidates));
-  console.log(`${row.id} ${row.name}: ${res.candidates.length} CityMETER buildings within ${reach} m (unit ${res.zone.name}) → ${dir}/candidates.svg`);
+  pictures(`${dir}/candidates`, row, res.candidates);
+  console.log(`${row.id} ${row.name}: ${res.candidates.length} CityMETER buildings within ${reach} m (unit ${res.zone.name}) → ${dir}/candidates.png (also .svg)`);
   // Other counted venues with their own pin nearby: their buildings are theirs unless the site plan says otherwise.
   const {kx, ky} = metres(row.lat);
   const others = venues.filter(v => v.id !== row.id && v.countable && Number.isFinite(v.lon) && Math.hypot((v.lon - row.lon) * kx, (v.lat - row.lat) * ky) <= reach + 100)
@@ -197,11 +183,11 @@ if (cmd === 'candidates') {
     buildings_in_boundary: chosen.map(c => c.point.join(',')).join(';'), building_count: chosen.length, main_building_note: opt('main'),
     checked_by: opt('by'), checked_on: new Date().toISOString().slice(0, 10), notes: opt('notes')};
   writeFileSync(`${dir}/row.json`, JSON.stringify(record, null, 1));
-  writeFileSync(`${dir}/picked.svg`, svg(row, cand, picked, siteRings));
+  pictures(`${dir}/picked`, row, cand, picked, siteRings);
   const all = readRows('sites/site_rows.csv').filter(r => r.venue_id !== row.id);
   all.push(record);
   writeFileSync('sites/site_rows.csv', [COLUMNS.join(','), ...all.map(r => COLUMNS.map(k => csvCell(r[k])).join(','))].join('\n') + '\n');
-  console.log(`${row.id}: ${chosen.length} buildings → sites/site_rows.csv · check ${dir}/picked.svg against the layout`);
+  console.log(`${row.id}: ${chosen.length} buildings → sites/site_rows.csv · check ${dir}/picked.png (also .svg) against the layout`);
 } else {
   // rank: a work list of venues whose point has several large buildings around it.
   const groups = new Set(opt('groups', 'mall,community,outlet').split(','));
