@@ -31,7 +31,7 @@ import {tileBox} from '../js/massing.js';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
 const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels'];
-const COLUMNS = ['venue_id', 'venue_name', 'boundary_status', 'boundary_source', 'boundary_evidence_url', 'buildings_in_boundary',
+const COLUMNS = ['venue_id', 'venue_name', 'boundary_status', 'boundary_source', 'boundary_evidence_url', 'boundary_geojson', 'buildings_in_boundary',
   'building_count', 'main_building_note', 'checked_by', 'checked_on', 'notes'];
 const UA = {'User-Agent': 'citymeter-shoppingcenter-research/0.1'};
 const [cmd, venueArg] = process.argv.slice(2);
@@ -153,6 +153,11 @@ if (cmd === 'candidates') {
   writeFileSync(`${dir}/candidates.csv`, ['cid,dist_m,area_m2,height_m,lon,lat', ...res.candidates.map(c => [c.cid, c.dist_m, c.area_m2, c.height_m, ...c.point].join(','))].join('\n') + '\n');
   writeFileSync(`${dir}/candidates.svg`, svg(row, res.candidates));
   console.log(`${row.id} ${row.name}: ${res.candidates.length} CityMETER buildings within ${reach} m (unit ${res.zone.name}) → ${dir}/candidates.svg`);
+  // Other counted venues with their own pin nearby: their buildings are theirs unless the site plan says otherwise.
+  const {kx, ky} = metres(row.lat);
+  const others = venues.filter(v => v.id !== row.id && v.countable && Number.isFinite(v.lon) && Math.hypot((v.lon - row.lon) * kx, (v.lat - row.lat) * ky) <= reach + 100)
+    .map(v => ({v, held: res.candidates.find(c => pointInRing([v.lon, v.lat], c.outer) && !c.holes.some(h => pointInRing([v.lon, v.lat], h)))}));
+  for (const {v, held} of others) console.log(`  other venue: ${v.id} ${v.name} (${v.group})${held ? ` — its pin stands in building ${held.cid}` : ''}`);
   for (const c of res.candidates.slice(0, 12)) console.log(`  ${String(c.cid).padStart(3)}  ${String(c.dist_m).padStart(4)} m  ${String(c.area_m2).padStart(7)} m²  ${c.height_m ?? '–'} m  ${c.point.join(',')}`);
 } else if (cmd === 'row' || cmd === 'check') {
   const row = venueOf(venueArg), dir = `sites/${row.id}`;
@@ -163,7 +168,9 @@ if (cmd === 'candidates') {
     const pts = opt('points').split(/[;\s]+/).filter(Boolean).map(p => p.split(',').map(Number));
     if (!pts.length || pts.some(p => p.length !== 2 || !p.every(Number.isFinite))) fail('--points must be "lon,lat;lon,lat"');
     let outside = 0;
-    for (const p of pts) { const held = cand.filter(c => inside(c, p)).map(c => c.cid); if (!held.length) outside++; console.log(`${p.join(',')} → ${held.length ? `building ${held.join(' + ')}` : 'OUTSIDE every drawn building'}`); }
+    const buildings = new Set();
+    for (const p of pts) { const held = cand.filter(c => inside(c, p)).map(c => c.cid); if (!held.length) outside++; held.forEach(c => buildings.add(c)); console.log(`${p.join(',')} → ${held.length ? `building ${held.join(' + ')}` : 'OUTSIDE every drawn building'}`); }
+    console.log(`${pts.length - outside} of ${pts.length} points stand in a drawn building; ${buildings.size} buildings`);
     process.exit(outside ? 1 : 0);
   }
   const source = opt('source'), evidence = opt('evidence');
@@ -186,6 +193,7 @@ if (cmd === 'candidates') {
   const far = chosen.filter(c => Math.hypot(...[c.point[0] - row.lon, c.point[1] - row.lat].map((d, i) => d * [metres(row.lat).kx, metres(row.lat).ky][i])) > MAX_SITE_M);
   if (far.length) fail(`buildings ${far.map(c => c.cid).join(', ')} are more than ${MAX_SITE_M} m from the venue point`);
   const record = {venue_id: row.id, venue_name: row.name, boundary_status: 'checked', boundary_source: source, boundary_evidence_url: evidence,
+    boundary_geojson: siteRings ? JSON.stringify({type: 'MultiPolygon', coordinates: siteRings.map(r => [r.map(p => p.map(v => +v.toFixed(6)))])}) : '',
     buildings_in_boundary: chosen.map(c => c.point.join(',')).join(';'), building_count: chosen.length, main_building_note: opt('main'),
     checked_by: opt('by'), checked_on: new Date().toISOString().slice(0, 10), notes: opt('notes')};
   writeFileSync(`${dir}/row.json`, JSON.stringify(record, null, 1));
