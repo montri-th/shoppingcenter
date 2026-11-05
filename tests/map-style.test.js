@@ -67,6 +67,9 @@ test('breadcrumb venue level: four levels with the venue id; a venue without a p
 test('camera presets: 2D plan, 3D city overview, upright-vertical model close-up and two-point option', () => {
   assert.equal(presetFor({view3d: false, mode: 'detail'}), 'plan');
   assert.equal(presetFor({view3d: true, mode: 'overview'}), 'city');
+  assert.equal(presetFor({view3d: true, mode: 'overview', portrait: true}), 'cityPortrait');
+  assert.equal(presetFor({view3d: false, mode: 'overview', portrait: true}), 'plan');
+  assert.ok(CAMERA.cityPortrait.bearing === 0 && CAMERA.cityPortrait.pitch < CAMERA.city.pitch, 'portrait overview: north up, gentler pitch');
   assert.equal(presetFor({view3d: true, mode: 'detail'}), 'model');
   assert.equal(presetFor({view3d: true, mode: 'detail', twoPoint: true}), 'eye');
   assert.equal(CAMERA.plan.pitch, 0);

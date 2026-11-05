@@ -36,15 +36,19 @@ export const DEFAULT_FOV = 36.87;
 export const CAMERA = Object.freeze({
   plan: {pitch: 0, bearing: 0, fov: DEFAULT_FOV},
   city: {pitch: 56, bearing: 28, fov: DEFAULT_FOV, fitShift: 0.2},
+  // The overview on a portrait phone: north up and a gentler pitch, so the focus districts fill the narrow free box
+  // (at 390 × 844 their outline covers about 47 % of it, against 20 % under `city`, whose bearing lays them out as
+  // a wide band; owner 5 Nov 2026 08:34 “หน้าแรก เปิดมาเจอแบบนี้ ให้ดูอะไรเหรอ”).
+  cityPortrait: {pitch: 40, bearing: 0, fov: DEFAULT_FOV, fitShift: 0.12},
   model: {pitch: 60, bearing: 28, fov: 14, fitShift: 0.16},
   eye: {pitch: 75, bearing: 28, fov: 24, fitShift: 0.1},
 });
 // bearing 28°: the Siam → Chit Lom → Phrom Phong axis (azimuth ≈ 120°) runs left-to-right
 // across a wide screen; the compass control keeps north legible.
 
-export function presetFor({view3d, mode, twoPoint = false}) {
+export function presetFor({view3d, mode, twoPoint = false, portrait = false}) {
   if (!view3d) return 'plan';
-  if (mode === 'overview') return 'city';
+  if (mode === 'overview') return portrait ? 'cityPortrait' : 'city';
   return twoPoint ? 'eye' : 'model';
 }
 

@@ -66,9 +66,10 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 
 .workspace { height: calc(100dvh - 48px); position: relative; }
 .map-column { position: absolute; inset: 0 var(--panel-width) 0 0; min-width: 0; }
-.map-panel { position: absolute; inset: 0; background: var(--surface-alt); isolation: isolate; overflow: hidden; }
+.map-panel { position: absolute; inset: 0; background: var(--surface-alt); isolation: isolate; overflow: hidden; container-type: inline-size; }
 #map { position: absolute; inset: 0; }
-.maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left { bottom: var(--bottom-panel-height); }
+/* .map-panel: the vendor stylesheet (loaded later by js/vendors.js) sets bottom: 0, which hid the credit behind the bar. */
+.map-panel .maplibregl-ctrl-bottom-right, .map-panel .maplibregl-ctrl-bottom-left { bottom: var(--bottom-panel-height); }
 .maplibregl-ctrl-attrib { font: 11px/18px var(--font-body); }
 .map-panel .maplibregl-ctrl-attrib { background: color-mix(in srgb, var(--surface-card) 85%, transparent); color: var(--text-metadata); }
 .map-panel .maplibregl-ctrl-attrib a { color: var(--text-secondary); }
@@ -598,6 +599,13 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .map-status { display: none; }
   /* Map card: the reading of the current level over the map; its primary button opens the sheet. */
   .map-aha { display: grid; gap: 8px; position: absolute; left: 8px; right: 8px; bottom: calc(var(--bottom-panel-height) + 74px); z-index: 5; padding: 10px 12px; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); }
+  /* The map credit (OpenStreetMap · OpenMapTiles · CityMETER) stays readable, as in CityMETER · Hotel 0.3.5: while it is
+     open (on load) the legend and the card sit above its live height (--attrib-height, app.js trackAttribution); folded
+     to its (i) button they drop back and leave the button its corner. */
+  .map-legend { bottom: calc(var(--bottom-panel-height) + var(--attrib-height, 32px) + 4px); }
+  .map-aha { bottom: calc(var(--bottom-panel-height) + var(--attrib-height, 32px) + 70px); }
+  .map-panel.is-attrib-compact .map-legend { bottom: calc(var(--bottom-panel-height) + 8px); max-width: calc(100% - 56px); }
+  .map-panel.is-attrib-compact .map-aha { bottom: calc(var(--bottom-panel-height) + 74px); }
   .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) .map-aha { bottom: calc(var(--bottom-panel-height) + 8px); }
   .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) .map-legend { display: none; }
   .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) :is(.maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left) { bottom: calc(var(--bottom-panel-height) + var(--map-card-space, 0px) + 8px); }
@@ -641,6 +649,9 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 @media (max-width: 760px) and (orientation: portrait) {
 }
 @media (min-width: 761px), (orientation: landscape) {
+  /* The map credit wraps upward on the right instead of running under the legend and status on the left (as CityMETER ·
+     Hotel): 100cqw = the map panel's width; 470px = legend (8 + 380) + gap + the credit's own padding and margin. */
+  .map-panel .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib { max-width: max(200px, calc(100cqw - 470px)); }
   .panel button.mobile-close, .map-toolbar button#mobile-panel { display: none; }
 }
 .map-panel.is-tight .map-legend, .map-panel.is-tight .map-status { display: none; }

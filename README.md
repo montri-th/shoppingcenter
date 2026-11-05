@@ -161,3 +161,10 @@ Owner 5 November 2026 07:29 (“ได้”): download the research team's logo
 
 The source line under a venue's shop list printed the registry ids of the four reviewed datasets (`research.TH.beauty`, `research.TH.beauty_clinic`, `research.TH.playground`, `research.TH.car_service`) since 0.1.8; they now read ร้านความงาม · คลินิกความงาม · เครื่องเล่นและครอบครัว · บริการรถยนต์, and `tests/dataset-labels.test.js` fails if a published dataset has no name. Cache tag `20261105-r19`.
 
+## 0.1.12 - the phone first view shows the three districts
+
+Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิดมาเจอแบบนี้ ให้ดูอะไรเหรอ”. The first view zoomed in to 13.1 (the city-massing zoom) even when the three focus districts needed a lower zoom, and centred them on the canvas, not in the free map box, so on a phone they sat under the card.
+
+- **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
+- **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+

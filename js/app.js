@@ -107,7 +107,7 @@ const focusMode = () => (state.focusAreaIds.length ? 'explicit' : state.focusIds
 const sheetOpen = () => mobilePortrait() && $('panel').classList.contains('is-open');
 const venueLevel = () => state.panel.mode === 'venue';
 // Venue level always uses the two-point eye camera when 3D is on (owner instruction 2026-10-25 18:49).
-const cameraPreset = () => presetFor({view3d: state.view3d, mode: state.panel.mode === 'overview' ? 'overview' : 'detail', twoPoint: venueLevel()});
+const cameraPreset = () => presetFor({view3d: state.view3d, mode: state.panel.mode === 'overview' ? 'overview' : 'detail', twoPoint: venueLevel(), portrait: mobilePortrait()});
 const animate = () => !reduced();
 const currentVenue = () => (state.panel.mode === 'venue' ? state.byId.get(state.panel.id) || null : null);
 const selectedDistrict = () => (state.panel.mode === 'district' ? state.districts.get(state.panel.id) || null : null);
@@ -823,6 +823,33 @@ function renderTable() {
 }
 
 /* ---------- map ---------- */
+/**
+ * The map credit (OpenStreetMap · OpenMapTiles · CityMETER) must stay readable on a phone (as CityMETER · Hotel 0.3.5):
+ * its live height — open on load, folded to its (i) button after the first drag — becomes --attrib-height on the map
+ * panel, which keeps the phone legend and card above it while it is open; `is-attrib-compact` drops them back.
+ */
+function trackAttribution(map) {
+  const panel = map.getContainer().closest('.map-panel');
+  const el = map.getContainer().querySelector('.maplibregl-ctrl-attrib');
+  if (!panel || !el) return null;
+  let last = 0, refits = 0;
+  const set = () => {
+    const height = Math.ceil(el.getBoundingClientRect().height) + 10;
+    panel.style.setProperty('--attrib-height', `${height}px`);
+    panel.classList.toggle('is-attrib-compact', el.classList.contains('maplibregl-compact') && !el.classList.contains('maplibregl-compact-show'));
+    syncCardSpace();
+    // The credit fills in as sources load, after the first view was framed: on a phone that moves the card, so the first
+    // view is framed again until the user moves the map.
+    if (mobilePortrait() && state.initialCameraDone && !state.userCamera && Math.abs(height - last) > 12 && !state.panel.id && refits < 2) { refits++; fitMap({instant: true}); }
+    last = height;
+  };
+  const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null;
+  observer?.observe(el);
+  if (typeof MutationObserver === 'function') new MutationObserver(set).observe(el, {attributes: true, attributeFilter: ['class']});
+  set();
+  return observer;
+}
+
 function cameraPadding() {
   const height = $('map').clientHeight, panel = $('insights').getBoundingClientRect().height;
   const edge = Math.min(48, Math.max(12, (height - panel) / 6));
@@ -862,6 +889,23 @@ function fitBounds(b, {instant = false, points = null, maxZoom = 15, apply = tru
 
 /** City massing (OpenMapTiles buildings) exists from zoom 13; the 3D focus view needs it to read as a city. */
 const MASSING_VIEW_ZOOM = 13.1;   // below the quiet-label zoom (13.2) so the first view keeps only the focus labels
+// How far below MASSING_VIEW_ZOOM the whole-district fit may be and still zoom in to it (×1.3 at most). A phone needs
+// about a zoom less to hold the three districts; zooming in there pushed them under the card (owner 5 Nov 2026 08:34,
+// “หน้าแรก เปิดมาเจอแบบนี้ ให้ดูอะไรเหรอ”), so the phone frames them whole instead.
+const MASSING_ZOOM_REACH = 0.4;
+
+/** `target` zoomed in to `zoom` around the middle of the free map box (between the toolbar and the card or legend). */
+function zoomInFreeBox(target, zoom) {
+  const map = state.map;
+  const start = {center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), padding: map.getPadding()};
+  map.jumpTo(target);
+  const box = visibleBox();
+  const around = map.unproject([(box.left + box.right) / 2, (box.top + box.bottom) / 2]);
+  map.zoomTo(zoom, {around, duration: 0, animate: false});
+  const camera = {center: map.getCenter(), zoom, pitch: target.pitch, bearing: target.bearing, padding: target.padding};
+  map.jumpTo(start);
+  return camera;
+}
 
 function fitMap({instant = false} = {}) {
   if (!state.loaded) return;
@@ -878,14 +922,12 @@ function fitMap({instant = false} = {}) {
     const b = new LB();
     for (const x of focus) featureBounds(x.feature, LB).toArray().forEach(p => b.extend(p));
     const options = {instant, points: vertices(focus.map(x => x.feature))};
-    // Dense city districts that fit just below the massing zoom: frame their venues at that zoom instead,
-    // so the first view shows the 3D city (the district fills still read around the venues).
+    // Dense city districts that fit just below the massing zoom: zoom in to it around the middle of the free map box,
+    // so the first view shows the 3D city and the district fills still read around the venues. Further below (a phone),
+    // the districts are framed whole: zooming in would push them under the card.
     const target = fitBounds(b, {...options, apply: false});
-    const venues = detailRows().filter(hasPoint);
-    if (target && target.pitch > 0 && target.zoom >= 11.5 && target.zoom < MASSING_VIEW_ZOOM && venues.length) {
-      const vb = new LB();
-      venues.forEach(r => vb.extend([r.lon, r.lat]));
-      const camera = {...target, center: vb.getCenter(), zoom: MASSING_VIEW_ZOOM};
+    if (target && target.pitch > 0 && target.zoom >= MASSING_VIEW_ZOOM - MASSING_ZOOM_REACH && target.zoom < MASSING_VIEW_ZOOM && detailRows().some(hasPoint)) {
+      const camera = zoomInFreeBox(target, MASSING_VIEW_ZOOM);
       if (animate() && !instant) state.map.easeTo({...camera, duration: 650}); else state.map.jumpTo(camera);
       return;
     }
@@ -1191,6 +1233,7 @@ function initMap() {
   try {
     state.mapTheme = theme();
     state.map = new maplibregl.Map({container: 'map', center: BANGKOK_VIEW.center, zoom: BANGKOK_VIEW.zoom, pitch: 0, maxPitch: 85, attributionControl: {compact: true}, style: buildMapStyle(state.mapTheme)});
+    trackAttribution(state.map);
     state.map.addControl(new maplibregl.NavigationControl({showCompass: true, visualizePitch: true}), 'top-right');
     state.districtLabels = installAreaLabels(state.map, $('map'), {className: 'district-label', hostId: 'district-labels', hostLabel: 'เขตและอำเภอบนแผนที่', minZoom: 9.2, verb: 'กดเพื่อสำรวจ', onSelect: id => selectDistrict(id, {fromMap: true}), reservedBottom: bottomSpace,
       avoid: () => state.pinPoints, onLayout: () => state.pins?.layout()});
