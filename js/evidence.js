@@ -107,6 +107,11 @@ export const STORE_DATASETS = Object.freeze({
   'research.TH.massage_spa': 'นวดและสปา',
   'research.TH.salon_barber': 'ร้านทำผมและตัดผม',
   'research.TH.nail': 'ร้านทำเล็บ',
+  // Reviewed-host research datasets (scripts/review-candidate-hosts.py, 4 Nov 2026): the names of their shop roles.
+  'research.TH.beauty': 'ร้านความงาม',
+  'research.TH.beauty_clinic': 'คลินิกความงาม',
+  'research.TH.playground': 'เครื่องเล่นและครอบครัว',
+  'research.TH.car_service': 'บริการรถยนต์',
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 

@@ -156,3 +156,8 @@ Owner 5 November 2026 07:29 (“ได้”): download the research team's logo
 
 - **Logos:** 2,506 of the 3,032 items of the eleven research datasets now carry their brand's logo (Apparel, Beauty and Salon & Barber all; Beauty Clinic none — its sheet has no logo yet). Shared chain banners and context logos stay out. Roster, counts and branches are unchanged.
 - **Plates:** a transparent logo sits on the dark plate when a fifth of its outline would nearly vanish on the soft surface (under 2:1) and almost none of it on the dark one; a surface the sheet states wins unless the image shows the mark would vanish on it (one conflict, counted in `build-report.json#researchLogos` for the research team). Cache tag `20261105-r18`.
+
+## 0.1.11 - dataset names in the shop list's source line
+
+The source line under a venue's shop list printed the registry ids of the four reviewed datasets (`research.TH.beauty`, `research.TH.beauty_clinic`, `research.TH.playground`, `research.TH.car_service`) since 0.1.8; they now read ร้านความงาม · คลินิกความงาม · เครื่องเล่นและครอบครัว · บริการรถยนต์, and `tests/dataset-labels.test.js` fails if a published dataset has no name. Cache tag `20261105-r19`.
+
