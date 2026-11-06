@@ -85,7 +85,10 @@ test('data fills go under the basemap water fill; the style has it and every pro
   assert.equal(detailCodes.size, coarse.features.length);
   const venues = readJSON('data/venues.json');
   assert.equal(venues.meta.boundary.license, 'CC BY 3.0 IGO');
-  assert.equal(venues.meta.relocation.by, 'scripts/relocate-districts.py');
+  // Membership is on the RTSD polygons: either a full build on them (meta.boundary) or the 4 Nov 2026 relocation of an
+  // older snapshot (meta.relocation, scripts/relocate-districts.py).
+  assert.match(venues.meta.boundary.source, /Royal Thai Survey Department/);
+  if (venues.meta.relocation) assert.equal(venues.meta.relocation.by, 'scripts/relocate-districts.py');
   for (const r of venues.rows) if (r.districtCode) assert.equal(detailCodes.get(r.districtCode), r.provinceCode, `${r.id} province matches its district`);
 });
 

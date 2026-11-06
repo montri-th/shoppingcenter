@@ -6,27 +6,27 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Research snapshot: ข้อมูลตรวจถึง 25 ต.ค. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
-ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 25 ต.ค. 2569 16:39 น. หลังเจ้าของปิดคิวตรวจนิยามครบ — เหลือ 0 จาก 11,009 รายการ) · ขอบเขต: เขต/อำเภอของกรมการปกครองผ่าน OpenGISData-Thailand (commit `fafcea1`, CC BY 4.0) ด้วยรหัสจังหวัดและเขตของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
+ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 7 พ.ย. 2569 00:26 น. · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
 
 | สิ่งที่นับ | จำนวน | ความหมาย |
 |---|---:|---|
-| ทะเบียนทั้งหมด | 11,009 รายการ | ทุกอย่างที่เคยถูกเรียกว่าพื้นที่ค้าปลีก ไม่ใช่จำนวนศูนย์การค้าที่เปิดจริง |
-| ผ่านนิยาม retail venue | 6,135 รายการ | ตรงกับชีต (“ผ่านตามหลักฐานหรือเกณฑ์ที่ตกลง 6,135”) · ด้วยหลักฐานปัจจุบัน 717 · ตามกฎรายประเภทที่เจ้าของข้อมูลยอมรับ 5,191 (ตลาด 3,904 · สถานีบริการน้ำมันที่มีร้านค้า 1,173 · มีหลายกิจการอยู่ภายใน 47 · อื่น ๆ 67) · หลักฐานย้อนหลัง 223 · โครงการอนาคต 4 |
-| นับได้ (หักที่ไม่นับแยก 51: พื้นที่ย่อย 22 · อาจซ้ำ 16 · รอตรวจการนับ 12 · บริบทหลายสถานที่ 1) | 6,084 แห่ง | เปิดอยู่หรือรอยืนยันสถานะ 6,079 · กำลังจะเปิด 3 · ปิดแล้ว 2 · รวมพื้นที่ค้าปลีกที่เป็นศูนย์การค้าแต่โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม 6 แห่ง (D6) |
-| มีพิกัดในเขต/อำเภอ (จาก 6,079) | 6,014 แห่ง | 77 จังหวัด 734 เขต/อำเภอ · 55 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ · 10 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
-| ตรวจแล้ว ยังยืนยันไม่ได้ | 4,869 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,851 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
-| ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 5 รายการ | ไม่เข้าเกณฑ์ 2 · ร้านผู้เช่า 2 · โครงการแม่ที่เป็นบริบท 1 (ดุสิต เซ็นทรัล พาร์ค — ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
+| ทะเบียนทั้งหมด | 11,139 รายการ | ทุกอย่างที่เคยถูกเรียกว่าพื้นที่ค้าปลีก ไม่ใช่จำนวนศูนย์การค้าที่เปิดจริง |
+| ผ่านนิยาม retail venue | 6,265 รายการ | ด้วยหลักฐานปัจจุบัน 789 · ตามกฎรายประเภทที่เจ้าของข้อมูลยอมรับ 5,247 (ตลาด 3,904 · สถานีบริการน้ำมันที่มีร้านค้า 1,173 · มีหลายกิจการอยู่ภายใน 66 · ร้านหลักกับกิจการที่สอง 55 · อื่น ๆ 49) · หลักฐานย้อนหลัง 224 · โครงการอนาคต 5 |
+| นับได้ (หักที่ไม่นับแยก 114: พื้นที่ย่อย 85 · อาจซ้ำ 16 · รอตรวจการนับ 12 · บริบทหลายสถานที่ 1) | 6,151 แห่ง | เปิดอยู่หรือรอยืนยันสถานะ 6,145 · กำลังจะเปิด 4 · ปิดแล้ว 2 · รวมพื้นที่ค้าปลีกที่เป็นศูนย์การค้าแต่โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม 7 แห่ง (D6) |
+| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,080 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 61 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
+| ตรวจแล้ว ยังยืนยันไม่ได้ | 4,866 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,848 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
+| ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 8 รายการ | รวมโครงการแม่ที่เป็นบริบท ดุสิต เซ็นทรัล พาร์ค (ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
-| ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ของ snapshot 25 ต.ค.) | 1,559 รายการใน 385 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) |
+| ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ในทะเบียน) | 1,626 รายการใน 425 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) · 74 รายการของ 43 สถานที่ที่เพิ่มหลัง 26 ต.ค. ยังไม่อยู่ในรายชื่อร้าน |
 | รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 5 พ.ย. 2569) | 5,493 สาขา ใน 619 สถานที่ จาก 21 ชุดข้อมูล | หนึ่งรายการคือหนึ่งสาขา (D23) · ชุดเดิม 2,461 · 7 ชุดที่ sheet จับคู่ชื่อศูนย์ (Sport 319 · Apparel 681 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 62 · Nail 23) · 4 ชุดที่ผ่านการตรวจลิงก์ศูนย์ (Beauty 1,075 · Beauty Clinic 436 · Playground 103 · Car Service 147) · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
 
-ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **50 จาก 861 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 99 แห่ง
+ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **50 จาก 889 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 103 แห่ง
 
-ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,017 จาก 6,014 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 238 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 174 · คอมมูนิตี้มอลล์ 128 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
+ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,080 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 243 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 146 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
 
 ## ใช้งาน
 
@@ -167,6 +167,16 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.16 - 37 hypermarkets and wholesale stores with a second business, and the 7 Nov export
+
+Owner 6 Nov 2026 23:08–23:09: “ลองดูข้อมูลทุกๆ dataset ใน registry ที่มีการ เชื่อมกับ อาคารไว้ ว่ามี retail/commercial venue ไหนที่เราตกหล่นควรเพิ่มใน dataset = Shopping center … เลือกเพิ่มเข้า google sheet” and “รายงานผมหน่อยว่าได้เพิ่มจาก ใน web demo กี่ศูนย์การค้า เสร็จแล้วปรับ web demo เลยครับ”.
+
+- **Rule (the owner's accepted `anchor_second_business`, 23 Oct 2026):** a Big C, Lotus's or Makro store of the Grocery dataset with a point counts as a venue when another consumer business lists this store as its location (its own branch page, or a CityMETER production point named after the store) within 300 m, no registry row of the same name or chain lies within 1.5 km, and nothing says it closed. Hotels, hospitals, offices, condominiums, government buildings, transport hubs and fuel stations were left out as hosts. 37 stores passed (Big C 28 · Lotus's 3 · Makro 6); for 23 the second business is a brand's own branch page, for 14 only a CityMETER production point name. 7 more were held: already in the registry 1.2 km away (1), inside a counted centre (1), the listing names a different store (2), one listing that fits two Big C in Hat Yai (2), only the operator's own food court (1). The rows are 11104–11140 of `01_VENUES`, read back cell by cell (3,441 of 3,441).
+- **The page:** venue data from the 7 Nov 2026 00:26 export (11,139 rows): qualified 6,265 (+127) · countable 6,151 (+64) · located 6,080 (+58). Of the 127 new rows, the 37 above are counted (group “ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า”, 173 → 210); the other 90 came from the research team on 6–7 Nov — 27 counted (shopping centres 7, community malls 19, one rest stop) and 63 retail areas in offices, hospitals, hotels and stations, which are qualified components shown but not counted (D6). No row left the set.
+- **Shop lists:** the list (`data/tenants/`) is unchanged; `scripts/refresh-tenant-receipt.py` names the new venue core in its receipt after checking that every listed venue is still there and kept its count. 43 new venues carry 74 primary observations in the registry that the list does not hold yet, recorded in `build-report.json#venueCoreRefresh.awaitingRoster`; their shop figure reads “—”, not 0.
+- After this export the 37 rows' status link (`operation_source_url`, BE11104–BE11140) was corrected in the sheet to the anchor's own store-locator page, as the sheet's other rows with `current_first_party_locator_listing_not_field_verified` have it (read back 37 of 37); the page shows it from the next export.
+- `office_retail_component` reads as a component (`TYPE_GROUP_ADDED_2026_11_07`). Cache tag `20261107-r24`.
 
 ## 0.1.15 - LIVE Ramintra drawn from its own design file
 

@@ -2745,7 +2745,7 @@
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
   "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
-  "venueCoreSha256": "07f99419b7e4399e00dc7d879a09eb0eca05c71f1dbb1cdd318d50fb40173387",
+  "venueCoreSha256": "bdf22edf294b263aeb9a2f785c55e7c049769eddc77b1054160f2e409061f7f6",
   "logoManifestSha256": "e10f5e1f28e7d9ddfa4883942296e97e77b899ede47568b2d073d4dfb5583785",
   "linkedDatasets": {
     "research.TH.fitness": {
@@ -3160,5 +3160,192 @@
         "exportedOn": "2026-11-05"
       }
     }
+  },
+  "venueCoreRefresh": {
+    "on": "2026-11-07",
+    "by": "scripts/refresh-tenant-receipt.py",
+    "reason": "full refresh of the venue core from a new export of the Research Master; the roster is unchanged",
+    "coreAsOf": "2026-11-07",
+    "export01VenuesSha256": "cf322725b15eae8b495bdbc8a78410eef814dd18f21c37dd0180ea62a2e247ce",
+    "previousCoreSha256": "07f99419b7e4399e00dc7d879a09eb0eca05c71f1dbb1cdd318d50fb40173387",
+    "rowsAdded": 127,
+    "rowsRemoved": 0,
+    "rowsChanged": 1,
+    "awaitingRoster": [
+      {
+        "venueId": "VN-046d66b0dd4f83",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-07d94f6f3f76d2",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-0b7a9454257fe0",
+        "storeCount": 4
+      },
+      {
+        "venueId": "VN-12e5eabfd1f425",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-1cef65d046a1b3",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-1db4efb2fe5d74",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-2035b1282089fe",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-264e63e9530c4c",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-2d371df2968f51",
+        "storeCount": 3
+      },
+      {
+        "venueId": "VN-31476cd52363db",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-3615e6921577a0",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-38ca7c5377eaf9",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-4a293acd075ea4",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-505bee1de80b50",
+        "storeCount": 5
+      },
+      {
+        "venueId": "VN-556ea9ccf9a233",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-5617eba9ed8365",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-5789edf015aecb",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-5e10935fec836c",
+        "storeCount": 3
+      },
+      {
+        "venueId": "VN-61b48b72ed20f1",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-6947e505fe6e7b",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-6f98288b97b7fa",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-81603d67e7a34a",
+        "storeCount": 3
+      },
+      {
+        "venueId": "VN-89e653249ec30b",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-91d909c796d1d9",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-948ea31145e11c",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-a0eb65b8ac32fa",
+        "storeCount": 4
+      },
+      {
+        "venueId": "VN-a61ca256ca5dc2",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-ac9c4826254d2c",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-ad27deb83e2f73",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-b00a409ec35a59",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-c87c200db5d079",
+        "storeCount": 3
+      },
+      {
+        "venueId": "VN-cf237b62009463",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-d78e4bb22ab251",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-d935af6e523f70",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-eabf92ed6535f0",
+        "storeCount": 4
+      },
+      {
+        "venueId": "VN-eb4638c6f54969",
+        "storeCount": 4
+      },
+      {
+        "venueId": "VN-f3811af64f27db",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-f385f382f15f59",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-f71f83ca47ec48",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-f8b012bd23e8dc",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-f9c95a1bf47cbb",
+        "storeCount": 1
+      },
+      {
+        "venueId": "VN-fab210e398a97a",
+        "storeCount": 2
+      },
+      {
+        "venueId": "VN-fc41168b2455a3",
+        "storeCount": 1
+      }
+    ],
+    "awaitingRosterObservations": 74,
+    "note": "venues in awaitingRoster are new to the core; the registry records accepted primary observations for them that the roster does not list yet, so their shop figure reads \"—\" (not zero) until it does"
   }
 }

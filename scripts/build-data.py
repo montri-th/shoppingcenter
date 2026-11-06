@@ -226,8 +226,12 @@ TYPE_GROUP_ADDED_2026_10_25 = {
         'shopping_plaza_and_market_component_boundary_pending'
     },
 }
-for _group, _types in TYPE_GROUP_ADDED_2026_10_25.items():
-    TYPE_GROUP[_group] |= _types
+# 7 Nov 2026 export: retail areas the team added inside office buildings read as components (as office_retail_podium),
+# so they are counted only under D6 (a component without a qualified parent counts when its group is mall or community).
+TYPE_GROUP_ADDED_2026_11_07 = {'component': {'office_retail_component'}}
+for _added in (TYPE_GROUP_ADDED_2026_10_25, TYPE_GROUP_ADDED_2026_11_07):
+    for _group, _types in _added.items():
+        TYPE_GROUP[_group] |= _types
 TYPE_TO_GROUP = {t: g for g, ts in TYPE_GROUP.items() for t in ts}
 
 # Operator groups (Inference): a curated name table; the first company named in the source text wins.
