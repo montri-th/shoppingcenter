@@ -1,6 +1,6 @@
 /**
  * Building masses from a venue's own design file (owner 2026-11-06 09:19: “ผม upload .skp สำหรับ PARC Bangna และ
- * Live Ramintra … simplify ให้เหมาะสมที่ user จะใช้งานร่วมกับอาคารอื่นๆในเวบได้ลื่นไหล optimize ให้ดี”; 09:22 “จะขึ้นใหม่
+ * Live Ramintra … simplify ให้เหมาะสมที่ user จะใช้งานร่วมกับอาคารอื่นๆในเวบได้ลื่นไหล optimize ให้ดี”; 09:22 “จะชึ้นใหม่
  * ให้พอได้รูปร่าง 3d building mass ก็ได้นะครับ ให้โหลดเร็วๆไม่หนัก”).
  *
  * data/venue-models.json lists the venues that have one (id, file, lon/lat box, parts, bytes, source); a venue's file

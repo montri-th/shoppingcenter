@@ -2,7 +2,7 @@
 """Write data/venue-models.json and data/venue-models/<venue_id>.json from LOD1 masses in model metres.
 
 Owner 2026-11-06 09:19: “ผม upload .skp สำหรับ PARC Bangna และ Live Ramintra พี่ช่วยนำไปใช้งานร่วมกันใน website และ
-simplify ให้เหมาะสมที่ user จะใช้งานร่วมกับอาคารอื่นๆในเวบได้ลื่นไหล optimize ให้ดี”; 09:22 “จะขึ้นใหม่ให้พอได้รูปร่าง
+simplify ให้เหมาะสมที่ user จะใช้งานร่วมกับอาคารอื่นๆในเวบได้ลื่นไหล optimize ให้ดี”; 09:22 “จะชึ้นใหม่ให้พอได้รูปร่าง
 3d building mass ก็ได้นะครับ ให้โหลดเร็วๆไม่หนัก”.
 
 usage: python3 scripts/build-venue-models.py <masses dir> [--spec scripts/venue-model-placements.json] [--out data]
@@ -11,6 +11,10 @@ usage: python3 scripts/build-venue-models.py <masses dir> [--spec scripts/venue-
 model's ground). The design files themselves stay outside the repository; only the derived boxes, the placement and
 the file's date are published. The spec places each model on the map: local = R(theta) (p - centre) + shift, in
 metres east/north of the venue's registry point (data/venues.json), and clips it to the site ring when one is given.
+
+A part thinner than min_thickness_m is left out (railings, signs, ledges) unless it covers thin_keep_area_m2 or more: a
+large thin slab is a roof or a deck (LIVE Ramintra's covered garden). A venue with "publish": false is held: no file
+is written for it, and a file left from an earlier build is reported so it can be removed from the repository.
 """
 import argparse, datetime, json, math, os, sys
 
@@ -35,11 +39,12 @@ def place(masses, spec, lon0, lat0):
     c, theta, t = spec['centre'], spec['rotation_deg'], spec['shift_m']
     clip = Polygon(spec['site_ring_m']).buffer(spec.get('site_buffer_m', 0)) if spec.get('site_ring_m') else None
     drop = spec.get('drop_parts', [])
+    thin, keep_area = spec.get('min_thickness_m', 0.5), spec.get('thin_keep_area_m2', math.inf)
     feats = []
     for i, m in enumerate(masses):
-        if i in drop or m['top'] - m['base'] < spec.get('min_thickness_m', 0.5):
-            continue
         g = Polygon(m['outer'], m.get('holes', [])).buffer(0)
+        if i in drop or (m['top'] - m['base'] < thin and g.area < keep_area):
+            continue
         g = affinity.translate(g, -c[0], -c[1])
         g = affinity.rotate(g, theta, origin=(0, 0))
         g = affinity.translate(g, t[0], t[1])
@@ -68,8 +73,14 @@ def main():
     built_on = datetime.datetime.now(ICT).date().isoformat()
     index = []
     for vid, s in spec['venues'].items():
+        if s.get('publish') is False:
+            print(f'{vid}: held, not published ({s.get("hold", "no reason given")})')
+            continue
         if vid not in points:
             sys.exit(f'{vid}: not in data/venues.json with a point')
+        missing = [k for k in ('centre', 'rotation_deg', 'shift_m') if k not in s['placement']]
+        if missing:
+            sys.exit(f'{vid}: placement lacks {", ".join(missing)}')
         lon0, lat0 = points[vid]
         masses = json.load(open(os.path.join(a.masses, f'{vid}.masses.json'), encoding='utf-8'))
         feats = place(masses['masses'], s['placement'], lon0, lat0)
@@ -94,6 +105,11 @@ def main():
                     'rule': 'one file per venue, loaded from zoom 14 or when the venue opens; replaces its pin and site buildings',
                     'notSurvey': True}, 'models': index}
     json.dump(out, open(os.path.join(a.out, 'venue-models.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    listed = {os.path.basename(e['file']) for e in index}
+    stale = sorted(f for f in os.listdir(os.path.join(a.out, 'venue-models')) if f not in listed)
+    if stale:
+        print('STALE, not in the index but still published if committed: ' + ', '.join(f'data/venue-models/{f}' for f in stale)
+              + ' (remove with git rm)', file=sys.stderr)
 
 
 if __name__ == '__main__':

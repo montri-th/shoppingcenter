@@ -8,36 +8,16 @@
  },
  "models": [
   {
-   "venue_id": "SC-000977",
-   "file": "data/venue-models/SC-000977.json",
-   "bbox": [
-    100.645828,
-    13.665827,
-    100.64758,
-    13.667931
-   ],
-   "parts": 38,
-   "bytes": 25987,
-   "maxHeightM": 27.9,
-   "source": {
-    "kind": "owner_design_file",
-    "format": "SketchUp 2025",
-    "fileDate": "2026-10-27",
-    "receivedOn": "2026-11-06",
-    "placement": "วางตำแหน่งโดยหมุนแบบ 16° และเลื่อนจนหลังคาตรงกับอาคารในภาพดาวเทียมปัจจุบันมากที่สุด คลาดได้ราว 10 ม."
-   }
-  },
-  {
    "venue_id": "VN-af6f8f302b8c83",
    "file": "data/venue-models/VN-af6f8f302b8c83.json",
    "bbox": [
     100.657715,
     13.840134,
-    100.660047,
-    13.841649
+    100.661328,
+    13.843344
    ],
-   "parts": 14,
-   "bytes": 7681,
+   "parts": 15,
+   "bytes": 9467,
    "maxHeightM": 16.5,
    "source": {
     "kind": "owner_design_file",

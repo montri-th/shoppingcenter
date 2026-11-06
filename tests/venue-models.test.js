@@ -1,7 +1,7 @@
 // Building masses from a venue's own design file (js/venue-models.js; owner 2026-11-06: PARC Bangna and LIVE Ramintra).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync, readdirSync} from 'node:fs';
 import {modelFeatures, createVenueModels, boxMeets, MODEL_ROLE, MODEL_MIN_ZOOM} from '../js/venue-models.js';
 import {installVenueBuildings, buildingHeightLabel} from '../js/buildings.js';
 import {buildingReading} from '../js/panel.js';
@@ -88,6 +88,26 @@ test('published model files: in data/venue-models/, small, the venue’s own id,
     for (const f of fs) {
       assert.ok(f.properties.height_m > 0 && f.properties.height_m < 120);
       for (const [lon, lat] of f.geometry.coordinates[0]) assert.ok(Math.hypot((lon - r.lon) * kx, (lat - r.lat) * 110574) <= 600, 'every vertex within 600 m of the pin');
+    }
+  }
+});
+
+test('the placement spec decides what is published: held venues have no file, thin parts only as large slabs', () => {
+  const index = JSON.parse(readFileSync(new URL('../data/venue-models.json', import.meta.url)));
+  const spec = JSON.parse(readFileSync(new URL('../scripts/venue-model-placements.json', import.meta.url)));
+  const listed = new Set(index.models.map(e => e.file.replace(/^data\/venue-models\//, '')));
+  // A file left in data/venue-models/ is served by Pages even when the index no longer lists it.
+  assert.deepEqual(readdirSync(new URL('../data/venue-models/', import.meta.url)).filter(f => !listed.has(f)), [], 'every published file is in the index');
+  for (const [id, s] of Object.entries(spec.venues)) {
+    const e = index.models.find(m => m.venue_id === id);
+    if (s.publish === false) { assert.equal(e, undefined, `${id} is held (${s.hold})`); assert.ok(s.hold, `${id} says why it is held`); continue; }
+    assert.ok(e, `${id} is published`);
+    assert.deepEqual(e.source, s.source, `${id}: the index carries the spec's source`);
+    const doc = JSON.parse(readFileSync(new URL(`../${e.file}`, import.meta.url)));
+    const {min_thickness_m: thin = 0.5, thin_keep_area_m2: keep = Infinity} = s.placement;
+    for (const f of doc.features) {
+      const p = f.properties;
+      assert.ok(p.height_m - p.base_m >= thin - 1e-9 || p.area_m2 >= keep, `${id}: a ${(p.height_m - p.base_m).toFixed(1)} m part of ${p.area_m2} m² is kept only as a large slab`);
     }
   }
 });
