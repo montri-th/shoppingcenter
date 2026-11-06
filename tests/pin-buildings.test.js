@@ -220,3 +220,33 @@ test('live matcher in a CityMETER unit: waits for the province units and the til
   assert.equal(pins.size, 0, 'not final while a site point waits for its tile');
   pins.dispose();
 });
+
+test('a site that is still waiting for one point is drawn as its other tiles arrive, not frozen at the first snapshot (0.1.13, Mega Bangna)', async () => {
+  const handlers = {};
+  const map = {
+    getSource: id => (id === 'openmaptiles' ? {} : null), getZoom: () => 16,
+    getBounds: () => ({contains: ([lon, lat]) => Math.abs(lon - LON) < 0.05 && Math.abs(lat - LAT) < 0.05}),
+    querySourceFeatures: () => [], on(e, h) { (handlers[e] ||= []).push(h); }, off(e, h) { handlers[e] = (handlers[e] || []).filter(x => x !== h); },
+  };
+  const B = {z: 14, x: T14.x + 1, y: T14.y};
+  const [w, s, , n] = tileBox(T14), [, , e] = tileBox(B);
+  const zone = {id: 'z', tileType: 'MUNICIPALITY', tileUnits: [{id: 'z', bbox: [w, s, e, n]}]};
+  const rectIn = (tile, x0, y0, x1, y1) => [[x0, y1], [x1, y1], [x1, y0], [x0, y0], [x0, y1]].map(([x, y]) => lonLatToTileUnits(LON + x / kx, LAT + y / ky, tile, 4096).map(Math.round));
+  const cm = {
+    settled: () => true, zoneAt: () => zone,
+    load: q => (q.tile.x === T14.x
+      ? Promise.resolve(cmLayer([{properties: {height_m: '18'}, rings: [rectIn(T14, 0, 0, 40, 40)]}, {properties: {height_m: '6'}, rings: [rectIn(T14, 100, 0, 130, 30)]}]))
+      : new Promise(r => setTimeout(() => r(cmLayer([{properties: {height_m: '9'}, rings: [rectIn(B, 1880, 0, 1920, 30)]}])), 300))),
+  };
+  const changes = [];
+  const pins = installPinBuildings(map, {cm, onChange: c => changes.push(c)});
+  // pin and one site point in tile A, one site point in the slower tile B, and one point in a tile nothing reads (stays open)
+  pins.update({rows: [{id: 'M', lon: at(20, 20)[0], lat: at(20, 20)[1], province: 'SPK', points: [at(115, 15), at(1900, 15), at(900, 900)]}]});
+  (handlers.idle || []).forEach(h => h());
+  await new Promise(r => setTimeout(r, 1000));
+  const last = changes.at(-1);
+  assert.equal(pins.size, 0, 'still partial: one point waits for a tile nothing reads');
+  assert.equal(last.features.length, 3, 'the pin and both site points with buildings are drawn');
+  assert.ok(last.features.some(f => pointInRing(at(1900, 15), f._ring)), 'the building from the slower tile joined the drawn site');
+  pins.dispose();
+});

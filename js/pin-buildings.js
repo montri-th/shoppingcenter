@@ -401,7 +401,9 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
         if (match.parts.some(p => p.source === 'cm')) fromCm++;
       }
     }
-    const next = [...byVenue].map(([id, m]) => `${id}:${m || '-'}:${cache.get(id)?.parts?.length || 0}`).join('|');
+    // A partial venue (site points still waiting for a tile) counts its parts too, so a site that grows is drawn as it
+    // grows; before 0.1.13 only final results were counted and a partial site stayed at its first snapshot.
+    const next = [...byVenue].map(([id, m]) => `${id}:${m || '-'}:${(cache.has(id) ? cache.get(id) : partial.get(id))?.parts?.length || 0}${cache.has(id) ? '' : '~'}`).join('|');
     if (next === signature) return;
     signature = next;
     if (typeof onChange === 'function') { try { onChange({byVenue, features, cm: fromCm}); } catch (e) { console.warn('Pin buildings', e); } }
