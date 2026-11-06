@@ -1,0 +1,18 @@
+{
+ "note": "Placement of each design file's LOD1 masses on the map (scripts/build-venue-models.py). local = R(rotation_deg) (p - centre) + shift_m, metres east/north of the venue's registry point; site_ring_m (same frame) clips the masses. Review pictures and the owner's answer decide; see DATA_METHOD.md §11.2.",
+ "venues": {
+  "SC-000977": {
+   "source": {"kind": "owner_design_file", "format": "SketchUp 2025", "fileDate": "2026-10-27", "receivedOn": "2026-11-06",
+              "placement": "วางตำแหน่งโดยหมุนแบบ 16° และเลื่อนจนหลังคาตรงกับอาคารในภาพดาวเทียมปัจจุบันมากที่สุด คลาดได้ราว 10 ม."},
+   "placement": {"method": "roofs_fitted_to_current_imagery_in_site", "centre": [4330.0, 1920.0], "rotation_deg": -16.0, "shift_m": [-24.0, 43.0],
+                 "site_ring_m": [[0.2, -78.4], [-112.0, -52.8], [-75.3, 152.9], [70.5, 116.7], [0.2, -78.4]], "site_buffer_m": 8.0,
+                 "site_ring_source": "https://www.openstreetmap.org/way/1411364164", "min_thickness_m": 0.6, "min_area_m2": 12, "simplify_m": 0.3}
+  },
+  "VN-af6f8f302b8c83": {
+   "source": {"kind": "owner_design_file", "format": "SketchUp 2025", "fileDate": "2026-10-27", "receivedOn": "2026-11-06",
+              "placement": "วางตำแหน่งโดยให้ทิศเหนือของแบบตรงกับทิศเหนือจริง และวางอาคารโค้งบนโครงอาคารที่กำลังก่อสร้างในภาพดาวเทียม คลาดได้หลายเมตร"},
+   "placement": {"method": "curved_building_on_frame_under_construction", "centre": [0.0, 0.0], "rotation_deg": 0.0, "shift_m": [-21.6, 23.9],
+                 "min_thickness_m": 0.6, "min_area_m2": 12, "simplify_m": 0.3}
+  }
+ }
+}

@@ -432,9 +432,19 @@ const PIN_ROLES = new Set(['pin_building_basemap', 'pin_building_citymeter']);
 /**
  * What the panel says about the venue's building. buildings: features drawn for this venue;
  * pinState (pin-buildings.js): 'inside' | 'edge' | 'site' matched, null read with no building, undefined not read yet;
- * site: the venue's research site (data/venue-sites.json: {n, source, url, checkedOn}) or null.
+ * site: the venue's research site (data/venue-sites.json: {n, source, url, checkedOn}) or null;
+ * model: the venue's entry in data/venue-models.json (js/venue-models.js) when its masses are drawn.
  */
-export function buildingReading(row, buildings = [], pinState, site = null) {
+export function buildingReading(row, buildings = [], pinState, site = null, model = null) {
+  const masses = buildings.filter(f => f.properties?.geometry_role === 'owner_model_mass');
+  if (masses.length) {
+    const tops = masses.map(f => Number(f.properties.height_m)).filter(Number.isFinite);
+    const src = model?.source || {};
+    return {text: 'มวลอาคารตามแบบของโครงการ · สีน้ำเงินบนแผนที่ 3 มิติ',
+      note: esc([`มวลอาคารอย่างง่าย ${masses.length} ส่วน จากไฟล์แบบที่เจ้าของข้อมูลส่งให้${src.fileDate ? ` (ไฟล์ลงวันที่ ${thaiDate(src.fileDate)})` : ''}`,
+        tops.length ? `สูงสุดราว ${new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0}).format(Math.max(...tops))} ม. ตามแบบ` : '',
+        src.placement || 'วางตำแหน่งโดยเทียบกับภาพดาวเทียม', 'ไม่ใช่ผลรังวัด และอาจต่างจากอาคารที่สร้างจริง'].filter(Boolean).join(' · '))};
+  }
   const pins = buildings.filter(f => PIN_ROLES.has(f.properties?.geometry_role));
   const siteParts = site ? pins.filter(f => f.properties.match_method === 'site') : [];
   if (row.hasBuilding && siteParts.length) {
@@ -472,7 +482,7 @@ export function buildingReading(row, buildings = [], pinState, site = null) {
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -501,7 +511,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
   const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${tenants?.roster ? renderTenantMix(r, tenants) : ''}${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
-  const building = buildingReading(r, buildings, pinState, site);
+  const building = buildingReading(r, buildings, pinState, site, model);
   const drawn = building.text && building.text !== 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? building.text.split(' · ')[0] : '';
   const addressNote = p.addressDiffers ? ` · ที่อยู่อยู่ใน${esc(p.addressProvince || '')} จุดอยู่ใน${esc(p.province?.th || '')}` : '';
   return `<section class="detail-head venue${logo ? ' has-venue-logo' : ''}">

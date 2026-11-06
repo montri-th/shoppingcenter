@@ -39,6 +39,7 @@ import {installVenuePins, MAX_DOM_PINS} from './pins.js';
 import {installVenuePoints, POINT_LAYERS} from './venue-points.js';
 import {installVenueBuildings, HOST_LAYERS} from './buildings.js';
 import {installPinBuildings} from './pin-buildings.js';
+import {createVenueModels} from './venue-models.js';
 import {installVenueXray} from './venue-xray.js';
 import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
 import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBounds, FILL_MAX_ZOOM} from './map-layers.js';
@@ -91,6 +92,8 @@ const state = {
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
   buildingUnits: null, cmLoad: null, terrain: null, terrainActive: false, buildingSources: {osm: 0, cm: 0}, cmPins: 0,
   sites: new Map(), siteMeta: null,
+  // Building masses from a venue's own design file (js/venue-models.js): an index at start, a venue's file when needed.
+  models: null,
 };
 const tenantSelection = createTenantSelection({changed: selection => {
   if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel();
@@ -294,7 +297,7 @@ function renderPanel() {
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
-    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null});
+    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -400,6 +403,7 @@ function selectVenue(id, {fromMap = false} = {}) {
   if (!r) return;
   if (state.panel.mode !== 'venue' || state.panel.id !== id) pushHistory();
   state.panel = {mode: 'venue', id};
+  state.models?.ensure(id);
   openVenueDetail(id);
   closeMobilePanel({refit: false, focus: false}); // phones: the map first, the card opens the details
   update({camera: false});
@@ -995,6 +999,7 @@ function updateSpatialLayers() {
   const detail = detailRows();
   state.buildingUnits?.ensureMany(unitProvinces(detail));
   state.pinBuildings?.update({rows: detail.filter(r => r.countable && hasPoint(r)).map(pinRow), enabled: true});
+  requestModels();
   state.buildings?.update({rows: detail, enabled: true, theme: theme()});
   refreshMassing(detail);
   updatePendingMarker();
@@ -1178,6 +1183,9 @@ function installSpatialLayers() {
   state.districtLayers = state.districtGeo?.features?.length ? installDistrictLayers(map) : null;
   // Draw order is depth order in MapLibre's 3D pass: the host (data) layer first, massing inserted BEFORE it.
   state.buildings = installVenueBuildings(map, state.buildingData, {rows: detailRows(), enabled: true, theme: theme(), beforeId: MASSING_BEFORE});
+  // Masses that arrived before the map: drawn now, and the open venue's panel reads them (no pin event may follow).
+  state.buildings.setModelFeatures(state.models?.features() || []);
+  if (venueLevel() && state.models?.loadedIds().length) renderPanel();
   // Pin buildings: the basemap building each counted pin stands in (owner instruction 2026-10-25).
   // Inside a CityMETER unit the pin's building comes from CityMETER Building V4 (same rules; OSM parts stay, LOD2).
   const units = state.buildingUnits;
@@ -1239,7 +1247,7 @@ function initMap() {
       avoid: () => state.pinPoints, onLayout: () => state.pins?.layout()});
     state.provinceLabels = installAreaLabels(state.map, $('map'), {className: 'province-label', hostId: 'province-labels', hostLabel: 'จังหวัดบนแผนที่', minZoom: 0, maxZoom: PROVINCE_LABEL_MAX_ZOOM, verb: 'กดเพื่อดูจังหวัด', detailZoomClass: false, onSelect: code => selectProvince(code), reservedBottom: bottomSpace});
     state.map.on('zoomend', () => { if (state.loaded) renderLegend(); });
-    state.map.on('moveend', () => { if (state.loaded) requestDistrictDetail(); });
+    state.map.on('moveend', () => { if (state.loaded) { requestDistrictDetail(); requestModels(); } });
     // A camera move started by the user (drag, pinch, wheel, keys) — a building found later never moves the camera again.
     state.map.on('movestart', e => { if (e.originalEvent) state.userCamera = true; });
     state.pins = installVenuePins(state.map, $('map'), {
@@ -1468,6 +1476,26 @@ async function loadSites() {
   } catch (e) { if (e?.status !== 404) console.warn('Venue sites unavailable', e); }
 }
 
+/**
+ * Building masses from a venue's own design file (js/venue-models.js, owner 2026-11-06): the index loads at start, a
+ * venue's file when the map shows its box from zoom 14 or the venue is opened. They replace its pin and site
+ * buildings; the massing drops the tile buildings under them; the panel and the venue camera read them.
+ */
+function requestModels() {
+  const map = state.map;
+  if (!state.models || !map || !state.loaded) return;
+  const shown = new Set(detailRows().map(r => r.id));
+  state.models.ensureInView(map.getBounds(), map.getZoom(), id => shown.has(id));
+}
+function onModelsLoaded(id) {
+  if (id === null) { const v = currentVenue(); if (v) state.models.ensure(v.id); requestModels(); return; } // the index
+  if (!state.loaded) return;
+  state.buildings?.setModelFeatures(state.models.features());
+  refreshMassing();
+  renderLegend();
+  if (venueLevel()) { renderPanel(); refitVenueOnNewBuilding(); }
+}
+
 /** Pending records (D4) load after the first paint: context dots and search, never counts. */
 async function loadPending() {
   try {
@@ -1527,6 +1555,8 @@ async function init() {
     ensureTenantIndex();
     loadAmenities();
     loadSites();
+    state.models = createVenueModels({fetchJSON, onLoad: onModelsLoaded, onError: (id, e) => console.warn('Venue model unavailable', id || 'index', e?.message || e)});
+    state.models.loadIndex();
   } catch (e) {
     window.dispatchEvent(new CustomEvent('citymeter:load-error', {detail: {message: 'โหลดข้อมูลสถานที่ไม่สำเร็จ กรุณาลองอีกครั้ง', resource: e.resource, status: e.status, phase: e.phase || 'startup', diagnostic: e.message}}));
     console.error(e);

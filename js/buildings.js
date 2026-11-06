@@ -14,6 +14,8 @@
  *     other buildings even when the venue has host geometry; a site building the host
  *     footprint already holds is not drawn twice (owner 2026-11-05: Mega Bangna showed one
  *     building of a whole project).
+ *  3. Model masses (venue-models.js, owner 2026-11-06): LOD1 boxes from a venue's own design file. They replace the
+ *     venue's host, pin and site buildings — one drawing per venue, the design file's — and the panel says so.
  *
  * Original polygons © OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/copyright
  * No generated footprints, name joins, sales or measured-height claims.
@@ -70,6 +72,11 @@ function colors(theme) {
 }
 
 export function buildingHeightLabel(properties = {}) {
+  if (properties.height_status === 'owner_model_design') {
+    const label = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 1});
+    const base = Number(properties.base_m) || 0, top = Number(properties.height_m);
+    return Number.isFinite(top) ? `มวลอาคารตามแบบ ${label.format(base)}–${label.format(top)} ม. · ไม่ใช่ผลรังวัด` : 'มวลอาคารตามแบบ · ไม่ใช่ผลรังวัด';
+  }
   if (properties.height_status === 'basemap_render_height') {
     return 'อาคารที่หมุดตั้งอยู่ · รูปทรงจาก OpenStreetMap';
   }
@@ -107,6 +114,7 @@ export function installVenueBuildings(map, geojson, options = {}) {
   let disposed = false;
   let displayed = [];
   let pins = [];
+  let models = [];
   let coverage;
   const onSelect = typeof options.onSelect === 'function' ? options.onSelect : null;
   const before = options.beforeId && map.getLayer(options.beforeId) ? options.beforeId : undefined;
@@ -150,9 +158,19 @@ export function installVenueBuildings(map, geojson, options = {}) {
     const disputedHosts = new Set();
     const venues = new Set();
     displayed = [];
+    // Masses from a venue's own design file (venue-models.js) win over its host, pin and site buildings.
+    const modelled = new Set();
+    let modelParts = 0;
+    for (const feature of models) {
+      const ids = list(feature.properties?.venue_ids).map(String).filter(id => byId.has(id));
+      if (!ids.length) continue;
+      ids.forEach(id => modelled.add(id));
+      modelParts++;
+      displayed.push({...feature, properties: {...feature.properties, selected_venue_ids: ids, height_label: buildingHeightLabel(feature.properties)}});
+    }
     for (const feature of originals) {
       const properties = feature.properties || {};
-      const ids = list(properties.venue_ids).filter(id => byId.has(String(id))).map(String);
+      const ids = list(properties.venue_ids).filter(id => byId.has(String(id)) && !modelled.has(String(id))).map(String);
       if (!ids.length) continue;
       const rs = ids.map(id => byId.get(id));
       ids.forEach(id => matched.add(id));
@@ -182,7 +200,7 @@ export function installVenueBuildings(map, geojson, options = {}) {
     let pinParts = 0, sitePartsOnHosts = 0;
     for (const feature of pins) {
       const site = feature.properties?.match_method === 'site';
-      const ids = list(feature.properties?.venue_ids).map(String).filter(id => byId.has(id) && (!matched.has(id) || (site && !heldByHost(id, feature))));
+      const ids = list(feature.properties?.venue_ids).map(String).filter(id => byId.has(id) && !modelled.has(id) && (!matched.has(id) || (site && !heldByHost(id, feature))));
       if (!ids.length) continue;
       if (ids.some(id => matched.has(id))) sitePartsOnHosts++;
       ids.forEach(id => pinVenues.add(id));
@@ -190,14 +208,14 @@ export function installVenueBuildings(map, geojson, options = {}) {
       const {_ring, ...plain} = feature;
       displayed.push({...plain, properties: {...feature.properties, selected_venue_ids: ids, height_label: buildingHeightLabel(feature.properties)}, _ring});
     }
-    const unmatchedRows = currentRows.filter(r => !matched.has(String(r.id)) && !pinVenues.has(String(r.id)));
+    const unmatchedRows = currentRows.filter(r => !matched.has(String(r.id)) && !pinVenues.has(String(r.id)) && !modelled.has(String(r.id)));
     coverage = {
       totalRows: byId.size, matchedRows: matched.size, unmatchedRows: unmatchedRows.length,
       matchedVenues: venues.size, unmatchedVenues: unmatchedRows.length,
       hostBuildings: hosts.size, features: displayed.length,
       unknownHeightBuildings: unknownHosts.size, estimatedHeightBuildings: estimatedHosts.size,
       disputedHeightBuildings: disputedHosts.size,
-      pinVenues: pinVenues.size, pinParts, sitePartsOnHosts,
+      pinVenues: pinVenues.size, pinParts, sitePartsOnHosts, modelVenues: modelled.size, modelParts,
       unmatchedRowIds: unmatchedRows.map(r => r.id), enabled,
       geometryRole: 'host_building_not_shop_unit', fallbackHeightM: 3,
     };
@@ -248,7 +266,9 @@ export function installVenueBuildings(map, geojson, options = {}) {
   function displayedFeatures() { return disposed || !enabled ? [] : displayed.slice(); }
   /** Replace the pin buildings (features from pin-buildings.js) and redraw. */
   function setPinFeatures(features) { pins = Array.isArray(features) ? features : []; return update(); }
-  const controller = {update, getCoverage, displayedFeatures, setPinFeatures, dispose};
+  /** Replace the model masses (features from venue-models.js#modelFeatures) and redraw. */
+  function setModelFeatures(features) { models = Array.isArray(features) ? features : []; return update(); }
+  const controller = {update, getCoverage, displayedFeatures, setPinFeatures, setModelFeatures, dispose};
   active.set(map, controller);
   update();
   return controller;
