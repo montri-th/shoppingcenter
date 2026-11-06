@@ -21,6 +21,7 @@
 | ตรวจแล้ว ยังยืนยันไม่ได้ | 4,866 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,848 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
 | ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 8 รายการ | รวมโครงการแม่ที่เป็นบริบท ดุสิต เซ็นทรัล พาร์ค (ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
+| ไซต์หลายอาคาร (แท็บไซต์ของชีตวิจัย อ่านกลับ 7 พ.ย. 2569) | 299 สถานที่ · 4,606 อาคาร | 38 จังหวัด · ตลาด 171 · ศูนย์การค้า 82 · คอมมูนิตี้มอลล์ 41 · เอาท์เล็ต 4 · ไฮเปอร์มาร์เก็ตที่มีร้านเช่า 1 · ขอบเขตจาก OpenStreetMap ตรวจด้วยกฎอัตโนมัติ 295 · ผังของผู้ดำเนินการ 3 · ตามคำตอบเจ้าของ 1 (เมกาบางนา) · ไม่ใช่โฉนดหรือกรรมสิทธิ์ |
 | ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ในทะเบียน) | 1,626 รายการใน 425 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) · 74 รายการของ 43 สถานที่ที่เพิ่มหลัง 26 ต.ค. ยังไม่อยู่ในรายชื่อร้าน |
 | รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 5 พ.ย. 2569) | 5,493 สาขา ใน 619 สถานที่ จาก 21 ชุดข้อมูล | หนึ่งรายการคือหนึ่งสาขา (D23) · ชุดเดิม 2,461 · 7 ชุดที่ sheet จับคู่ชื่อศูนย์ (Sport 319 · Apparel 681 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 62 · Nail 23) · 4 ชุดที่ผ่านการตรวจลิงก์ศูนย์ (Beauty 1,075 · Beauty Clinic 436 · Playground 103 · Car Service 147) · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
 
@@ -167,6 +168,15 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.17 - multi-building sites for 171 markets and 6 more venues, nationwide (data only)
+
+Owner 6 Nov 2026 23:19: “ปรับเรื่อง การรวม venue ที่มีหลายอาคาร เป็น multiple building venue และใช้วิธีตาม skill ใหม่เพิ่มเติม * `osm-area-site-join และ` * `campus-site-join` เรียงลำดับแบบฉลาดนะ เอาแบบ quick win เอา low hanging fruit ก่อน แค่ให้ครอบคลุมทั้งประเทศ ถ้าสำคัญน้อย เอายาก ก็ไม่เอาครับ”, and on 7 Nov “เพิ่มแถวท้ายแท็บได้” (D31).
+
+- **Order:** 4,475 venues with a point had no site. OpenStreetMap areas were read in the 29 densest half-degree boxes first (Bangkok in four quarter-degree boxes; centres weigh more than markets): 2,483 venues (55%) in 41 provinces. The sparse rest costs many queries for few sites and was left. `campus-site-join` (layouts and land parcels one venue at a time, 20 LandsMaps searches a day) was not run: hard for its yield.
+- **Rules (D28, DATA_METHOD §11.3):** the smallest `landuse=retail`, non-building `shop=mall` or `amenity=marketplace` area that holds the pin (or `landuse=commercial` named for the venue) and no other pin; every CityMETER Building V4 building whose interior point stands in it; the main building is never dropped. With Overpass back, building-use tags were read as well: 90 buildings dropped in 18 sites (row houses tagged `terrace` 52, houses 25, hotel points 5, places of worship 3, apartments 3, hostels 2), 6 mostly outside dropped, 11 mostly inside added, 1 edge-point building dropped. 177 sites (171 markets, 3 community malls, 2 shopping centres, 1 hypermarket) with 2,911 buildings; 92 venues skipped (one building left 41, no CityMETER building 34, no draft 16, another counted pin inside 1).
+- **Sheet:** 173 rows appended to the research site tab (rows 383–555) and C–L of 4 `todo` rows written; no team row touched (True Digital Park keeps the team's layout row). Read-back 4,538 cells, 0 mismatches; `check` passes for all 299 checked rows.
+- **Page:** `data/venue-sites.json` from the tab's read-back: 299 sites, 4,606 buildings in 38 provinces (was 119 / 1,685), including 3 rows the research team checked from operator layouts on 7 Nov (Fashion Island, The Promenade, True Digital Park). No code change; cache tag stays `20261107-r24`.
 
 ## 0.1.16 - 37 hypermarkets and wholesale stores with a second business, and the 7 Nov export
 
