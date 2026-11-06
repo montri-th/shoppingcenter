@@ -11,7 +11,8 @@ the roster still fits the new core and then names the new core:
 - every venue that has a roster is still in the new core, and no venue kept from the previous core changed its
   storeCount (the registry's count of accepted primary observations) — either would need a roster rebuild, so it stops;
 - a venue new to the core with storeCount > 0 has no roster yet: it is listed in venueCoreRefresh.awaitingRoster with
-  its storeCount. Its shop figure on the page reads "—" until the roster lists its observations.
+  its storeCount. Its shop figure on the page reads "—" until the roster lists its observations. A venue listed by an
+  earlier refresh stays listed (its count may change) until a roster build covers it; earlier refreshes go to history.
 
 Writes venueCoreSha256 and venueCoreRefresh into data/tenants/build-report.json; the shards and the index stay byte
 for byte (tests/tenant-data-build.test.js checks both).
@@ -53,13 +54,18 @@ def main():
             rostered.add(venue)
             primary[venue] = sum(i.get('sourceObservationCount', 1) for i in roster['items'] if i.get('sourceRole') == PRIMARY)
 
+    # Venues an earlier refresh listed as awaiting a roster stay listed (their count may change: they have no roster yet).
+    earlier = report.get('venueCoreRefresh') or {}
+    waiting_before = {x['venueId'] for x in earlier.get('awaitingRoster', [])}
     problems = [f'{v}: has a roster but left the core' for v in sorted(rostered - set(new))]
     problems += [f'{v}: storeCount {old[v].get("storeCount") or 0} -> {new[v].get("storeCount") or 0}'
-                 for v in sorted(set(old) & set(new)) if (old[v].get('storeCount') or 0) != (new[v].get('storeCount') or 0)]
+                 for v in sorted(set(old) & set(new)) if v not in waiting_before
+                 and (old[v].get('storeCount') or 0) != (new[v].get('storeCount') or 0)]
     if problems:
         raise SystemExit('the roster needs a rebuild (scripts/build-tenant-data.py):\n  ' + '\n  '.join(problems))
     added = sorted(set(new) - set(old))
-    awaiting = [{'venueId': v, 'storeCount': new[v]['storeCount']} for v in added if (new[v].get('storeCount') or 0) > 0]
+    awaiting = [{'venueId': v, 'storeCount': new[v]['storeCount']} for v in sorted(set(added) | (waiting_before & set(new)))
+                if (new[v].get('storeCount') or 0) > 0]
     assert all(primary.get(x['venueId'], 0) == 0 for x in awaiting)
 
     report['venueCoreSha256'] = sha256(data / 'venues.json')
@@ -70,12 +76,17 @@ def main():
         'coreAsOf': core['meta'].get('asOf'),
         'export01VenuesSha256': core['meta'].get('inputs', {}).get('01_VENUES', {}).get('sha256'),
         'previousCoreSha256': previous_sha,
+        # the core scripts/build-tenant-data.py built the roster on (kept from the first refresh after that build)
+        'rosterBuiltOnCoreSha256': earlier.get('rosterBuiltOnCoreSha256') or earlier.get('previousCoreSha256') or previous_sha,
         'rowsAdded': len(added), 'rowsRemoved': len(set(old) - set(new)),
         'rowsChanged': sum(1 for v in set(old) & set(new) if old[v] != new[v]),
         'awaitingRoster': awaiting,
         'awaitingRosterObservations': sum(x['storeCount'] for x in awaiting),
         'note': 'venues in awaitingRoster are new to the core; the registry records accepted primary observations for '
                 'them that the roster does not list yet, so their shop figure reads "—" (not zero) until it does',
+        'history': earlier.get('history', []) + ([{k: earlier[k] for k in ('on', 'coreAsOf', 'export01VenuesSha256', 'previousCoreSha256',
+                                                                            'rowsAdded', 'rowsRemoved', 'rowsChanged') if k in earlier}]
+                                                 if earlier else []),
     }
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     print(f"receipt names the new core: +{len(added)} venues, {len(awaiting)} awaiting a roster "
