@@ -15,8 +15,32 @@ export const TENANT_PAGE_SIZE = 10;
 export const TENANT_RANK_POLICY = 'venue-role-v1';
 const SHARDS = 32;
 
+/** D38 (owner 7 Nov 2026 23:49): shops as each centre's own official directory lists them. */
+export const DIRECTORY_DATASET = 'research.TH.shopping_directory';
+
+/**
+ * The directory entries of one venue (data/directory/NN.json, scripts/build-directory-listings.py): the entries the brand
+ * roster does not already show, by the same FNV-1a shard as the roster. Optional — the roster never waits on it.
+ */
+export function createDirectoryLoader(fetchImpl = (...args) => fetch(...args)) {
+  const cache = new Map();
+  return async id => {
+    const path = `data/directory/${String(shardOf(id, SHARDS)).padStart(2, '0')}.json`;
+    if (!cache.has(path)) cache.set(path, (async () => {
+      const response = await fetchImpl(path, {cache: 'no-cache'});
+      if (!response.ok) throw new Error(`directory data: ${response.status}`);
+      const json = await response.json();
+      if (json?.meta?.dataset !== DIRECTORY_DATASET || !json.venues || typeof json.venues !== 'object') throw new Error('Invalid directory shard');
+      return json;
+    })().catch(error => { cache.delete(path); throw error; }));
+    const json = await cache.get(path);
+    const items = json.venues[id]?.items;
+    return {items: Array.isArray(items) ? items : [], meta: json.meta};
+  };
+}
+
 /** Failed requests are evicted so the panel's retry can recover without reloading the map. */
-export function createTenantLoader(fetchImpl = (...args) => fetch(...args)) {
+export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {directory = null} = {}) {
   const cache = new Map();
   let profiles;
   const read = async path => {
@@ -35,14 +59,18 @@ export function createTenantLoader(fetchImpl = (...args) => fetch(...args)) {
       if (!json?.venues || typeof json.venues !== 'object') throw new Error('Invalid tenant shard');
       return json;
     }).catch(error => { cache.delete(path); throw error; }));
-    const [json, profileData] = await Promise.all([cache.get(path), readProfiles()]);
+    const [json, profileData, listed] = await Promise.all([cache.get(path), readProfiles(), directory ? directory(id).catch(() => null) : null]);
     const roster = json.venues[id] || {items: [], observations: 0};
     if (!Array.isArray(roster.items)) throw new Error('Invalid tenant roster');
-    return {...roster, profile: profileData?.venues?.[id] || null, meta: json.meta || {}};
+    // D38: the centre's directory entries follow the brand roster's items; a directory that failed to load adds none.
+    const extra = listed?.items?.length ? listed.items : [];
+    return {...roster, items: extra.length ? [...roster.items, ...extra] : roster.items,
+      directory: listed ? {items: extra.length, meta: listed.meta || {}} : null,
+      profile: profileData?.venues?.[id] || null, meta: json.meta || {}};
   };
 }
 
-export const loadTenants = createTenantLoader();
+export const loadTenants = createTenantLoader(undefined, {directory: createDirectoryLoader()});
 
 /** Selection state outlives panel repaints. Late responses never replace a newly selected venue. */
 export function createTenantSelection({load = loadTenants, changed = () => {}} = {}) {
@@ -97,6 +125,8 @@ export const DATASET_ROLES = Object.freeze({
 
 /** Role is a display judgement, not a footfall score. No network size, sales, GLA or logo bonus. */
 export function tenantRole(item) {
+  // A directory entry carries the role its build read from the centre's own category (scripts/build-directory-listings.py).
+  if (item.directoryRole && Object.hasOwn(TENANT_ROLE_LABELS, item.directoryRole)) return item.directoryRole;
   const category = text(`${item.category || ''} ${item.storeFormat || ''}`);
   const dataset = text(item.dataset);
   // A linked dataset that is one kind of tenant (CityMETER Fitness: gyms and studios) takes its role from the dataset.
@@ -148,9 +178,14 @@ export function tenantPriority(item, venue = {}, profile = null) {
   return BASE[role];
 }
 
-/** Stable, venue-specific ordering; equal roles sort by name, branch, then source-qualified ID. */
+/**
+ * Stable, venue-specific ordering; equal roles list brand-linked shops before the centre's own directory entries (D38),
+ * then sort by name, branch, then source-qualified ID.
+ */
 export function rankTenants(items = [], venue = {}, profile = null) {
+  const listed = item => (item.dataset === DIRECTORY_DATASET ? 1 : 0);
   return [...items].sort((a, b) => tenantPriority(b, venue, profile) - tenantPriority(a, venue, profile)
+    || listed(a) - listed(b)
     || collator.compare(a.displayName || a.brand || a.name || '', b.displayName || b.brand || b.name || '')
     || collator.compare(a.branch || '', b.branch || '')
     || String(a.id).localeCompare(String(b.id)));
@@ -187,18 +222,48 @@ export function buildTenantIndex(json) {
   return {meta: json?.meta || {}, venues, brands: new Map(list.filter(b => b.venues.size).map(b => [b.key, b])), list: list.filter(b => b.venues.size)};
 }
 
-/** Loaded once, on demand; a failure is evicted so a later call can retry. */
-export function createTenantIndexLoader(fetchImpl = (...args) => fetch(...args)) {
+/**
+ * D38: add each venue's directory entries (data/directory/counts.json) to its shop count and roles — never to its brands,
+ * so brand search, brand views and the brand comparison read brand-linked shops only. A file that is not the directory's
+ * counts changes nothing.
+ */
+export function mergeDirectoryCounts(index, counts) {
+  if (!index || counts?.meta?.dataset !== DIRECTORY_DATASET || !counts.venues || typeof counts.venues !== 'object') return index;
+  for (const [vid, entry] of Object.entries(counts.venues)) {
+    const n = Number(entry?.items) || 0;
+    if (n <= 0) continue;
+    let venue = index.venues.get(vid);
+    if (!venue) index.venues.set(vid, venue = {items: 0, roles: new Map(), brands: new Map()});
+    venue.items += n;
+    venue.directoryItems = n;
+    for (const [role, k] of Object.entries(entry.roles || {})) {
+      if (Object.hasOwn(TENANT_ROLE_LABELS, role) && Number(k) > 0) venue.roles.set(role, (venue.roles.get(role) || 0) + Number(k));
+    }
+  }
+  index.meta = {...index.meta, directory: counts.meta};
+  return index;
+}
+
+export function createDirectoryCountsLoader(fetchImpl = (...args) => fetch(...args)) {
+  return async () => {
+    const response = await fetchImpl('data/directory/counts.json', {cache: 'no-cache'});
+    if (!response.ok) throw new Error(`directory counts: ${response.status}`);
+    return response.json();
+  };
+}
+
+/** Loaded once, on demand; a failure is evicted so a later call can retry. Directory counts are optional. */
+export function createTenantIndexLoader(fetchImpl = (...args) => fetch(...args), {counts = null} = {}) {
   let promise = null;
   return () => promise ||= (async () => {
-    const response = await fetchImpl('data/tenant-index.json', {cache: 'no-cache'});
+    const [response, listed] = await Promise.all([fetchImpl('data/tenant-index.json', {cache: 'no-cache'}), counts ? counts().catch(() => null) : null]);
     if (!response.ok) throw new Error(`tenant index: ${response.status}`);
     const json = await response.json();
     if (!Array.isArray(json?.rows) || !Array.isArray(json?.brands)) throw new Error('Invalid tenant index');
-    return buildTenantIndex(json);
+    return mergeDirectoryCounts(buildTenantIndex(json), listed);
   })().catch(error => { promise = null; throw error; });
 }
-export const loadTenantIndex = createTenantIndexLoader();
+export const loadTenantIndex = createTenantIndexLoader(undefined, {counts: createDirectoryCountsLoader()});
 
 /** Brands whose name contains the query (search key), names that start with it first, then the most widely listed. */
 export function searchBrands(index, query, {limit = 6} = {}) {

@@ -66,6 +66,24 @@
   "publicRosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "publicRosterShardCount": 32,
   "reviewedMembershipReceiptSha256": "401eba8affa0d2780f61d363b4fc41cd56f3bb1a3332d073675590aa220362e9",
-  "venueCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
-  "sourceBaselineCommit": "25a9337707bc93ea70046f57b3319a5aed0ced15"
+  "venueCoreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
+  "sourceBaselineCommit": "25a9337707bc93ea70046f57b3319a5aed0ced15",
+  "venueCoreRefresh": {
+    "on": "2026-11-08",
+    "by": "scripts/refresh-coverage-receipt.py",
+    "reason": "new export of the Research Master that places points only; the roster and every other venue field are unchanged",
+    "auditedCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
+    "previousCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
+    "coreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
+    "rowsChanged": 29,
+    "fieldsChanged": [
+      "districtCode",
+      "lat",
+      "located",
+      "lon",
+      "provinceCode"
+    ],
+    "rosterUnchanged": true,
+    "history": []
+  }
 }

@@ -1,0 +1,634 @@
+{
+  "asOf": "2026-11-07",
+  "rule": "D38",
+  "dataset": "research.TH.shopping_directory",
+  "input": {
+    "tab": "18_OFFICIAL_TENANTS",
+    "exportedOn": "2026-11-07",
+    "bytes": 51070466,
+    "sha256": "c9f3d4f5f2f9b6cb9819d9644d1001e71d2df913c97e8e11d7230252e63ced32",
+    "rows": 26955,
+    "hosts": 68
+  },
+  "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
+  "venueCoreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
+  "rows": {
+    "shownAsDirectoryItems": 15137,
+    "alreadyShownByRoster": 3161,
+    "held": 8657,
+    "byReason": {
+      "directory_item": 15137,
+      "department_store_counter": 7749,
+      "shown_by_roster_identity": 1835,
+      "shown_by_roster_name_floor": 1326,
+      "held_counter_or_component": 674,
+      "held_consumer_location_or_visibility": 163,
+      "centre_facility_not_a_shop": 40,
+      "held_event_or_public_space_component_not_retailer_qualified": 14,
+      "held_shared_or_department_format_independence_review": 10,
+      "held_venue_amenity_or_lounge_operator_review": 4,
+      "held_planned_coming_soon_not_confirmed_open": 2,
+      "held_unnamed_operator_identity_review": 1
+    }
+  },
+  "entries": {
+    "directoryEntries": 18078,
+    "shownByRoster": 3137,
+    "directoryItems": 14941
+  },
+  "venues": 65,
+  "coverage": [
+    {
+      "venueId": "SC-007290",
+      "name": "ฟิวเจอร์พาร์ค และ สเปลล์",
+      "directoryEntries": 884,
+      "shownByRoster": 17,
+      "directoryItems": 867,
+      "rosterItems": 70,
+      "shownTotal": 937
+    },
+    {
+      "venueId": "SC-001245",
+      "name": "เซ็นทรัลเวิลด์",
+      "directoryEntries": 706,
+      "shownByRoster": 116,
+      "directoryItems": 590,
+      "rosterItems": 185,
+      "shownTotal": 775
+    },
+    {
+      "venueId": "SC-006426",
+      "name": "เซ็นทรัล เวสต์เกต",
+      "directoryEntries": 620,
+      "shownByRoster": 100,
+      "directoryItems": 520,
+      "rosterItems": 145,
+      "shownTotal": 665
+    },
+    {
+      "venueId": "SC-012204",
+      "name": "เมกาบางนา",
+      "directoryEntries": 589,
+      "shownByRoster": 124,
+      "directoryItems": 465,
+      "rosterItems": 172,
+      "shownTotal": 637
+    },
+    {
+      "venueId": "SC-000401",
+      "name": "เซ็นทรัล ลาดพร้าว",
+      "directoryEntries": 484,
+      "shownByRoster": 45,
+      "directoryItems": 439,
+      "rosterItems": 95,
+      "shownTotal": 534
+    },
+    {
+      "venueId": "SC-000887",
+      "name": "เซ็นทรัล พระราม2",
+      "directoryEntries": 445,
+      "shownByRoster": 80,
+      "directoryItems": 365,
+      "rosterItems": 126,
+      "shownTotal": 491
+    },
+    {
+      "venueId": "SC-001360",
+      "name": "ซีคอนสแควร์ ศรีนครินทร์",
+      "directoryEntries": 442,
+      "shownByRoster": 16,
+      "directoryItems": 426,
+      "rosterItems": 38,
+      "shownTotal": 464
+    },
+    {
+      "venueId": "SC-000761",
+      "name": "เซ็นทรัล ปิ่นเกล้า",
+      "directoryEntries": 418,
+      "shownByRoster": 72,
+      "directoryItems": 346,
+      "rosterItems": 130,
+      "shownTotal": 476
+    },
+    {
+      "venueId": "SC-001244",
+      "name": "สยามพารากอน",
+      "directoryEntries": 417,
+      "shownByRoster": 65,
+      "directoryItems": 352,
+      "rosterItems": 148,
+      "shownTotal": 500
+    },
+    {
+      "venueId": "SC-015800",
+      "name": "เซ็นทรัล เชียงใหม่",
+      "directoryEntries": 399,
+      "shownByRoster": 67,
+      "directoryItems": 332,
+      "rosterItems": 99,
+      "shownTotal": 431
+    },
+    {
+      "venueId": "SC-001783",
+      "name": "เทอร์มินอล21 อโศก",
+      "directoryEntries": 390,
+      "shownByRoster": 25,
+      "directoryItems": 365,
+      "rosterItems": 35,
+      "shownTotal": 400
+    },
+    {
+      "venueId": "SC-C0221",
+      "name": "เทอร์มินอล 21 โคราช",
+      "directoryEntries": 386,
+      "shownByRoster": 18,
+      "directoryItems": 368,
+      "rosterItems": 27,
+      "shownTotal": 395
+    },
+    {
+      "venueId": "SC-002060",
+      "name": "เซ็นทรัล พระราม9",
+      "directoryEntries": 382,
+      "shownByRoster": 64,
+      "directoryItems": 318,
+      "rosterItems": 88,
+      "shownTotal": 406
+    },
+    {
+      "venueId": "SC-009298",
+      "name": "เซ็นทรัล ภูเก็ต",
+      "directoryEntries": 372,
+      "shownByRoster": 21,
+      "directoryItems": 351,
+      "rosterItems": 53,
+      "shownTotal": 404
+    },
+    {
+      "venueId": "SC-011757",
+      "name": "เซ็นทรัล หาดใหญ่",
+      "directoryEntries": 365,
+      "shownByRoster": 54,
+      "directoryItems": 311,
+      "rosterItems": 71,
+      "shownTotal": 382
+    },
+    {
+      "venueId": "SC-001536",
+      "name": "เซ็นทรัล พระราม3",
+      "directoryEntries": 353,
+      "shownByRoster": 61,
+      "directoryItems": 292,
+      "rosterItems": 94,
+      "shownTotal": 386
+    },
+    {
+      "venueId": "SC-002835",
+      "name": "เซ็นทรัล ขอนแก่น",
+      "directoryEntries": 347,
+      "shownByRoster": 63,
+      "directoryItems": 284,
+      "rosterItems": 88,
+      "shownTotal": 372
+    },
+    {
+      "venueId": "SC-000799",
+      "name": "เดอะมอลล์ไลฟ์สโตร์ บางกะปิ",
+      "directoryEntries": 338,
+      "shownByRoster": 136,
+      "directoryItems": 202,
+      "rosterItems": 159,
+      "shownTotal": 361
+    },
+    {
+      "venueId": "SC-014484",
+      "name": "เซ็นทรัล อุดร",
+      "directoryEntries": 324,
+      "shownByRoster": 47,
+      "directoryItems": 277,
+      "rosterItems": 68,
+      "shownTotal": 345
+    },
+    {
+      "venueId": "SC-006549",
+      "name": "เซ็นทรัล นอร์ทวิลล์",
+      "directoryEntries": 322,
+      "shownByRoster": 37,
+      "directoryItems": 285,
+      "rosterItems": 43,
+      "shownTotal": 328
+    },
+    {
+      "venueId": "SC-003895",
+      "name": "เซ็นทรัล ชลบุรี",
+      "directoryEntries": 314,
+      "shownByRoster": 58,
+      "directoryItems": 256,
+      "rosterItems": 82,
+      "shownTotal": 338
+    },
+    {
+      "venueId": "SC-005645",
+      "name": "เซ็นทรัล โคราช",
+      "directoryEntries": 313,
+      "shownByRoster": 42,
+      "directoryItems": 271,
+      "rosterItems": 56,
+      "shownTotal": 327
+    },
+    {
+      "venueId": "SC-C0355",
+      "name": "เทอร์มินอล 21 พัทยา",
+      "directoryEntries": 308,
+      "shownByRoster": 32,
+      "directoryItems": 276,
+      "rosterItems": 49,
+      "shownTotal": 325
+    },
+    {
+      "venueId": "SC-C0262",
+      "name": "เซ็นทรัล พัทยา",
+      "directoryEntries": 304,
+      "shownByRoster": 55,
+      "directoryItems": 249,
+      "rosterItems": 82,
+      "shownTotal": 331
+    },
+    {
+      "venueId": "SC-000229",
+      "name": "ไอคอนสยาม",
+      "directoryEntries": 300,
+      "shownByRoster": 123,
+      "directoryItems": 177,
+      "rosterItems": 158,
+      "shownTotal": 335
+    },
+    {
+      "venueId": "SC-001664",
+      "name": "เซ็นทรัล อีสต์วิลล์",
+      "directoryEntries": 289,
+      "shownByRoster": 47,
+      "directoryItems": 242,
+      "rosterItems": 82,
+      "shownTotal": 324
+    },
+    {
+      "venueId": "SC-015770",
+      "name": "เซ็นทรัล เชียงใหม่ แอร์พอร์ต",
+      "directoryEntries": 287,
+      "shownByRoster": 34,
+      "directoryItems": 253,
+      "rosterItems": 42,
+      "shownTotal": 295
+    },
+    {
+      "venueId": "SC-C0015",
+      "name": "วัน แบงค็อก (พื้นที่ค้าปลีก)",
+      "directoryEntries": 279,
+      "shownByRoster": 83,
+      "directoryItems": 196,
+      "rosterItems": 97,
+      "shownTotal": 293
+    },
+    {
+      "venueId": "SC-015253",
+      "name": "เซ็นทรัล เชียงราย",
+      "directoryEntries": 273,
+      "shownByRoster": 46,
+      "directoryItems": 227,
+      "rosterItems": 59,
+      "shownTotal": 286
+    },
+    {
+      "venueId": "SC-010265",
+      "name": "เซ็นทรัล ระยอง",
+      "directoryEntries": 270,
+      "shownByRoster": 51,
+      "directoryItems": 219,
+      "rosterItems": 64,
+      "shownTotal": 283
+    },
+    {
+      "venueId": "SC-000289",
+      "name": "เอ็มสเฟียร์",
+      "directoryEntries": 263,
+      "shownByRoster": 44,
+      "directoryItems": 219,
+      "rosterItems": 56,
+      "shownTotal": 275
+    },
+    {
+      "venueId": "SC-001164",
+      "name": "เดอะมอลล์ไลฟ์สโตร์ บางแค",
+      "directoryEntries": 262,
+      "shownByRoster": 120,
+      "directoryItems": 142,
+      "rosterItems": 137,
+      "shownTotal": 279
+    },
+    {
+      "venueId": "SC-005868",
+      "name": "เซ็นทรัล นครศรี",
+      "directoryEntries": 262,
+      "shownByRoster": 35,
+      "directoryItems": 227,
+      "rosterItems": 38,
+      "shownTotal": 265
+    },
+    {
+      "venueId": "SC-005210",
+      "name": "เซ็นทรัล นครปฐม",
+      "directoryEntries": 256,
+      "shownByRoster": 51,
+      "directoryItems": 205,
+      "rosterItems": 67,
+      "shownTotal": 272
+    },
+    {
+      "venueId": "SC-003680",
+      "name": "เซ็นทรัล ศรีราชา",
+      "directoryEntries": 254,
+      "shownByRoster": 37,
+      "directoryItems": 217,
+      "rosterItems": 57,
+      "shownTotal": 274
+    },
+    {
+      "venueId": "SC-002950",
+      "name": "เซ็นทรัล ขอนแก่น แคมปัส",
+      "directoryEntries": 241,
+      "shownByRoster": 28,
+      "directoryItems": 213,
+      "rosterItems": 35,
+      "shownTotal": 248
+    },
+    {
+      "venueId": "SC-001066",
+      "name": "เซ็นทรัล พาร์ค",
+      "directoryEntries": 239,
+      "shownByRoster": 54,
+      "directoryItems": 185,
+      "rosterItems": 64,
+      "shownTotal": 249
+    },
+    {
+      "venueId": "SC-013641",
+      "name": "เซ็นทรัล สุราษฎร์ธานี",
+      "directoryEntries": 238,
+      "shownByRoster": 44,
+      "directoryItems": 194,
+      "rosterItems": 52,
+      "shownTotal": 246
+    },
+    {
+      "venueId": "SC-005123",
+      "name": "เซ็นทรัล ศาลายา",
+      "directoryEntries": 237,
+      "shownByRoster": 54,
+      "directoryItems": 183,
+      "rosterItems": 74,
+      "shownTotal": 257
+    },
+    {
+      "venueId": "SC-006469",
+      "name": "เซ็นทรัล แจ้งวัฒนะ",
+      "directoryEntries": 234,
+      "shownByRoster": 43,
+      "directoryItems": 191,
+      "rosterItems": 78,
+      "shownTotal": 269
+    },
+    {
+      "venueId": "SC-006188",
+      "name": "เซ็นทรัล นครสวรรค์",
+      "directoryEntries": 232,
+      "shownByRoster": 40,
+      "directoryItems": 192,
+      "rosterItems": 61,
+      "shownTotal": 253
+    },
+    {
+      "venueId": "SC-001765",
+      "name": "เอ็มควอเทียร์",
+      "directoryEntries": 225,
+      "shownByRoster": 33,
+      "directoryItems": 192,
+      "rosterItems": 78,
+      "shownTotal": 270
+    },
+    {
+      "venueId": "SC-008771",
+      "name": "เซ็นทรัล พิษณุโลก",
+      "directoryEntries": 219,
+      "shownByRoster": 54,
+      "directoryItems": 165,
+      "rosterItems": 60,
+      "shownTotal": 225
+    },
+    {
+      "venueId": "SC-012645",
+      "name": "เซ็นทรัล มหาชัย",
+      "directoryEntries": 219,
+      "shownByRoster": 46,
+      "directoryItems": 173,
+      "rosterItems": 57,
+      "shownTotal": 230
+    },
+    {
+      "venueId": "SC-008039",
+      "name": "เซ็นทรัล อยุธยา",
+      "directoryEntries": 213,
+      "shownByRoster": 41,
+      "directoryItems": 172,
+      "rosterItems": 61,
+      "shownTotal": 233
+    },
+    {
+      "venueId": "SC-014972",
+      "name": "เซ็นทรัล อุบล",
+      "directoryEntries": 211,
+      "shownByRoster": 44,
+      "directoryItems": 167,
+      "rosterItems": 47,
+      "shownTotal": 214
+    },
+    {
+      "venueId": "SC-006353",
+      "name": "เซ็นทรัล เวสต์วิลล์",
+      "directoryEntries": 201,
+      "shownByRoster": 42,
+      "directoryItems": 159,
+      "rosterItems": 64,
+      "shownTotal": 223
+    },
+    {
+      "venueId": "SC-003076",
+      "name": "เซ็นทรัล จันทบุรี",
+      "directoryEntries": 190,
+      "shownByRoster": 42,
+      "directoryItems": 148,
+      "rosterItems": 50,
+      "shownTotal": 198
+    },
+    {
+      "venueId": "SC-C0450",
+      "name": "เทอร์มินอล 21 พระราม 3",
+      "directoryEntries": 176,
+      "shownByRoster": 18,
+      "directoryItems": 158,
+      "rosterItems": 36,
+      "shownTotal": 194
+    },
+    {
+      "venueId": "SC-012208",
+      "name": "เซ็นทรัล วิลเลจ",
+      "directoryEntries": 160,
+      "shownByRoster": 11,
+      "directoryItems": 149,
+      "rosterItems": 11,
+      "shownTotal": 160
+    },
+    {
+      "venueId": "SC-000710",
+      "name": "เดอะมอลล์ไลฟ์สโตร์ ท่าพระ",
+      "directoryEntries": 150,
+      "shownByRoster": 57,
+      "directoryItems": 93,
+      "rosterItems": 67,
+      "shownTotal": 160
+    },
+    {
+      "venueId": "SC-001440",
+      "name": "ทรู ดิจิทัล พาร์ค",
+      "directoryEntries": 149,
+      "shownByRoster": 118,
+      "directoryItems": 31,
+      "rosterItems": 122,
+      "shownTotal": 153
+    },
+    {
+      "venueId": "SC-C0543",
+      "name": "เซ็นทรัล มารีนา เอาต์เล็ต",
+      "directoryEntries": 141,
+      "shownByRoster": 5,
+      "directoryItems": 136,
+      "rosterItems": 5,
+      "shownTotal": 141
+    },
+    {
+      "venueId": "SC-000992",
+      "name": "เซ็นทรัล บางนา",
+      "directoryEntries": 140,
+      "shownByRoster": 15,
+      "directoryItems": 125,
+      "rosterItems": 66,
+      "shownTotal": 191
+    },
+    {
+      "venueId": "SC-011214",
+      "name": "เซ็นทรัล ลำปาง",
+      "directoryEntries": 137,
+      "shownByRoster": 35,
+      "directoryItems": 102,
+      "rosterItems": 43,
+      "shownTotal": 145
+    },
+    {
+      "venueId": "SC-001109",
+      "name": "เซ็นทรัล รามอินทรา",
+      "directoryEntries": 134,
+      "shownByRoster": 27,
+      "directoryItems": 107,
+      "rosterItems": 38,
+      "shownTotal": 145
+    },
+    {
+      "venueId": "SC-001242",
+      "name": "สยามเซ็นเตอร์",
+      "directoryEntries": 130,
+      "shownByRoster": 32,
+      "directoryItems": 98,
+      "rosterItems": 44,
+      "shownTotal": 142
+    },
+    {
+      "venueId": "VN-7e2155ac67fe96",
+      "name": "เอสพลานาด รัชดา",
+      "directoryEntries": 123,
+      "shownByRoster": 10,
+      "directoryItems": 113,
+      "rosterItems": 17,
+      "shownTotal": 130
+    },
+    {
+      "venueId": "SC-000067",
+      "name": "เซ็นทรัล กระบี่",
+      "directoryEntries": 120,
+      "shownByRoster": 27,
+      "directoryItems": 93,
+      "rosterItems": 31,
+      "shownTotal": 124
+    },
+    {
+      "venueId": "SC-006590",
+      "name": "เดอะมอลล์ไลฟ์สโตร์ งามวงศ์วาน",
+      "directoryEntries": 116,
+      "shownByRoster": 48,
+      "directoryItems": 68,
+      "rosterItems": 86,
+      "shownTotal": 154
+    },
+    {
+      "venueId": "SC-C3650",
+      "name": "เซ็นทรัล สมุย",
+      "directoryEntries": 113,
+      "shownByRoster": 26,
+      "directoryItems": 87,
+      "rosterItems": 33,
+      "shownTotal": 120
+    },
+    {
+      "venueId": "SC-001243",
+      "name": "สยามดิสคัฟเวอรี่",
+      "directoryEntries": 67,
+      "shownByRoster": 10,
+      "directoryItems": 57,
+      "rosterItems": 21,
+      "shownTotal": 78
+    },
+    {
+      "venueId": "SC-001052",
+      "name": "พาร์ค สีลม",
+      "directoryEntries": 52,
+      "shownByRoster": 22,
+      "directoryItems": 30,
+      "rosterItems": 23,
+      "shownTotal": 53
+    },
+    {
+      "venueId": "SC-005612",
+      "name": "เดอะมอลล์ โคราช",
+      "directoryEntries": 46,
+      "shownByRoster": 23,
+      "directoryItems": 23,
+      "rosterItems": 68,
+      "shownTotal": 91
+    },
+    {
+      "venueId": "SC-001469",
+      "name": "ซีคอน บางแค",
+      "directoryEntries": 8,
+      "shownByRoster": 2,
+      "directoryItems": 6,
+      "rosterItems": 53,
+      "shownTotal": 59
+    }
+  ],
+  "unit": "one entry = one listed name on one floor and unit of one centre; repeats of the same name, floor and unit are one entry",
+  "limits": [
+    "Names as the centre lists them on the check date; not field-verified operation, a legal tenant or a sales figure.",
+    "A directory omission is not a closure; a centre without a collected directory has no directory items.",
+    "Same-name matching against the brand roster is a display rule, not an identity merge; the research sheet keeps both records.",
+    "Brand ids and logos only for brand matches the sheet confirmed; candidates stay unlinked."
+  ]
+}

@@ -118,6 +118,8 @@ export const STORE_DATASETS = Object.freeze({
   'research.TH.hobby': 'งานอดิเรกและของสะสม',
   'research.TH.hospital': 'บริการสุขภาพและทันตกรรม',
   'research.TH.school': 'การเรียนรู้และคลาสเรียน',
+  // D38: entries of the centre's own official directory that no brand dataset lists yet (scripts/build-directory-listings.py).
+  'research.TH.shopping_directory': 'ไดเรกทอรีของศูนย์',
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 

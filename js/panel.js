@@ -126,11 +126,17 @@ export function railReading(insight) {
   return {focus: pct(r.focus), focusCount: r.focus.total, rest: r.rest.total ? pct(r.rest) : null};
 }
 
-/** Where the shop numbers come from (D22): the shop-list index meta — dataset count and check dates. */
+/**
+ * Where the shop numbers come from (D22): the shop-list index meta — dataset count and check dates — and, since D38,
+ * the centres' own directories (tenants.js#mergeDirectoryCounts puts their meta in meta.directory).
+ */
 function shopSource(meta = {}) {
   const sets = Object.keys(meta.datasets || {}).length;
-  const range = meta.checkedFrom && meta.checkedTo ? `${thaiDate(meta.checkedFrom)}–${thaiDate(meta.checkedTo)}` : thaiDate(meta.checkedTo || '');
-  return `ร้านข้างในจากรายชื่อร้าน${sets ? ` ${num(sets)} ชุดข้อมูล` : ''}${range ? ` ตรวจ ${esc(range)}` : ''}`;
+  const dir = meta.directory?.venues > 0 ? meta.directory : null;
+  const from = [meta.checkedFrom, dir?.checkedFrom].filter(Boolean).sort()[0] || '';
+  const to = [meta.checkedTo, dir?.checkedTo].filter(Boolean).sort().pop() || '';
+  const range = from && to ? `${thaiDate(from)}–${thaiDate(to)}` : thaiDate(to);
+  return `ร้านข้างในจากรายชื่อร้าน${sets ? ` ${num(sets)} ชุดข้อมูล` : ''}${dir ? ` และไดเรกทอรีของศูนย์ ${num(dir.venues)} แห่ง` : ''}${range ? ` ตรวจ ${esc(range)}` : ''}`;
 }
 
 /** Data line of the shop lists (brand view, nearby centres): dataset · source · check dates · boundary. */
@@ -341,13 +347,15 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   for (const a of row._amenities || []) item('สิ่งอำนวยความสะดวก', `${AMENITY_LABELS[a.kind] || a.kind} · ${a.basis === 'owner_reported' ? 'เจ้าของข้อมูลแจ้ง' : 'หน้าเว็บของศูนย์'}`, a.sourceUrl, a.checkedOn);
   if (tenants?.roster) {
     note('รายชื่อร้าน', `รายการที่เชื่อมสถานที่แล้วจากชุดข้อมูลในทะเบียน · ตรวจทะเบียน ${esc(thaiDate(tenants.roster.meta?.asOf || ''))} · รายชื่ออาจยังไม่ครบทั้งศูนย์และไม่ได้ยืนยันว่าทุกร้านเปิดอยู่วันนี้ ลิงก์ข้างชื่อร้านเปิดหลักฐานต้นทางตามวันที่ของแต่ละรายการ`);
+    const listed = tenants.roster.directory;
+    if (listed?.items > 0) note('ไดเรกทอรีของศูนย์', `${num(listed.items)} รายการตามไดเรกทอรีทางการของศูนย์ · ตรวจ ${esc(thaiDate(listed.meta?.checkedTo || listed.meta?.asOf || ''))} · ชื่อ ชั้น ยูนิต และหมวดตามที่ศูนย์ลง ยังไม่อยู่ในการค้นและการเทียบตามแบรนด์จนกว่าจะเชื่อมกับชุดข้อมูลแบรนด์ · ไม่รวมเคาน์เตอร์แบรนด์ในห้างสรรพสินค้า จุดบริการของศูนย์ กิจกรรม และร้านที่ยังไม่เปิด · ชื่อเดียวกันบนชั้นเดียวกับร้านที่ลงไว้แล้วไม่แสดงซ้ำ แต่ชื่อที่ศูนย์เขียนต่างภาษากับชุดข้อมูลแบรนด์อาจปรากฏสองครั้งจนกว่าจะเชื่อมแบรนด์`);
     const ownerFacts = (tenants.roster.items || []).flatMap(item => [item, ...(item.corroboratingMembershipEvidence || [])])
       .filter(item => item.sourceRole === 'owner_confirmed_tenant_state');
     if (ownerFacts.length) note('คำยืนยันเจ้าของข้อมูล', ownerFacts.map(item => `${esc(item.displayName || item.name)} · ${esc(thaiDate(item.ownerAssertionDate))} · ${item.status === 'owner_reported_open' ? 'เปิดอยู่ตามคำยืนยันเจ้าของข้อมูล' : 'ยืนยันชื่อหรือสถานที่ โดยสถานะเปิดปัจจุบันยังไม่ยืนยัน'}`).join('<br>') + ' · เป็นคำยืนยันเจ้าของข้อมูล แยกจากการตรวจเว็บไซต์หรือสำรวจหน้างาน');
     note('ลำดับร้าน', 'ประเมินบทบาทต่อศูนย์: ร้านหลักที่แหล่งระบุ → ร้านที่ตรงกับเอกลักษณ์หรือรูปแบบศูนย์ → ห้างและความบันเทิง ซูเปอร์มาร์เก็ต ร้านปลายทาง อาหาร และบริการ ตามบริบทของศูนย์ บทบาทเดียวกันเรียงตามชื่อ ไม่ใช่อันดับจากยอดขายหรือจำนวนผู้เข้าชม โลโก้ไม่เพิ่มลำดับ');
     const profile = tenants.roster.profile;
     if (profile?.sourceUrl) item('เอกลักษณ์ศูนย์', profile.label, profile.sourceUrl, profile.checkedOn);
-    note('นับร้าน', 'หนึ่งรายการคือหนึ่งสาขาที่แหล่งทางการลงไว้ แบรนด์เดียวมีได้หลายสาขาในศูนย์เดียว แหล่งสองแห่งที่ระบุสาขาเดียวกันนับครั้งเดียว ตัวเลขร้านข้างในของแผนที่ ตาราง และพื้นที่ใช้รายชื่อชุดเดียวกันนี้');
+    note('นับร้าน', `หนึ่งรายการคือหนึ่งสาขาที่แหล่งทางการลงไว้ แบรนด์เดียวมีได้หลายสาขาในศูนย์เดียว แหล่งสองแห่งที่ระบุสาขาเดียวกันนับครั้งเดียว${listed?.items > 0 ? ' · รายการจากไดเรกทอรีของศูนย์นับหนึ่งชื่อต่อหนึ่งชั้นและยูนิต' : ''} ตัวเลขร้านข้างในของแผนที่ ตาราง และพื้นที่ใช้รายชื่อชุดเดียวกันนี้`);
   }
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
   return rowsHtml.join('');
