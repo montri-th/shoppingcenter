@@ -79,10 +79,10 @@ A row typed as a retail component whose parent is not a qualified registry venue
 Every 3D building — context, the building a pin stands in and the buildings of a site — comes from OpenStreetMap first (building parts, with the outline as the podium under them), CityMETER Building V4 only where OpenStreetMap has no building. No venue count, qualification, boundary, site, finding or shop-list figure changes in this release. Rendered checks and live parity belong to the release receipt in `handoff/VERIFICATION.md`.
 
 
-## Tenant delivery — 0.1.26 (release pending)
+## Tenant delivery — 0.1.26 (data release verified)
 
-The prepared roster contains **7,218 displayed listings at 639 hosts from 25 datasets**: Park Silom 23, Central Park Bangkok 64 and One Bangkok Retail 97. Native component foreign keys remain exact while the One Bangkok retail parent presents its source-qualified listings once. Listings are source records/cards, not a census of independent physical shops.
+The published roster contains **7,218 displayed listings at 639 hosts from 25 datasets**: Park Silom 23, Central Park Bangkok 64 and One Bangkok Retail 97. Native component foreign keys remain exact while the One Bangkok retail parent presents its source-qualified listings once. Listings are source records/cards, not a census of independent physical shops.
 
 The dated coverage audit accounts for all 11,139 native inventory rows, 26,955 official-directory observations and 211,203 native source-link rows. It keeps 1,129 accepted source links awaiting publication-gate review and 6,468 candidate-only host references separate from public eligibility; the parsed references contain zero unknown venue IDs. The inventory includes research candidates and components. It is not nationwide tenant or field coverage (DATA_METHOD §9.10).
 
-Local tests and release accounting pass. Provider publication, exact live-byte checks and the rendered live release remain pending; this Build Card does not attest deployment.
+The data/UI release `0442a9682ee00028409fd1b8f6208b482c39b858` is verified: GitHub Pages run `42393891384` succeeded, and the root document plus all 1,160 manifest files passed final-URL, 2xx-status and MIME checks before SHA-256 comparison (1,161 passed, zero failed; 8 Nov 2026 ICT). Actual live Chrome checks confirmed the three venue totals, Park Silom pagination and readable 390 px dark layout, retained One Bangkok component units, and the D37 Google actions. See the dated live receipt in [VERIFICATION.md](../handoff/VERIFICATION.md#0126--observed-dataui-release-0442a96-8-nov-2026-ict) for its scope and limits.
