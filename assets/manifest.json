@@ -43,13 +43,13 @@
     },
     {
       "path": "assets/icons/material-pictogram-300.json",
-      "sha256": "f1946d494f5231c195a16e70c420d3c7e3d16cf424e1d7ea20ed881d2896c330",
-      "bytes": 3812
+      "sha256": "8e71f3c318854c9e85ab05851cde563f40d3949f82b47c8b55492d2c920d8f86",
+      "bytes": 3885
     },
     {
       "path": "assets/icons/material-pictogram-300.woff2",
-      "sha256": "ab4a8142c9d6856b1583c5d634805e0babf62c41c77447be800c8c4a43f9d363",
-      "bytes": 4496
+      "sha256": "554d097c4e6b8cd624d0ae8642d61108e19e0350ac06af973b8d32e9ea066c10",
+      "bytes": 4692
     },
     {
       "path": "assets/icons/material-symbols-Apache-2.0.txt",
