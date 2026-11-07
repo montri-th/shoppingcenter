@@ -165,7 +165,9 @@ test('D35 in a CityMETER unit: the OSM building the pin stands in always wins; O
   const cm = indexParts(cmParts(cmLayer([
     {properties: {height_m: '15'}, rings: [tileRect(0, 0, 40, 40)]},       // under the OSM building 60
     {properties: {height_m: '12'}, rings: [tileRect(400, 400, 440, 440)]}, // no OSM building near: the fallback
-    {properties: {height_m: '31'}, rings: [tileRect(45, 0, 60, 15)]},      // 7 m from OSM 60: a block OSM has mapped
+    {properties: {height_m: '31'}, rings: [tileRect(45, 0, 60, 15)]},      // 7 m from OSM 60, narrow and tall: an artifact
+    {properties: {height_m: '6'}, rings: [tileRect(45, 20, 60, 35)]},      // 7 m from OSM 60, low: a shed OSM has not mapped
+    {properties: {height_m: '8'}, rings: [tileRect(-60, 0, -45, 40)]},     // 5 m from the LOD2 outline 64
   ]), T14));
   const osmPlain = indexOf([feature(60, [rect(2, 2, 38, 38)])]);
   const osmWins = matchInUnit(at(20, 20), osmPlain, cm);
@@ -182,7 +184,11 @@ test('D35 in a CityMETER unit: the OSM building the pin stands in always wins; O
   assert.equal(matchInUnit(at(420, 420), osmPlain, cm, {main: false}).source, 'cm', 'a site point far from OSM buildings: CityMETER too');
   const next = matchInUnit(at(52, 7), osmPlain, cm);
   assert.equal(next.source, 'cm', 'the venue pin\'s own building is never dropped (D28)');
-  assert.equal(matchInUnit(at(52, 7), osmPlain, cm, {main: false}), null, 'a site point in a CityMETER block next to an OSM building: nothing');
+  assert.equal(matchInUnit(at(52, 7), osmPlain, cm, {main: false}), null, 'a site point in a narrow, tall CityMETER block next to an OSM building: an artifact');
+  assert.equal(matchInUnit(at(52, 27), osmPlain, cm, {main: false}).source, 'cm', 'a low CityMETER building next to an OSM building stays a site building');
+  const nextToLod2 = indexOf([feature(64, [rect(-40, 0, 0, 40)], {hide_3d: true, render_height: 20}), feature(65, [rect(-35, 5, -5, 35)], {render_height: 60})]);
+  assert.equal(matchInUnit(at(-52, 20), nextToLod2, cm, {main: false}), null, 'next to a building OSM maps in 3D parts: an artifact');
+  assert.equal(matchInUnit(at(-52, 20), nextToLod2, cm).source, 'cm', 'the venue pin keeps it');
   const f = pinFeatures('V', fallback)[0];
   assert.equal(f.properties.geometry_role, PIN_SOURCES.cm.role);
   assert.equal(f.properties.height_status, 'citymeter_model_estimate');

@@ -11,9 +11,11 @@
  *  2. an OSM building (LOD1) — always that building. Its height is OpenMapTiles render_height; only when that is the
  *     default (5 m: no height or levels tag) does it take the CityMETER height of the same building (a model estimate);
  *  3. a CityMETER building — only where OSM has none: never when its interior point stands in an OSM building, an OSM
- *     building's interior point stands in it, OSM buildings cover COVER_MIN of its footprint (coveredShare), or an OSM
- *     building stands within CM_GAP_M of it. The one exception is the building a venue's own pin stands in when OSM has
- *     no building there: the main building is never dropped (D28).
+ *     building's interior point stands in it, or OSM buildings cover COVER_MIN of its footprint (coveredShare). Around
+ *     the venues (the focus tier) it is not drawn either within CM_GAP_M of an OSM building: OSM has mapped that block.
+ *     A venue's own buildings follow the research: the building its pin stands in is never dropped (D28), and a site
+ *     point's building is dropped next to OSM buildings only as a model artifact (isNarrowTall, or next to an OSM
+ *     building mapped in 3D parts).
  *
  * Pure functions on plain records (any planar frame).
  */
@@ -31,8 +33,18 @@ export const COVER_MIN = 0.3;
  * at LIVE Ramintra, where OSM maps few buildings and CityMETER fills the gaps).
  */
 export const CM_GAP_M = 20;
-/** A site point's building smaller than this (a kiosk, a shrine, a booth) is not drawn as one of the venue's buildings. */
-export const SITE_MIN_AREA_M2 = 50;
+/**
+ * A site point (one building of a venue's research site, data/venue-sites.json) keeps its CityMETER building next to
+ * OSM buildings — the research holds it as one of the venue's buildings, as the owner asked for Mega Bangna — unless it
+ * is a model artifact: within CM_GAP_M of an OSM building and narrow and tall (at least CM_ARTIFACT_HEIGHT_M high on
+ * less than CM_ARTIFACT_AREA_M2: a shadow, a tree, a pole or a sign), or within CM_GAP_M of a building OSM maps in 3D
+ * parts (its mapper modelled the whole complex: Samyan Mitrtown's six blocks, one of them 92 m on 785 m², stand
+ * 0–17 m from its LOD2 podium). Of Mega Bangna's 23 CityMETER site buildings next to OSM buildings this drops ten narrow
+ * ones of 19–278 m² and keeps thirteen, the wings and podiums of 1,700–2,500 m² among them (probe of 7 Nov 2026).
+ */
+export const CM_ARTIFACT_HEIGHT_M = 15;
+export const CM_ARTIFACT_AREA_M2 = 300;
+export const isNarrowTall = c => Number(c.height) >= CM_ARTIFACT_HEIGHT_M && c.areaM2 < CM_ARTIFACT_AREA_M2;
 /** An outline lower than its tallest part by more than this is the podium the parts stand on. */
 export const PODIUM_MARGIN_M = 3;
 /** A vertex counts as a corner when the outline turns there by more than this (collinear points add no detail). */

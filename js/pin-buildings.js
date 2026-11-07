@@ -29,19 +29,20 @@
  * building (D35, owner 2026-11-07 16:35, js/building-choice.js): OSM parts (LOD2, with the podium OSM gives the outline)
  * stay OSM; the OSM building the point stands in stays, always; a CityMETER building the point stands in gives way to the
  * OSM building that stands for it (same building, or OSM covering COVER_MIN of it) and, for a site point, is not drawn
- * within CM_GAP_M of an OSM building; else an OSM building within the edge tolerance. Heights of CityMETER buildings are
+ * when it is a model artifact next to OSM buildings (cmArtifact); else an OSM building within the edge tolerance.
+ * Heights of CityMETER buildings are
  * the dataset's model estimates (`height_m`); an OSM building with the OSM default height (5 m) takes the CityMETER
  * height of the same building.
  *
  * Sites (several buildings of one venue, “campus style”, as CityMETER · Hotel 0.3.6): a venue with research site points
- * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour; a site
- * point whose building is under SITE_MIN_AREA_M2 (a kiosk, a shrine) adds nothing. Each drawn part carries the index of
- * the point that found it (`point`, feature property `site_point`), so the panel counts buildings, not parts.
+ * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour. Each
+ * drawn part carries the index of the point that found it (`point`, feature property `site_point`), so the panel counts
+ * buildings, not parts.
  */
 
 import {lonLatToTile, tileToLonLat} from './mvt.js';
 import {tileBox, cmHeight} from './massing.js';
-import {chooseSource, podiumHeight, ringSamples, coveredShare, isDefaultOsmHeight, COVER_MIN, CM_GAP_M, SITE_MIN_AREA_M2} from './building-choice.js';
+import {chooseSource, podiumHeight, ringSamples, coveredShare, isDefaultOsmHeight, isNarrowTall, COVER_MIN, CM_GAP_M} from './building-choice.js';
 
 export const PIN_TOLERANCE_M = 3;
 export const MAX_PART_AREA_M2 = 150000;
@@ -336,12 +337,20 @@ export function osmStandingFor(c, osm) {
   return best;
 }
 
-/** True when an OSM building stands within `gapM` of a CityMETER building (D35: OSM has mapped that block). */
-export function nearOsm(c, osm, gapM = CM_GAP_M) {
+/** The OSM buildings (and outlines of buildings mapped in parts) within `gapM` of a CityMETER building. */
+export function osmNear(c, osm, gapM = CM_GAP_M) {
   const {kx, ky} = metresPerDegree((c.bbox[1] + c.bbox[3]) / 2);
   const dLon = gapM / kx, dLat = gapM / ky, [w, s, e, n] = c.bbox;
   return candidatesInBox(osm, [w - dLon, s - dLat, e + dLon, n + dLat])
-    .some(o => o.areaM2 >= MIN_PART_AREA_M2 && ringDistanceM(c.outer, o.outer) <= gapM);
+    .filter(o => o.areaM2 >= MIN_PART_AREA_M2 && ringDistanceM(c.outer, o.outer) <= gapM);
+}
+/**
+ * D35: a CityMETER building of a site point that is a model artifact — next to an OSM building (CM_GAP_M) and narrow and
+ * tall, or next to a building OSM maps in 3D parts (js/building-choice.js#CM_ARTIFACT_HEIGHT_M).
+ */
+export function cmArtifact(c, osm) {
+  const near = osmNear(c, osm);
+  return near.length > 0 && (isNarrowTall(c) || near.some(o => o.hide3d));
 }
 
 /** An OSM part with the default height (no height or levels tag) takes the CityMETER height of the same building. */
@@ -362,9 +371,9 @@ function withCmHeights(match, cm) {
  * The building of one point in a CityMETER unit (D35, OSM first, CityMETER only where OSM has none): OSM parts (LOD2)
  * when OSM maps the building there in parts; else the OSM building the point stands in, always; else the CityMETER
  * building the point stands in — unless an OSM building stands for it (then that OSM building), or, for a site point
- * (`main: false`), an OSM building stands within CM_GAP_M of it (then nothing, or the OSM building within the edge
- * tolerance); else an OSM building within the edge tolerance. A default OSM height takes the CityMETER height of the
- * same building. `osm`/`cm`: indexes from indexParts; `main`: the venue's own pin (its building is never dropped).
+ * (`main: false`), it is a model artifact next to OSM buildings (cmArtifact; then nothing, or the OSM building within the
+ * edge tolerance); else an OSM building within the edge tolerance. A default OSM height takes the CityMETER height of
+ * the same building. `osm`/`cm`: indexes from indexParts; `main`: the venue's own pin (its building is never dropped).
  */
 export function matchInUnit(point, osm, cm, {main = true, ...options} = {}) {
   const fromOsm = matchVenue(point, osm, options);
@@ -376,7 +385,7 @@ export function matchInUnit(point, osm, cm, {main = true, ...options} = {}) {
     const same = osmStandingFor(c, osm);
     const viaSame = same ? matchVenue(interiorPoint(same), osm, options) : null;
     if (viaSame) return withCmHeights({...viaSame, method: fromCm.method, rule: viaSame.viaOutline ? 'osm-parts' : 'osm-first'}, cm);
-    if (!main && nearOsm(c, osm)) return fromOsm ? withCmHeights({...fromOsm, rule: 'osm-first'}, cm) : null;
+    if (!main && cmArtifact(c, osm)) return fromOsm ? withCmHeights({...fromOsm, rule: 'osm-first'}, cm) : null;
     return {...fromCm, source: 'cm', rule: 'cm-fallback'};
   }
   return fromOsm ? withCmHeights({...fromOsm, rule: 'osm-first'}, cm) : null;
@@ -559,8 +568,6 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
         // may still be drawn from a coarser tile.
         if (!match && !read.has(`${t.z}/${t.x}/${t.y}`)) { pending = true; if (k === 0) pinPending = true; return; }
         if (!match) return;
-        // A site point's kiosk, shrine or booth is not one of the venue's buildings (D35).
-        if (k > 0 && Math.max(...match.parts.map(p => p.areaM2)) < SITE_MIN_AREA_M2) return;
         if (k === 0) method = match.method;
         for (const part of match.parts) if (!taken.has(part)) { taken.add(part); all.push(k === 0 ? {...part, point: 0} : {...part, site: true, point: k}); }
       });
