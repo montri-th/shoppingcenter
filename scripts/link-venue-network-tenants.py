@@ -32,6 +32,15 @@ MISC_ROLE = 'official_venue_directory_reconciled_consumer_listing'
 DIRECTORY_ROLE = 'official_venue_directory_reconciled_registry_listing'
 HOBBY_ROLE = 'official_brand_exact_named_host_listing'
 SERVICE_ROLE = 'official_venue_directory_reconciled_service_observation'
+ROUND2_MARKER = MARKER + 'round2:'
+OWNER_CHAGEE = {
+    'assertionId': 'R2CHOWN-4d0805b573f54a670a8f58c1',
+    'assertedOn': '2026-11-07', 'brandId': 'R5BR-th-chagee',
+    'outletId': 'OWN30OUT-6a8edb5de93f1ea1001e88a5', 'venueId': 'SC-001304',
+    'selectedCoordinates': [13.7347454, 100.5283859],
+    'googleFeatureId': '0x30e2990077016199:0xea045b1f731da8ff',
+    'identitySourceUrl': 'https://maps.app.goo.gl/72DCxHYuHfWGeVHj8',
+}
 REVIEWED_DATASETS = {'research.TH.' + key for key in (
     'apparel', 'bank', 'beauty', 'beauty_clinic', 'camera', 'fitness', 'furniture',
     'gold', 'grocery', 'hobby', 'luxury', 'massage_spa', 'optical', 'pet',
@@ -43,6 +52,7 @@ DIRECTORY_DOMAINS = {
     'truedigitalpark.com', 'iconsiam.com', 'themalllifestore.com',
     'onebangkok.com', 'mega-bangna.com', 'futurepark.co.th',
     'centralpattana.co.th',
+    'siamcenter.co.th', 'emporium.co.th', 'emquartier.co.th', 'emsphere.co.th',
 }
 BRAND_LOCATORS = {'getfresh.co.th'}
 RETAINED_PRIMARY_DOMAINS = {'starbucks.com', 'snpfood.com', 'cafe-amazon.com',
@@ -78,8 +88,14 @@ def gate(row, as_of):
             or row.get('scopeApproved') is not True or row.get('canonicalIdentityAccepted') is not True):
         return 'not_reviewed_accepted_source_identity'
     kind = row.get('projectionKind', 'base')
-    if kind not in {'base', 'original31_food', 'original31_hobby', 'selected_host_directory', 'bounded_service_directory'}:
+    if kind not in {'base', 'original31_food', 'original31_hobby', 'selected_host_directory', 'bounded_service_directory',
+                    'round2_known_food_directory', 'round2_chagee_official_locator', 'round2_chagee_owner_assertion',
+                    'round2_misc_directory'}:
         return 'unsupported_projection_kind'
+    if row.get('projectionRound', 1) not in {1, 2}:
+        return 'unsupported_projection_round'
+    if row.get('projectionRound') == 2 and (kind == 'base' or not str(row.get('sourceArtifactKey', '')).startswith(ROUND2_MARKER)):
+        return 'round2_specific_source_gate_required'
     if row.get('dataset') not in {FOOD, MISC} | REVIEWED_DATASETS | BOUNDED_SERVICE_DATASETS:
         return 'dataset_out_of_scope'
     if kind == 'base' and row.get('dataset') not in {FOOD, MISC}:
@@ -90,7 +106,8 @@ def gate(row, as_of):
     ids = row.get('venueIds')
     if not isinstance(ids, list) or len(ids) != 1 or not ids[0]:
         return 'single_exact_host_required'
-    if row.get('status') != 'publisher_listed_not_field_verified' or row.get('visibilityHold') or row.get('eventType'):
+    is_owner = kind == 'round2_chagee_owner_assertion'
+    if row.get('status') != ('owner_reported_open' if is_owner else 'publisher_listed_not_field_verified') or row.get('visibilityHold') or row.get('eventType'):
         return 'not_current_consumer_listing'
     checked = builder.iso_date(row.get('checkedOn'))
     if not checked or not builder.iso_date(as_of) or checked > builder.iso_date(as_of):
@@ -102,11 +119,33 @@ def gate(row, as_of):
             or not re.fullmatch('[a-f0-9]{64}', str(row.get('sourceSha256') or ''))):
         return 'missing_source_or_canonical_identity'
     authority, url = row.get('sourceAuthority'), row.get('sourceUrl')
+    if is_owner:
+        proof = row.get('ownerEvidence') or {}
+        if (authority != 'owner_direct_assertion' or row['dataset'] != FOOD
+                or row.get('projectionRound') != 2 or row.get('nativeOwnerReadbackVerified') is not True
+                or row.get('sourceListingRole') != 'owner_confirmed_current_open_existing_branch'
+                or proof.get('sourceKind') != 'explicit_authorized_owner_conversation'
+                or proof.get('nativeReadbackVerified') is not True
+                or proof.get('status') != 'open' or proof.get('fieldVerified') is not False
+                or proof.get('publicChatUrl') is not None
+                or row.get('officialBrandNativeBranchId') is not None):
+            return 'owner_current_open_proof_required'
+        for key in ['assertionId', 'assertedOn', 'brandId', 'outletId', 'venueId', 'selectedCoordinates', 'googleFeatureId']:
+            if proof.get(key) != OWNER_CHAGEE[key]:
+                return 'owner_assertion_identity_host_or_point_mismatch'
+        if (row['sourceRowKey'] != proof['assertionId'] or row['checkedOn'] != proof['assertedOn']
+                or row['brandId'] != proof['brandId'] or row['canonicalOutletIds'] != [proof['outletId']]
+                or ids != [proof['venueId']] or row.get('selectedCoordinates') != proof['selectedCoordinates']
+                or row['sourceBranchId'] != proof['googleFeatureId']
+                or row['sourceUrl'] != OWNER_CHAGEE['identitySourceUrl']
+                or row.get('identitySourceObservationId') != 'R2CHOBS-668e715e1135e2aaaf2312ca'):
+            return 'owner_assertion_identity_host_or_point_mismatch'
+        return None
     if authority == 'official_venue_consumer_directory':
         if not public_source(url, DIRECTORY_DOMAINS):
             return 'not_allowed_official_directory_url'
     elif authority == 'official_brand_consumer_locator' and row.get('dataset') in {FOOD, 'research.TH.hobby'}:
-        domains = {'elephantparade.com'} if kind == 'original31_hobby' else BRAND_LOCATORS
+        domains = {'elephantparade.com'} if kind == 'original31_hobby' else {'global.chagee.com'} if kind == 'round2_chagee_official_locator' else BRAND_LOCATORS
         if not public_source(url, domains):
             return 'not_allowed_brand_consumer_locator'
     elif authority == 'retained_primary_brand_or_host_master' and kind == 'original31_food':
@@ -114,11 +153,41 @@ def gate(row, as_of):
             return 'not_allowed_retained_primary_source'
     else:
         return 'nonconsumer_or_partner_employer_source'
-    if kind == 'bounded_service_directory':
+    if kind == 'round2_known_food_directory':
+        if (row['dataset'] != FOOD or authority != 'official_venue_consumer_directory'
+                or row.get('projectionRound') != 2 or row.get('nativeFoodReadbackVerified') is not True
+                or row.get('staticScreenVerified') is not True or row.get('nativeIdentityHold') is not False
+                or row.get('sourceUnitConflict')
+                or row.get('sourceListingRole') != 'official_consumer_food_location'):
+            return 'round2_food_native_identity_or_unit_hold'
+    elif kind == 'round2_chagee_official_locator':
+        if (row['dataset'] != FOOD or row.get('nativeFoodReadbackVerified') is not True
+                or authority != 'official_brand_consumer_locator'
+                or row.get('sourceListingRole') != 'official_consumer_food_location'
+                or row['brandId'] != 'R5BR-th-chagee'
+                or row['canonicalOutletIds'] != ['PL26OBS-0d571c37329d3062e0522b2b']
+                or ids != ['SC-001237']
+                or row.get('officialBrandNativeBranchId') != '9a0e22fd-7596-40f5-8a92-bd5899ab910e'
+                or row['sourceBranchId'] != row.get('officialBrandNativeBranchId')
+                or row.get('selectedCoordinates') != [13.732716, 100.530465]
+                or row['sourceUrl'] != 'https://global.chagee.com/th/en/stores'):
+            return 'chagee_official_branch_identity_or_point_mismatch'
+    elif kind == 'round2_misc_directory':
+        if (row['dataset'] != MISC or authority != 'official_venue_consumer_directory'
+                or row.get('nativeMiscReadbackVerified') is not True or row.get('nativeIdentityHold') is not False
+                or row.get('brandIdentityRole') != 'retail_banner_or_service_provider'
+                or row.get('scopeStatus') not in {'existing_brand_new_scope_membership', 'miscellaneous_current_registry_gap'}
+                or row.get('sourceListingRole') not in {'format_unresolved', 'official_consumer_shop_directory_membership', 'consumer_visible_store_or_service'}
+                or row.get('storeFormat') != 'source_listed_consumer_location_format_unresolved'
+                or row.get('selectedCoordinates') != [None, None]):
+            return 'round2_misc_native_scope_identity_or_point_hold'
+    elif kind == 'bounded_service_directory':
         if (row['dataset'] not in BOUNDED_SERVICE_DATASETS or authority != 'official_venue_consumer_directory'
                 or not public_source(url, DIRECTORY_DOMAINS)
                 or row.get('nativeServiceReadbackVerified') is not True
                 or row.get('nativeIdentityHold') is not False
+                or (row.get('projectionRound') == 2 and row.get('nativeScopeApproved') is not True)
+                or row.get('sourceUnitConflict')
                 or row.get('sourceListingRole') != 'bounded_consumer_service_observation'
                 or row.get('selectedCoordinates') != [None, None]
                 or row.get('sourceRecordTab') not in {'02_STORES', '16_DENTAL_VENUES', '31_LEARNING_BRANCH_EVIDENCE'}):
@@ -194,6 +263,32 @@ def food_item(rows, venue):
             item['sourceConceptId'] = row['sourceConceptId']
     if row['dataset'] == MISC:
         item['identityNote'] += ' Recognized consumer banner; shop/counter format unresolved; no Camera/Hobby POS upgrade.'
+    if row.get('projectionRound') == 2:
+        item['projectionRound'] = 2
+    if 'officialBrandNativeBranchId' in row:
+        item['officialBrandNativeBranchId'] = row['officialBrandNativeBranchId']
+    if row.get('projectionKind') == 'round2_chagee_owner_assertion':
+        proof = row['ownerEvidence']
+        item.update(sourceRole=builder.OWNER_ROLE, sourceAuthority='owner_direct_assertion',
+                    relationshipBasis='owner_confirmed_scoped_identity_membership_or_state',
+                    sourceGate='direct_owner_approved_fact_no_web_verification',
+                    ownerAssertionId=proof['assertionId'], ownerAssertionDate=proof['assertedOn'],
+                    officialBrandNativeBranchId=None,
+                    sourceHashRole='retained_Google_identity_and_marker_snapshot_only_not_owner_status_assertion',
+                    identityNote='Owner explicitly reported this branch open on ' + proof['assertedOn'] +
+                    '. Retained Google feature supports named branch/host/marker identity. '
+                    'No independent field verification or official locator UUID, floor/unit, legal-operator or point-accuracy claim.',
+                    operationEvidence={'sourceRole': 'owner_direct_assertion', 'assertionId': proof['assertionId'],
+                                       'assertedOn': proof['assertedOn'], 'status': 'owner_reported_open',
+                                       'fieldVerified': False})
+        item['sourceObservationIds'] = [row['identitySourceObservationId'], proof['assertionId']]
+        item['sourceObservationCount'] = 2
+        item['sourceEvidence'] = [
+            {'sourceObservationId': row['identitySourceObservationId'], 'sourceRole': 'owner_supplied_named_Google_identity_marker',
+             'sourceUrl': row['sourceUrl'], 'checkedOn': row['checkedOn'],
+             'sourceSha256': row['sourceSha256'], 'sourceHashScope': row['sourceHashScope']},
+            {'sourceObservationId': proof['assertionId'], 'sourceRole': 'owner_direct_assertion',
+             'checkedOn': proof['assertedOn'], 'sourceHashScope': 'dated_owner_assertion_no_upstream_HTTP_body_or_public_chat_URL'}]
     return item
 
 def own_record(item):
@@ -261,8 +356,15 @@ def merge(payload, rosters, venues, point_check, audit=None):
     if (payload['meta'].get('nativeFoodAllWritesVerified') is not True
             or payload['meta'].get('nativeMiscAllWritesVerified') is not True):
         raise ValueError('native data readback receipts are required')
+    if (any(r.get('projectionRound') == 2 and r.get('projectionKind') == 'bounded_service_directory'
+            for r in payload['observations']) and payload['meta'].get('round2ServiceNativeReadbackVerified') is not True):
+        raise ValueError('round2 service native readback receipt is required')
     for kind, flag in [('selected_host_directory', 'selectedHostNativeReadbackVerified'),
                        ('bounded_service_directory', 'boundedServiceNativeReadbackVerified'),
+                       ('round2_known_food_directory', 'round2FoodNativeReadbackVerified'),
+                       ('round2_chagee_official_locator', 'round2FoodNativeReadbackVerified'),
+                       ('round2_chagee_owner_assertion', 'nativeOwnerAssertionReadbackVerified'),
+                       ('round2_misc_directory', 'round2MiscNativeReadbackVerified'),
                        ('original31_food', 'original31NativeReadbackVerified'),
                        ('original31_hobby', 'original31NativeReadbackVerified')]:
         if any(r.get('projectionKind') == kind for r in payload['observations']) and payload['meta'].get(flag) is not True:
@@ -274,12 +376,13 @@ def merge(payload, rosters, venues, point_check, audit=None):
     def omit(rows, reason):
         omitted[reason] += len(rows)
         omission_rows.extend({'sourceId': r['sourceRowKey'], 'kind': r.get('projectionKind', 'base'),
+                              'projectionRound': r.get('projectionRound', 1),
                               'brand': r['brand'], 'venueId': r['venueIds'][0], 'reason': reason} for r in rows)
     new_corroborations = []
     corroborated_existing_keys, corroborated_new_keys = set(), set()
     grouped = collections.OrderedDict()
     seen = set()
-    for row in sorted(payload['observations'], key=lambda r: (r['dataset'], r['sourceRowKey'])):
+    for row in sorted(payload['observations'], key=lambda r: (r.get('projectionRound', 1), r['dataset'], r['sourceRowKey'])):
         key = (row['dataset'], row['sourceRowKey'])
         if key in seen: raise ValueError('duplicate publisher source observation')
         seen.add(key)
@@ -293,7 +396,7 @@ def merge(payload, rosters, venues, point_check, audit=None):
         if not ok:
             omit([row], 'far_point_conflict'); continue
         # Several component observations accepted as one native Misc branch stay one branch.
-        group = (row['dataset'], vid, tuple(row['canonicalOutletIds'])) if row['dataset'] == MISC or row.get('projectionKind') else (row['dataset'], vid, row['sourceRowKey'])
+        group = (row.get('projectionRound', 1), row['dataset'], vid, tuple(row['canonicalOutletIds'])) if row['dataset'] == MISC or row.get('projectionKind') else (row.get('projectionRound', 1), row['dataset'], vid, row['sourceRowKey'])
         grouped.setdefault(group, []).append(row)
     taken = set()
     for group, rows in grouped.items():
@@ -353,7 +456,17 @@ def merge(payload, rosters, venues, point_check, audit=None):
         assert remove_own(result[vid]) == sorted(items, key=lambda x: x['id'])
     if audit is not None:
         audit['omittedObservations'] = omission_rows
-    return result, {'inputObservations': len(payload['observations']),
+    rounds = {}
+    for round_id in sorted({r.get('projectionRound', 1) for r in payload['observations']}):
+        select = lambda values: [x for _, x in values if x.get('projectionRound', 1) == round_id]
+        new, existing, corroborated_new = select(additions), select(corroborations), select(new_corroborations)
+        rounds[str(round_id)] = {
+            'inputObservations': sum(r.get('projectionRound', 1) == round_id for r in payload['observations']),
+            'newItems': len(new), 'newSourceObservations': sum(x['sourceObservationCount'] for x in new),
+            'corroboratingExistingEvidenceGroups': len(existing),
+            'corroboratingNewEvidenceGroups': len(corroborated_new),
+            'omittedObservations': sum(r['projectionRound'] == round_id for r in omission_rows)}
+    return result, {'inputObservations': len(payload['observations']), 'projectionRounds': rounds,
                     'newItems': len(additions), 'newHosts': len({v for v, _ in additions}),
                     'newSourceObservations': sum(x['sourceObservationCount'] for _, x in additions),
                     'corroboratingExistingItems': len(corroborated_existing_keys),
@@ -404,7 +517,7 @@ def main():
                    'summaryDifferences': [{'venueId': vid, 'summaryObservations': venues[vid].get('storeCount') or 0,
                                            'rosterObservations': len(xs)} for vid, xs in sorted(result.items())
                                           if (venues[vid].get('storeCount') or 0) != len(xs)]})
-    receipt.update({'kind': 'reviewed_official_consumer_directory', 'exportedOn': meta['asOf'],
+    receipt.update({'kind': 'reviewed_consumer_directory_and_dated_owner_assertion' if any(r.get('projectionKind') == 'round2_chagee_owner_assertion' for r in payload['observations']) else 'reviewed_official_consumer_directory', 'exportedOn': meta['asOf'],
                     'inputSha256': sha256(raw), 'sourceHashScope': 'Per-record sourceHashScope and sourceEvidence distinguish HTTP bytes, rendered DOM, normalized collector fields and native-row integrity.',
                     'heldInputObservations': len(payload.get('held', [])),
                     'inputAccounting': payload['meta'].get('inputAccounting', {}),

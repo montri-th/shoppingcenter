@@ -27,12 +27,53 @@ def record(**changes):
 
 def payload(rows):
     return {'meta': {'asOf': '2026-11-07', 'nativeFoodAllWritesVerified': True, 'nativeMiscAllWritesVerified': True,
-                     'selectedHostNativeReadbackVerified': True, 'original31NativeReadbackVerified': True},
+                     'selectedHostNativeReadbackVerified': True, 'original31NativeReadbackVerified': True,
+                     'round2FoodNativeReadbackVerified': True, 'nativeOwnerAssertionReadbackVerified': True,
+                     'round2MiscNativeReadbackVerified': True},
             'observations': rows}
 
 VENUES = {'HOST-1': {'id': 'HOST-1', 'name': 'Host One', 'lat': 13, 'lon': 100}}
 
+def owner_record():
+    p = network.OWNER_CHAGEE
+    return record(projectionKind='round2_chagee_owner_assertion', projectionRound=2,
+                  sourceArtifactKey=network.ROUND2_MARKER+'restaurants', dataset=network.FOOD,
+                  sourceRowKey=p['assertionId'], sourceBranchId=p['googleFeatureId'],
+                  brand='CHAGEE', brandId=p['brandId'], canonicalOutletIds=[p['outletId']],
+                  venueIds=[p['venueId']], selectedCoordinates=p['selectedCoordinates'],
+                  sourceUrl=p['identitySourceUrl'], sourceAuthority='owner_direct_assertion',
+                  sourceListingRole='owner_confirmed_current_open_existing_branch', status='owner_reported_open',
+                  officialBrandNativeBranchId=None, nativeOwnerReadbackVerified=True,
+                  identitySourceObservationId='R2CHOBS-668e715e1135e2aaaf2312ca',
+                  ownerEvidence={**{k:v for k,v in p.items() if k!='identitySourceUrl'},
+                                 'sourceKind':'explicit_authorized_owner_conversation', 'nativeReadbackVerified':True,
+                                 'status':'open','fieldVerified':False,'publicChatUrl':None})
+
 class Gates(unittest.TestCase):
+    def test_chagee_owner_open_requires_exact_dated_native_assertion_and_branch_host_point(self):
+        r=owner_record()
+        self.assertIsNone(network.gate(r,'2026-11-07'))
+        for change in [{'ownerEvidence':{}},{'nativeOwnerReadbackVerified':False},
+                       {'venueIds':['OTHER-HOST']},{'canonicalOutletIds':['OTHER-OUTLET']},
+                       {'selectedCoordinates':[13.7,100.5]},{'officialBrandNativeBranchId':'made-up-uuid'},
+                       {'sourceAuthority':'official_brand_consumer_locator'},{'status':'publisher_listed_not_field_verified'}]:
+            self.assertIsNotNone(network.gate({**r,**change},'2026-11-07'),change)
+        for key,value in [('assertionId','missing-proof'),('assertedOn','2026-11-06'),('venueId','OTHER-HOST'),
+                          ('selectedCoordinates',[None,None]),('fieldVerified',True)]:
+            q=copy.deepcopy(r);q['ownerEvidence'][key]=value
+            self.assertIsNotNone(network.gate(q,'2026-11-07'),key)
+
+    def test_owner_open_and_google_identity_keep_different_source_roles_and_no_fake_owner_http_hash(self):
+        r=owner_record();item=network.food_item([r],{'id':network.OWNER_CHAGEE['venueId'],'name':'Samyan Mitrtown'})
+        self.assertEqual(item['sourceRole'],network.builder.OWNER_ROLE)
+        self.assertEqual(item['status'],'owner_reported_open')
+        self.assertIsNone(item['officialBrandNativeBranchId'])
+        self.assertEqual(item['sourceEvidence'][0]['sourceSha256'],r['sourceSha256'])
+        self.assertEqual(item['sourceEvidence'][1]['sourceRole'],'owner_direct_assertion')
+        self.assertNotIn('sourceUrl',item['sourceEvidence'][1])
+        self.assertNotIn('sourceSha256',item['sourceEvidence'][1])
+        self.assertEqual(item['sourceObservationCount'],2)
+
     def test_evidence_authority_does_not_follow_native_acceptance(self):
         for role in ['payment_partner_list', 'employer_branch_list', 'secondary_directory']:
             self.assertEqual(network.gate(record(sourceAuthority=role), '2026-11-07'),
@@ -90,7 +131,43 @@ class Gates(unittest.TestCase):
                         {'nativeServiceReadbackVerified':False}, {'sourceRecordTab':'02_LICENSED_SCHOOLS'}]:
             self.assertIsNotNone(network.gate({**r,**changes},'2026-11-07'))
 
+    def test_round2_service_scope_and_unit_conflicts_cannot_be_promoted_by_host_identity(self):
+        r=record(dataset='research.TH.salon_barber',projectionKind='bounded_service_directory',projectionRound=2,
+                 sourceArtifactKey=network.ROUND2_MARKER+'salon_barber',nativeServiceReadbackVerified=True,
+                 nativeIdentityHold=False,nativeScopeApproved=True,sourceRecordTab='02_STORES',
+                 sourceListingRole='bounded_consumer_service_observation')
+        self.assertIsNone(network.gate(r,'2026-11-07'))
+        for change in [{'nativeScopeApproved':False},{'sourceUnitConflict':'411 versus211'},
+                       {'nativeIdentityHold':True},{'selectedCoordinates':[13,100]}]:
+            self.assertEqual(network.gate({**r,**change},'2026-11-07'),'service_scope_or_identity_hold')
+
 class Reconciliation(unittest.TestCase):
+    def test_round2_exact_source_corroborates_without_changing_round1_item_facts(self):
+        first=record()
+        initial,_=self.merge([first])
+        second=record(projectionRound=2,projectionKind='round2_known_food_directory',
+                      sourceArtifactKey=network.ROUND2_MARKER+'restaurants', sourceRowKey='round2-observation',
+                      nativeFoodReadbackVerified=True,staticScreenVerified=True,nativeIdentityHold=False)
+        result,_=self.merge([second,first],initial)
+        frozen=copy.deepcopy(initial['HOST-1'][0]);got=copy.deepcopy(result['HOST-1'][0])
+        evidence=got.pop('corroboratingMembershipEvidence')
+        self.assertEqual(got,frozen)
+        self.assertEqual(len(evidence),1)
+        self.assertEqual(evidence[0]['projectionRound'],2)
+        again,_=self.merge([second,first],result)
+        self.assertEqual(result,again)
+
+    def test_round2_owner_meta_receipt_is_required(self):
+        p=payload([owner_record()]);p['meta']['nativeOwnerAssertionReadbackVerified']=False
+        with self.assertRaises(ValueError):network.merge(p,{},VENUES,lambda own,vid:(True,None))
+
+    def test_round2_service_needs_its_current_readback_receipt(self):
+        r=record(dataset='research.TH.salon_barber',projectionKind='bounded_service_directory',projectionRound=2,
+                 sourceArtifactKey=network.ROUND2_MARKER+'salon_barber',nativeServiceReadbackVerified=True,
+                 nativeIdentityHold=False,nativeScopeApproved=True,sourceRecordTab='02_STORES',
+                 sourceListingRole='bounded_consumer_service_observation')
+        with self.assertRaises(ValueError):self.merge([r])
+
     def merge(self, rows, original=None, check=lambda own, vid: (True, None)):
         return network.merge(payload(rows), original or {}, VENUES, check)
 

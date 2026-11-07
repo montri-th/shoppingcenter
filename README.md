@@ -6,7 +6,7 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Release 0.1.20 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.1.21 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
@@ -23,7 +23,7 @@
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
 | ไซต์หลายอาคาร (แท็บไซต์ของชีตวิจัย อ่านกลับ 7 พ.ย. 2569 รอบสาม) | 392 สถานที่ · 5,743 อาคาร | 60 จังหวัด · ตลาด 262 · ศูนย์การค้า 83 · คอมมูนิตี้มอลล์ 41 · เอาท์เล็ต 4 · ไฮเปอร์มาร์เก็ตที่มีร้านเช่า 2 · ขอบเขตจาก OpenStreetMap ตรวจด้วยกฎอัตโนมัติ 388 · ผังของผู้ดำเนินการ 3 · ตามคำตอบเจ้าของ 1 (เมกาบางนา) · ไม่ใช่โฉนดหรือกรรมสิทธิ์ |
 | ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ในทะเบียน) | 1,626 รายการใน 425 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) · 74 รายการของ 43 สถานที่ที่เพิ่มหลัง 26 ต.ค. ยังไม่อยู่ในรายชื่อร้าน |
-| รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 7 พ.ย. 2569) | 6,701 รายการ ใน 638 สถานที่ จาก 25 ชุดข้อมูล | ชุดเดิม 5,493 รายการคงข้อเท็จจริงเดิม · เพิ่ม 1,208 รายการที่ผ่านการตรวจแหล่งและตัวตน · True Digital Park 122 รายการจาก 17 ชุด · รายการ provisional, component ซ้ำ และตัวตน/พิกัดขัดแย้งไม่เข้าเว็บ · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
+| รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 7 พ.ย. 2569) | 6,972 รายการ ใน 638 สถานที่ จาก 25 ชุดข้อมูล | คงข้อเท็จจริงเดิมทั้ง 6,701 รายการ · รอบนี้เพิ่ม 271 รายการ และเสริมหลักฐานให้รายการเดิม 71 รายการ · True Digital Park 122 รายการจาก 17 ชุด · รายการ provisional, component ซ้ำ และตัวตน/พิกัดขัดแย้งไม่เข้าเว็บ · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
 
 ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่ · D33 ตั้งแต่ 0.1.19): หน้าแรกนับศูนย์การค้า คอมมูนิตี้มอลล์ และเอาท์เล็ต แล้วเรียงเขตตามจำนวน — **46 จาก 199 แห่งของกรุงเทพฯ (23%) อยู่ใน ปทุมวัน 22 · วัฒนา 13 · คลองเตย 11 บนพื้นที่ 34.5 จาก 1,571.4 ตร.กม. (2.2%) · 30 จาก 46 แห่ง (65%) อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้าที่เปิดให้บริการ เทียบกับ 60 จาก 153 แห่ง (39%) ในเขตอื่นของกรุงเทพฯ** (ระยะเส้นตรงระหว่างจุดอ้างอิง · สถานีจาก CityMETER · Transit release `transit-data-2026-10-31-r1` · เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · ล้างตัวกรองเป็นทุกประเภทได้ · ก่อน 0.1.19 (D1, ทุกประเภท เรียงตามความหนาแน่น): **50 จาก 890 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 103 แห่ง
 
@@ -168,6 +168,14 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.21 - exact branch links and directory coverage
+
+- Public roster: 6,972 items at 638 hosts from 25 datasets, 962 brand/concept keys; 271 new items (260 food, 11 Miscellaneous), 71 existing-item corroboration groups, all 6,701 preceding item facts preserved. True Digital Park remains 122 items / 17 datasets.
+- CHAGEE is linked separately to Chamchuri Square and Samyan Mitrtown. Samyan's current-open state is the data owner's dated assertion of 7 Nov 2026, separate from its named Google marker; no official branch UUID, floor or unit is invented.
+- Native research now retains 26,903 publisher observations at 67 canonical host IDs, including 3,686 observations from 12 newly collected venue directories. The earlier 55 host IDs represent 53 rolled-up complexes when One Bangkok's three parts are combined; approximate consumer-directory entry groups are not a tenant census.
+- Source discovery has a row for all 11,139 registry records; 594 URL preflights are availability/link checks, not completed tenant reconciliation. National locators and company/portfolio/peer roles remain research evidence until exact branch, format and host gates pass. Event spaces, amenities, shared formats, planned shops and unresolved scope/unit cases stay held.
+- Cache tag `20261107-r30`. Core venue counts, all approved boundaries, 392 sites / 5,743 building reference points, D33 first view and D34 map credit stay unchanged. Method: `DATA_METHOD.md` §9.7; release checks: `handoff/VERIFICATION.md`.
 
 ## 0.1.20 - official-directory network and retail reference points
 
