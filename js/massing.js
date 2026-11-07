@@ -46,7 +46,7 @@
 import {parseVectorTile, tileToLonLat, lonLatToTileUnits, tilesForBBox, metresPerTileUnit} from './mvt.js';
 import {clipRingToBox, offsetRing, roundRing, isClockwise, ringsIntersect, cleanRing, signedArea, pointInRing, ringBBox} from './geometry.js';
 import {GEOJSON_MAXZOOM} from './map-layers.js';
-import {chooseSource, podiumHeight, ringSamples, coveredShare, COVER_MIN, CM_GAP_M} from './building-choice.js';
+import {chooseSource, podiumHeight, CM_GAP_M} from './building-choice.js';
 
 export const CITY_LAYER = 'city-massing';
 export const FOCUS_SOURCE = 'focus-massing';
@@ -338,10 +338,10 @@ export function indexCmBuildings(entries = []) {
 
 /**
  * The OSM building footprints of the focus tiles that meet CityMETER units — every polygon, solid or an outline mapped in
- * parts, cut pieces included — for the last tests of D35: a CityMETER building that OSM buildings cover by COVER_MIN or
- * more is a building OSM already draws (offset or cut differently), and one closer than CM_GAP_M to an OSM building
- * stands in a block OSM has mapped; neither is drawn. entries: [{tile, layer, zones}]. Returns {size, covers(point in the
- * z14 frame) → boolean, near(ring in the z14 frame, gap in z14 units) → boolean}.
+ * parts, cut pieces included — for the last test of D35: a CityMETER building that overlaps an OSM building is one OSM
+ * already draws (offset or cut differently), and one closer than CM_GAP_M to an OSM building stands in a block OSM has
+ * mapped; neither is drawn. entries: [{tile, layer, zones}]. Returns {size, covers(point in the z14 frame) → boolean,
+ * near(ring in the z14 frame, gap in z14 units) → boolean}.
  */
 export function indexOsmBuildings(entries = []) {
   const boxes = new Map();
@@ -353,7 +353,8 @@ export function indexOsmBuildings(entries = []) {
       if (f.properties.hide_3d !== true && !(Number(f.properties.render_height) > 0)) continue;
       for (const poly of polygons) {
         let global = null;
-        gridAdd(boxes, globalBox(poly.outer, g), {tile, extent, outer: poly.outer, get ring() { return global ??= poly.outer.map(g); }});
+        const box = globalBox(poly.outer, g);
+        gridAdd(boxes, box, {tile, extent, outer: poly.outer, box, get ring() { return global ??= poly.outer.map(g); }});
         size++;
       }
     }
@@ -366,7 +367,11 @@ export function indexOsmBuildings(entries = []) {
     },
     near(ring, gap) {
       const b = ringBBox(ring);
-      for (const r of gridQuery(boxes, [b.minX - gap, b.minY - gap, b.maxX + gap, b.maxY + gap])) if (ringDistance(ring, r.ring) <= gap) return true;
+      for (const r of gridQuery(boxes, [b.minX - gap, b.minY - gap, b.maxX + gap, b.maxY + gap])) {
+        // Boxes further apart than the gap cannot hold closer rings (cheap test first).
+        if (r.box[0] - b.maxX > gap || b.minX - r.box[2] > gap || r.box[1] - b.maxY > gap || b.minY - r.box[3] > gap) continue;
+        if (ringsWithin(ring, r.ring, gap)) return true;
+      }
       return false;
     },
   };
@@ -387,6 +392,16 @@ export function ringDistance(a, b) {
     }
   }
   return best;
+}
+/** True when two closed rings come within `gap` of each other (stops at the first close pair). */
+export function ringsWithin(a, b, gap) {
+  for (const [from, to] of [[a, b], [b, a]]) {
+    for (const v of from) {
+      if (pointInRing(v, to)) return true;
+      for (let i = 0; i < to.length - 1; i++) if (segmentDistance(v, to[i], to[i + 1]) <= gap) return true;
+    }
+  }
+  return false;
 }
 
 /**
@@ -543,8 +558,9 @@ export function shapeTile(tile, layer, {regions = [], hosts = [], pins = [], rad
  * building that touches the tile whole, so a building is drawn once — from the tile that holds its interior point —
  * and a building two requests share (`seen`, by geometry) once. Only buildings meeting the focus regions are drawn,
  * minus those an OSM building is drawn in place of (`taken`, keys from shapeTile; D35 OSM first), those whose interior
- * point stands in an outline OSM maps in parts (`skipRings`, lon/lat; their parts are drawn instead), those OSM buildings
- * cover by COVER_MIN or more (`osm`, from indexOsmBuildings: the same building drawn a little apart), those overlapping
+ * point stands in an outline OSM maps in parts (`skipRings`, lon/lat; their parts are drawn instead), those that overlap
+ * or stand within CM_GAP_M of an OSM building (`osm`, from indexOsmBuildings: the same building drawn a little apart, or
+ * a block OSM has mapped), those overlapping
  * a host building and the venue's own pin building (`pins`, the same building) — the host layer draws those. The
  * shape is the focus tier's (offset, rounded corners); the height is `height_m`, the dataset's model estimate
  * (cmHeight). Returns {features, kept, away, shared, inParts, osmFirst, dropped}.
@@ -574,11 +590,9 @@ export function shapeCmTile(tile, layer, {regions = [], hosts = [], pins = [], r
       if (!regionRings.some(region => ringsIntersect(poly.outer, region))) continue;
       if (taken?.has(key)) { osmFirst++; continue; }
       if (skip.some(o => pointInRing(at, o))) { inParts++; continue; }
-      if (osm?.size) {
-        const ring = poly.outer.map(g);
-        // D35: OSM draws this building already (offset or cut differently), or OSM has mapped the block it stands in.
-        if (coveredShare(ringSamples(ring), p => osm.covers(p)) >= COVER_MIN || osm.near(ring, gapUnits)) { osmFirst++; continue; }
-      }
+      // D35: OSM draws this building already (offset or cut differently: they overlap), or OSM has mapped the block it
+      // stands in (an OSM building within CM_GAP_M) — the gap test holds the coverage test, since overlapping rings are 0 apart.
+      if (osm?.size && osm.near(poly.outer.map(g), gapUnits)) { osmFirst++; continue; }
       if (hostRings.some(host => ringsIntersect(poly.outer, host)) || pinRings.some(pin => sameBuilding(poly.outer, pin))) { dropped++; continue; }
       const shapedOuter = roundRing(offsetRing(poly.outer, d, 1), r, segments, {encloseOffset: d});
       const shapedHoles = poly.holes.map(h => roundRing(offsetRing(h, d, 1), r, segments, {encloseOffset: d}))

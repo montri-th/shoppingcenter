@@ -39,8 +39,9 @@ export const CM_GAP_M = 20;
  * is a model artifact: within CM_GAP_M of an OSM building and narrow and tall (at least CM_ARTIFACT_HEIGHT_M high on
  * less than CM_ARTIFACT_AREA_M2: a shadow, a tree, a pole or a sign), or within CM_GAP_M of a building OSM maps in 3D
  * parts (its mapper modelled the whole complex: Samyan Mitrtown's six blocks, one of them 92 m on 785 m², stand
- * 0–17 m from its LOD2 podium). Of Mega Bangna's 23 CityMETER site buildings next to OSM buildings this drops ten narrow
- * ones of 19–278 m² and keeps thirteen, the wings and podiums of 1,700–2,500 m² among them (probe of 7 Nov 2026).
+ * 0–17 m from its LOD2 podium). Of Mega Bangna's 23 CityMETER site buildings next to OSM buildings this drops eleven
+ * narrow ones of 19–281 m² and 15–46 m and keeps twelve, the wings and podiums of 1,700–2,500 m² among them (probe of
+ * 7 Nov 2026 on the live tiles: 89 site points → 38 OSM, 40 CityMETER, 11 artifacts).
  */
 export const CM_ARTIFACT_HEIGHT_M = 15;
 export const CM_ARTIFACT_AREA_M2 = 300;
