@@ -2849,7 +2849,7 @@
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
   "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
-  "venueCoreSha256": "9ba446e12640ca2fb95bbcba593fbc8995218824c9200b191826414d05167444",
+  "venueCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
   "logoManifestSha256": "e10f5e1f28e7d9ddfa4883942296e97e77b899ede47568b2d073d4dfb5583785",
   "linkedDatasets": {
     "research.TH.fitness": {
@@ -3270,12 +3270,12 @@
     "by": "scripts/refresh-tenant-receipt.py",
     "reason": "full refresh of the venue core from a new export of the Research Master; the roster is unchanged",
     "coreAsOf": "2026-11-07",
-    "export01VenuesSha256": "6aa7c6e2c77b09514f5cd10b5da61ad334974d47e64dbf8208347d99d15b70ed",
-    "previousCoreSha256": "0962f2b006f7d3d346693f87f09b2ce963a104049f17a987f28d39b790f8e10f",
+    "export01VenuesSha256": "987f86a4a2dbd6bb2a2c3c0bed362262e85ee8f4f65cdbb9a28aca9c5cfbbe2d",
+    "previousCoreSha256": "9ba446e12640ca2fb95bbcba593fbc8995218824c9200b191826414d05167444",
     "rosterBuiltOnCoreSha256": "07f99419b7e4399e00dc7d879a09eb0eca05c71f1dbb1cdd318d50fb40173387",
     "rowsAdded": 0,
     "rowsRemoved": 0,
-    "rowsChanged": 23,
+    "rowsChanged": 145,
     "awaitingRoster": [
       {
         "venueId": "VN-046d66b0dd4f83",
@@ -3497,6 +3497,15 @@
         "rowsAdded": 0,
         "rowsRemoved": 0,
         "rowsChanged": 1
+      },
+      {
+        "on": "2026-11-07",
+        "coreAsOf": "2026-11-07",
+        "export01VenuesSha256": "6aa7c6e2c77b09514f5cd10b5da61ad334974d47e64dbf8208347d99d15b70ed",
+        "previousCoreSha256": "0962f2b006f7d3d346693f87f09b2ce963a104049f17a987f28d39b790f8e10f",
+        "rowsAdded": 0,
+        "rowsRemoved": 0,
+        "rowsChanged": 23
       }
     ]
   },

@@ -989,6 +989,9 @@ def main():
                     r['group'], r['groupBasis'] = 'mall', 'owner'
             orphans.append({'id': r['id'], 'name': r['name'], 'countRole': r['countRole'], 'hold': hold,
                             'parentId': r['parentId'], 'counted': counted, 'group': r['group']})
+    # The receipt of each regrouped row says whether it counts after D6 (countedBefore: before the regroup).
+    for x in regrouped:
+        x['countedBefore'], x['counted'] = x['counted'], by_id[x['id']]['countable']
 
     # ------------------------------------------------------------ buildings
     links = pd.read_csv(find_export(args.master, '13_BUILDING_LINKS'), dtype=str, keep_default_na=False) \
