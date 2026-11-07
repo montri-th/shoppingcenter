@@ -2,7 +2,9 @@ import copy
 import importlib.util
 import json
 import pathlib
+import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location('network', ROOT / 'scripts/link-venue-network-tenants.py')
@@ -140,6 +142,256 @@ def national_record(**changes):
     row.pop('linkedFloorplanEvidence')
     row.update(changes)
     return row
+
+def round4_record(**changes):
+    row = record(dataset='research.TH.beauty', projectionKind=network.ROUND4_KIND,
+                 projectionRound=4, sourceArtifactKey=network.ROUND4_MARKER+'beauty',
+                 sourceRowKey='round4:consumer:sephora:central-park',
+                 sourceBranchId='cpn-mappedin:RM4:reviewed-sephora',
+                 brand='SEPHORA', brandId='BEB-REVIEWED',
+                 canonicalOutletIds=['EXISTING-SEPHORA'], existingSourceIds=['EXISTING-SEPHORA'],
+                 nativeVenueId='SC-001066', venueIds=['SC-001066'], unitFloor='L2 | 205-206',
+                 sourceUrl='https://map.centralpattana.co.th/mall/RM4?location=reviewed-sephora',
+                 sourceListingRole='reviewed_current_consumer_directory_membership',
+                 nativeCanonicalReadbackVerified=True, nativeSourceReadbackVerified=True,
+                 nativeShoppingLinkReadbackVerified=True, nativeIdentityHold=False,
+                 sourceUnitConflict=False, rawPointConflict=False, currentPOSDelta=0,
+                 physicalShopfrontVerified=False, nativeScopeApproved=True,
+                 rawPublisherMarker=[None, None])
+    row.update(changes)
+    return row
+
+class Round4Review(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.review_file = pathlib.Path(self.directory.name) / 'reviewed-memberships.json'
+        self.review_patch = patch.object(network, 'ROUND4_REVIEW_FILE', self.review_file)
+        self.review_patch.start()
+        self.addCleanup(self.directory.cleanup)
+        self.addCleanup(self.review_patch.stop)
+        self.venues = {
+            'SC-001052': {'id': 'SC-001052', 'name': 'Park Silom', 'lat': 13.728, 'lon': 100.534},
+            'SC-001066': {'id': 'SC-001066', 'name': 'Central Park', 'lat': 13.728, 'lon': 100.538},
+            'SC-C0015': {'id': 'SC-C0015', 'name': 'One Bangkok', 'lat': 13.726, 'lon': 100.547},
+            'VN-88dbfd6362e923': {'id': 'VN-88dbfd6362e923', 'name': 'Parade',
+                                  'parentId': 'SC-C0015', 'lat': 13.726, 'lon': 100.547},
+            'VN-4d6c8a6f3db541': {'id': 'VN-4d6c8a6f3db541', 'name': 'The Storeys',
+                                  'parentId': 'SC-C0015', 'lat': 13.726, 'lon': 100.547}}
+
+    def admit(self, rows):
+        self.review_file.write_text(json.dumps({'memberships': copy.deepcopy(rows)}))
+
+    def packet(self, rows, components=False):
+        result = payload(rows)
+        result['meta']['round4AllNativeReadbacksVerified'] = True
+        if components:
+            result['meta']['componentPublicationHosts'] = copy.deepcopy(network.COMPONENT_PUBLICATION_HOSTS)
+        return result
+
+    def test_round4_requires_one_exact_reviewed_identity_source_unit_host_and_marker_tuple(self):
+        row = round4_record()
+        self.admit([row])
+        self.assertIsNone(network.gate(row, '2026-11-07'))
+        for change in [
+                {'sourceRowKey': 'unreviewed-row'}, {'sourceBranchId': 'unreviewed-publisher-card'},
+                {'canonicalOutletIds': ['ANOTHER-OUTLET']}, {'brandId': 'ANOTHER-BANNER'},
+                {'existingSourceIds': ['UNRELATED-EXISTING-OUTLET']},
+                {'brand': 'Unreviewed banner'}, {'sourceStoreName': 'Unreviewed raw store card'},
+                {'nativeVenueId': 'SC-001052'}, {'venueIds': ['SC-001052']},
+                {'unitFloor': 'L2 | 208'},
+                {'sourceUrl': 'https://map.centralpattana.co.th/mall/RM4?location=other'},
+                {'sourceSha256': 'b'*64}, {'sourceHashScope': 'native_integrity_only'},
+                {'checkedOn': '2026-11-06'},
+                {'selectedCoordinates': [13.728, 100.538]},
+                {'rawPublisherMarker': [13.728, 100.538]},
+                {'sourceAuthority': 'official_brand_consumer_branch_locator'}]:
+            with self.subTest(change=change):
+                self.assertIsNotNone(network.gate({**row, **change}, '2026-11-07'))
+        self.admit([row, row])
+        self.assertEqual(network.gate(row, '2026-11-07'), 'round4_reviewed_membership_tuple_mismatch')
+        self.review_file.unlink()
+        self.assertEqual(network.gate(row, '2026-11-07'), 'round4_review_receipt_missing')
+
+    def test_round4_native_qualification_cannot_be_promoted_by_an_exact_host_or_manifest(self):
+        row = round4_record()
+        self.admit([row])
+        for change in [{'nativeCanonicalReadbackVerified': False}, {'nativeSourceReadbackVerified': False},
+                       {'nativeShoppingLinkReadbackVerified': False}, {'nativeIdentityHold': True},
+                       {'sourceUnitConflict': True}, {'rawPointConflict': True},
+                       {'currentPOSDelta': 1}, {'currentPOSDelta': False},
+                       {'physicalShopfrontVerified': True}, {'nativeScopeApproved': False}]:
+            with self.subTest(change=change):
+                self.assertIsNotNone(network.gate({**row, **change}, '2026-11-07'))
+        misc = round4_record(dataset=network.MISC, nativeScopeApprovalChanged=False,
+                            brandIdentityRole='retail_banner_or_service_provider',
+                            storeFormat='source_listed_consumer_location_format_unresolved')
+        self.admit([misc])
+        self.assertIsNone(network.gate(misc, '2026-11-07'))
+        for change in [{'brandIdentityRole': 'provisional_trade_name'},
+                       {'storeFormat': 'confirmed_independent_shop'},
+                       {'nativeScopeApprovalChanged': True}]:
+            self.assertIsNotNone(network.gate({**misc, **change}, '2026-11-07'))
+        misroute = round4_record(dataset='research.TH.generic_medical_clinic')
+        self.admit([misroute])
+        self.assertEqual(network.gate(misroute, '2026-11-07'), 'dataset_out_of_scope')
+        packet = self.packet([row])
+        packet['meta']['round4AllNativeReadbacksVerified'] = False
+        with self.assertRaisesRegex(ValueError, 'specific source master readback'):
+            network.merge(packet, {}, self.venues, lambda own, vid: (True, None))
+
+    def test_round4_far_raw_marker_cannot_be_bypassed_by_a_null_chosen_point(self):
+        row = round4_record(selectedCoordinates=[None, None], rawPublisherMarker=[14.5, 101.5])
+        self.admit([row])
+        check = network.point_checker(self.venues, {'features': []})
+        result, receipt = network.merge(self.packet([row]), {}, self.venues, check)
+        self.assertEqual(result, {})
+        self.assertEqual(receipt['omitted'], {'raw_branch_marker_host_conflict': 1})
+        self.assertEqual(row['selectedCoordinates'], [None, None])
+        self.assertEqual(row['rawPublisherMarker'], [14.5, 101.5])
+
+    def test_round4_same_brand_and_floor_do_not_corroborate_a_different_original_unit(self):
+        row = round4_record(sourceRowKey='round4:sephora:unit-208',
+                            sourceBranchId='cpn-mappedin:RM4:unit-208',
+                            sourceStoreName='SEPHORA Central Park Unit 208',
+                            canonicalOutletIds=['OUT-SEPHORA-208'],
+                            existingSourceIds=['OUT-SEPHORA-208'], unitFloor='L2 | 208')
+        original = {'id': 'upstream:OUT-SEPHORA-205', 'name': 'SEPHORA Unit 205',
+                    'brand': 'SEPHORA', 'unitFloor': 'L2 | 205',
+                    'status': 'retained_upstream_source_status',
+                    'sourceObservationIds': ['UPSTREAM-SEPHORA-205']}
+        roster = {'SC-001066': [original]}
+        frozen = copy.deepcopy(roster)
+        self.admit([row])
+
+        result, receipt = network.merge(self.packet([row]), roster, self.venues,
+                                        lambda own, vid: (True, None))
+
+        self.assertEqual(result, frozen)
+        self.assertEqual(roster, frozen)
+        self.assertNotIn('corroboratingMembershipEvidence', result['SC-001066'][0])
+        self.assertEqual(receipt['newItems'], 0)
+        self.assertEqual(receipt['corroboratingExistingItems'], 0)
+        self.assertEqual(receipt['omitted'],
+                         {'round4_same_brand_host_without_verified_outlet_crosswalk': 1})
+
+    def test_round4_distinct_new_unit_ids_need_a_bridge_even_on_the_same_brand_floor(self):
+        first = round4_record(sourceRowKey='round4:sephora:a-unit-205',
+                              sourceBranchId='cpn-mappedin:RM4:unit-205',
+                              sourceStoreName='SEPHORA Central Park Unit 205',
+                              canonicalOutletIds=['OUT-SEPHORA-205'],
+                              existingSourceIds=['OUT-SEPHORA-205'], unitFloor='L2 | 205')
+        # A second publisher must not make a same-floor identity guess safer.
+        for second_url in [
+                'https://map.centralpattana.co.th/mall/RM4?location=unit-208',
+                'https://www.centralpattana.co.th/en/shopping/central-park/unit-208']:
+            with self.subTest(source_url=second_url):
+                second = round4_record(sourceRowKey='round4:sephora:b-unit-208',
+                                       sourceBranchId='cpn-storepage:RM4:unit-208',
+                                       sourceStoreName='SEPHORA Central Park Unit 208',
+                                       canonicalOutletIds=['OUT-SEPHORA-208'],
+                                       existingSourceIds=['OUT-SEPHORA-208'],
+                                       unitFloor='L2 | 208', sourceUrl=second_url)
+                self.admit([first, second])
+                packet = self.packet([first, second])
+                frozen = copy.deepcopy(packet)
+
+                result, receipt = network.merge(packet, {}, self.venues,
+                                                lambda own, vid: (True, None))
+
+                self.assertEqual(len(result['SC-001066']), 1)
+                retained = result['SC-001066'][0]
+                self.assertEqual(retained['matchedSourceStoreIds'], ['OUT-SEPHORA-205'])
+                self.assertEqual(retained['unitFloor'], 'L2 | 205')
+                self.assertEqual(retained['sourceObservationCount'], 1)
+                self.assertNotIn('corroboratingMembershipEvidence', retained)
+                self.assertEqual(receipt['newItems'], 1)
+                self.assertEqual(receipt['corroboratingNewItems'], 0)
+                self.assertEqual(receipt['omitted'],
+                                 {'round4_same_brand_host_without_verified_outlet_crosswalk': 1})
+                self.assertEqual(packet, frozen)
+
+    def test_round4_brand_branch_locator_keeps_its_authority_and_exact_reviewed_branch(self):
+        row = round4_record(dataset='research.TH.sport', brand='On', brandId='BR-SP-022',
+                            sourceRowKey='on:store:bangkok-one-bangkok',
+                            sourceBranchId='on:store:bangkok-one-bangkok',
+                            canonicalOutletIds=['OUT-SP-7355ee244e437a09e3'],
+                            existingSourceIds=['OUT-SP-7355ee244e437a09e3'],
+                            nativeVenueId='VN-4d6c8a6f3db541', venueIds=['SC-C0015'],
+                            unitFloor='The Storeys; 1st Floor',
+                            sourceAuthority='official_brand_consumer_branch_locator',
+                            sourceUrl='https://www.on.com/en-th/explore/stores/bangkok-one-bangkok')
+        self.admit([row])
+        self.assertIsNone(network.gate(row, '2026-11-07'))
+        for change in [
+                {'sourceAuthority': 'official_venue_consumer_directory'},
+                {'sourceAuthority': 'official_brand_consumer_locator'},
+                {'sourceUrl': 'https://www.owndays.com/th/en/shops/272'},
+                {'sourceUrl': 'https://www.on.com/en-th/explore/stores/bangkok-iconsiam'},
+                {'sourceRowKey': 'on:store:unreviewed', 'sourceBranchId': 'on:store:unreviewed'},
+                {'sourceSha256': 'c'*64}, {'unitFloor': 'Parade; 1st Floor'}]:
+            with self.subTest(change=change):
+                self.assertIsNotNone(network.gate({**row, **change}, '2026-11-07'))
+
+    def test_round4_parent_presentation_keeps_native_component_and_is_not_a_second_shop(self):
+        child = 'VN-4d6c8a6f3db541'
+        prior = record(sourceRowKey='prior:storeys:branch', venueIds=[child],
+                       canonicalOutletIds=['SHARED-OUTLET'], existingSourceIds=['SHARED-OUTLET'])
+        current = round4_record(dataset=network.FOOD, nativeVenueId=child, venueIds=['SC-C0015'],
+                                sourceRowKey='round4:storeys:branch', canonicalOutletIds=['SHARED-OUTLET'],
+                                existingSourceIds=['SHARED-OUTLET'], unitFloor='The Storeys | 1F',
+                                brand='Coffee One', brandId='BR-COFFEE')
+        self.admit([current])
+        packet = self.packet([prior, current], components=True)
+        frozen = copy.deepcopy(packet)
+        result, receipt = network.merge(packet, {}, self.venues, lambda own, vid: (True, None))
+        self.assertEqual(result.get(child, []), [])
+        self.assertEqual(len(result['SC-C0015']), 1)
+        item = result['SC-C0015'][0]
+        self.assertEqual(item['matchedSourceStoreIds'], ['SHARED-OUTLET'])
+        self.assertEqual(item['registeredChildVenueId'], child)
+        self.assertEqual(item['publicationVenueId'], 'SC-C0015')
+        self.assertEqual(item['corroboratingMembershipEvidence'][0]['registeredChildVenueId'], child)
+        self.assertEqual(len(receipt['componentPublicationRollup']), 1)
+        self.assertEqual(receipt['componentPublicationRollup'][0]['disposition'], 'existing_parent_corroboration')
+        self.assertEqual(packet, frozen)
+        again, _ = network.merge(packet, result, self.venues, lambda own, vid: (True, None))
+        self.assertEqual(again, result)
+
+    def test_prior_component_listing_moves_once_and_retains_canonical_identity_on_rerun(self):
+        child = 'VN-88dbfd6362e923'
+        row = record(sourceRowKey='prior:parade:one-shop', venueIds=[child], unitFloor='B1 | 1B115')
+        packet = self.packet([row], components=True)
+        protected = {'id': 'upstream:PROTECTED', 'name': 'Protected upstream branch',
+                     'brand': 'Different retailer', 'status': 'unreviewed_upstream_status'}
+        result, receipt = network.merge(packet, {child: [protected]}, self.venues,
+                                        lambda own, vid: (True, None))
+        self.assertEqual(result[child], [protected])
+        self.assertEqual(len(result['SC-C0015']), 1)
+        item = result['SC-C0015'][0]
+        self.assertEqual(item['id'], network.FOOD+':02_STORES:OUT-1')
+        self.assertEqual(item['matchedSourceStoreIds'], ['OUT-1'])
+        self.assertEqual(item['registeredChildVenueId'], child)
+        self.assertEqual(item['publicationVenueId'], 'SC-C0015')
+        self.assertEqual(item['unitFloor'], 'Parade | B1 | 1B115')
+        self.assertEqual(len(receipt['componentPublicationRollup']), 1)
+        again, receipt_again = network.merge(packet, result, self.venues, lambda own, vid: (True, None))
+        self.assertEqual(again, result)
+        self.assertEqual(receipt_again['componentPublicationRollup'], receipt['componentPublicationRollup'])
+
+    def test_component_presentation_needs_the_exact_mapping_and_registered_hierarchy(self):
+        child = 'VN-4d6c8a6f3db541'
+        row = round4_record(nativeVenueId=child, venueIds=['SC-C0015'])
+        self.admit([row])
+        with self.assertRaisesRegex(ValueError, 'component publication receipt'):
+            network.merge(self.packet([row]), {}, self.venues, lambda own, vid: (True, None))
+        packet = self.packet([row], components=True)
+        packet['meta']['componentPublicationHosts'] = {child: 'SC-C0015'}
+        with self.assertRaisesRegex(ValueError, 'unreviewed component publication mapping'):
+            network.merge(packet, {}, self.venues, lambda own, vid: (True, None))
+        venues = copy.deepcopy(self.venues)
+        venues[child]['parentId'] = 'SC-001052'
+        with self.assertRaisesRegex(ValueError, 'registered retail component hierarchy changed'):
+            network.merge(self.packet([row], components=True), {}, venues, lambda own, vid: (True, None))
 
 class Gates(unittest.TestCase):
     def test_national_cards_need_the_exact_live_consumer_publication_chain_and_specific_format(self):

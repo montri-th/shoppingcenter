@@ -36,6 +36,60 @@ HOBBY_ROLE = BRAND_ROLE
 SERVICE_ROLE = 'official_venue_directory_reconciled_service_observation'
 ROUND2_MARKER = MARKER + 'round2:'
 ROUND3_MARKER = MARKER + 'round3:'
+ROUND4_MARKER = MARKER + 'round4:'
+ROUND4_KIND = 'round4_reviewed_consumer_membership'
+# Publication uses the already counted retail venue. Native shop-zone foreign
+# keys and literal floor/unit evidence remain attached to each listing.
+COMPONENT_PUBLICATION_HOSTS = {
+    'VN-88dbfd6362e923': 'SC-C0015',  # Parade
+    'VN-4d6c8a6f3db541': 'SC-C0015',  # The Storeys
+}
+ROUND4_REVIEW_FILE = ROOT / 'scripts/reviewed-venue-memberships-2026-11-07.json'
+
+def round4_gate(row):
+    """Admit only the exact native-readback-qualified review packet."""
+    if (row.get('projectionRound') != 4
+            or row.get('nativeCanonicalReadbackVerified') is not True
+            or row.get('nativeSourceReadbackVerified') is not True
+            or row.get('nativeShoppingLinkReadbackVerified') is not True
+            or row.get('nativeIdentityHold') is not False
+            or row.get('sourceUnitConflict') is not False
+            or row.get('rawPointConflict') is not False
+            or type(row.get('currentPOSDelta')) is not int or row.get('currentPOSDelta') != 0
+            or row.get('physicalShopfrontVerified') is not False
+            or row.get('sourceListingRole') != 'reviewed_current_consumer_directory_membership'
+            or row.get('sourceAuthority') not in {'official_venue_consumer_directory', 'official_brand_consumer_branch_locator'}):
+        return 'round4_native_identity_unit_or_source_hold'
+    try:
+        admitted = json.loads(ROUND4_REVIEW_FILE.read_text())['memberships']
+    except (OSError, ValueError, KeyError):
+        return 'round4_review_receipt_missing'
+    fields = ('dataset', 'sourceRowKey', 'sourceBranchId', 'brandId', 'brand', 'sourceStoreName',
+              'canonicalOutletIds', 'nativeVenueId', 'venueIds', 'unitFloor',
+              'sourceAuthority', 'sourceUrl', 'sourceSha256', 'sourceHashScope', 'selectedCoordinates',
+              'rawPublisherMarker', 'checkedOn', 'category', 'storeFormat', 'existingSourceIds',
+              'nativeQualificationNote')
+    matches = [a for a in admitted if a.get('sourceRowKey') == row['sourceRowKey']
+               and a.get('dataset') == row['dataset']]
+    if len(matches) != 1 or any(matches[0].get(k) != row.get(k) for k in fields):
+        return 'round4_reviewed_membership_tuple_mismatch'
+    source_host = row.get('nativeVenueId')
+    expected = COMPONENT_PUBLICATION_HOSTS.get(source_host, source_host)
+    if row['venueIds'] != [expected] or expected not in {'SC-001052', 'SC-001066', 'SC-C0015'}:
+        return 'round4_publication_host_mismatch'
+    if row['dataset'] == MISC:
+        if (row.get('nativeScopeApprovalChanged') is not False
+                or row.get('brandIdentityRole') != 'retail_banner_or_service_provider'
+                or row.get('storeFormat') != 'source_listed_consumer_location_format_unresolved'):
+            return 'round4_misc_format_or_scope_upgrade'
+    elif row.get('nativeScopeApproved') is not True:
+        return 'round4_industry_scope_not_approved'
+    marker = row.get('rawPublisherMarker')
+    if (not isinstance(marker, list) or len(marker) != 2 or
+            (marker != [None, None] and any(isinstance(v, bool) or not isinstance(v, (int, float))
+                                          or not math.isfinite(v) for v in marker))):
+        return 'round4_unbound_or_invalid_raw_marker'
+    return None
 NATIONAL_DIRECTORY_CORROBORATIONS = {'huawei:th-storelist:STHABK5942': ('venuein_seacon:project-7:occupant-15057:unit-8203',
                                     'https://seaconsquare-directory.venue.in.th/',
                                     '4197e947bb7724077d94bbee7577ca96d7aeb6066d9da8e066a9494adb736e59'),
@@ -423,17 +477,21 @@ def gate(row, as_of):
     kind = row.get('projectionKind', 'base')
     if kind not in {'base', 'original31_food', 'original31_hobby', 'selected_host_directory', 'bounded_service_directory',
                     'round2_known_food_directory', 'round2_chagee_official_locator', 'round2_chagee_owner_assertion',
-                    'round2_misc_directory'} | ROUND3_KINDS:
+                    'round2_misc_directory', ROUND4_KIND} | ROUND3_KINDS:
         return 'unsupported_projection_kind'
-    if row.get('projectionRound', 1) not in {1, 2, 3}:
+    if row.get('projectionRound', 1) not in {1, 2, 3, 4}:
         return 'unsupported_projection_round'
     if row.get('projectionRound') == 2 and (kind == 'base' or not str(row.get('sourceArtifactKey', '')).startswith(ROUND2_MARKER)):
         return 'round2_specific_source_gate_required'
+    if ((row.get('projectionRound') == 4 or kind == ROUND4_KIND)
+            and (row.get('projectionRound') != 4 or kind != ROUND4_KIND
+                 or not str(row.get('sourceArtifactKey', '')).startswith(ROUND4_MARKER))):
+        return 'round4_specific_source_gate_required'
     if ((row.get('projectionRound') == 3 or kind in ROUND3_KINDS)
             and (row.get('projectionRound') != 3 or kind not in ROUND3_KINDS
                  or not str(row.get('sourceArtifactKey', '')).startswith(ROUND3_MARKER))):
         return 'round3_specific_source_gate_required'
-    if row.get('projectionRound') == 3 and any(
+    if row.get('projectionRound') in {3, 4} and any(
             re.search(r'api[_-]?key|(?:access|refresh|id)?[_-]?token|authorization|password|secret', key, re.I)
             for key, _ in parse_qsl(urlparse(row.get('sourceUrl') or '').query)):
         return 'round3_private_source_parameters'
@@ -483,8 +541,11 @@ def gate(row, as_of):
             return 'owner_assertion_identity_host_or_point_mismatch'
         return None
     if authority == 'official_venue_consumer_directory':
-        if not public_source(url, DIRECTORY_DOMAINS):
+        if not public_source(url, DIRECTORY_DOMAINS | ({'parksilom.com'} if kind == ROUND4_KIND else set())):
             return 'not_allowed_official_directory_url'
+    elif authority == 'official_brand_consumer_branch_locator' and kind == ROUND4_KIND:
+        if not public_source(url, {'on.com', 'owndays.com'}):
+            return 'not_allowed_reviewed_brand_branch_locator'
     elif authority == 'official_brand_consumer_locator' and kind == 'round3_misc_national_consumer_locator':
         if not builder.public_url(url) or not round3_national_source(row):
             return 'not_allowed_bound_consumer_publication'
@@ -501,6 +562,8 @@ def gate(row, as_of):
             return 'not_allowed_retained_primary_source'
     else:
         return 'nonconsumer_or_partner_employer_source'
+    if kind == ROUND4_KIND:
+        return round4_gate(row)
     if kind == 'round3_known_food_directory':
         return round3_food_gate(row)
     if kind == 'round3_beauty_official_locator':
@@ -587,8 +650,9 @@ def food_item(rows, venue):
         'checkedOn': row['checkedOn'], 'status': row['status'], 'category': row['category'],
         'storeFormat': row['storeFormat'], 'unitFloor': row.get('unitFloor') or '',
         'evidenceStatus': row['evidenceStatus'],
-        'sourceRole': SERVICE_ROLE if row.get('projectionKind') == 'bounded_service_directory' else
-                      DIRECTORY_ROLE if row.get('projectionKind') == 'selected_host_directory' else
+        'sourceRole': BRAND_ROLE if row.get('projectionKind') == ROUND4_KIND and row.get('sourceAuthority') == 'official_brand_consumer_branch_locator' else
+                      SERVICE_ROLE if row.get('projectionKind') == 'bounded_service_directory' else
+                      DIRECTORY_ROLE if row.get('projectionKind') in {'selected_host_directory', ROUND4_KIND} and row['dataset'] != FOOD and row['dataset'] != MISC else
                       BRAND_ROLE if row.get('projectionKind') in {'round3_beauty_official_locator', 'round3_misc_425_consumer_locator', 'round3_misc_national_consumer_locator'} else
                       HOBBY_ROLE if row.get('projectionKind') == 'original31_hobby' else
                       FOOD_ROLE if row['dataset'] == FOOD else MISC_ROLE,
@@ -615,7 +679,7 @@ def food_item(rows, venue):
     item['sourceEvidence'] = [{'sourceObservationId': r['sourceRowKey'], 'sourceUrl': r['sourceUrl'],
                               'checkedOn': r['checkedOn'], 'sourceSha256': r['sourceSha256'],
                               'sourceHashScope': r['sourceHashScope']} for r in rows]
-    if row.get('projectionRound') == 3:
+    if row.get('projectionRound') in {3, 4}:
         for evidence, source in zip(item['sourceEvidence'], rows):
             evidence['sourceAuthority'] = source['sourceAuthority']
         support = [r['linkedFloorplanEvidence'] for r in rows if r.get('linkedFloorplanEvidence')]
@@ -639,8 +703,12 @@ def food_item(rows, venue):
         item['identityNote'] += 'Brand/dealer publisher roles remain separate from legal operator; no native scope-approval or industry POS upgrade.'
     elif row['dataset'] == MISC:
         item['identityNote'] += ' Recognized consumer banner; shop/counter format unresolved; no Camera/Hobby POS upgrade.'
-    if row.get('projectionRound') in {2, 3}:
+    if row.get('projectionRound') in {2, 3, 4}:
         item['projectionRound'] = row['projectionRound']
+    if row.get('projectionKind') == ROUND4_KIND and row.get('nativeVenueId') != row['venueIds'][0]:
+        item['registeredChildVenueId'] = row['nativeVenueId']
+        item['publicationVenueId'] = row['venueIds'][0]
+        item['identityNote'] += ' Native host is the named retail component; this list is presented at its registered retail parent. '
     if 'officialBrandNativeBranchId' in row:
         item['officialBrandNativeBranchId'] = row['officialBrandNativeBranchId']
     if row.get('projectionKind') == 'round2_chagee_owner_assertion':
@@ -745,6 +813,7 @@ def merge(payload, rosters, venues, point_check, audit=None):
                        ('round3_beauty_official_locator', 'round3BeautyNativeReadbackVerified'),
                        ('round3_misc_425_consumer_locator', 'round3MiscNativeReadbackVerified'),
                        ('round3_misc_national_consumer_locator', 'round3MiscNativeReadbackVerified'),
+                       (ROUND4_KIND, 'round4AllNativeReadbacksVerified'),
                        ('original31_food', 'original31NativeReadbackVerified'),
                        ('original31_hobby', 'original31NativeReadbackVerified')]:
         if any(r.get('projectionKind') == kind for r in payload['observations']) and payload['meta'].get(flag) is not True:
@@ -772,7 +841,7 @@ def merge(payload, rosters, venues, point_check, audit=None):
         vid = row['venueIds'][0]
         if vid not in venues:
             omit([row], 'host_outside_public_qualified_population'); continue
-        if row.get('projectionKind') == 'round3_misc_national_consumer_locator' and row['rawPublisherMarker'] != [None, None]:
+        if row.get('projectionKind') in {'round3_misc_national_consumer_locator', ROUND4_KIND} and row['rawPublisherMarker'] != [None, None]:
             raw_ok, _ = point_check(row['rawPublisherMarker'], vid)
             if not raw_ok:
                 omit([row], 'raw_branch_marker_host_conflict'); continue
@@ -794,7 +863,7 @@ def merge(payload, rosters, venues, point_check, audit=None):
         if len(exact) > 1:
             omit(rows, 'multiple_existing_outlet_identities'); continue
         matches = exact
-        if not matches:
+        if not matches and rows[0].get('projectionKind') != ROUND4_KIND:
             brand = linker.brand_key(item['brand'])
             floor = linker.floor_key(item)
             matches = [x for x in original.get(vid, []) if (vid, x['id']) not in taken
@@ -814,7 +883,7 @@ def merge(payload, rosters, venues, point_check, audit=None):
         # outlets in two industries. Different publisher entries with distinct
         # native outlet IDs remain distinct unless unit evidence proves otherwise.
         new_matches = [x for x in result.get(vid, []) if own_record(x) and current_ids(x) & ids]
-        if not new_matches:
+        if not new_matches and rows[0].get('projectionKind') != ROUND4_KIND:
             floor = linker.floor_key(item)
             new_matches = [x for x in result.get(vid, []) if own_record(x)
                            and linker.brand_key(x['brand']) == linker.brand_key(item['brand'])
@@ -827,6 +896,10 @@ def merge(payload, rosters, venues, point_check, audit=None):
             target.setdefault('corroboratingMembershipEvidence', []).append(item)
             corroborated_new_keys.add((vid, target['id']))
             new_corroborations.append((vid, item)); continue
+        if rows[0].get('projectionKind') == ROUND4_KIND and any(
+                linker.brand_key(x.get('displayBrand') or x.get('brand') or x['name']) == linker.brand_key(item['brand'])
+                for x in result.get(vid, [])):
+            omit(rows, 'round4_same_brand_host_without_verified_outlet_crosswalk'); continue
         # An unresolved generic same-brand host match does not create a new unit.
         if rows[0].get('projectionKind') and any(
                 linker.brand_key(x.get('displayBrand') or x.get('brand') or x['name']) == linker.brand_key(item['brand'])
@@ -838,6 +911,42 @@ def merge(payload, rosters, venues, point_check, audit=None):
     # No mutation of an original fact, even when a fresh directory corroborates it.
     for vid, items in original.items():
         assert remove_own(result[vid]) == sorted(items, key=lambda x: x['id'])
+    rolled = []
+    publication_hosts = payload.get('meta', {}).get('componentPublicationHosts') or {}
+    if publication_hosts and publication_hosts != COMPONENT_PUBLICATION_HOSTS:
+        raise ValueError('unreviewed component publication mapping')
+    if any(r.get('projectionKind') == ROUND4_KIND and r.get('nativeVenueId') in COMPONENT_PUBLICATION_HOSTS
+           for r in payload['observations']) and not publication_hosts:
+        raise ValueError('component publication receipt is required')
+    for child, parent in publication_hosts.items():
+        if child not in venues or parent not in venues or venues[child].get('parentId') != parent:
+            raise ValueError('registered retail component hierarchy changed')
+        for item in list(result.get(child, [])):
+            if not own_record(item):
+                continue
+            result[child].remove(item)
+            item['registeredChildVenueId'] = child
+            item['publicationVenueId'] = parent
+            label = venues[child].get('nameEn') or venues[child].get('name') or child
+            if label not in item.get('unitFloor', ''):
+                item['unitFloor'] = ' | '.join(x for x in [label, item.get('unitFloor')] if x)
+            item['identityNote'] += ' Registered retail component retained; publication at the common retail parent is not a second branch or a changed native host. '
+            exact = [x for x in result.get(parent, []) if current_ids(x) & current_ids(item)]
+            if len(exact) > 1:
+                raise ValueError('component listing has several parent outlet identities')
+            if exact:
+                exact[0].setdefault('corroboratingMembershipEvidence', []).append(item)
+            else:
+                result.setdefault(parent, []).append(item)
+            rolled.append({'sourceVenueId': child, 'publicationVenueId': parent, 'itemId': item['id'],
+                           'disposition': 'existing_parent_corroboration' if exact else 'same_item_parent_presentation'})
+    for items in result.values():
+        items.sort(key=lambda x: x['id'])
+    # A component presented at its retail parent is no longer a separate host
+    # with a published list. Do not leave an empty host in counts or shards.
+    for child in publication_hosts:
+        if not result.get(child):
+            result.pop(child, None)
     if audit is not None:
         audit['omittedObservations'] = omission_rows
     rounds = {}
@@ -851,6 +960,7 @@ def merge(payload, rosters, venues, point_check, audit=None):
             'corroboratingNewEvidenceGroups': len(corroborated_new),
             'omittedObservations': sum(r['projectionRound'] == round_id for r in omission_rows)}
     return result, {'inputObservations': len(payload['observations']), 'projectionRounds': rounds,
+                    'componentPublicationRollup': rolled,
                     'newItems': len(additions), 'newHosts': len({v for v, _ in additions}),
                     'newSourceObservations': sum(x['sourceObservationCount'] for _, x in additions),
                     'corroboratingExistingItems': len(corroborated_existing_keys),

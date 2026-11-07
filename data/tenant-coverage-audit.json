@@ -1,0 +1,71 @@
+{
+  "auditVersion": "1.0.0",
+  "asOf": "2026-11-07",
+  "status": "passed",
+  "coverage": {
+    "nativeCoverageVenues": 11139,
+    "directoryObservations": 26955,
+    "directoryObservationNativeHosts": 68,
+    "directoryObservationPublicationGroups": 66,
+    "nativeSourceLinkRows": 211203,
+    "nativeSourceLinkRowsWithoutHostReference": 201515,
+    "nativeAcceptedHostMemberships": 3381,
+    "nativeCandidateOnlyHostReferences": 6468,
+    "publishedListingItems": 7218,
+    "reviewedSourceMemberships": 2148,
+    "requiredNewSourceMemberships": 128,
+    "requiredAdmittedSourceMemberships": 126,
+    "releaseBlockingMemberships": 0,
+    "requiredAdmittedMembershipsUnaccountedFor": 0,
+    "acceptedSourceLinksNeedingPublicationGateReview": 1129,
+    "sourceAvailabilityCounts": {
+      "available": 13,
+      "blocked": 8,
+      "collection_failed": 21,
+      "directory_recorded": 197,
+      "no_source_recorded": 6897,
+      "unavailable": 4,
+      "website_only": 3999
+    },
+    "nextActionCounts": {
+      "collect_official_directory": 79,
+      "inspect_official_website_for_directory": 2172,
+      "reconcile_existing_directory": 66,
+      "resolve_candidate_host_identity": 2187,
+      "review_native_links_for_publication": 323,
+      "source_discovery_or_periodic_review": 6312
+    },
+    "queueCounts": {
+      "accepted_native_links_without_unique_public_trace": 1132,
+      "candidate_only_native_links": 6468,
+      "directory_held": 9006,
+      "directory_unreconciled": 15675,
+      "legacy_documented_holds": 20,
+      "native_source_rows_without_host_reference": 201515,
+      "release_blockers": 0,
+      "reviewed_documented_holds": 2
+    }
+  },
+  "metricMeanings": {
+    "nativeCoverageVenues": "Complete native inventory rows, including research candidates/components; not qualified sites or nationwide field coverage.",
+    "directoryObservations": "Publisher observations; not branches or physical shops.",
+    "nativeAcceptedHostMemberships": "Native source-record-to-host assertions; publication eligibility is separate.",
+    "nativeCandidateOnlySourceRecords": "Source records with candidate hosts and no accepted host.",
+    "nativeSourceLinkRowsWithoutHostReference": "Native source rows with neither accepted nor candidate host references; not evidence that a branch should belong to a venue.",
+    "publishedListingItems": "Actual displayed items; not a census of independent physical shops.",
+    "acceptedSourceLinksNeedingPublicationGateReview": "Accepted native links with no exact public trace or reviewed disposition; not automatically eligible or missing shops.",
+    "requiredAdmittedMembershipsUnaccountedFor": "New admitted source identities absent from public evidence and without a justified explicit hold; release blocking."
+  },
+  "limits": [
+    "Recorded source availability is not a fresh HTTP check unless supplied as such.",
+    "Absence is not closure or evidence of no tenants.",
+    "A source membership, accepted native host link and physical shop are different grains.",
+    "Detailed identities, venue queues and evidence remain private.",
+    "Native inventory audit date is asOf. Later CI hash checks bind this reviewed projection; they do not refresh native sources or conduct a nightly field census."
+  ],
+  "publicRosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
+  "publicRosterShardCount": 32,
+  "reviewedMembershipReceiptSha256": "401eba8affa0d2780f61d363b4fc41cd56f3bb1a3332d073675590aa220362e9",
+  "venueCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
+  "sourceBaselineCommit": "25a9337707bc93ea70046f57b3319a5aed0ced15"
+}

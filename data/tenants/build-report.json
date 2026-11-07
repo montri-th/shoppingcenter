@@ -2,36 +2,36 @@
   "asOf": "2026-11-07",
   "inputObservations": 2341,
   "eligibleSourceObservations": 2336,
-  "publishedVenueHosts": 640,
-  "publishedObservations": 7108,
-  "publishedItems": 7108,
-  "publishedSourceObservations": 7140,
+  "publishedVenueHosts": 639,
+  "publishedObservations": 7218,
+  "publishedItems": 7218,
+  "publishedSourceObservations": 7250,
   "datasets": {
     "research.MLA.PARC": 92,
     "research.TH.apparel": 698,
     "research.TH.bank": 254,
-    "research.TH.beauty": 1105,
+    "research.TH.beauty": 1106,
     "research.TH.beauty_clinic": 443,
     "research.TH.camera": 184,
     "research.TH.car_service": 147,
-    "research.TH.fitness": 139,
-    "research.TH.furniture": 109,
+    "research.TH.fitness": 140,
+    "research.TH.furniture": 110,
     "research.TH.gold": 322,
-    "research.TH.grocery": 62,
-    "research.TH.hobby": 16,
+    "research.TH.grocery": 63,
+    "research.TH.hobby": 19,
     "research.TH.hospital": 1,
     "research.TH.luxury": 299,
     "research.TH.massage_spa": 22,
-    "research.TH.miscellaneous": 907,
-    "research.TH.nail": 28,
-    "research.TH.optical": 411,
+    "research.TH.miscellaneous": 908,
+    "research.TH.nail": 29,
+    "research.TH.optical": 412,
     "research.TH.pet": 58,
     "research.TH.pharmacy": 98,
     "research.TH.playground": 105,
-    "research.TH.restaurants": 1215,
-    "research.TH.salon_barber": 67,
+    "research.TH.restaurants": 1313,
+    "research.TH.salon_barber": 68,
     "research.TH.school": 1,
-    "research.TH.sport": 325
+    "research.TH.sport": 326
   },
   "statuses": {
     "association_listed_not_field_verified": 19,
@@ -46,7 +46,7 @@
     "official_locator_and_bot_registry_listed_not_field_verified": 39,
     "owner_reported_open": 12,
     "publisher_OPEN_current_operation_unverified": 52,
-    "publisher_listed_not_field_verified": 1614,
+    "publisher_listed_not_field_verified": 1724,
     "source_filtered_operational_not_revalidated": 1,
     "source_listed": 2457,
     "source_listed_current_operation_not_field_verified": 205,
@@ -61,11 +61,11 @@
     "dataset_accepted_host_link": 139,
     "dataset_source_named_host_listing": 3032,
     "mla_dated_public_tenant_listing": 78,
-    "official_brand_exact_named_host_listing": 100,
-    "official_chain_exact_named_host_listing": 1213,
+    "official_brand_exact_named_host_listing": 102,
+    "official_chain_exact_named_host_listing": 1311,
     "official_grocery_explicit_parent_host_listing": 7,
-    "official_venue_directory_reconciled_consumer_listing": 813,
-    "official_venue_directory_reconciled_registry_listing": 120,
+    "official_venue_directory_reconciled_consumer_listing": 814,
+    "official_venue_directory_reconciled_registry_listing": 129,
     "official_venue_directory_reconciled_service_observation": 12,
     "owner_confirmed_tenant_state": 15,
     "registry_accepted_primary": 1579
@@ -78,7 +78,7 @@
     "newDisplayedListings": 14,
     "corroboratingExistingListings": 1
   },
-  "withLogo": 4368,
+  "withLogo": 4374,
   "retailerIdentity": {
     "manufacturerLogosSuppressed": 8,
     "monoBrandRetailerNames": 4,
@@ -408,7 +408,7 @@
     {
       "venueId": "SC-001052",
       "summaryObservations": 0,
-      "rosterObservations": 2
+      "rosterObservations": 23
     },
     {
       "venueId": "SC-001065",
@@ -418,7 +418,7 @@
     {
       "venueId": "SC-001066",
       "summaryObservations": 5,
-      "rosterObservations": 30
+      "rosterObservations": 64
     },
     {
       "venueId": "SC-001069",
@@ -1133,7 +1133,7 @@
     {
       "venueId": "SC-C0015",
       "summaryObservations": 14,
-      "rosterObservations": 36
+      "rosterObservations": 97
     },
     {
       "venueId": "SC-C0025",
@@ -2571,11 +2571,6 @@
       "rosterObservations": 5
     },
     {
-      "venueId": "VN-88dbfd6362e923",
-      "summaryObservations": 0,
-      "rosterObservations": 6
-    },
-    {
       "venueId": "VN-8bbbd1f0220c99",
       "summaryObservations": 0,
       "rosterObservations": 5
@@ -3525,7 +3520,7 @@
     ]
   },
   "venueNetwork": {
-    "inputObservations": 2020,
+    "inputObservations": 2146,
     "projectionRounds": {
       "1": {
         "inputObservations": 1500,
@@ -3550,37 +3545,84 @@
         "corroboratingExistingEvidenceGroups": 16,
         "corroboratingNewEvidenceGroups": 9,
         "omittedObservations": 0
+      },
+      "4": {
+        "inputObservations": 126,
+        "newItems": 110,
+        "newSourceObservations": 110,
+        "corroboratingExistingEvidenceGroups": 16,
+        "corroboratingNewEvidenceGroups": 0,
+        "omittedObservations": 0
       }
     },
-    "newItems": 1615,
-    "newHosts": 131,
-    "newSourceObservations": 1639,
-    "corroboratingExistingItems": 287,
-    "corroboratingExistingEvidenceGroups": 312,
-    "corroboratingSourceObservations": 312,
+    "componentPublicationRollup": [
+      {
+        "sourceVenueId": "VN-88dbfd6362e923",
+        "publicationVenueId": "SC-C0015",
+        "itemId": "research.TH.beauty:02_STORES:BEOU-b697dace44a15e91a3",
+        "disposition": "same_item_parent_presentation"
+      },
+      {
+        "sourceVenueId": "VN-88dbfd6362e923",
+        "publicationVenueId": "SC-C0015",
+        "itemId": "research.TH.miscellaneous:02_STORES:OUT-MISC-42e0d3fa755ddc50a9d0",
+        "disposition": "same_item_parent_presentation"
+      },
+      {
+        "sourceVenueId": "VN-88dbfd6362e923",
+        "publicationVenueId": "SC-C0015",
+        "itemId": "research.TH.miscellaneous:02_STORES:OUT-MISC-4c6c43b3596560f841e7",
+        "disposition": "same_item_parent_presentation"
+      },
+      {
+        "sourceVenueId": "VN-88dbfd6362e923",
+        "publicationVenueId": "SC-C0015",
+        "itemId": "research.TH.miscellaneous:02_STORES:OUT-MISC-6fefb1dffd076e2a61b5",
+        "disposition": "same_item_parent_presentation"
+      },
+      {
+        "sourceVenueId": "VN-88dbfd6362e923",
+        "publicationVenueId": "SC-C0015",
+        "itemId": "research.TH.miscellaneous:02_STORES:OUT-MISC-abcee3fb68e64dd083b0",
+        "disposition": "same_item_parent_presentation"
+      },
+      {
+        "sourceVenueId": "VN-88dbfd6362e923",
+        "publicationVenueId": "SC-C0015",
+        "itemId": "research.TH.miscellaneous:02_STORES:OUT-MISC-e1e34ed88dcb2ad618c9",
+        "disposition": "same_item_parent_presentation"
+      }
+    ],
+    "newItems": 1725,
+    "newHosts": 133,
+    "newSourceObservations": 1749,
+    "corroboratingExistingItems": 303,
+    "corroboratingExistingEvidenceGroups": 328,
+    "corroboratingSourceObservations": 328,
     "corroboratingNewItems": 23,
     "corroboratingNewEvidenceGroups": 36,
     "corroboratingNewSourceObservations": 50,
     "newItemsByDataset": {
       "research.TH.apparel": 17,
       "research.TH.bank": 36,
-      "research.TH.beauty": 30,
+      "research.TH.beauty": 31,
       "research.TH.beauty_clinic": 7,
-      "research.TH.furniture": 2,
-      "research.TH.grocery": 2,
-      "research.TH.hobby": 16,
+      "research.TH.fitness": 1,
+      "research.TH.furniture": 3,
+      "research.TH.grocery": 3,
+      "research.TH.hobby": 19,
       "research.TH.hospital": 1,
       "research.TH.luxury": 4,
       "research.TH.massage_spa": 1,
-      "research.TH.miscellaneous": 907,
-      "research.TH.nail": 5,
-      "research.TH.optical": 2,
+      "research.TH.miscellaneous": 908,
+      "research.TH.nail": 6,
+      "research.TH.optical": 3,
       "research.TH.pharmacy": 1,
       "research.TH.playground": 2,
-      "research.TH.restaurants": 570,
-      "research.TH.salon_barber": 5,
+      "research.TH.restaurants": 668,
+      "research.TH.salon_barber": 6,
       "research.TH.school": 1,
-      "research.TH.sport": 6
+      "research.TH.sport": 7
     },
     "omitted": {
       "far_point_conflict": 13,
@@ -3589,7 +3631,7 @@
     },
     "kind": "reviewed_consumer_directory_and_dated_owner_assertion",
     "exportedOn": "2026-11-07",
-    "inputSha256": "1a67c737646bc0dba435afb295fd34256d471fa855a289a1ac031b3b23783e1e",
+    "inputSha256": "af03b9034e26df439b79186441da8ba1bc526e94297ebfc85dc3841f411df9c7",
     "sourceHashScope": "Per-record sourceHashScope and sourceEvidence distinguish HTTP bytes, rendered DOM, normalized collector fields and native-row integrity.",
     "heldInputObservations": 184,
     "inputAccounting": {
@@ -3641,6 +3683,18 @@
         "physicalPOSUpgrade": 0,
         "selectedShopPointsAdded": 0,
         "nativeDatasetScopeAndOperationPreserved": true
+      },
+      "round4": {
+        "priorFrozenSourceViews": 2020,
+        "newNativeQualifiedMemberships": 126,
+        "existingFoodBranches": 113,
+        "newFoodCanonicalBranch": 1,
+        "existingNonfoodCanonicalBranches": 11,
+        "newMiscCanonicalCandidate": 1,
+        "pendingIndustryIntakesExcluded": 2,
+        "nativeShoppingBranchPairs": 128,
+        "newSourceDirectoryObservations": 52,
+        "fieldOperationOrSelectedPointUpgrade": false
       }
     },
     "unit": "One source-listed consumer branch/card; native Misc component views of one canonical branch stay one item.",
