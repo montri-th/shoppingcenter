@@ -172,7 +172,7 @@ export function otherTypesLine(others) {
   if (!others || !(others.count > 0)) return '';
   const top = (others.groups || []).filter(g => g.count > 0 && g.id !== 'other').slice(0, 3).map(g => esc(groupById(g.id).short));
   const list = top.length > 1 ? `${top.slice(0, -1).join(' ')} และ${top[top.length - 1]}` : top[0] || '';
-  return `<p class="hint other-types">${esc(others.where)} ยังมีสถานที่ค้าปลีกประเภทอื่นอีก <strong class="data-number">${num(others.count)}</strong> แห่ง${list ? ` เช่น ${list}` : ''} · <button type="button" class="link-button" data-action="clear-filter" data-id="group">ดูทุกประเภท</button></p>`;
+  return `<p class="hint other-types">${esc(others.where)} ยังมีสถานที่ค้าปลีกประเภทอื่นอีก <strong class="data-number">${num(others.count)}</strong> แห่ง${list ? ` เช่น ${list}` : ''} · <button type="button" class="link-button" data-action="show-all-types" data-id="${esc(others.province || '')}">ดูทุกประเภท</button></p>`;
 }
 
 export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = [], shops = null, transit = null, others = null}) {

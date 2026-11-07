@@ -170,7 +170,7 @@ function otherTypes(f, province = '') {
   if (!others.length) return null;
   const counts = new Map();
   for (const r of others) counts.set(r.group, (counts.get(r.group) || 0) + 1);
-  return {count: others.length, where: province ? `ใน${provinceShort(province)}` : 'ทั่วประเทศ',
+  return {count: others.length, where: province ? `ใน${provinceShort(province)}` : 'ทั่วประเทศ', province,
     groups: [...counts].map(([id, count]) => ({id, count})).sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))};
 }
 
@@ -763,6 +763,17 @@ function resetToOverview({fit = true} = {}) {
   update({fit});
 }
 
+/**
+ * D39: “ดูทุกประเภท” under the first view's figures shows every type in the area the line names — the province it read
+ * stays (as the จังหวัด filter), so the reader sees those places, not another province's first finding.
+ */
+function showAllTypes(province = '') {
+  $('group').value = '';
+  if (province && !$('province').value && provinceByCode(province)) setProvinceFilter(province);
+  state.panel = overviewPanel();
+  update({fit: true});
+}
+
 function clearFilter(key) {
   if (key === 'all') { $('filters').reset(); return; }
   $(key).value = '';
@@ -811,6 +822,7 @@ function onPanelAction(event) {
       if (state.panel.mode === 'venue' && state.panel.id === id) { tenantSelection.select(id, {retry: true}); renderPanel(); }
       break;
     case 'clear-filter': clearFilter(id); break;
+    case 'show-all-types': showAllTypes(id); break;
     case 'set-group': $('group').value = id; state.panel = ['district', 'station'].includes(state.panel.mode) ? state.panel : overviewPanel(); update({fit: state.panel.mode === 'overview'}); break;
     case 'crumb-country': $('province').value = ''; showCountry(); break;
     case 'crumb-province': selectProvince(id); break;

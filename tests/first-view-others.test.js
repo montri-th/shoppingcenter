@@ -7,12 +7,14 @@ const visible = html => html.replace(/<[^>]+>/g, ' ');
 const CAVEAT = /caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน|ช่องว่างตลาด|ทำเลทอง/;
 
 test('the other-types line names the area, the count and the largest groups, with the button that shows every type', () => {
-  const html = otherTypesLine({count: 668, where: 'ในกรุงเทพฯ', groups: [{id: 'market', count: 470}, {id: 'hoststore', count: 120}, {id: 'fuel', count: 60}, {id: 'other', count: 18}]});
+  const html = otherTypesLine({count: 668, where: 'ในกรุงเทพฯ', province: 'BKK', groups: [{id: 'market', count: 470}, {id: 'hoststore', count: 120}, {id: 'fuel', count: 60}, {id: 'other', count: 18}]});
   assert.match(html, /ในกรุงเทพฯ ยังมีสถานที่ค้าปลีกประเภทอื่นอีก <strong class="data-number">668<\/strong> แห่ง เช่น ตลาด ไฮเปอร์\/ซูเปอร์มาร์เก็ต และสถานีบริการ/);
-  assert.match(html, /data-action="clear-filter" data-id="group">ดูทุกประเภท</);
+  assert.match(html, /data-action="show-all-types" data-id="BKK">ดูทุกประเภท</, 'the button keeps the province the line names');
   assert.doesNotMatch(html, /อื่น ๆ/, 'the catch-all group is not named as an example');
   assert.ok(!CAVEAT.test(visible(html)));
   assert.equal(otherTypesLine(null), '');
   assert.equal(otherTypesLine({count: 0, where: 'ทั่วประเทศ', groups: []}), '');
-  assert.match(otherTypesLine({count: 3, where: 'ทั่วประเทศ', groups: [{id: 'market', count: 3}]}), /ทั่วประเทศ ยังมีสถานที่ค้าปลีกประเภทอื่นอีก <strong class="data-number">3<\/strong> แห่ง เช่น ตลาด ·/);
+  const country = otherTypesLine({count: 3, where: 'ทั่วประเทศ', province: '', groups: [{id: 'market', count: 3}]});
+  assert.match(country, /ทั่วประเทศ ยังมีสถานที่ค้าปลีกประเภทอื่นอีก <strong class="data-number">3<\/strong> แห่ง เช่น ตลาด ·/);
+  assert.match(country, /data-action="show-all-types" data-id="">/);
 });
