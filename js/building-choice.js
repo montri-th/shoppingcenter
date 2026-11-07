@@ -1,37 +1,42 @@
 /**
- * OpenStreetMap first, CityMETER Building V4 as the fallback — which source draws one building inside a CityMETER unit
- * (D32, owner 7 Nov 2026 08:31: “ถ้ามี อาคารจาก OSM ที่รายละเอียดดีกว่า ให้ใช้ OSM ก่อน CityMETER ใช้ เป็น fallback นะ”).
+ * OpenStreetMap first, everywhere; CityMETER Building V4 only where OpenStreetMap has no building (D35, owner
+ * 7 Nov 2026 16:35: “เช็คดีๆเรื่องการใช้ 3d building mass จาก OSM ที่ LOD สูงกว่าเป็นหลัก แล้วใช้ จาก CityMETER เป็น fallback
+ * เท่านั้น บังคับเรื่องนี้ให้ทั่วทั้งเวบ”). It replaces the per-building choice of D32 (0.1.18), which let CityMETER draw a
+ * building when it held two or more blocks inside one OSM building, or when its single box had more corners: at Samyan
+ * Mitrtown that drew eight CityMETER blocks of 15–785 m² over one podium with two towers.
  *
- * What the two sources hold (probe of 8 z14 tiles in CityMETER units, 7 Nov 2026 — PARC Bangna, Esplanade Ratchada,
- * LIVE Ramintra, Ubon, Khon Kaen, Phuket, Hat Yai, Korat; 9,302 OSM buildings of 12 m² or more): CityMETER Building V4
- * carries the same outline as OpenStreetMap for 97 % of them (same corners in most pairs, area ratio median 1.00) and
- * adds its own buildings where OSM has none — those are the boxy ones. Before 0.1.18 a CityMETER unit replaced every
- * OSM building, so the 1.4 % that CityMETER does not hold were not drawn at all. The rule looks only at the places where
- * the two differ:
- *  1. one source maps as one building what the other maps as two or more (together at least half of it) → the source
- *     with more buildings;
- *  2. the same single building in both → OpenStreetMap when its outline is more detailed (more corners, and not under
- *     half of CityMETER's footprint) or covers more than twice CityMETER's footprint; otherwise CityMETER;
- *  3. only one source has a building there → that source.
- * An OSM building drawn in place of a CityMETER one keeps the CityMETER height when its own is the OpenMapTiles
- * default (5 m: no height or levels tag); either height is display context (a CityMETER height is a model estimate).
- * A building OSM maps in parts (building:part, LOD2) is decided before this: its parts stay OSM.
+ * The order, for the focus tier (js/massing.js), the pin and site buildings (js/pin-buildings.js) alike:
+ *  1. OSM building parts (LOD2, building:part) — the parts; the outline itself as the podium under them when OSM gives
+ *     the outline its own height and that height is lower than its tallest part (podiumHeight);
+ *  2. an OSM building (LOD1) — always that building. Its height is OpenMapTiles render_height; only when that is the
+ *     default (5 m: no height or levels tag) does it take the CityMETER height of the same building (a model estimate);
+ *  3. a CityMETER building — only where OSM has none: never when its interior point stands in an OSM building, an OSM
+ *     building's interior point stands in it, OSM buildings cover COVER_MIN of its footprint (coveredShare), or an OSM
+ *     building stands within CM_GAP_M of it. The one exception is the building a venue's own pin stands in when OSM has
+ *     no building there: the main building is never dropped (D28).
  *
- * Pure functions on plain records, shared by the focus tier (js/massing.js) and the pin buildings (js/pin-buildings.js).
+ * Pure functions on plain records (any planar frame).
  */
 
 /** OpenMapTiles render_height when a building has no height or levels tag. */
 export const OSM_DEFAULT_HEIGHT_M = 5;
 export const isDefaultOsmHeight = (height, base = 0) => Number(height) === OSM_DEFAULT_HEIGHT_M && !Number(base);
-/** Pieces under half of a building's footprint are pieces of it, not the same building drawn another way. */
-export const SAME_SIZE_MIN = 0.5;
-/** An OSM footprint over twice the CityMETER one holds more of the building than CityMETER does. */
-export const LARGER_FACTOR = 2;
+/** A CityMETER building with this share of its footprint under OSM buildings is a building OSM already draws. */
+export const COVER_MIN = 0.3;
+/**
+ * A CityMETER building closer than this to an OSM building is not drawn: OSM has mapped that block, and the CityMETER
+ * blocks it does not hold there are mostly trees, shadows and pieces of the same buildings (probe of 7 Nov 2026, D35:
+ * Samyan Mitrtown's six CityMETER blocks of 15–785 m² and 31–92 m stand 0–17 m from its OSM podium; in its z14 tile 469
+ * of 597 CityMETER-only buildings lie within 20 m of an OSM building, against 161 of 1,312 at PARC Bangna and 54 of 5,832
+ * at LIVE Ramintra, where OSM maps few buildings and CityMETER fills the gaps).
+ */
+export const CM_GAP_M = 20;
+/** A site point's building smaller than this (a kiosk, a shrine, a booth) is not drawn as one of the venue's buildings. */
+export const SITE_MIN_AREA_M2 = 50;
+/** An outline lower than its tallest part by more than this is the podium the parts stand on. */
+export const PODIUM_MARGIN_M = 3;
 /** A vertex counts as a corner when the outline turns there by more than this (collinear points add no detail). */
 export const CORNER_TURN_DEG = 10;
-
-const CM = Object.freeze({use: 'cm', take: [], height: null, rule: 'cm'});
-const OSM_ONLY = Object.freeze({use: 'osm', take: [], height: null, rule: 'osm-only'});
 
 /** Corners of a closed ring (any planar frame): vertices where the outline turns by more than CORNER_TURN_DEG. */
 export function corners(ring) {
@@ -50,33 +55,59 @@ export function corners(ring) {
   return count;
 }
 
-/** True when the OSM building is the more detailed drawing of the same single building (rule 2). */
-export function osmFiner(o, c) {
-  if (o.areaM2 > LARGER_FACTOR * c.areaM2) return true;
-  return !o.cut && o.corners > c.corners && o.areaM2 >= SAME_SIZE_MIN * c.areaM2;
+/**
+ * The source of one OSM building inside a CityMETER unit: always OSM (D35).
+ * o: {areaM2, height, base}; inside: CityMETER buildings whose interior point stands in it ({areaM2, height, key});
+ * host: the CityMETER building holding its interior point, or null.
+ * Returns {use: 'osm', take: the CityMETER buildings it is drawn in place of, height: the CityMETER height to draw it with
+ * (its own is the OSM default) or null, rule: 'osm-first' (it stands for CityMETER buildings) | 'osm-only'}.
+ */
+export function chooseSource(o, {inside = [], host = null} = {}) {
+  const take = inside.length ? inside : host ? [host] : [];
+  const c = inside.length ? inside.reduce((a, b) => (b.areaM2 > a.areaM2 ? b : a)) : host;
+  const height = c && isDefaultOsmHeight(o.height, o.base) && Number.isFinite(c.height) && c.height > 0 ? c.height : null;
+  return {use: 'osm', take, height, rule: take.length ? 'osm-first' : 'osm-only'};
 }
 
 /**
- * The source of one OSM building inside a CityMETER unit.
- * o: {corners, areaM2, height, base, cut} — cut: the piece is crossed by its tile's edge (OpenFreeMap clips per tile),
- *    so its corners and area are the tile's: it never wins on corners and does not count towards rule 1.
- * inside: CityMETER buildings whose interior point stands in it ({corners, areaM2, height, key});
- * host: the CityMETER building holding its interior point, or null; hostOsm: {count, areaM2} of the whole OSM buildings
- *    whose interior point stands in that host (it included).
- * Returns {use: 'osm' | 'cm', take: the CityMETER buildings it is drawn in place of, height: the CityMETER height to draw
- * it with (its own is the OSM default) or null, rule}.
+ * The podium height of an OSM building mapped in parts, or null. OSM's Simple 3D Buildings scheme gives the outline
+ * either the height of the whole building (its tallest part) or its own base mass; only the second is drawn: a real
+ * height (not the default) lower than the tallest part by more than PODIUM_MARGIN_M. outline, parts: {height, base}.
  */
-export function chooseSource(o, {inside = [], host = null, hostOsm = null} = {}) {
-  const insideArea = inside.reduce((sum, c) => sum + c.areaM2, 0);
-  if (inside.length >= 2 && insideArea >= SAME_SIZE_MIN * o.areaM2) return CM; // rule 1: CityMETER has more buildings
-  if (!inside.length && host && hostOsm && hostOsm.count >= 2 && hostOsm.areaM2 >= SAME_SIZE_MIN * host.areaM2) {
-    return osmFor(o, [host], host, 'osm-more-buildings'); // rule 1: OSM has more buildings
-  }
-  const c = inside.length ? inside.reduce((a, b) => (b.areaM2 > a.areaM2 ? b : a)) : host;
-  if (!c) return OSM_ONLY; // rule 3
-  return osmFiner(o, c) ? osmFor(o, inside.length ? inside : [c], c, 'osm-finer') : CM; // rule 2
+export function podiumHeight(outline, parts = []) {
+  const h = Number(outline?.height);
+  if (!(h > 0) || isDefaultOsmHeight(h, outline.base) || Number(outline.base) > 0 || !parts.length) return null;
+  const top = Math.max(...parts.map(p => Number(p.height) || 0));
+  return h < top - PODIUM_MARGIN_M ? h : null;
 }
-function osmFor(o, take, c, rule) {
-  const height = isDefaultOsmHeight(o.height, o.base) && Number.isFinite(c.height) && c.height > 0 ? c.height : null;
-  return {use: 'osm', take, height, rule};
+
+export function pointInRing([x, y], ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** Up to k × k grid points inside a closed ring (any planar frame), for coverage tests; the ring's own interior first. */
+export function ringSamples(ring, k = 5) {
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const [x, y] of ring) { if (x < w) w = x; if (x > e) e = x; if (y < s) s = y; if (y > n) n = y; }
+  const out = [];
+  for (let i = 0; i < k; i++) {
+    for (let j = 0; j < k; j++) {
+      const p = [w + ((e - w) * (i + 0.5)) / k, s + ((n - s) * (j + 0.5)) / k];
+      if (pointInRing(p, ring)) out.push(p);
+    }
+  }
+  return out;
+}
+
+/** Share of `samples` that `covered(point)` says stand in an OSM building (0 without samples). */
+export function coveredShare(samples, covered) {
+  if (!samples.length) return 0;
+  let hit = 0;
+  for (const p of samples) if (covered(p)) hit++;
+  return hit / samples.length;
 }

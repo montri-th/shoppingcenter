@@ -15,8 +15,8 @@ function fakeMap() {
 const square = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]];
 const host = {type: 'Feature', geometry: {type: 'Polygon', coordinates: [square(100.5, 13.7, 100.501, 13.701)]},
   properties: {host_id: 'H1', venue_ids: ['V1'], render_as: 'extrusion', geometry_role: 'host_building_not_shop_unit', display_height_m: 20, display_base_m: 0}};
-const pin = (i, ring, method) => ({type: 'Feature', geometry: {type: 'Polygon', coordinates: [ring]}, _ring: ring,
-  properties: {host_id: `pin:V1:${i}`, venue_ids: ['V1'], geometry_role: 'pin_building_citymeter', render_as: 'extrusion', match_method: method, display_height_m: 12, display_base_m: 0}});
+const pin = (i, ring, method, point = method === 'site' ? i : 0, role = 'pin_building_citymeter') => ({type: 'Feature', geometry: {type: 'Polygon', coordinates: [ring]}, _ring: ring,
+  properties: {host_id: `pin:V1:${i}`, venue_ids: ['V1'], geometry_role: role, render_as: 'extrusion', match_method: method, site_point: point, display_height_m: 12, display_base_m: 0}});
 
 test('a hosted venue keeps its checked footprint and gains its site’s other buildings, never one twice', () => {
   const map = fakeMap();
@@ -40,6 +40,24 @@ test('a venue without host geometry still draws its pin and site buildings as be
   const b = installVenueBuildings(map, {type: 'FeatureCollection', features: []}, {rows: [{id: 'V1', countable: true}]});
   b.setPinFeatures([pin(0, square(100.5, 13.7, 100.501, 13.701), 'inside'), pin(1, square(100.502, 13.7, 100.503, 13.701), 'site')]);
   assert.equal(map.sources['venue-buildings'].data.features.length, 2);
+});
+
+test('D35: the panel counts buildings, not parts — an outline with its podium and towers is one building; site points that found no building of their own add none', () => {
+  const site = {n: 8, points: [], source: 'ขอบเขตพื้นที่จาก OpenStreetMap · ตรวจด้วยกฎอัตโนมัติ', url: '', checkedOn: '2026-11-06'};
+  const osm = 'pin_building_basemap';
+  // Samyan Mitrtown after D35: the pin's outline gives a podium and two towers; the eight site points find nothing else.
+  const one = [pin(0, square(100.5, 13.7, 100.501, 13.701), 'inside', 0, osm), pin(1, square(100.5002, 13.7002, 100.5004, 13.7004), 'inside', 0, osm),
+    pin(2, square(100.5006, 13.7006, 100.5008, 13.7008), 'inside', 0, osm)];
+  const single = buildingReading({hasBuilding: false}, one, 'inside', site);
+  assert.match(single.text, /^อาคารที่หมุดตั้งอยู่/);
+  assert.match(single.note, /ไซต์ตามงานวิจัย 8 จุด/); assert.match(single.note, /พบบนแผนที่เป็นอาคารเดียว/);
+  assert.match(single.note, /OpenStreetMap ก่อน/);
+  // Two more buildings found by site points 3 and 5 (one of them in two parts): three buildings.
+  const three = [...one, pin(3, square(100.502, 13.7, 100.503, 13.701), 'site', 3, osm), pin(4, square(100.504, 13.7, 100.505, 13.701), 'site', 5, osm),
+    pin(5, square(100.5042, 13.7002, 100.5044, 13.7004), 'site', 5, osm)];
+  const reading = buildingReading({hasBuilding: false}, three, 'inside', site);
+  assert.match(reading.text, /^ทั้งโครงการ 3 อาคาร/);
+  assert.match(reading.note, /พบบนแผนที่ 3 หลัง/);
 });
 
 test('the site evidence link says what it opens', () => {
