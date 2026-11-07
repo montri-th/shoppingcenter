@@ -155,9 +155,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 /* pictogram-glyphs:start (scripts/build-pictogram-font.py) */
 @font-face {
   font-family: "LDS Material Symbols Rounded Pictogram";
-  src: url("assets/icons/material-pictogram-300.woff2?v=554d097c4e6b") format("woff2");
+  src: url("assets/icons/material-pictogram-300.woff2?v=b37834408479") format("woff2");
   font-style: normal; font-weight: 300; font-display: block;
-  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913, U+E570;
+  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913, U+E570, U+E65F, U+E56E;
 }
 .pic-brand::before { content: "\EAD5"; }
 .pic-store::before { content: "\EA12"; }
@@ -200,6 +200,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .pic-route::before { content: "\EACD"; }
 .pic-touch::before { content: "\E913"; }
 .pic-train::before { content: "\E570"; }
+.pic-ai::before { content: "\E65F"; }
+.pic-maps::before { content: "\F1DB"; }
+.pic-streetview::before { content: "\E56E"; }
 /* pictogram-glyphs:end */
 .pictogram { display: inline-block; width: 20px; height: 20px; font: 300 20px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; letter-spacing: normal; text-transform: none; font-synthesis: none; vertical-align: -4px; visibility: hidden; color: var(--text-secondary); }
 .pictograms-ready .pictogram { visibility: visible; }
@@ -302,12 +305,15 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .detail-head.venue .venue-logo-role { font-size: 12px; }
 .metrics.compact.venue-metrics { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); margin-top: 6px; }
 .venue-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-.chip-link { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 4px 12px; border: 1px solid var(--border-default); border-radius: 999px; font-size: 13px; line-height: 1.3; text-decoration: none; color: var(--text-primary); background: var(--surface-card); }
+/* LDS CTRL-01: every direct control at least 44 × 44 css px (0.1.25; the chips were 36 px). */
+.chip-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 4px 14px; border: 1px solid var(--border-default); border-radius: 999px; font-size: 13px; line-height: 1.3; text-decoration: none; color: var(--text-primary); background: var(--surface-card); }
 .chip-link:hover { background: var(--surface-alt); }
 .chip-link:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
 .chip-link.is-text { cursor: default; }
 .chip-link.is-text:hover { background: var(--surface-card); }
 .chip-link .pictogram { width: 16px; height: 16px; font-size: 16px; flex: 0 0 16px; }
+/* D37: next steps in Google (AI Mode, Google Maps, Street View facing the building) under the venue's own links. */
+.look-links { margin-top: 6px; }
 .venue-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 8px 8px; border: 0; border-bottom: 1px solid var(--border-hairline); border-radius: 0; background: transparent; text-align: left; white-space: normal; }
 .venue-row:hover { background: var(--surface-alt); }
 .venue-name { font-size: 13px; font-weight: 600; line-height: 1.3; }

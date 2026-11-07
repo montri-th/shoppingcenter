@@ -6,7 +6,7 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Release 0.1.24 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.1.25 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
@@ -168,6 +168,16 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.25 - Google AI Mode, Google Maps and Street View facing the building (D37)
+
+Owner 7 Nov 2026 22:13: “ควรจะมี Google AI Mode, Google Maps และ Streetview แบบเปิดแล้วหันหน้าเข้าตึกพอดี” · “ทบทวน Product statement ก่อนแล้วปรับรูปแบบให้ส่งเสริม user benefit ของ ICPs”.
+
+- **Venue panel, under the venue's own links:** “ถาม AI Mode” · “เปิด Google Maps” · “ดู Street View” (`js/look-around.js`, `panel.js#lookBar`), icon + verb-led label, 44 px capsules, each opening Google in a new tab. The Google names say where the answers come from, as in CityMETER · Hotel; no caveat line on the panel.
+- **AI Mode** asks the next question of the people the product serves (Product Statement §2.1, §3, §12), with the place's identity from the registry — name, type, district, province, operator: who to contact to rent space, the anchor shops, who comes, how to get there and the latest news; a market asks about stalls and opening days, a planned venue about its opening and pre-leasing, a closed one about what the site is now. Google asks “Continue with this search?” once when AI Mode is opened from another site.
+- **Street View** stands on the road the building fronts and faces its nearest wall (DATA_METHOD §9.9): roads of the basemap's own z14 tiles (no elevated tollways, bridges, tunnels, ramps, parking aisles), the road point nearest the building's centre, scored by the gap to the wall, the road class, whether another building blocks the sightline and whether a rail viaduct, skywalk or tollway stands overhead. Until the tiles are read, or with no road within 250 m, the link opens the panorama nearest the venue point at Google's own angle.
+- **Controls:** the venue's own link chips are 44 px tall too (LDS CTRL-01; they were 36 px). Pictograms `ai`, `maps`, `streetview` added to the subset (44 roles).
+- Data unchanged (the 29 sheet points of 7 Nov 20:58 wait for the next export). Cache tag `20261107-r34`.
 
 ## 0.1.24 - Exact units and nationwide consumer branch references (20261107-r33)
 

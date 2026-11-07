@@ -84,7 +84,9 @@ function decorateNavigation() {
   byId('toggle-table', 'close');
   const mode = document.getElementById('theme');
   if (mode) decorate(mode.closest('label'), mode.value === 'dark' ? 'dark_mode' : mode.value === 'light' ? 'light_mode' : 'contrast');
-  for (const anchor of document.querySelectorAll('.source-link[target="_blank"], .chip-link[target="_blank"], .usage-dialog a[target="_blank"], .top-actions a[target="_blank"], .links a[target="_blank"]')) {
+  // The Google links of the venue panel (D37) carry their own glyph (AI Mode, Google Maps, Street View) and say Google
+  // in their names, as CityMETER · Hotel's links do; screen readers hear “(เปิดแท็บใหม่)”. One icon per chip.
+  for (const anchor of document.querySelectorAll('.source-link[target="_blank"], .chip-link[target="_blank"]:not(.look-link), .usage-dialog a[target="_blank"], .top-actions a[target="_blank"], .links a[target="_blank"]')) {
     // This glyph only marks destinations that really open a new browsing context.
     decorate(anchor, 'open_in_new');
   }

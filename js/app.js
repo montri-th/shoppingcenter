@@ -65,6 +65,7 @@ import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, sea
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
+import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
 
 const $ = id => document.getElementById(id);
 const FIELDS = ['search', 'status', 'group', 'operator', 'province', 'role'];
@@ -94,6 +95,8 @@ const state = {
   tenantIndex: null, tenantIndexState: 'idle', pendingBrand: '', brandLimit: 30,
   // D22: centre facilities (data/venue-amenities.json) and a ?role= that waits for the options it names.
   amenities: new Map(), pendingRole: '',
+  // D37: the Street View view of the open venue (js/look-around.js), keyed by its drawn buildings; one tile reader.
+  look: {id: '', key: '', view: null}, lookReader: null,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
@@ -332,7 +335,8 @@ function renderPanel() {
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
-    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null, transit: state.stationMeta});
+    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null, transit: state.stationMeta,
+      look: lookLinks(profile, state.look.id === v?.id ? state.look.view : null)});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -366,6 +370,7 @@ function renderPanel() {
   }
   view.innerHTML = html;
   view.dataset.mode = mode;
+  if (mode === 'venue') refineLook(currentVenue());
   // Detail views (district, venue, record) put their heading first: the dataset title, search and
   // filters step aside, and the back button joins the breadcrumb row.
   const detail = mode !== 'overview';
@@ -375,6 +380,32 @@ function renderPanel() {
   const key = `${mode}:${state.panel.id}:${f.province}:${f.search}`;
   if (key !== renderPanel.lastKey) $('panel').scrollTop = 0;
   renderPanel.lastKey = key;
+}
+
+/**
+ * Street View facing the venue's building (D37): once the venue's buildings are drawn, read the basemap roads round
+ * its main building (js/look-around.js) and give the panel's Street View link a viewpoint on the road in front of it
+ * with the angle at the building. Until then (or with no road within 250 m) the link opens Google's panorama nearest
+ * the venue point at Google's own angle. Patches the link in place; the next panel render reads the same view.
+ */
+function refineLook(v) {
+  if (!v || !hasPoint(v)) return;
+  const features = venueHostFeatures();
+  const key = `${v.id}|${features.map(f => f.properties?.host_id || f.id || '').join(',')}|${state.tileTemplate ? 1 : 0}`;
+  if (state.look.key === key) return;
+  state.look = {id: v.id, key, view: state.look.id === v.id ? state.look.view : null};
+  if (!state.tileTemplate) return; // the TileJSON is still on its way; the next render tries again
+  state.lookReader ||= createLookReader({tileUrl: t => (state.tileTemplate ? state.tileTemplate.replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y) : '')});
+  const target = lookTarget(v, features);
+  state.lookReader.read(lookBBox(target)).then(({roads, overheads, buildings}) => {
+    if (state.look.key !== key) return;
+    const view = streetViewView({target, roads, overheads, occluders: buildings});
+    state.look.view = view;
+    const link = document.querySelector('#panel-view a[data-look="streetview"]');
+    if (!link || currentVenue()?.id !== v.id) return;
+    const next = lookLinks({row: v}, view).find(l => l.id === 'streetview');
+    if (next) { link.href = next.href; link.title = next.title; }
+  }).catch(e => console.warn('Street View viewpoint unavailable', e.message || e));
 }
 
 /**

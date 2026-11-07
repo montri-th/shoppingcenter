@@ -1,7 +1,8 @@
 /**
- * A minimal Mapbox Vector Tile writer for the tests: polygon features with string, unsigned-integer and boolean
- * properties, optional ids. Rings are closed [[x, y]…] arrays in tile units (any sign); outer rings clockwise on screen
- * (y down), holes counter-clockwise — as js/mvt.js and js/geometry.js read them.
+ * A minimal Mapbox Vector Tile writer for the tests: polygon features (and line features with `type: 2`) with string,
+ * unsigned-integer and boolean properties, optional ids. Rings are closed [[x, y]…] arrays in tile units (any sign);
+ * outer rings clockwise on screen (y down), holes counter-clockwise — as js/mvt.js and js/geometry.js read them. A line
+ * is an open [[x, y]…] array.
  */
 const varint = n => { const out = []; let v = BigInt(n); do { let b = Number(v & 0x7fn); v >>= 7n; if (v) b |= 0x80; out.push(b); } while (v); return out; };
 const zigzag = n => (n << 1) ^ (n >> 31);
@@ -9,18 +10,18 @@ const field = (num, wire, payload) => [...varint((num << 3) | wire), ...payload]
 const len = payload => [...varint(payload.length), ...payload];
 const str = s => len([...new TextEncoder().encode(s)]);
 
-function geometry(rings) {
+function geometry(rings, type = 3) {
   const out = [];
   let cx = 0, cy = 0;
   const cmd = (id, count) => out.push(...varint((id & 7) | (count << 3)));
   for (const ring of rings) {
-    const pts = ring.slice(0, -1); // the closing point is implied by ClosePath
+    const pts = type === 3 ? ring.slice(0, -1) : ring; // a polygon's closing point is implied by ClosePath
     cmd(1, 1);
     out.push(...varint(zigzag(pts[0][0] - cx)), ...varint(zigzag(pts[0][1] - cy)));
     [cx, cy] = pts[0];
     cmd(2, pts.length - 1);
     for (const [x, y] of pts.slice(1)) { out.push(...varint(zigzag(x - cx)), ...varint(zigzag(y - cy))); cx = x; cy = y; }
-    cmd(7, 1);
+    if (type === 3) cmd(7, 1);
   }
   return out;
 }
@@ -40,7 +41,7 @@ export function encodeTile(layers) {
         if (!valueIndex.has(vk)) { valueIndex.set(vk, values.length); values.push(v); }
         tags.push(keyIndex.get(k), valueIndex.get(vk));
       }
-      const body = [...(f.id != null ? field(1, 0, varint(f.id)) : []), ...field(2, 2, len(tags.flatMap(varint))), ...field(3, 0, varint(3)), ...field(4, 2, len(geometry(f.rings)))];
+      const body = [...(f.id != null ? field(1, 0, varint(f.id)) : []), ...field(2, 2, len(tags.flatMap(varint))), ...field(3, 0, varint(f.type || 3)), ...field(4, 2, len(geometry(f.rings, f.type || 3)))];
       features.push(...field(2, 2, len(body)));
     }
     const layer = [...field(15, 0, varint(2)), ...field(1, 2, str(L.name)), ...features, ...keys.flatMap(k => field(3, 2, str(k))),

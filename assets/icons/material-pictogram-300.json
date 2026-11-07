@@ -1,8 +1,8 @@
 {
   "family": "LDS Material Symbols Rounded Pictogram",
   "file": "material-pictogram-300.woff2",
-  "bytes": 4692,
-  "sha256": "554d097c4e6b8cd624d0ae8642d61108e19e0350ac06af973b8d32e9ea066c10",
+  "bytes": 4888,
+  "sha256": "b37834408479d25a291186089c020d1b6e99ef98c55ae462580e601dd855df1c",
   "source": "google/material-design-icons variablefont/MaterialSymbolsRounded[FILL,GRAD,opsz,wght].ttf",
   "sourceSha256": "7e74e36533ccee12c2b81e75bfcf3ccf123d3bb7e7e46d65d94445f23db0c97c",
   "license": "Apache-2.0 (assets/icons/material-symbols-Apache-2.0.txt)",
@@ -176,6 +176,18 @@
     "train": {
       "name": "train",
       "codepoint": "U+E570"
+    },
+    "ai": {
+      "name": "auto_awesome",
+      "codepoint": "U+E65F"
+    },
+    "maps": {
+      "name": "location_on",
+      "codepoint": "U+F1DB"
+    },
+    "streetview": {
+      "name": "streetview",
+      "codepoint": "U+E56E"
     }
   },
   "status": "test exception to LDS nav-7: metric tiles owner 2026-10-22, UI roles owner 2026-10-25; nav-7 subset unchanged"

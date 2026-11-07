@@ -531,6 +531,17 @@ export function buildingReading(row, buildings = [], pinState, site = null, mode
 }
 
 /**
+ * Next steps outside CityMETER (owner 2026-11-07 22:13, D37): js/look-around.js#lookLinks — AI Mode, Google Maps and
+ * Street View facing the building. Icon + verb-led label (LDS CTA-01); each opens Google in a new tab. The Google names
+ * on the buttons say where the answers come from (no caveat line, as in CityMETER · Hotel).
+ */
+export function lookBar(links = []) {
+  if (!links.length) return '';
+  const glyph = {ai: 'ai', maps: 'maps', streetview: 'streetview'};
+  return `<div class="venue-links look-links" role="group" aria-label="ดูต่อใน Google">${links.map(l => `<a class="chip-link look-link" data-look="${esc(l.id)}" href="${esc(l.href)}" target="_blank" rel="noopener noreferrer" title="${esc(l.title)}">${icon(glyph[l.id] || 'search')}${esc(l.label)}<span class="sr-only"> (เปิดแท็บใหม่)</span></a>`).join('')}</div>`;
+}
+
+/**
  * Venue panel. profile from buildVenueProfile; detail may still be loading (null).
  * buildings: host or pin features drawn for this venue; pinState from pin-buildings.js.
  *
@@ -538,7 +549,7 @@ export function buildingReading(row, buildings = [], pinState, site = null, mode
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null, look = []} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -582,6 +593,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
       ${parent}
       ${tiles.length ? `<div class="metrics compact venue-metrics">${tiles.join('')}</div>` : ''}
       ${links.length ? `<p class="venue-links">${links.join('')}</p>` : ''}
+      ${lookBar(look)}
       <dl class="facts">
         ${fact('operator', 'ผู้บริหาร', r.operatorLabel ? esc(r.operatorLabel) : missing)}
         ${fact('hours', 'เวลาเปิด', d?.hours ? esc(hoursShort(d.hours)) : '')}

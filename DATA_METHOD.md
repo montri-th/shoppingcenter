@@ -342,6 +342,30 @@ Official consumer HTML must bind the exact regional endpoint or pinned publisher
 
 No new canonical food/Beauty outlet, selected shop point, physical-unit merge, legal operator, source closure inference or primary venue graph is introduced. Company/portfolio/peer leads remain role-specific research evidence. D33–D36 and the preceding 341 core/detail/boundary/site/model/station files are preserved. The site snapshot remains 392 sites and 5,743 reference points; Seacon Srinakarin has no research site. Remaining directories, national branches, scope/unit/point conflicts and the source-sync backlog are explicit research queues, not a completed national census.
 
+### 9.9 ทางไปต่อใน Google: AI Mode · Google Maps · Street View หันหน้าเข้าอาคาร (0.1.25, 7 พ.ย. 2569 · D37)
+
+เจ้าของ 7 พ.ย. 2569 22:13 น.: “ควรจะมี Google AI Mode, Google Maps และ Streetview แบบเปิดแล้วหันหน้าเข้าตึกพอดี” · เหตุผลตามผู้ใช้กลุ่มหลักอยู่ใน `PRODUCT_STATEMENT.md` §12 · โค้ด `js/look-around.js` (pure ยกเว้นตัวอ่าน tile) · ทดสอบ `tests/look-around.test.js`
+
+**ลิงก์ (สร้างจากชื่อสาธารณะและเรขาคณิตของเราเท่านั้น ไม่มีข้อมูลผู้ใช้ ไม่มีรหัสภายใน ไม่เก็บอะไรจาก Google):**
+
+| ปุ่ม | URL | เนื้อหา |
+|---|---|---|
+| ถาม AI Mode | `https://www.google.com/search?udm=50&q=…` | “<ชื่อ> (<ประเภท> <เขต/อำเภอ> <จังหวัด> บริหารโดย <ผู้บริหาร>) …” ตามด้วยคำถามตามประเภทและสถานะ: ทั่วไป “ติดต่อเช่าพื้นที่ได้ทางไหน มีร้านหลักอะไรบ้าง ลูกค้าส่วนใหญ่เป็นใคร เดินทางอย่างไร และมีข่าวล่าสุดอะไร” · ตลาด “ติดต่อเช่าแผง … เปิดวันและเวลาใด ขายอะไรเป็นหลัก …” · สถานีบริการ/ไฮเปอร์มาร์เก็ต “มีร้าน(เช่า)อะไรบ้าง ติดต่อเช่าพื้นที่ …” · กำลังจะเปิด “กำหนดเปิด ความคืบหน้า และติดต่อจองพื้นที่เช่า” · ปิดแล้ว “ปิดเมื่อไร และตอนนี้พื้นที่นี้เป็นอะไร” (`venueQuestion`) |
+| เปิด Google Maps | `https://www.google.com/maps/search/?api=1&query=<ชื่อ> <เขต/อำเภอ> <จังหวัด>` | สถานที่ที่ไม่มีจุดใช้จังหวัดตามที่อยู่ |
+| ดู Street View | `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=<lat>,<lon>&heading=…&pitch=…&fov=…` | เฉพาะสถานที่ที่มีจุด · ก่อนคำนวณเสร็จหรือเมื่อคำนวณไม่ได้: `viewpoint` = จุดของสถานที่ ไม่ส่งมุม (Google เลือก) |
+
+**จุดยืนและมุมของ Street View (`streetViewView`):**
+
+1. **อาคารที่จะมอง** (`lookTarget`, จากสิ่งที่ `js/buildings.js` วาดให้สถานที่นั้น): มวลอาคารจากไฟล์แบบ (D29) → รูปทรงอาคารที่ตรวจแล้ว → อาคารที่หมุดตั้งอยู่ (`site_point` 0) → ส่วนที่ใหญ่ที่สุดที่วาด · ไม่มีอาคาร = มองที่จุดของสถานที่
+2. **ถนน** (`roadsOfLayer`): ชั้น `transportation` ของ tile z14 ชุดเดียวกับที่แผนที่วาด (OpenFreeMap) ภายใน 260 ม. ของอาคาร · ใช้ `trunk`, `primary`, `secondary`, `tertiary`, `busway`, `minor`, `service` · ไม่ใช้ `motorway` (ทางด่วนยกระดับ), สะพาน, ทางลอด, ทางลาด, ทางในอาคาร, `access=no`, และ service แบบลานจอดรถ ทางเข้าบ้าน drive-through
+3. **จุดยืนของแต่ละถนน:** จุดบนถนนที่ใกล้ศูนย์กลางอาคารที่สุด (ทุกช่วงของเส้น) ถ้าจุดนั้นอยู่ใต้อาคารไม่นับ · ระยะถึงผนังที่ใกล้ที่สุด (gap) ต้องไม่เกิน 250 ม. (ศูนย์ชานเมืองและร้านขนาดใหญ่ตั้งหลังลานจอดรถลึก 100–200 ม.)
+4. **คะแนน (น้อยชนะ):** (gap + 40 ม.) × น้ำหนักชั้นถนน (`trunk`/`primary` 1 · `secondary` 1.2 · `tertiary` 1.5 · `busway` 2 · `minor` 3 · `service` 6) × 3 เมื่อเส้นสายตาถึงผนังผ่านอาคารอื่น (อาคารจาก tile เดียวกัน ยกเว้นอาคารที่ซ้อนกับอาคารของสถานที่) × 2 เมื่อจุดยืนอยู่ห่างโครงสร้างยกระดับไม่เกิน 15 ม. (สะพานของ `transit`/`rail` คือรางรถไฟฟ้า, `path` คือสกายวอล์กและสะพานลอย, `motorway` คือทางด่วน)
+5. **มุม:** หันไปที่ผนังที่ใกล้ที่สุด (ถนนที่ไปสุดข้างอาคารจึงมองเห็นอาคารแบบมุมเฉียง ไม่ใช่มองไปตามถนน) · `fov` กว้างพอให้เห็นทุกมุมของอาคาร (40–100°) · `pitch` มองขึ้นหนึ่งในสี่ของความสูง (สูงสุด 30 ม.) ไม่เกิน 10° และไม่เกิน 3° ใต้โครงสร้างยกระดับ · Google เปิดภาพพาโนรามาที่ใกล้จุดยืนที่สุด
+
+**ปรับค่าบน tile จริง (7 พ.ย. 2569, ในเบราว์เซอร์บนหน้าเว็บนี้):** รอบแรกให้น้ำหนัก service ต่ำเกินไป สามย่านมิตรทาวน์จึงได้ถนนส่งผู้โดยสารที่ชิดอาคาร (gap 0 ม.) แทนถนนพญาไท · เซ็นทรัลเวิลด์ได้จุดใต้รางและสกายวอล์กถนนพระรามที่ 1 ที่ภาพเห็นแต่โครงสร้าง แล้วเมื่อเลี่ยงได้ถนนราชดำริแต่ยังหันไปตามถนน (หาศูนย์กลางอาคาร) จึงเปลี่ยนเป็นหันไปที่ผนังที่ใกล้ที่สุด ผลรอบสุดท้ายอยู่ใน `handoff/VERIFICATION.md`
+
+**ข้อจำกัด:** ภาพ คำตอบ รูป และรีวิวเป็นของ Google ไม่ใช่หลักฐานของ CityMETER และไม่เข้าตัวเลขใด · Google ถาม “Continue with this search?” หนึ่งครั้งเมื่อเปิด AI Mode จากเว็บอื่น · วันที่ภาพ Street View ต่างกันตามจุด · อาคารบังที่ OpenStreetMap ยังไม่มี กำแพง ต้นไม้ และป้าย คำนวณไม่ได้ · ชั้นถนนและโครงสร้างยกระดับตามข้อมูล OpenStreetMap ใน tile (planet build ของ OpenFreeMap)
+
 ## 10. รายการที่ยังไม่ผ่านนิยาม (Owner decision D4)
 
 รายการที่ยังไม่ผ่านนิยามมีสองสถานะ: **รอตรวจ** (รอบนี้ 0 — คิวปิดครบ) และ **ยังยืนยันไม่ได้** (4,869 — `reviewed_definition_unconfirmed`; ไม่ใช่การสรุปว่าไม่ใช่สถานที่ค้าปลีก) ที่มีพิกัด 4,851 รายการ อยู่ใน `data/pending.json` แบบ columnar (`id, name, lon, lat, provinceCode, districtCode, group, state`; `state = "reviewed"` สำหรับที่ยังยืนยันไม่ได้ — รอบนี้ทุกจุด) โหลดหลังภาพแรก วาดเป็นจุดเทาเล็กด้วย GPU layer ที่ zoom ≥ 11 ไม่มีโลโก้ ไม่อยู่ใน tab order ซ่อนได้จากคำอธิบายแผนที่ (“ยังยืนยันไม่ได้ 4,851”, `?pending=0`) ค้นหาได้พร้อมป้ายสถานะและคำว่าไม่นับ และกดแล้วได้การ์ดย่อ “ยังยืนยันไม่ได้ · ไม่นับ” ไม่เข้าตัวเลข สี หรือกราฟใด ๆ ถ้าโหลดไม่ได้ ตัวเลขทั้งหมดไม่เปลี่ยน

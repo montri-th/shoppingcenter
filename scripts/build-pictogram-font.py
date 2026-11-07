@@ -66,6 +66,11 @@ GLYPHS = {
     'touch': ('touch_app', 0xE913),
     # rail stations of CityMETER · Transit (D33, owner 2026-11-07: patterns of the sibling demos)
     'train': ('train', 0xE570),
+    # next steps outside CityMETER (D37, owner 2026-11-07 22:13): Google AI Mode, Google Maps, Street View — the
+    # glyphs CityMETER · Hotel uses for the same links (maps shares location_on with the address role)
+    'ai': ('auto_awesome', 0xE65F),
+    'maps': ('location_on', 0xF1DB),
+    'streetview': ('streetview', 0xE56E),
 }
 AXES = {'FILL': 0, 'wght': 300, 'GRAD': 0, 'opsz': 24}
 ROOT = Path(__file__).resolve().parent.parent
@@ -106,7 +111,7 @@ def main(src):
     MANIFEST.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n')
     write_css()
     print(f'wrote {OUT} ({len(data)} bytes, sha256 {manifest["sha256"]}) and {MANIFEST.name}')
-    print('unicode-range:', ', '.join(f'U+{cp:04X}' for _, cp in GLYPHS.values()))
+    print('unicode-range:', ', '.join(f'U+{cp:04X}' for cp in dict.fromkeys(cp for _, cp in GLYPHS.values())))
 
 STYLES = ROOT / 'styles.css'
 START, END = '/* pictogram-glyphs:start (scripts/build-pictogram-font.py) */', '/* pictogram-glyphs:end */'
@@ -117,7 +122,7 @@ def write_css():
     css = STYLES.read_text(encoding='utf-8')
     if START not in css or END not in css:
         raise SystemExit('styles.css has no pictogram-glyphs markers')
-    rng = ', '.join(f'U+{cp:04X}' for _, cp in GLYPHS.values())
+    rng = ', '.join(f'U+{cp:04X}' for cp in dict.fromkeys(cp for _, cp in GLYPHS.values()))
     rules = '\n'.join(f'.pic-{role}::before {{ content: "\\{cp:04X}"; }}' for role, (_, cp) in GLYPHS.items())
     block = (f'{START}\n@font-face {{\n  font-family: "LDS Material Symbols Rounded Pictogram";\n'
              f'  src: url("assets/icons/material-pictogram-300.woff2?v={hashlib.sha256(OUT.read_bytes()).hexdigest()[:12]}") format("woff2");\n'
