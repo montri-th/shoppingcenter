@@ -10,14 +10,14 @@
 
 ## ตัวเลขของ snapshot นี้
 
-ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 7 พ.ย. 2569 09:16 น. · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
+ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 7 พ.ย. 2569 13:57 น. · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
 
 | สิ่งที่นับ | จำนวน | ความหมาย |
 |---|---:|---|
 | ทะเบียนทั้งหมด | 11,139 รายการ | ทุกอย่างที่เคยถูกเรียกว่าพื้นที่ค้าปลีก ไม่ใช่จำนวนศูนย์การค้าที่เปิดจริง |
 | ผ่านนิยาม retail venue | 6,265 รายการ | ด้วยหลักฐานปัจจุบัน 789 · ตามกฎรายประเภทที่เจ้าของข้อมูลยอมรับ 5,247 (ตลาด 3,904 · สถานีบริการน้ำมันที่มีร้านค้า 1,173 · มีหลายกิจการอยู่ภายใน 66 · ร้านหลักกับกิจการที่สอง 55 · อื่น ๆ 49) · หลักฐานย้อนหลัง 224 · โครงการอนาคต 5 |
 | นับได้ (หักที่ไม่นับแยก 114: พื้นที่ย่อย 85 · อาจซ้ำ 16 · รอตรวจการนับ 12 · บริบทหลายสถานที่ 1) | 6,151 แห่ง | เปิดอยู่หรือรอยืนยันสถานะ 6,145 · กำลังจะเปิด 4 · ปิดแล้ว 2 · รวมพื้นที่ค้าปลีกที่เป็นศูนย์การค้าแต่โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม 7 แห่ง (D6) |
-| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,081 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 60 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
+| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,082 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 59 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ (เอสพลานาด งามวงศ์วาน-แคราย ได้จุดแล้วใน 0.1.19) · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
 | ตรวจแล้ว ยังยืนยันไม่ได้ | 4,866 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,848 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
 | ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 8 รายการ | รวมโครงการแม่ที่เป็นบริบท ดุสิต เซ็นทรัล พาร์ค (ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
@@ -27,7 +27,7 @@
 
 ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่ · D33 ตั้งแต่ 0.1.19): หน้าแรกนับศูนย์การค้า คอมมูนิตี้มอลล์ และเอาท์เล็ต แล้วเรียงเขตตามจำนวน — **46 จาก 199 แห่งของกรุงเทพฯ (23%) อยู่ใน ปทุมวัน 22 · วัฒนา 13 · คลองเตย 11 บนพื้นที่ 34.5 จาก 1,571.4 ตร.กม. (2.2%) · 30 จาก 46 แห่ง (65%) อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้าที่เปิดให้บริการ เทียบกับ 60 จาก 153 แห่ง (39%) ในเขตอื่นของกรุงเทพฯ** (ระยะเส้นตรงระหว่างจุดอ้างอิง · สถานีจาก CityMETER · Transit release `transit-data-2026-10-31-r1` · เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · ล้างตัวกรองเป็นทุกประเภทได้ · ก่อน 0.1.19 (D1, ทุกประเภท เรียงตามความหนาแน่น): **50 จาก 890 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 103 แห่ง
 
-ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,081 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 244 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 146 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
+ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,082 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 245 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 146 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
 
 ## ใช้งาน
 
@@ -177,6 +177,7 @@ Owner 7 Nov 2026 11:15 and 11:56 (D33; PRODUCT_STATEMENT §8 and §10 red team; 
 - **Rail stations (CityMETER · Transit, as CityMETER · Hotel):** 195 operating stations (`data/stations.json`, pinned commit and file SHA-256) drawn as quiet rings; a station opens the venues of the filters within 500 m, nearest first, with the radius on the map; the venue panel and the table name the nearest station and its straight-line distance.
 - **Phone:** the card and the area legend are one dock; the card keeps the finding in two lines and one line under it; the zoom buttons step aside on touch phones; the map credit folds to its (i) after five seconds or the first touch (`js/map-credits.js`, OSMF guidelines); the first view frames the three districts in the free map box (`fitPitched` zoomed round the canvas centre and stepped out to the country on a 393 × 659 phone).
 - **Sites, third round (D31):** 93 more sites, 1,137 buildings (91 markets) from 67 one-degree OpenStreetMap boxes covering the last 1,992 venues without a site; the published sites are now 392 with 5,743 buildings. LIVE Ramintra drops two more small design parts outside its site.
+- **Esplanade Ngamwongwan-Khae Rai** (owner 11:15 “OK ทุกข้อ”: a point like Esplanade Ratchada): the registry row `VN-580b36c73e6e3c` had its cinema source point held and no selected point; it now holds the centre of the building OpenStreetMap names “เอสพลานาด ซีนีเพล็กซ์ งามวงศ์วาน-แคราย” (way 260721380, `amenity=cinema`; the same outline in CityMETER Building V4, 7,807 m², 23 m), status `osm_named_host_building_point_not_field_verified`, not an entrance; the old status, role and source link are kept in `review_reason` (`01_VENUES` row 10905, 9 cells read back). Export 7 Nov 2026 13:57 (only this row changed since 09:16): located 6,081 → 6,082 (Mueang Nonthaburi); the first finding (Bangkok) is unchanged.
 - **`llms.txt`** (as the sibling demos): what each figure means, the snapshot, deep links and what not to claim, for agents and analysts.
 - Cache tag `20261107-r27`.
 

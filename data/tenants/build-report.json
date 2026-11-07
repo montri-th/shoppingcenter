@@ -2745,7 +2745,7 @@
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
   "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
-  "venueCoreSha256": "ebcceef76b61bef6241c81759ffb5ed6e19d672b552247eb3581a734775a7f5e",
+  "venueCoreSha256": "0962f2b006f7d3d346693f87f09b2ce963a104049f17a987f28d39b790f8e10f",
   "logoManifestSha256": "e10f5e1f28e7d9ddfa4883942296e97e77b899ede47568b2d073d4dfb5583785",
   "linkedDatasets": {
     "research.TH.fitness": {
@@ -3164,14 +3164,14 @@
   "venueCoreRefresh": {
     "on": "2026-11-07",
     "by": "scripts/refresh-tenant-receipt.py",
-    "reason": "meta.checks.firstView added to the venue core (D33, scripts/refresh-first-view.py); venue rows and the roster are unchanged",
+    "reason": "full refresh of the venue core from a new export of the Research Master; the roster is unchanged",
     "coreAsOf": "2026-11-07",
-    "export01VenuesSha256": "9672bf19fba030935a4e37cc4fe4b3acecdaf003ab7a7b94f3ff5d6178312f32",
-    "previousCoreSha256": "6bcf8747840bb45daec25e11c78694a177e71230b8d0ed40b1dc2272daa92468",
+    "export01VenuesSha256": "985c4839a78e3da8209e7d46974db9df0b56dfa8e6105a3ec4bcdf730f458f3c",
+    "previousCoreSha256": "ebcceef76b61bef6241c81759ffb5ed6e19d672b552247eb3581a734775a7f5e",
     "rosterBuiltOnCoreSha256": "07f99419b7e4399e00dc7d879a09eb0eca05c71f1dbb1cdd318d50fb40173387",
     "rowsAdded": 0,
     "rowsRemoved": 0,
-    "rowsChanged": 0,
+    "rowsChanged": 1,
     "awaitingRoster": [
       {
         "venueId": "VN-046d66b0dd4f83",
@@ -3375,6 +3375,15 @@
         "rowsAdded": 0,
         "rowsRemoved": 0,
         "rowsChanged": 2
+      },
+      {
+        "on": "2026-11-07",
+        "coreAsOf": "2026-11-07",
+        "export01VenuesSha256": "9672bf19fba030935a4e37cc4fe4b3acecdaf003ab7a7b94f3ff5d6178312f32",
+        "previousCoreSha256": "6bcf8747840bb45daec25e11c78694a177e71230b8d0ed40b1dc2272daa92468",
+        "rowsAdded": 0,
+        "rowsRemoved": 0,
+        "rowsChanged": 0
       }
     ]
   }

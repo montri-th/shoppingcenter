@@ -11,7 +11,7 @@ What one figure means:
 - sites = one interior point per building of a multi-building venue (392 venues, 5,743 buildings), mostly from OpenStreetMap areas checked with fixed rules (© OpenStreetMap contributors, ODbL 1.0); a site is not a land title, a deed area or ownership.
 
 Snapshot (release 0.1.19; fixtures, recompute from data):
-- 11,139 registry rows; 6,265 qualified; 6,151 countable; 6,145 open or awaiting status, 4 planned, 2 closed; 6,081 located in 733 districts of 77 provinces.
+- 11,139 registry rows; 6,265 qualified; 6,151 countable; 6,145 open or awaiting status, 4 planned, 2 closed; 6,082 located in 733 districts of 77 provinces.
 - First finding (owner decision D33): 23% of Bangkok's shopping centres, community malls and outlets (46 of 199) are in Pathum Wan, Watthana and Khlong Toei, on 2.2% of its area; 65% of the 46 lie within 500 m of an operating rail station, against 39% (60 of 153) elsewhere in Bangkok.
 - Every type ranked by count: Mueang Chiang Mai has the most (103, mostly markets).
 
