@@ -17,16 +17,69 @@
  *  3. Model masses (venue-models.js, owner 2026-11-06): LOD1 boxes from a venue's own design file. They replace the
  *     venue's host, pin and site buildings — one drawing per venue, the design file's — and the panel says so.
  *
+ * Display shape (owner 7 Nov 2026 08:25: “ปรับให้ style มุมมนเหมือนกันหมดนะ”): every venue building is drawn in the focus
+ * tier's rounded model (js/massing.js) — corners rounded with the same radius and the footprint offset outward by the
+ * same amount (at least VENUE_DRAW_OFFSET_M) so the rounded shape still encloses the original. Model masses from a
+ * design file keep their size: corners rounded only. Display only; the features keep their exact rings for every test.
+ *
  * Original polygons © OpenStreetMap contributors, ODbL 1.0: https://www.openstreetmap.org/copyright
  * No generated footprints, name joins, sales or measured-height claims.
  */
 import {GEOJSON_MAXZOOM} from './map-layers.js';
+import {offsetRing, roundRing, signedArea, cleanRing} from './geometry.js';
+import {roundingRadiusM, encloseOffsetM} from './massing.js';
 const SOURCE = 'venue-buildings';
 const EXTRUSION = 'venue-buildings-3d';
 const OUTLINE = 'venue-buildings-outline';
 /** Layer ids, exported so the massing tiers can be inserted BEFORE the host extrusion (draw order = depth order). */
 export const HOST_LAYERS = Object.freeze({extrusion: EXTRUSION, outline: OUTLINE, source: SOURCE});
 const active = new WeakMap();
+/** Smallest outward offset of a venue building (m): keeps it off the basemap's copy of the same building. */
+export const VENUE_DRAW_OFFSET_M = 0.8;
+const MODEL_MASS = 'owner_model_mass'; // js/venue-models.js MODEL_ROLE
+const RAD = Math.PI / 180;
+
+/** One polygon ([outer, ...holes], lon/lat) offset and rounded in a local metric frame; a hole that closes up is dropped. */
+function shapePolygon(poly, {radiusM, offsetM, segments}) {
+  const lon0 = poly[0][0][0], lat0 = poly[0][0][1];
+  const kx = 111320 * Math.cos(lat0 * RAD), ky = 110574;
+  const out = [];
+  poly.forEach((ring, i) => {
+    const m = Array.isArray(ring) && ring.length >= 4 ? cleanRing(ring.map(([x, y]) => [(x - lon0) * kx, (y - lat0) * ky])) : null;
+    if (!m) { if (i === 0) out.push(ring); return; }
+    const sign = Math.sign(signedArea(m)) || 1;
+    // Outward is the ring's own right-hand side for an outer, the other side for a hole (so the building grows).
+    const grown = offsetM > 0 ? offsetRing(m, offsetM, i === 0 ? sign : -sign) : m;
+    const shaped = radiusM > 0 ? roundRing(grown, radiusM, segments, {encloseOffset: offsetM}) : grown;
+    const area = signedArea(shaped);
+    if (i > 0 && (Math.sign(area) !== sign || Math.abs(area) < 1)) return;
+    out.push(shaped.map(([x, y]) => [lon0 + x / kx, lat0 + y / ky]));
+  });
+  return out;
+}
+
+/**
+ * Display geometry of a venue building: the focus tier's rounded model (js/massing.js#shapeTile) in lon/lat — offset
+ * outward by `offsetM`, corners rounded with `radiusM` (each fillet kept outside the original when offsetM > 0).
+ */
+export function shapeVenueGeometry(geometry, {radiusM = 0, offsetM = 0, segments = 3} = {}) {
+  if (!geometry || !(radiusM > 0 || offsetM > 0)) return geometry;
+  const shape = {radiusM, offsetM, segments};
+  if (geometry.type === 'Polygon' && geometry.coordinates?.[0]) return {type: 'Polygon', coordinates: shapePolygon(geometry.coordinates, shape)};
+  if (geometry.type === 'MultiPolygon') return {type: 'MultiPolygon', coordinates: geometry.coordinates.filter(p => p?.[0]).map(p => shapePolygon(p, shape))};
+  return geometry;
+}
+/** The shape a venue building is drawn with: model masses keep their size, every other building encloses its original. */
+export function venueShapeFor(properties = {}, {radiusM, offsetM} = {}) {
+  return properties.geometry_role === MODEL_MASS ? {radiusM, offsetM: 0} : {radiusM, offsetM: Math.max(VENUE_DRAW_OFFSET_M, offsetM || 0)};
+}
+const geometryKey = g => {
+  const ring = g?.type === 'Polygon' ? g.coordinates?.[0] : g?.type === 'MultiPolygon' ? g.coordinates?.[0]?.[0] : null;
+  if (!ring?.length) return '';
+  const p = i => ring[Math.min(i, ring.length - 1)].map(v => v.toFixed(7)).join(',');
+  const rings = g.type === 'Polygon' ? g.coordinates.length : g.coordinates.reduce((n, poly) => n + poly.length, 0);
+  return `${g.type}|${rings}|${ring.length}|${p(0)}|${p(1)}|${p(ring.length >> 1)}`;
+};
 
 const insideRing = ([x, y], ring) => {
   let inside = false;
@@ -113,6 +166,10 @@ export function installVenueBuildings(map, geojson, options = {}) {
   let theme = options.theme || 'light';
   let disposed = false;
   let displayed = [];
+  let drawn = [];
+  // The focus tier's radius and offset (app.js passes js/massing.js onResult); before the first result, zoom 16's.
+  let shape = {radiusM: roundingRadiusM(16), offsetM: encloseOffsetM(roundingRadiusM(16))};
+  const shapes = new Map(); // geometry key → shaped geometry (cleared when the shape changes)
   let pins = [];
   let models = [];
   let coverage;
@@ -219,8 +276,9 @@ export function installVenueBuildings(map, geojson, options = {}) {
       unmatchedRowIds: unmatchedRows.map(r => r.id), enabled,
       geometryRole: 'host_building_not_shop_unit', fallbackHeightM: 3,
     };
+    drawn = displayed.map(({_ring, ...f}) => shaped(f));
     const source = map.getSource(SOURCE);
-    if (source) source.setData({type: 'FeatureCollection', features: displayed.map(({_ring, ...f}) => f)});
+    if (source) source.setData({type: 'FeatureCollection', features: drawn});
     const palette = colors(theme);
     if (map.getLayer(EXTRUSION)) {
       map.setLayoutProperty(EXTRUSION, 'visibility', enabled ? 'visible' : 'none');
@@ -262,13 +320,35 @@ export function installVenueBuildings(map, geojson, options = {}) {
     if (active.get(map) === controller) active.delete(map);
     leave();
   }
-  /** Features currently drawn (hosts of the passed rows) — used to keep OSM massing from swallowing them. */
+  /** A feature in its display shape (cached per geometry; model masses keep their size). */
+  function shaped(feature) {
+    const own = venueShapeFor(feature.properties, shape);
+    const key = `${own.offsetM}|${geometryKey(feature.geometry)}`;
+    let geometry = key.length > 4 ? shapes.get(key) : null;
+    if (!geometry) {
+      geometry = shapeVenueGeometry(feature.geometry, own);
+      if (key.length > 4) { shapes.set(key, geometry); if (shapes.size > 40000) shapes.delete(shapes.keys().next().value); }
+    }
+    return {...feature, geometry};
+  }
+  /** The focus tier's corner radius and offset (m), so venue buildings and their surroundings share one shape. */
+  function setShape(next = {}) {
+    const radiusM = Number(next.radiusM), offsetM = Number(next.offsetM);
+    if (!(radiusM > 0) || !(offsetM >= 0)) return getCoverage();
+    if (Math.abs(radiusM - shape.radiusM) < 1e-6 && Math.abs(offsetM - shape.offsetM) < 1e-6) return getCoverage();
+    shape = {radiusM, offsetM};
+    shapes.clear();
+    return update();
+  }
+  /** Features currently drawn (hosts of the passed rows), exact rings — used to keep OSM massing from swallowing them. */
   function displayedFeatures() { return disposed || !enabled ? [] : displayed.slice(); }
+  /** The same features in their display shape (rounded, offset) — what the map and the x-ray draw. */
+  function drawnFeatures() { return disposed || !enabled ? [] : drawn.slice(); }
   /** Replace the pin buildings (features from pin-buildings.js) and redraw. */
   function setPinFeatures(features) { pins = Array.isArray(features) ? features : []; return update(); }
   /** Replace the model masses (features from venue-models.js#modelFeatures) and redraw. */
   function setModelFeatures(features) { models = Array.isArray(features) ? features : []; return update(); }
-  const controller = {update, getCoverage, displayedFeatures, setPinFeatures, setModelFeatures, dispose};
+  const controller = {update, getCoverage, displayedFeatures, drawnFeatures, setShape, get shape() { return {...shape}; }, setPinFeatures, setModelFeatures, dispose};
   active.set(map, controller);
   update();
   return controller;

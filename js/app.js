@@ -1077,7 +1077,8 @@ function refreshMassing(detail = detailRows()) {
   const hostColors = () => { const s = getComputedStyle(document.documentElement); return {fill: s.getPropertyValue('--map-active-layer').trim(), stroke: s.getPropertyValue('--map-selected-stroke').trim()}; };
   // On terrain every piece stands on the ground at its centroid, as MapLibre lifts fill-extrusions; the x-ray is drawn
   // over the ground, so its walls go down to the lowest ground under the piece, never deeper (CityMETER · Hotel 0.3.2).
-  const solid = venueLevel() ? venueHostFeatures(hostFeatures).filter(f => f.properties?.render_as === 'extrusion') : [];
+  // The x-ray redraws the venue in its display shape (rounded like the focus tier, js/buildings.js#drawnFeatures).
+  const solid = venueLevel() ? venueHostFeatures(state.buildings?.drawnFeatures() || []).filter(f => f.properties?.render_as === 'extrusion') : [];
   const lifted = state.view3d && map.terrain ? solid.map(f => {
     const {g, low} = ringGrounds(outerRings(f)[0] || []);
     const top = Number(f.properties?.display_height_m) || 3, base = Number(f.properties?.display_base_m) || 0;
@@ -1207,6 +1208,12 @@ function installSpatialLayers() {
     cmLoad: state.cmLoad, cmAttribution: CM_ATTRIBUTION,
     onResult: result => {
       state.massingResult = result;
+      // Venue buildings take the focus tier's corner radius and offset (owner 7 Nov 2026: one rounded style for all).
+      if (result.radiusM > 0 && state.buildings) {
+        const before = state.buildings.shape.radiusM;
+        state.buildings.setShape({radiusM: result.radiusM, offsetM: result.offsetM});
+        if (state.buildings.shape.radiusM !== before) refreshMassing();
+      }
       const status = $('map-status');
       status.dataset.massing = `${result.features || 0}`;
       status.dataset.cmBuildings = `${result.cm?.kept || 0}`;

@@ -80,7 +80,7 @@ test('only z14 pieces are read when z14 is loaded (a retained parent tile would 
   assert.equal(legacy[0].tile, '14/1/2');
 });
 
-test('display shape: grown outward to enclose the basemap copy, holes shrink, lifted, never under 3 m', () => {
+test('display shape: exact source rings (js/buildings.js rounds and offsets them), growRingM still encloses, lifted, never under 3 m', () => {
   const ring = rect(0, 0, 30, 20);
   const grown = growRingM(ring, DRAW_OFFSET_M);
   for (const p of ring.slice(0, -1)) assert.ok(pointInRing(p, grown), 'every original corner is inside the grown ring');
@@ -170,6 +170,30 @@ test('in a CityMETER unit the pin maps to the CityMETER building; OSM parts (LOD
   assert.equal(f.properties.source, 'CityMETER Building V4');
   assert.equal(f.properties.height_m, 15);
   assert.deepEqual(f._ring, viaCm.parts[0].outer, 'the exact CityMETER ring, for the massing tier to drop the same building');
+});
+
+test('D32 OSM first for pins: a finer OSM outline wins (its default height takes CityMETER\'s); an OSM block over two CityMETER buildings gives way; two OSM buildings in one CityMETER block stay OSM', () => {
+  const ring = pts => [...pts, pts[0]].map(([x, y]) => [LON + x / kx, LAT + y / ky]);
+  const octagon = ring([[105, 100], [135, 100], [140, 105], [140, 135], [135, 140], [105, 140], [100, 135], [100, 105]]);
+  const cm = indexParts(cmParts(cmLayer([
+    {properties: {height_m: '22'}, rings: [tileRect(100, 100, 140, 140)]},
+    {properties: {height_m: '9'}, rings: [tileRect(201, 1, 229, 29)]}, {properties: {height_m: '11'}, rings: [tileRect(231, 1, 259, 29)]},
+    {properties: {height_m: '16'}, rings: [tileRect(300, -50, 380, -10)]},
+  ]), T14));
+  const osm = indexOf([feature(80, [octagon], {render_height: 5}), feature(81, [rect(200, 0, 260, 30)], {render_height: 5}),
+    feature(82, [rect(302, -48, 338, -12)], {render_height: 20}), feature(83, [rect(342, -48, 378, -12)], {render_height: 20})]);
+  const finer = matchInUnit(at(120, 120), osm, cm);
+  assert.equal(finer.source, undefined, 'the OSM octagon, not the CityMETER box'); assert.equal(finer.parts[0].fid, 80); assert.equal(finer.rule, 'osm-finer');
+  assert.equal(finer.parts[0].height, 22); assert.equal(finer.parts[0].heightFrom, 'cm');
+  const f = pinFeatures('V', finer)[0];
+  assert.equal(f.properties.geometry_role, PIN_SOURCES.osm.role, 'drawn as the OSM building');
+  assert.equal(f.properties.height_status, 'citymeter_model_estimate', 'with the CityMETER model height');
+  assert.equal(f.properties.source, PIN_SOURCES.osmCmHeight.source);
+  const block = matchInUnit(at(215, 15), osm, cm);
+  assert.equal(block.source, 'cm', 'the OSM block holds two CityMETER buildings'); assert.equal(block.parts[0].height, 9);
+  const split = matchInUnit(at(320, -30), osm, cm);
+  assert.equal(split.parts[0].fid, 82, 'two OSM buildings in one CityMETER block: OSM'); assert.equal(split.rule, 'osm-more-buildings');
+  assert.equal(split.parts[0].height, 20, 'a tagged OSM height stays');
 });
 
 test('CityMETER requests of a point: its z14 tile (and the neighbour within a few metres of an edge), per tile unit meeting it', () => {

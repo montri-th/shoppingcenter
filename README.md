@@ -10,14 +10,14 @@
 
 ## ตัวเลขของ snapshot นี้
 
-ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 7 พ.ย. 2569 01:07 น. · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
+ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 7 พ.ย. 2569 09:16 น. · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
 
 | สิ่งที่นับ | จำนวน | ความหมาย |
 |---|---:|---|
 | ทะเบียนทั้งหมด | 11,139 รายการ | ทุกอย่างที่เคยถูกเรียกว่าพื้นที่ค้าปลีก ไม่ใช่จำนวนศูนย์การค้าที่เปิดจริง |
 | ผ่านนิยาม retail venue | 6,265 รายการ | ด้วยหลักฐานปัจจุบัน 789 · ตามกฎรายประเภทที่เจ้าของข้อมูลยอมรับ 5,247 (ตลาด 3,904 · สถานีบริการน้ำมันที่มีร้านค้า 1,173 · มีหลายกิจการอยู่ภายใน 66 · ร้านหลักกับกิจการที่สอง 55 · อื่น ๆ 49) · หลักฐานย้อนหลัง 224 · โครงการอนาคต 5 |
 | นับได้ (หักที่ไม่นับแยก 114: พื้นที่ย่อย 85 · อาจซ้ำ 16 · รอตรวจการนับ 12 · บริบทหลายสถานที่ 1) | 6,151 แห่ง | เปิดอยู่หรือรอยืนยันสถานะ 6,145 · กำลังจะเปิด 4 · ปิดแล้ว 2 · รวมพื้นที่ค้าปลีกที่เป็นศูนย์การค้าแต่โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม 7 แห่ง (D6) |
-| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,080 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 61 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
+| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,081 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 60 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
 | ตรวจแล้ว ยังยืนยันไม่ได้ | 4,866 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,848 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
 | ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 8 รายการ | รวมโครงการแม่ที่เป็นบริบท ดุสิต เซ็นทรัล พาร์ค (ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
@@ -25,9 +25,9 @@
 | ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ในทะเบียน) | 1,626 รายการใน 425 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) · 74 รายการของ 43 สถานที่ที่เพิ่มหลัง 26 ต.ค. ยังไม่อยู่ในรายชื่อร้าน |
 | รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 5 พ.ย. 2569) | 5,493 สาขา ใน 619 สถานที่ จาก 21 ชุดข้อมูล | หนึ่งรายการคือหนึ่งสาขา (D23) · ชุดเดิม 2,461 · 7 ชุดที่ sheet จับคู่ชื่อศูนย์ (Sport 319 · Apparel 681 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 62 · Nail 23) · 4 ชุดที่ผ่านการตรวจลิงก์ศูนย์ (Beauty 1,075 · Beauty Clinic 436 · Playground 103 · Car Service 147) · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
 
-ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **50 จาก 889 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 103 แห่ง
+ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่): **50 จาก 890 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 103 แห่ง
 
-ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,080 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 243 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 146 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
+ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,081 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 244 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 146 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
 
 ## ใช้งาน
 
@@ -168,6 +168,16 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.18 - one rounded style for every venue building, OpenStreetMap first, Esplanade Ratchada
+
+Owner 7 Nov 2026 08:25 (items 2–4) and 08:31 (D32; DATA_METHOD §11.4).
+
+- **Rounded corners for every venue building** (“ปรับให้ style มุมมนเหมือนกันหมดนะ”): the blue venue buildings — checked footprints, pin buildings and site buildings, from OpenStreetMap or CityMETER — are drawn in the focus tier's rounded model: the same corner radius (about 4 px, 3–12 m by zoom) and the same outward offset (at least 0.8 m), so a rounded corner still encloses the original. Masses from a design file are rounded without enlarging (their smallest part is about 12 m²). The x-ray solid of the open venue follows. Display only (`js/buildings.js#shapeVenueGeometry`); matching and the massing tiers keep the exact rings.
+- **OpenStreetMap first, CityMETER Building V4 as the fallback** (“ให้ดีคือ ถ้ามี อาคารจาก OSM ที่รายละเอียดดีกว่า ให้ใช้ OSM ก่อน CityMETER ใช้ เป็น fallback นะ”): inside a CityMETER unit the source is now chosen per building (`js/building-choice.js`), for the context buildings and the pin buildings alike. A probe of 8 z14 tiles (PARC Bangna, Esplanade, LIVE, Ubon, Khon Kaen, Phuket, Hat Yai, Korat; 9,302 OSM buildings of 12 m² or more, 7 Nov 2026) found that CityMETER Building V4 carries the same outline as OpenStreetMap for 9,055 of them (97%), while 129 (1.4%) that CityMETER does not hold were not drawn at all, because a CityMETER unit replaced every OSM building. Rules: one source maps as one building what the other maps as two or more (together at least half of it) → the source with more buildings; the same building in both → OpenStreetMap when its outline has more corners (turns over 10°, not under half of CityMETER's footprint) or covers more than twice CityMETER's footprint, else CityMETER; only one source → that one. Buildings mapped in parts (LOD2) stay OpenStreetMap. An OSM building drawn in place of a CityMETER one whose OpenMapTiles height is the default (5 m) keeps the CityMETER model height and credits CityMETER; the panel says so. The boxy buildings at PARC Bangna are CityMETER buildings with no OSM building there: they stay CityMETER, now rounded.
+- **LIVE Ramintra** (“พี่วางตึกเกินขอบเขต site ไปสองก้อน … ตัดสองก้อนนั้นออก เหลือไว้แค่อันกลาง”): the 8,465 m² slab about 270 m north and the curved pieces about 200 m west of the design file are left out (`drop_parts` in `scripts/venue-model-placements.json`): 10 parts, 6.6 KB, farthest vertex 145 m from the point.
+- **Esplanade Ratchada and Tops Esplanade** (“Esplanade รัชดา หายไปทั้ง venue และ Tops esplanade พี่ปักไม่ตรงอาคาร … สร้าง venue = Esplanade รัชดาด้วย”): the registry row `VN-7e2155ac67fe96` existed but had no point; it now holds the centre of its building (OpenStreetMap way 160080887 “Esplanade Ratchadapisek”, the same outline in CityMETER Building V4, 11,638 m²), and the Tops pin, 19 m outside the building's edge (production “no building at the point”), moved to an interior point of the same building. Both are owner-identified, not entrances, not field-verified; the sheet holds the old pin and the reason (`01_VENUES` rows 4 and 2848, 18 cells read back). Venue data from the 7 Nov 2026 export (09:16): located 6,080 → 6,081; shopping centres on the map 243 → 244; Bangkok 889 → 890 in the first finding. The two venues are not linked as parent and component (left as the registry has them).
+- Cache tag `20261107-r25`.
 
 ## 0.1.17 - multi-building sites for 171 markets and 6 more venues, nationwide (data only)
 

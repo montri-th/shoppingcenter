@@ -5,7 +5,8 @@ import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {tileToLonLat, parseVectorTile} from '../js/mvt.js';
 import {shapeTile, shapeCmTile, planCmRequests, installMassing, cmFeatureId, focusFeatureId, cmHeight, tileBox, CM_ID_BASE, CM_SLOTS, DEFAULT_CM_HEIGHT_M, HEIGHT_LIFT_M,
-  MAX_CM_REQUESTS, CITY_LAYER, CONTEXT_LAYER, CONTEXT_SOURCE, CM_CREDIT_LAYER, FOCUS_SOURCE, roundingRadiusM, encloseOffsetM} from '../js/massing.js';
+  MAX_CM_REQUESTS, CITY_LAYER, CONTEXT_LAYER, CONTEXT_SOURCE, CM_CREDIT_LAYER, FOCUS_SOURCE, roundingRadiusM, encloseOffsetM, indexCmBuildings, indexOsmBuildings} from '../js/massing.js';
+import {chooseSource, corners, osmFiner, isDefaultOsmHeight} from '../js/building-choice.js';
 import {cmTileUrl, zoneAt, zonesFor, zonesOf, validUnitFile, createBuildingUnitStore, createCmTileLoader, CM_TILE_API, CM_ATTRIBUTION} from '../js/building-units.js';
 import {encodeTile, square} from './mvt-encode.js';
 
@@ -37,8 +38,11 @@ const osmBytes = encodeTile(osmTile.layers), cmBytes = encodeTile(cmTile.layers)
 const osmLayer = parseVectorTile(osmBytes).layers.building, cmLayer = parseVectorTile(cmBytes).layers['building-detail'];
 const r = roundingRadiusM(16), d = encloseOffsetM(r);
 
-test('a CityMETER unit replaces the OSM buildings of the focus whose interior falls in it; parts (LOD2) stay; the city tier hides the feature and its other buildings come back as context', () => {
-  const out = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE]});
+const cmIdx = () => indexCmBuildings([{tile: T, layer: cmLayer}]);
+const osmIdx = () => indexOsmBuildings([{tile: T, layer: osmLayer, zones: [ZONE]}]);
+
+test('in a CityMETER unit an OSM building with the same outline in CityMETER is replaced by it; parts (LOD2) stay; the city tier hides the feature and its other buildings come back as context', () => {
+  const out = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE], cm: cmIdx(), osm: osmIdx()});
   const drawn = out.features.map(f => f.properties.osm_id).sort();
   assert.deepEqual(drawn, [203, 204], 'A (201, in the unit) is replaced; the part (203) and the building outside the unit (204) stay');
   assert.equal(out.replaced, 1);
@@ -46,6 +50,11 @@ test('a CityMETER unit replaces the OSM buildings of the focus whose interior fa
   assert.equal(out.context.length, 1, 'B — the same feature, outside the focus — is drawn as context');
   assert.deepEqual(out.context[0].properties, {height: 6, base: 0});
   assert.equal(out.partOutlines.length, 1, 'the outline of the building mapped in parts is handed to the CityMETER tier');
+  assert.equal(out.taken.size, 0); assert.deepEqual(out.rules, {cm: 1});
+  // A zone without any CityMETER building read (D32, OSM first): every OSM building stays.
+  const bare = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE]});
+  assert.deepEqual(bare.features.map(f => f.properties.osm_id).sort(), [201, 203, 204]);
+  assert.equal(bare.replaced, 0); assert.deepEqual(bare.rules, {'osm-only': 1});
   // Without a zone the tile is drawn as before: A drawn, nothing hidden, no context.
   const before = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d});
   assert.deepEqual(before.features.map(f => f.properties.osm_id).sort(), [201, 203, 204]);
@@ -82,6 +91,60 @@ test('CityMETER buildings: drawn once (home tile, shared geometry), only in the 
   const w = shapeCmTile(west, parseVectorTile(encodeTile([{name: 'building-detail', features: [{properties: {height_m: '8.00'}, rings: [square(4096 - 300, 700, 200)]}]}])).layers['building-detail'], {regions: [westFocus], radiusM: r, offsetM: d});
   assert.equal(w.kept, 1);
   assert.equal(cmHeight({height_m: 'x'}), DEFAULT_CM_HEIGHT_M); assert.equal(cmHeight({height_m: '0'}), DEFAULT_CM_HEIGHT_M); assert.equal(cmHeight({height_m: '136.71'}), 136.71);
+});
+
+/* ---------- D32: OSM first, CityMETER as the fallback (owner 2026-11-07 08:31) ---------- */
+const rectT = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]];
+const octagon = [[620, 200], [680, 200], [700, 220], [700, 280], [680, 300], [620, 300], [600, 280], [600, 220], [620, 200]];
+const choiceOsm = parseVectorTile(encodeTile([{name: 'building', features: [
+  {id: 301, properties: {render_height: 5, render_min_height: 0}, rings: [square(200, 200, 100)]},          // o1: CityMETER has the same outline
+  {id: 302, properties: {render_height: 5, render_min_height: 0}, rings: [octagon]},                         // o2: finer than CityMETER's box, default height
+  {id: 303, properties: {render_height: 5, render_min_height: 0}, rings: [square(1000, 200, 100)]},         // o3: CityMETER has nothing here
+  {id: 304, properties: {render_height: 6, render_min_height: 0}, rings: [square(200, 600, 300)]},          // o4: one block where CityMETER has two buildings
+  {id: 305, properties: {render_height: 7, render_min_height: 0}, rings: [square(1000, 600, 100), square(1150, 600, 100)]}, // o5a, o5b: two in one CityMETER block
+]}])).layers.building;
+const choiceCm = parseVectorTile(encodeTile([{name: 'building-detail', features: [
+  {properties: {height_m: '10.00'}, rings: [square(200, 200, 100)]},     // c1 = o1
+  {properties: {height_m: '18.00'}, rings: [square(600, 200, 100)]},     // c2 ~ o2 (4 corners)
+  {properties: {height_m: '12.00'}, rings: [rectT(205, 605, 345, 895)]}, // c4a in o4
+  {properties: {height_m: '14.00'}, rings: [rectT(355, 605, 495, 895)]}, // c4b in o4
+  {properties: {height_m: '9.00'}, rings: [rectT(990, 590, 1260, 710)]}, // c5 holds o5a and o5b
+]}])).layers['building-detail'];
+
+test('D32 OSM first: per building, the more detailed source draws it — same outline → CityMETER, finer OSM outline or OSM-only → OSM (default height takes CityMETER\'s), more buildings wins either way', () => {
+  const cm = indexCmBuildings([{tile: T, layer: choiceCm}]);
+  const osm = indexOsmBuildings([{tile: T, layer: choiceOsm, zones: [ZONE]}]);
+  assert.equal(cm.size, 5);
+  const out = shapeTile(T, choiceOsm, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE], cm, osm});
+  const drawn = out.features.map(f => f.properties.osm_id).sort();
+  assert.deepEqual(drawn, [302, 303, 305, 305], 'o2 (finer), o3 (OSM only), o5a and o5b (two where CityMETER has one); o1 and o4 replaced');
+  assert.equal(out.replaced, 2);
+  assert.deepEqual(out.rules, {cm: 2, 'osm-finer': 1, 'osm-only': 1, 'osm-more-buildings': 2});
+  const o2 = out.features.find(f => f.properties.osm_id === 302);
+  assert.equal(o2.properties.render_height, 18, 'the OSM default height (5 m) takes the CityMETER height of the same building');
+  assert.equal(o2.properties.height_source, 'cm');
+  assert.equal(out.features.find(f => f.properties.osm_id === 303).properties.render_height, 5, 'an OSM-only building keeps its own height');
+  assert.ok(out.features.filter(f => f.properties.osm_id === 305).every(f => f.properties.render_height === 7 && !f.properties.height_source), 'a tagged OSM height stays');
+  assert.equal(out.cmHeights, 1); assert.equal(out.osmFirst, 4); assert.equal(out.taken.size, 2, 'c2 and c5');
+  const cmOut = shapeCmTile(T, choiceCm, {regions: [focus], radiusM: r, offsetM: d, taken: out.taken});
+  assert.equal(cmOut.kept, 3, 'c1, c4a, c4b'); assert.equal(cmOut.osmFirst, 2, 'c2 and c5: OSM draws them');
+  assert.deepEqual(cmOut.features.map(f => f.properties.render_height).sort((a, b) => a - b), [10, 12, 14]);
+});
+
+test('D32 rule details: corners ignore collinear points; a cut piece never wins on corners; pieces under half a building do not split it; the OSM default height', () => {
+  assert.equal(corners(square(0, 0, 10)), 4);
+  assert.equal(corners([[0, 0], [5, 0], [10, 0], [10, 10], [0, 10], [0, 0]]), 4, 'a point on a straight wall is no corner');
+  assert.equal(corners(octagon), 8);
+  const box = {corners: 4, areaM2: 100, height: 12};
+  assert.equal(osmFiner({corners: 8, areaM2: 92, cut: false}, box), true);
+  assert.equal(osmFiner({corners: 8, areaM2: 92, cut: true}, box), false, 'a piece crossed by the tile edge has the tile\'s corners');
+  assert.equal(osmFiner({corners: 8, areaM2: 40, cut: false}, box), false, 'under half of the CityMETER footprint: a piece, not a finer drawing');
+  assert.equal(osmFiner({corners: 4, areaM2: 250, cut: true}, box), true, 'more than twice the CityMETER footprint');
+  const kiosks = [{corners: 4, areaM2: 20, height: 4}, {corners: 4, areaM2: 25, height: 4}];
+  const mall = chooseSource({corners: 12, areaM2: 5000, height: 5, base: 0}, {inside: kiosks});
+  assert.equal(mall.use, 'osm', 'two kiosks in a mall do not split it'); assert.equal(mall.take.length, 2); assert.equal(mall.height, 4);
+  assert.equal(chooseSource({corners: 4, areaM2: 30, height: 5}, {host: {corners: 4, areaM2: 5000, height: 20}, hostOsm: {count: 2, areaM2: 60}}).use, 'cm', 'two small OSM buildings do not split a large CityMETER one');
+  assert.equal(isDefaultOsmHeight(5, 0), true); assert.equal(isDefaultOsmHeight(5, 3), false); assert.equal(isDefaultOsmHeight(7.32, 0), false);
 });
 
 test('CityMETER requests: one per tile and tile unit meeting it, nearest the camera first, bounded; a zone is drawn in a tile only with all its requests', () => {

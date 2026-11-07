@@ -210,6 +210,15 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Not checked yet: `npm run verify:live` against the 01:07 data (waiting for the deploy), a real phone.
 - Later (7 Nov 2026): commit `9ab7366` deployed with the 01:07 data; `npm run verify:live` **1,154 ok**. A real phone is still not checked.
 
+## 0.1.18 - one rounded style for every venue building, OpenStreetMap first, Esplanade Ratchada (`20261107-r25`)
+
+- Owner 7 Nov 2026 08:25 (LIVE Ramintra, Esplanade and Tops, rounded corners) and 08:31 (OpenStreetMap first) (D32; DATA_METHOD §11.2, §11.4).
+- Probe before the rule (owner's Chrome, our own page, 7 Nov 2026 09:00–09:05 ICT): 8 z14 tiles in CityMETER units, OpenFreeMap and CityMETER Building V4 tiles parsed with the page's own `js/mvt.js`: 9,302 OSM buildings of 12 m² or more; one CityMETER building inside 9,055 (97%), same corner count in most of them, area ratio median 1.00; OSM buildings with no CityMETER building 129 (1.4%); OSM finer (two in one CityMETER building, or more corners) 62; OSM blocks over two CityMETER buildings 44; 95% of matched OSM buildings carry the default height (5 m).
+- Sheet `01_VENUES` (owner's request “สร้าง venue = Esplanade รัชดาด้วย”): header (93 columns, hash of the names equal to the 01:07 export) and `venue_id` of rows 4 and 2848 mapped right before writing; 18 cells typed through the Name Box (M, N, O, P, AV append, BQ, BR, BT, BU of each row); no validation dialog; read back through gviz: all 18 values, `review_reason` lengths 126+227 = 353 and 1,158+363 = 1,521 (old text kept), neighbouring rows 3, 5, 2847, 2849 unchanged. CityMETER production `building/detail` at both new points: `osm_geom`, OSM way 160080887 “Esplanade Ratchadapisek”, 11,637.9 m², height 26.92 m.
+- Build: export 7 Nov 2026 09:16 ICT (46,423,487 bytes) with the 01:07 exports of tabs 09, 10 and 13; `npm run data:refresh` then `scripts/refresh-tenant-receipt.py`: 2 rows changed (Tops moved; Esplanade located in Din Daeng), located 6,080 → 6,081, first finding 50/890; `npm test` **192 pass**.
+- LIVE Ramintra: `python3 scripts/build-venue-models.py <models dir>` with `drop_parts` [8, 13, 14, 15, 16]: 10 parts, 6,573 bytes, farthest vertex 145 m.
+- Container (local build, headless Chromium; OpenFreeMap stubbed, so only CityMETER buildings are drawn and the OSM-first rule is not exercised there): PARC Bangna desktop light — 14 site buildings drawn rounded (36/17/25… points from 11/5/7 exact), panel “ทั้งโครงการ 14 อาคาร”; LIVE Ramintra desktop dark — 10 model parts rounded, no part outside the middle group; Esplanade Ratchada desktop light — pin inside the mall building, panel “อาคารที่หมุดตั้งอยู่”, breadcrumb “เขตดินแดง”; Tops Esplanade 390×844 dark — pin inside the same building; no console errors; focus ring visible (solid 3 px); no horizontal overflow.
+
 ## 0.1.17 - multi-building sites for 171 markets and 6 more venues, nationwide (data only, `20261107-r24`)
 
 - Owner 6 Nov 2026 23:19 and 7 Nov “เพิ่มแถวท้ายแท็บได้” (D31; DATA_METHOD §11.3).

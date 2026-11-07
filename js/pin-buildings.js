@@ -19,15 +19,17 @@
  * OpenFreeMap merges buildings of equal height into one MultiPolygon feature per tile, so
  * everything here works per polygon part, never per feature id.
  *
- * Display: each part is drawn enclosing the basemap's own copy (offset DRAW_OFFSET_M outward,
- * lifted DRAW_LIFT_M) so the two never z-fight. Heights are OpenMapTiles render_height /
- * render_min_height: context for the picture, not a measurement.
+ * Display: features carry the exact source rings; js/buildings.js draws them in the focus tier's rounded shape, offset
+ * outward (at least DRAW_OFFSET_M) to enclose the basemap's own copy, lifted DRAW_LIFT_M, so the two never z-fight.
+ * Heights are OpenMapTiles render_height / render_min_height: context for the picture, not a measurement.
  *
  * CityMETER Building V4 (owner 2026-11-05 00:34: “ใช้แหล่งข้อมูลอาคารเสริมจาก CityMETER: building ด้วย เพื่อซ่อมพื้นที่
  * ต่างจังหวัดที่ OSM มีข้อมูลอาคารจำกัด”): inside a CityMETER unit (js/building-units.js, the 1.15 rule) a point is
- * matched to the CityMETER buildings of its z14 tile first, by the same rules — except where OSM maps the building in
- * parts (an outline with building:parts, LOD2), which stays OSM; when CityMETER has no building there, the OSM one is
- * kept. Heights of CityMETER buildings are the dataset's model estimates (`height_m`).
+ * matched to the CityMETER buildings of its z14 tile too, by the same rules, and the source is chosen per building,
+ * OSM first (D32, owner 2026-11-07 08:31, js/building-choice.js): OSM parts (LOD2) stay OSM; the OSM building the point
+ * stands in stays unless CityMETER draws it in more detail; else the CityMETER building; else an OSM building within the
+ * edge tolerance. Heights of CityMETER buildings are the dataset's model estimates (`height_m`); an OSM building drawn in
+ * place of a CityMETER one with the OSM default height (5 m) takes the CityMETER height.
  *
  * Sites (several buildings of one venue, “campus style”, as CityMETER · Hotel 0.3.6): a venue with research site points
  * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour.
@@ -35,6 +37,7 @@
 
 import {lonLatToTile, tileToLonLat} from './mvt.js';
 import {tileBox, cmHeight} from './massing.js';
+import {chooseSource, corners, isDefaultOsmHeight} from './building-choice.js';
 
 export const PIN_TOLERANCE_M = 3;
 export const MAX_PART_AREA_M2 = 150000;
@@ -282,14 +285,47 @@ export function cmRequestsFor(point, zone) {
   return out;
 }
 
+/** A part crossed by its tile's edge (each tile keeps a buffer): its corners and area are the tile's, not the building's. */
+export function cutPart(part) {
+  if (!part?.tile) return false;
+  const [z, x, y] = part.tile.split('/').map(Number);
+  if (![z, x, y].every(Number.isFinite)) return false;
+  const [w, s, e, n] = tileBox({z, x, y}), [bw, bs, be, bn] = part.bbox, eps = 1e-9;
+  return bw < w - eps || be > e + eps || bs < s - eps || bn > n + eps;
+}
+const choiceRecord = p => ({corners: corners(p.outer), areaM2: p.areaM2, height: p.height, base: p.base, cut: cutPart(p)});
+
+/** D32 (OSM first, js/building-choice.js) for one OSM part against the CityMETER parts: {use: 'osm' | 'cm', height, rule}. */
+export function choosePart(part, osm, cm) {
+  const inside = candidatesInBox(cm, part.bbox).filter(c => sizeOK(c) && insidePart(interiorPoint(c), part)).map(choiceRecord);
+  const at = interiorPoint(part);
+  const host = inside.length ? null : candidatesInBox(cm, [at[0], at[1], at[0], at[1]]).filter(c => sizeOK(c) && insidePart(at, c)).sort((a, b) => a.areaM2 - b.areaM2)[0] || null;
+  let hostOsm = null;
+  if (host) {
+    const held = candidatesInBox(osm, host.bbox).filter(p => !p.hide3d && sizeOK(p) && !cutPart(p) && insidePart(interiorPoint(p), host));
+    hostOsm = {count: held.length, areaM2: held.reduce((sum, p) => sum + p.areaM2, 0)};
+  }
+  return chooseSource(choiceRecord(part), {inside, host: host && choiceRecord(host), hostOsm});
+}
+
 /**
- * The building of one point in a CityMETER unit: OSM parts (LOD2) when OSM maps the building there in parts, else the
- * CityMETER building, else the OSM building (CityMETER has none there). `osm`/`cm`: indexes from indexParts.
+ * The building of one point in a CityMETER unit (D32, OSM first): OSM parts (LOD2) when OSM maps the building there in
+ * parts; else the OSM building the point stands in unless CityMETER draws it in more detail (more buildings, or a finer
+ * outline of the same one — js/building-choice.js); else the CityMETER building; else an OSM building within the edge
+ * tolerance. An OSM building chosen over a CityMETER one keeps the CityMETER height when its own is the OSM default.
+ * `osm`/`cm`: indexes from indexParts.
  */
 export function matchInUnit(point, osm, cm, options) {
   const fromOsm = matchVenue(point, osm, options);
   if (fromOsm?.viaOutline) return fromOsm;
   const fromCm = matchVenue(point, cm, options);
+  if (fromOsm?.method === 'inside') {
+    const main = fromOsm.parts.filter(p => insidePart(point, p)).sort((a, b) => b.areaM2 - a.areaM2)[0] || fromOsm.parts[0];
+    const choice = choosePart(main, osm, cm);
+    if (choice.use === 'cm' && fromCm) return {...fromCm, source: 'cm', rule: choice.rule};
+    if (!choice.height) return {...fromOsm, rule: choice.rule};
+    return {...fromOsm, rule: choice.rule, parts: fromOsm.parts.map(p => (isDefaultOsmHeight(p.height, p.base) ? {...p, height: choice.height, heightFrom: 'cm'} : p))};
+  }
   if (fromCm) return {...fromCm, source: 'cm'};
   return fromOsm;
 }
@@ -344,17 +380,20 @@ export function growRingM(ring, d) {
 export const PIN_SOURCES = Object.freeze({
   osm: {role: 'pin_building_basemap', heightStatus: 'basemap_render_height', source: 'OpenMapTiles building (OpenFreeMap) © OpenStreetMap contributors'},
   cm: {role: 'pin_building_citymeter', heightStatus: 'citymeter_model_estimate', source: 'CityMETER Building V4'},
+  // D32: an OSM outline with the CityMETER height of the same building (its own was the OpenMapTiles default).
+  osmCmHeight: {role: 'pin_building_basemap', heightStatus: 'citymeter_model_estimate', source: 'OpenMapTiles building (OpenFreeMap) © OpenStreetMap contributors · height: CityMETER Building V4'},
 });
 export function pinFeatures(venueId, match) {
   if (!match?.parts?.length) return [];
   return match.parts.map((part, i) => {
-    const kind = PIN_SOURCES[part.source === 'cm' ? 'cm' : 'osm'];
+    const kind = PIN_SOURCES[part.source === 'cm' ? 'cm' : part.heightFrom === 'cm' ? 'osmCmHeight' : 'osm'];
     const height = Number.isFinite(part.height) && part.height > 0 ? part.height : null;
     const base = Math.max(0, part.base || 0);
     const top = Math.max(base + MIN_DISPLAY_HEIGHT_M, height ?? MIN_DISPLAY_HEIGHT_M);
     return {
       type: 'Feature',
-      geometry: {type: 'Polygon', coordinates: [growRingM(part.outer, DRAW_OFFSET_M), ...part.holes.map(h => growRingM(h, -DRAW_OFFSET_M))]},
+      // Exact rings: js/buildings.js draws them rounded and offset outward (at least DRAW_OFFSET_M).
+      geometry: {type: 'Polygon', coordinates: [part.outer.map(p => [p[0], p[1]]), ...part.holes.map(h => h.map(p => [p[0], p[1]]))]},
       properties: {
         host_id: `pin:${venueId}:${i}`, venue_ids: [venueId], selected_venue_ids: [venueId],
         geometry_role: kind.role, render_as: 'extrusion', match_method: part.site ? 'site' : match.method,
@@ -398,7 +437,7 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
       byVenue.set(r.id, match ? match.method : null);
       if (match) {
         features.push(...pinFeatures(r.id, match));
-        if (match.parts.some(p => p.source === 'cm')) fromCm++;
+        if (match.parts.some(p => p.source === 'cm' || p.heightFrom === 'cm')) fromCm++;
       }
     }
     // A partial venue (site points still waiting for a tile) counts its parts too, so a site that grows is drawn as it

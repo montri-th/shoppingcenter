@@ -461,7 +461,9 @@ export function buildingReading(row, buildings = [], pinState, site = null, mode
   if (pins.length) {
     const cm = pins.some(f => f.properties.geometry_role === 'pin_building_citymeter'), osm = pins.some(f => f.properties.geometry_role === 'pin_building_basemap');
     const from = cm && osm ? 'CityMETER Building V4 และแผนที่ฐาน OpenStreetMap (OpenFreeMap)' : cm ? 'CityMETER Building V4' : 'แผนที่ฐาน OpenStreetMap (OpenFreeMap)';
-    const heights = cm && osm ? 'ความสูงของ CityMETER ประมาณจากแบบจำลอง ของ OpenStreetMap ตามแผนที่ฐาน' : cm ? 'ความสูงประมาณจากแบบจำลอง' : 'ความสูงตามแผนที่ฐาน';
+    // D32: an OSM outline may carry the CityMETER height of the same building (its own was the OSM default).
+    const hCm = pins.some(f => f.properties.height_status === 'citymeter_model_estimate'), hOsm = pins.some(f => f.properties.height_status === 'basemap_render_height');
+    const heights = hCm && hOsm ? 'ความสูงของ CityMETER ประมาณจากแบบจำลอง ของ OpenStreetMap ตามแผนที่ฐาน' : hCm ? (osm ? 'ความสูงประมาณจากแบบจำลองของ CityMETER Building V4' : 'ความสูงประมาณจากแบบจำลอง') : 'ความสูงตามแผนที่ฐาน';
     const sited = site && pins.some(f => f.properties.match_method === 'site');
     if (sited) {
       const built = new Set(pins.map(f => f.properties.host_id)).size;
