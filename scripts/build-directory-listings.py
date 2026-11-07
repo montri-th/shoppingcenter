@@ -272,6 +272,30 @@ def floor_text(floor, unit):
     return ' · '.join(p for p in parts if p)
 
 
+RECEIPT_OUTCOME = {'shown': 'shown_as_directory_item', 'represented': 'already_shown_by_brand_roster', 'held': 'held'}
+RECEIPT_HELD = {
+    'department_store_counter': 'held_department_store_counter_not_outlet',
+    'held_source_observation': 'held_source_observation_not_additive_outlet',
+    'coming_soon_not_confirmed_open': 'held_planned_coming_soon_not_confirmed_open',
+    'centre_facility_not_a_shop': 'held_centre_facility_not_a_shop',
+    'no_listed_name': 'held_no_listed_name',
+    'no_public_source_link': 'held_no_public_source_link',
+    'host_not_in_public_venue_set': 'held_host_not_in_public_venue_set',
+    'host_held_without_counted_parent': 'held_host_without_counted_parent',
+}
+
+
+def receipt_status(outcome, reason, before):
+    """The public_projection_status the research sheet records for a row after this build."""
+    if outcome == 'shown':
+        return 'published_as_venue_directory_listing'
+    if outcome == 'represented':
+        return 'published_via_existing_brand_roster_listing'
+    if before.startswith('held_'):
+        return before  # the sheet's own hold stays as the sheet wrote it
+    return RECEIPT_HELD.get(reason, 'held_' + reason)
+
+
 def roster_keys(item):
     keys = {item.get('id'), item.get('sourceRowKey')}
     keys.update(item.get('sourceObservationIds') or [])
@@ -292,6 +316,7 @@ def main():
     ap.add_argument('--data', default=str(ROOT / 'data'))
     ap.add_argument('--logos', default=str(ROOT / 'assets' / 'tenant-logos-manifest.json'))
     ap.add_argument('--receipt', help='private CSV: one line per directory row with its disposition')
+    ap.add_argument('--release', default='', help='the page release this receipt belongs to (receipt only)')
     a = ap.parse_args()
     data = Path(a.data)
     raw = Path(a.directory).read_bytes()
@@ -388,8 +413,8 @@ def main():
                     for f, idx in free:
                         if f == want:
                             used.add(idx)
-                            return True
-            return False
+                            return idx
+            return None
 
         added, represented = [], 0
         matched = {key: identity_of(g) for key, g in entries}
@@ -398,19 +423,19 @@ def main():
             floor = key[2]
             ids = [r['observation_id'].strip() for r in g['rows']]
             label_text = g['rows'][0]['tenant_label'].strip()
+            shown_by = None
             if matched[key]:
                 used.update(matched[key])
-                verdict = 'shown_by_roster_identity'
-            elif take(label_text, floor, {x.strip() for r in g['rows'] for x in (r['matched_brand_ids'] or '').split('|') if x.strip()}):
+                verdict, shown_by = 'shown_by_roster_identity', matched[key][0]
+            else:
                 # the same name — or a brand the sheet links or proposes for this row — on the same floor (or the
                 # roster gives none): a display rule against listing one shop twice, never an identity merge
-                verdict = 'shown_by_roster_name_floor'
-            else:
-                verdict = 'shown_as_directory_item'
+                shown_by = take(label_text, floor, {x.strip() for r in g['rows'] for x in (r['matched_brand_ids'] or '').split('|') if x.strip()})
+                verdict = 'shown_as_directory_item' if shown_by is None else 'shown_by_roster_name_floor'
             if verdict != 'shown_as_directory_item':
                 represented += 1
                 for oid in ids:
-                    disposition[oid] = ('represented', verdict, '')
+                    disposition[oid] = ('represented', verdict, items[shown_by].get('id', ''))
                 continue
             first = g['rows'][0]
             label = label_text
@@ -503,13 +528,18 @@ def main():
     }
     (data_dir / 'build-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
     if a.receipt:
+        # One line per exported row, for the research sheet's public_projection_status (the sheet copies the value of
+        # public_projection_status only while the row still holds exported_public_projection_status).
         with open(a.receipt, 'w', newline='', encoding='utf-8') as f:
             w = csv.writer(f)
-            w.writerow(['observation_id', 'venue_id', 'web_outcome', 'reason', 'item_id', 'exported_on'])
+            w.writerow(['observation_id', 'venue_id', 'exported_public_projection_status', 'public_projection_status',
+                        'web_outcome', 'reason', 'web_item_id', 'web_release', 'exported_on'])
             for r in rows:
                 oid = r['observation_id'].strip()
                 outcome, reason, item = disposition.get(oid, ('held', 'not_read', ''))
-                w.writerow([oid, r['venue_id'].strip(), outcome, reason, item, a.exported_on])
+                before = r['public_projection_status'].strip()
+                w.writerow([oid, r['venue_id'].strip(), before, receipt_status(outcome, reason, before),
+                            RECEIPT_OUTCOME[outcome], reason, item, a.release, a.exported_on])
     print(json.dumps({'rows': report['rows'], 'entries': report['entries'], 'venues': report['venues']}, ensure_ascii=False))
 
 

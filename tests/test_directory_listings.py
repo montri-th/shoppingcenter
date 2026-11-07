@@ -122,7 +122,7 @@ with tempfile.TemporaryDirectory() as tmp:
     receipt = tmp / 'receipt.csv'
     roster_before = b''.join((data / 'tenants' / f'{n:02d}.json').read_bytes() for n in range(b.SHARDS))
     subprocess.run([sys.executable, '-I', str(SCRIPT), '--directory', str(export), '--exported-on', '2026-11-07', '--data', str(data),
-                    '--logos', str(logos), '--receipt', str(receipt)], check=True, capture_output=True)
+                    '--logos', str(logos), '--receipt', str(receipt), '--release', '0.1.27'], check=True, capture_output=True)
     assert b''.join((data / 'tenants' / f'{n:02d}.json').read_bytes() for n in range(b.SHARDS)) == roster_before, 'the roster stays byte-identical'
     shard = json.loads((data / 'directory' / f'{b.shard_of("V1"):02d}.json').read_text())
     items = shard['venues']['V1']['items']
@@ -150,9 +150,17 @@ with tempfile.TemporaryDirectory() as tmp:
     r = report['rows']
     assert r['shownAsDirectoryItems'] + r['alreadyShownByRoster'] + r['held'] == len(rows)
     with receipt.open(encoding='utf-8') as f:
-        out = {x['observation_id']: (x['web_outcome'], x['reason'], x['item_id']) for x in csv.DictReader(f)}
-    assert out['o1'][:2] == ('represented', 'shown_by_roster_name_floor')
-    assert out['o14'][:2] == ('represented', 'shown_by_roster_identity')
+        lines = list(csv.DictReader(f))
+    status = {x['observation_id']: x['public_projection_status'] for x in lines}
+    out = {x['observation_id']: ({'shown_as_directory_item': 'shown', 'already_shown_by_brand_roster': 'represented'}.get(x['web_outcome'], x['web_outcome']),
+                                 x['reason'], x['web_item_id']) for x in lines}
+    assert out['o1'] == ('represented', 'shown_by_roster_name_floor', 'research.TH.apparel:02_STORES:U1'), out['o1']
+    assert out['o14'] == ('represented', 'shown_by_roster_identity', 'research.TH.misc:x:ID1')
+    assert status['o1'] == 'published_via_existing_brand_roster_listing' and status['o7'] == 'published_as_venue_directory_listing'
+    assert status['o4'] == 'held_department_store_counter_not_outlet' and status['o3'] == 'held_centre_facility_not_a_shop'
+    assert status['o5'] == 'held_counter_or_component', 'the sheet keeps its own hold as written'
+    assert status['o18'] == 'published_as_venue_directory_listing', 'a component-scope hold shown at the single venue'
+    assert all(x['web_release'] == '0.1.27' and x['exported_on'] == '2026-11-07' for x in lines)
     assert out['o3'][1] == out['o17'][1] == 'centre_facility_not_a_shop'
     assert out['o4'][1] == 'department_store_counter'
     assert out['o5'][1] == 'held_counter_or_component'
