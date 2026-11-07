@@ -171,10 +171,10 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 ## 0.1.20 - official-directory network and retail reference points
 
-- Official-directory research:23,217 source observations /55canonical hosts /7publisher collections. Existing source identities reused; Miscellaneous receives unmatched categories using the Luxury template, with provisional names and migration crosswalks kept separate.
-- Public roster:6,701 items at638hosts from25datasets;1,208new, all5,493original facts preserved; True Digital Park122items /17datasets. Source-card/unit identity checks and point/operation/scope holds prevent research intake from becoming extra branches automatically.
-- Original31 venues:23source-qualified reference points selected,8NULL holds; all31linked to source-branch evidence. Existing count roles, qualification and primary graph preserved. Located supply6,084; current392sites /5,743building points and D33/D34 unchanged.
-- Validation:208/208 tests, independent projection reproduction and34-file idempotence; desktop/390px Chrome rendered checks. See `DATA_METHOD.md` §9.6 and `handoff/VERIFICATION.md`. Cache tag `20261107-r29`.
+- Official-directory research: 23,217 source observations / 55 canonical hosts / 7 publisher collections. Existing source identities reused; Miscellaneous receives unmatched categories using the Luxury template, with provisional names and migration crosswalks kept separate.
+- Public roster: 6,701 items at 638 hosts from 25 datasets; 1,208 new, all 5,493 original facts preserved; True Digital Park 122 items / 17 datasets. Source-card/unit identity checks and point/operation/scope holds prevent research intake from becoming extra branches automatically.
+- Original 31 venues: 23 source-qualified reference points selected, 8 NULL holds; all 31 linked to source-branch evidence. Existing count roles, qualification and primary graph preserved. Located supply 6,084; current 392 sites / 5,743 building points and D33/D34 unchanged.
+- Validation: 208/208 tests, independent projection reproduction and 34-file idempotence; desktop/390 px Chrome rendered checks. See `DATA_METHOD.md` §9.6 and `handoff/VERIFICATION.md`. Cache tag `20261107-r29`.
 
 ## 0.1.19 r28 - nothing over the map but the map: the credit beside it
 

@@ -126,6 +126,11 @@ Recorded 2026-10-25 (release 0.1.2, cache tag `20261025-r10`, data from the 16:3
 - Never publish a design file, its name or a local path (test `venue-models`). A held venue has no file, and every file in `data/venue-models/` must be in the index, because Pages serves an unlisted file too.
 - Light and in step with the other buildings: one file per venue (< 60 KB), fetched once from zoom 14 in view or when the venue opens; the masses replace the venue's pin and site buildings in the host blue and carry no `_ring`, so the massing tiers drop the tile buildings they overlap. Parts thinner than 0.6 m are left out unless they cover `thin_keep_area_m2` (LIVE's 8,465 m² garden roof).
 
+### Official tenant directories and retail reference points - 0.1.20 / 20261107-r29
+
+- Method and limits: `DATA_METHOD.md` §9.6 and `PRODUCT_STATEMENT.md` §11. Rebuild the shop lists with `scripts/link-venue-network-tenants.py`, then `scripts/build-tenant-index.py`; input hashes and held reasons are in `data/tenants/build-report.json#venueNetwork`. Tests: `tests/test_venue_network_tenants.py` (run from `tests/venue-network-adapter.test.js`, so `npm test` covers it).
+- A publisher observation is not a branch, a directory omission is not a closure, and a research lead never becomes an outlet or an ownership claim by itself. Keep D33, D34, the 392 sites and the station file as they are unless the owner says otherwise.
+
 ### Nothing secondary over the map: the credit beside it - 0.1.19 / 20261107-r28
 
 - Owner 2026-11-07 14:02, with a phone screenshot of the open credit box: “โดน ป้าย ที่มาข้อมูล บังมากเกินไป แย่มาก ตัดออกให้หมด เอาไปซ่อนไว้ที่อื่น ให้เห็นแผนที่ใหญ่ๆ”; 14:09: “ช่วยสร้าง skill ป้องกันของไร้สาระ มาบังสาระ แบบนี้ด้วยครับ”.
