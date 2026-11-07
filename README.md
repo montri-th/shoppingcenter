@@ -81,7 +81,7 @@ npm test         # Node ≥ 20
 
 ใช้ LDS **0.9.7 / v0.9.7-owner.1** (`standalone-0.9.7-r1`, `color-srgb-10`, SHA-256 `d3085cbc…d432d96`) เฉพาะค่าที่หน้านี้ใช้: tokens ใน [assets/theme.css](assets/theme.css), LUT 41 ค่าของ `count` และ `density.area` ใน [js/scales.js](js/scales.js) (ใช้ครบทั้ง 41 ค่าบนแผนที่ คำอธิบายแผนที่ และกราฟ), categorical series 1–10, fonts ใน `assets/lds/build-kit/` (OFL) และไอคอน Material Symbols Rounded: ชุด nav-7 ที่อนุมัติ (ไม่แก้ไบต์) กับชุด pictogram/UI 40 ตัว (`assets/icons/material-pictogram-300.*`, test exception ที่เจ้าของอนุมัติ 22 ต.ค. และสั่งเพิ่ม 25 ต.ค. 2569 — ยังไม่ขึ้นทะเบียนใน LDS) ไม่แนบคลัง LDS ทั้งชุด ไฟล์ asset บันทึกขนาดและ SHA-256 ใน [assets/manifest.json](assets/manifest.json) และทุกไฟล์ของ repository ใน `handoff/handoff-manifest.json` (สร้างด้วย `npm run handoff:manifest`) ผล hash ตรงไม่ใช่การรับรองว่าหน้าจอผ่านการตรวจหรือเป็น production
 
-คง attribution ของ OpenFreeMap / OpenMapTiles / OpenStreetMap, กรมแผนที่ทหาร (RTSD) ผ่าน geoBoundaries / OCHA (CC BY 3.0 IGO) และ amCharts (โลโก้บนกราฟตาม free licence; [vendor/amcharts5/LICENSE](vendor/amcharts5/LICENSE)) รูปทรงอาคารของสถานที่มาจาก OpenStreetMap (ODbL) ผ่าน geometry bundle ของ CityMETER — README ของ bundle ระบุว่าการที่ production ใช้ได้ไม่ได้พิสูจน์สิทธิ์เผยแพร่ต่อแบบเปิดโดยลำพัง จึงคง field สิทธิ์ของแต่ละรูปทรงไว้ · อาคารที่หมุดตั้งอยู่เป็นรูปทรงจาก tile ของแผนที่ฐาน (© OpenStreetMap contributors) วาดบนเครื่องผู้ใช้ ไม่ได้เก็บเป็นไฟล์ข้อมูล
+คง attribution ของ OpenFreeMap / OpenMapTiles / OpenStreetMap, กรมแผนที่ทหาร (RTSD) ผ่าน geoBoundaries / OCHA (CC BY 3.0 IGO) และ amCharts — เครดิตแผนที่เป็นบรรทัดเล็กใต้แผนที่ในแถบล่าง และรายการเต็มอยู่ในวิธีใช้ “ที่มาของแผนที่” ไม่วางบนแผนที่ (r28) (โลโก้บนกราฟตาม free licence; [vendor/amcharts5/LICENSE](vendor/amcharts5/LICENSE)) รูปทรงอาคารของสถานที่มาจาก OpenStreetMap (ODbL) ผ่าน geometry bundle ของ CityMETER — README ของ bundle ระบุว่าการที่ production ใช้ได้ไม่ได้พิสูจน์สิทธิ์เผยแพร่ต่อแบบเปิดโดยลำพัง จึงคง field สิทธิ์ของแต่ละรูปทรงไว้ · อาคารที่หมุดตั้งอยู่เป็นรูปทรงจาก tile ของแผนที่ฐาน (© OpenStreetMap contributors) วาดบนเครื่องผู้ใช้ ไม่ได้เก็บเป็นไฟล์ข้อมูล
 
 โลโก้สถานที่มาจากทะเบียน `10_VENUE_LOGOS` ของ Research Master: ครบ 113 ไฟล์ที่ตรวจ SHA-256 ตรงกับทะเบียนแล้ว ผูกกับ 108 สถานที่ที่นับได้ ([data/venue-logos.json](data/venue-logos.json)) สถานที่ที่ไม่มีโลโก้ในทะเบียนแสดงชื่อแทน ใช้ไฟล์ต้นฉบับไม่แก้สีหรือสัดส่วน ค้นด้วย `venue_id` เท่านั้น การรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า สิทธิ์ยังเป็นของเจ้าของ
 
@@ -168,6 +168,16 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.19 r28 - nothing over the map but the map: the credit beside it
+
+Owner 7 Nov 2026 14:02, with a phone screenshot of the open credit box: “โดน ป้าย ที่มาข้อมูล บังมากเกินไป แย่มาก ตัดออกให้หมด เอาไปซ่อนไว้ที่อื่น ให้เห็นแผนที่ใหญ่ๆ”.
+
+- **No credit box and no (i) on the map.** The credit is one quiet line at the foot of the bottom bar, under the map: “© OpenStreetMap · © OpenMapTiles · OpenFreeMap · ที่มา” (OpenStreetMap links to its copyright page, OpenMapTiles to openmaptiles.org). “ที่มา” opens วิธีใช้ at “ที่มาของแผนที่”, which lists what the map uses at the moment (OpenFreeMap, OpenMapTiles and OpenStreetMap; the RTSD boundaries; CityMETER Building V4 while it is drawn; the terrain while it is shown) and the ODbL 1.0 licence of OpenStreetMap data.
+- **The diagnostic counter (“… หมุด · โลโก้ …/250”) left the map**; the desktop legend sits lower.
+- **Wider screens frame the first view clear of the legend**: on a 1280 × 680 laptop the legend covered part of Pathum Wan; the camera now zooms out only as far as needed (12.17 → 11.97).
+- On a 393 × 659 phone the three districts are framed as before (zoom 11.18), the dock spans the full width, and the bottom bar is 16 px taller to carry the credit line.
+- Cache tag `20261107-r28`.
 
 ## 0.1.19 - first view on shopping centres, rail stations, one phone dock, a quiet map credit
 

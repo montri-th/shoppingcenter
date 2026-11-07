@@ -210,6 +210,15 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Not checked yet: `npm run verify:live` against the 01:07 data (waiting for the deploy), a real phone.
 - Later (7 Nov 2026): commit `9ab7366` deployed with the 01:07 data; `npm run verify:live` **1,154 ok**. A real phone is still not checked.
 
+## 0.1.19 r28 - nothing secondary over the map: the credit beside it (`20261107-r28`)
+
+- Owner 7 Nov 2026 14:02 (phone screenshot of the open credit box: “ตัดออกให้หมด เอาไปซ่อนไว้ที่อื่น ให้เห็นแผนที่ใหญ่ๆ”; PRODUCT_STATEMENT D34).
+- `npm test`: **207 of 207 pass** (`map-credits` rewritten, 6; `camera` containment with an avoid box).
+- Overlap measure (container, local build, headless Chromium; OpenFreeMap and unpkg stubbed, the TileJSON stub carries OpenFreeMap's real credit string): for each view, every element of `.maplibregl-control-container` drawn above the bottom bar, and the credit's box against the bar's box; first paint after load and again 6 s later (an auto-opening box would show there). Phones 393 × 659 dark, 375 × 553 light, 360 × 740 dark, venue `SC-001440` 390 × 844 dark, station `RAILCAT:BTS_SUKHUMVIT:CEN` 390 × 844 light; desktop 1440 × 900 light and venue dark, 1366 × 768 light, 1280 × 680 dark, 1024 × 768 light, 1920 × 1080 dark: the attribution control `display: none` in all; over the map only the compass (and zoom buttons on desktop), at both moments; `#map-credit` inside the bottom bar in all, never clipped (360 px included), 12 px / 16 px, contrast 5.54 (text) and 5.98 (links) on light, 6.97 and 9.2 on dark.
+- Credit line: “© OpenStreetMap · © OpenMapTiles · OpenFreeMap · ที่มา”; the bar is 64 px on phones (48 before), 52 px on wide desktops (credit beside the heading), 70 px at 1024 (credit under it). “ที่มา” opens วิธีใช้ with focus on “ที่มาของแผนที่”; Escape returns focus to the link. The live list showed 2 items on the phone overview (basemap, boundaries), 3 on desktop (+ OSM buildings), 4 in venue and station views (+ CityMETER Building V4).
+- First view: no framed vertex under the legend, the dock or the bar — 393 × 659 zoom 11.18 (as r27), 375 × 553 11.09, 360 × 740 11.01, 1440 × 900 12.65, 1366 × 768 12.33, 1280 × 680 11.97 (12.17 in r27 with Pathum Wan's lower-left edge under the legend), 1024 × 768 11.97, 1920 × 1080 13.1. The diagnostic counter is no longer drawn.
+- Not checked: a real phone; the owner's Chrome and the deployed page are recorded below when done.
+
 ## 0.1.19 - first view on centres, rail stations, one phone dock, a quiet credit (`20261107-r27`)
 
 - Owner 7 Nov 2026 11:15 and 11:56 → “เลือก ข)” (D33; PRODUCT_STATEMENT §8 and §10; DATA_METHOD §6, §6.1, §11.5).

@@ -65,28 +65,16 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .theme-control select { font-size: 12px; border: 0; background: transparent; min-height: 44px; width: 80px; padding: 8px 4px; }
 
 .workspace { height: calc(100dvh - 48px); position: relative; }
-.map-column { position: absolute; inset: 0 var(--panel-width) 0 0; min-width: 0; }
+.map-column { position: absolute; inset: 0 var(--panel-width) 0 0; min-width: 0; container: map-column / inline-size; }
 .map-panel { position: absolute; inset: 0; background: var(--surface-alt); isolation: isolate; overflow: hidden; container-type: inline-size; }
 #map { position: absolute; inset: 0; }
 /* .map-panel: the vendor stylesheet (loaded later by js/vendors.js) sets bottom: 0, which hid the credit behind the bar. */
 .map-panel .maplibregl-ctrl-bottom-right, .map-panel .maplibregl-ctrl-bottom-left { bottom: var(--bottom-panel-height); }
-/* Map credit (owner 2026-11-07 11:15: “บังจอ บังแผนที่เกะกะมาก … ป้ายไม่ควรเป็นสีที่เด่นเกินไป”): the theme's own quiet
-   surface instead of the vendor's white box (which won over this file in dark), caption size, and folded to its (i)
-   button five seconds after it first opens or at the first touch of the map (js/map-credits.js). The (i) keeps the
-   licence one tap away: a 44 px target (LDS CTRL-01) drawn as a small circle that stays in the corner. */
-.maplibregl-ctrl-attrib { font: 12px/16px var(--font-body); }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib { color: var(--text-metadata); background: transparent; }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { margin: 0 6px 6px 0; min-height: 44px; padding: 0 44px 0 0; border: 1px solid transparent; border-radius: 22px; background: transparent; box-sizing: border-box; }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 0 44px 0 12px; background: color-mix(in srgb, var(--surface-card) 90%, transparent); border-color: var(--border-hairline); }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-inner { padding-block: 13px; }
-.map-panel .maplibregl-ctrl-attrib a { color: var(--text-secondary); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; top: auto; bottom: 0; right: 0; left: auto; border-radius: 50%; background: none; box-shadow: none; color: var(--text-metadata); }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::before { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: color-mix(in srgb, var(--surface-card) 88%, transparent); border: 1px solid var(--border-hairline); }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button::before { background: transparent; border-color: transparent; }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::after { content: "i"; position: absolute; inset: 0; display: grid; place-items: center; font: 600 13px/1 var(--font-body); }
-.pictograms-ready .map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::after { content: "\E88E"; font: 300 18px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus { box-shadow: none; }
-.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: -3px; }
+/* Map credit (owner 2026-11-07 14:02: “โดน ป้าย ที่มาข้อมูล บังมากเกินไป แย่มาก ตัดออกให้หมด เอาไปซ่อนไว้ที่อื่น ให้เห็นแผนที่ใหญ่ๆ”):
+   nothing on the map. MapLibre's control keeps collecting the credits but is not drawn; the short credit is one quiet line
+   at the foot of the bottom bar, under the map (#map-credit, section 6), and the live list is in the help dialog
+   (#map-credits; js/map-credits.js). */
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib { display: none !important; }
 
 /* 4. Reading panel -------------------------------------------------------- */
 .panel { position: absolute; right: 0; top: 0; bottom: 0; width: var(--panel-width); background: var(--surface-card); border-left: 1px solid var(--border-default); overflow: auto; scrollbar-width: thin; z-index: 10; overscroll-behavior: contain; }
@@ -413,7 +401,7 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 .map-toolbar button:disabled { opacity: .5; }
 #mobile-panel { display: none; }
 
-.map-legend { position: absolute; left: 8px; bottom: calc(var(--bottom-panel-height) + 34px); z-index: 4; display: grid; gap: 8px; max-width: min(380px, calc(100% - 24px)); padding: 10px 12px; background: color-mix(in srgb, var(--surface-card) 94%, transparent); border: 1px solid var(--border-default); border-radius: var(--radius-sm); font-size: 12px; pointer-events: none; }
+.map-legend { position: absolute; left: 8px; bottom: calc(var(--bottom-panel-height) + 8px); z-index: 4; display: grid; gap: 8px; max-width: min(380px, calc(100% - 24px)); padding: 10px 12px; background: color-mix(in srgb, var(--surface-card) 94%, transparent); border: 1px solid var(--border-default); border-radius: var(--radius-sm); font-size: 12px; pointer-events: none; }
 .map-legend > * { pointer-events: auto; }
 .legend-block { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .legend-title { font-weight: 600; margin-right: 2px; }
@@ -462,7 +450,9 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 #category-key > div span { min-width: 0; }
 #category-key span { display: inline-flex; align-items: center; gap: 6px; }
 .category-swatch { display: inline-block; width: 9px; height: 9px; flex: 0 0 9px; border: 1px solid var(--map-marker-stroke); border-radius: 50%; background: var(--pin-fill, var(--text-muted)); }
-.map-status { position: absolute; left: 8px; bottom: calc(var(--bottom-panel-height) + 8px); z-index: 4; font-size: 11px; color: var(--text-metadata); background: color-mix(in srgb, var(--surface-card) 85%, transparent); padding: 2px 8px; border-radius: 6px; pointer-events: none; }
+/* The pin and logo counter is a diagnostic, not a reading: kept in the page (data-* for checks), never drawn over the map
+   (owner 2026-11-07 14:02, “ให้เห็นแผนที่ใหญ่ๆ”). */
+.map-status { display: none; }
 .map-failure { position: absolute; inset: 25%; z-index: 8; padding: 20px; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); display: grid; gap: 12px; align-content: center; justify-items: center; text-align: center; }
 
 /* Compact Aha on the map (mobile only; see responsive section) */
@@ -518,8 +508,20 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 .map-panel .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface-card); }
 
 /* 6. Charts tray and table ----------------------------------------------- */
-.insights { position: absolute; left: 0; right: 0; bottom: 0; height: 360px; max-height: 58%; background: var(--surface-card); border-top: 1px solid var(--border-default); padding: 0 14px 10px; z-index: 6; display: flex; flex-direction: column; }
-.insights.is-collapsed { height: 52px; padding-bottom: 0; }
+.insights { position: absolute; left: 0; right: 0; bottom: 0; height: 360px; max-height: 58%; background: var(--surface-card); border-top: 1px solid var(--border-default); padding: 0 14px 6px; z-index: 6; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "head" "content" "credit"; }
+.insights.is-collapsed { height: auto; }
+.insight-heading { grid-area: head; }
+#insight-content { grid-area: content; }
+/* The map credit: running text with inline links (LDS CTRL-01 inline-link branch), caption size, metadata colour, no box;
+   under the bar's heading, or beside it where the map column is wide (container query on .map-column). */
+.map-credit { grid-area: credit; margin: -4px 0 0; font-size: 12px; line-height: 16px; color: var(--text-metadata); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.map-credit a { color: var(--text-secondary); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
+.map-credit a:hover { color: var(--text-primary); }
+@container map-column (min-width: 900px) {
+  .insights { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "head credit" "content content"; }
+  .insights.is-collapsed { padding-bottom: 0; }
+  .map-credit { align-self: center; margin: 0 0 0 16px; }
+}
 .insight-heading { display: flex; align-items: center; gap: 12px; min-height: 51px; flex-shrink: 0; }
 .insight-heading h2 { font-size: 15px; white-space: nowrap; }
 .insight-heading .hint { margin-right: auto; }
@@ -620,12 +622,9 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .legend-marks { display: none; }
   .map-status { display: none; }
   /* Map dock (D33 declutter, owner 2026-11-07 11:56 “หน้าจอ … รกมาก”; the pattern of CityMETER · Hotel 0.3.5): the card
-     of the current level and the area legend read as one compact card at the foot of the map. While the map credit is
-     open (on load, at most five seconds — js/map-credits.js) the dock sits above its live height (--attrib-height,
-     app.js trackAttribution); folded to its (i) button the dock drops to the tray and leaves the button its corner. */
-  .map-dock { position: absolute; left: 8px; right: 8px; bottom: calc(var(--bottom-panel-height) + var(--attrib-height, 32px) + 4px); z-index: 5; display: flex; flex-direction: column; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; transition: bottom .2s ease, right .2s ease; }
-  .map-panel.is-attrib-compact .map-dock { right: 52px; bottom: calc(var(--bottom-panel-height) + 8px); }
-  .map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { max-width: calc(100cqw - 12px); }
+     of the current level and the area legend read as one compact card at the foot of the map, just above the bottom bar
+     (the map credit is a line in that bar, not on the map: owner 14:02). */
+  .map-dock { position: absolute; left: 8px; right: 8px; bottom: calc(var(--bottom-panel-height) + 8px); z-index: 5; display: flex; flex-direction: column; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; transition: bottom .2s ease; }
   /* Map card: the reading of the current level; its primary button opens the sheet. The province is in the toolbar and
      the district names are on the map (labels with counts), so the card keeps the finding and one line under it. */
   .map-dock .map-aha { display: grid; gap: 6px; position: static; padding: 9px 10px 8px 12px; background: transparent; border: 0; border-radius: 0; }
@@ -665,7 +664,7 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .dataset-heading .intro { display: none; }
   .panel-view { padding: 12px 14px 20px; gap: 16px; }
   .insights { max-height: 56%; height: 340px; padding: 0 10px 8px; }
-  .insights.is-collapsed { height: 48px; }
+  .insights.is-collapsed { padding-bottom: 4px; }
   .insight-heading { gap: 6px; min-height: 47px; }
   .insight-heading h2 { font-size: 14px; margin-right: auto; }
   .insight-heading .hint { display: none; }
@@ -685,9 +684,6 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .map-panel .maplibregl-ctrl-zoom-in, .map-panel .maplibregl-ctrl-zoom-out { display: none; }
 }
 @media (min-width: 761px), (orientation: landscape) {
-  /* The map credit wraps upward on the right instead of running under the legend and status on the left (as CityMETER ·
-     Hotel): 100cqw = the map panel's width; 470px = legend (8 + 380) + gap + the credit's own padding and margin. */
-  .map-panel .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib { max-width: max(200px, calc(100cqw - 470px)); }
   .panel button.mobile-close, .map-toolbar button#mobile-panel { display: none; }
 }
 .map-panel.is-tight .map-legend, .map-panel.is-tight .map-status { display: none; }

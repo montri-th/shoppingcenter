@@ -119,11 +119,13 @@ function paddedMiddle(map, padding) {
   return [(padding.left + w - padding.right) / 2, (padding.top + h - padding.bottom) / 2];
 }
 
-function cornersInside(map, corners, padding) {
+/** Every corner inside the padded viewport and outside each `avoid` box ({left, top, right, bottom}, canvas pixels). */
+export function cornersInside(map, corners, padding, avoid = []) {
   const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
   return corners.every(c => {
     const p = c.length > 2 && c[2] ? projectPoint(map, c) : map.project([c[0], c[1]]);
-    return p.x >= padding.left && p.x <= w - padding.right && p.y >= padding.top && p.y <= h - padding.bottom;
+    if (!(p.x >= padding.left && p.x <= w - padding.right && p.y >= padding.top && p.y <= h - padding.bottom)) return false;
+    return !avoid.some(r => p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom);
   });
 }
 
@@ -132,9 +134,10 @@ function cornersInside(map, corners, padding) {
  * jumps (no frame is rendered in between), restores the start camera and then
  * animates to the result. Returns the camera used. `points` may carry a third
  * value (altitude in metres) so a building's roof is framed, not only its
- * footprint. `apply: false` only computes the target and restores the start.
+ * footprint. `apply: false` only computes the target and restores the start. `avoid`: boxes on the canvas (pixels) that
+ * no framed point may end under in a pitched fit — the legend on wider screens.
  */
-export function fitPitched(map, bounds, {preset = 'city', padding = {top: 24, bottom: 24, left: 24, right: 24}, maxZoom = 16, animate = true, duration = 650, minZoom = 10, points = null, shift = null, apply = true} = {}) {
+export function fitPitched(map, bounds, {preset = 'city', padding = {top: 24, bottom: 24, left: 24, right: 24}, maxZoom = 16, animate = true, duration = 650, minZoom = 10, points = null, shift = null, apply = true, avoid = []} = {}) {
   const p = CAMERA[preset] || CAMERA.plan;
   const start = {center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), padding: map.getPadding()};
   setFov(map, p.fov);
@@ -158,11 +161,11 @@ export function fitPitched(map, bounds, {preset = 'city', padding = {top: 24, bo
     const around = map.unproject(box);
     const zoomAround = z => (typeof map.zoomTo === 'function' ? map.zoomTo(z, {around, duration: 0, animate: false}) : map.jumpTo({zoom: z}));
     // Zoom out until every vertex is inside the padded viewport…
-    while (!cornersInside(map, corners, padding) && zoom > minZoom && guard++ < 60) { zoom -= 0.1; zoomAround(zoom); }
+    while (!cornersInside(map, corners, padding, avoid) && zoom > minZoom && guard++ < 60) { zoom -= 0.1; zoomAround(zoom); }
     // …then zoom in while they all still fit (foreshortening leaves room the flat fit did not use).
     while (zoom + 0.1 <= maxZoom && guard++ < 120) {
       zoomAround(zoom + 0.1);
-      if (!cornersInside(map, corners, padding)) { zoomAround(zoom); break; }
+      if (!cornersInside(map, corners, padding, avoid)) { zoomAround(zoom); break; }
       zoom += 0.1;
     }
     zoom = Math.round(zoom * 100) / 100;

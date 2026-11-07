@@ -64,7 +64,7 @@ import {loadDetail, cachedDetail} from './details.js';
 import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
-import {foldMapCredits} from './map-credits.js';
+import {mirrorMapCredits} from './map-credits.js';
 
 const $ = id => document.getElementById(id);
 const FIELDS = ['search', 'status', 'group', 'operator', 'province', 'role'];
@@ -390,13 +390,6 @@ function renderMapCard(html, label, kind) {
   el.dataset.kind = kind;
   document.querySelector('.map-panel').dataset.card = html ? kind : '';
   el.hidden = !html || $('panel').classList.contains('is-open');
-  syncCardSpace();
-}
-/** Height the phone map card takes over the map bottom: the map attribution moves above it, never under it. */
-function syncCardSpace() {
-  const el = $('map-aha');
-  const space = mobilePortrait() && !el.hidden ? el.offsetHeight + 8 : 0;
-  document.documentElement.style.setProperty('--map-card-space', `${space}px`);
 }
 
 function pushHistory() { state.history.push({...state.panel}); if (state.history.length > 20) state.history.shift(); }
@@ -892,34 +885,6 @@ function renderTable() {
 }
 
 /* ---------- map ---------- */
-/**
- * The map credit (OpenStreetMap · OpenMapTiles · CityMETER) must stay readable on a phone (as CityMETER · Hotel 0.3.5):
- * its live height — open on load, folded to its (i) button after five seconds or the first touch (js/map-credits.js) —
- * becomes --attrib-height on the map panel, which keeps the phone legend and card above it while it is open;
- * `is-attrib-compact` drops them back.
- */
-function trackAttribution(map) {
-  const panel = map.getContainer().closest('.map-panel');
-  const el = map.getContainer().querySelector('.maplibregl-ctrl-attrib');
-  if (!panel || !el) return null;
-  let last = 0, refits = 0;
-  const set = () => {
-    const height = Math.ceil(el.getBoundingClientRect().height) + 10;
-    panel.style.setProperty('--attrib-height', `${height}px`);
-    panel.classList.toggle('is-attrib-compact', el.classList.contains('maplibregl-compact') && !el.classList.contains('maplibregl-compact-show'));
-    syncCardSpace();
-    // The credit fills in as sources load, after the first view was framed: on a phone that moves the card up, so the
-    // first view is framed again until the user moves the map. Its fold only gives the map room back: no refit then.
-    if (mobilePortrait() && state.initialCameraDone && !state.userCamera && height - last > 12 && !state.panel.id && refits < 2) { refits++; fitMap({instant: true}); }
-    last = height;
-  };
-  const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null;
-  observer?.observe(el);
-  if (typeof MutationObserver === 'function') new MutationObserver(set).observe(el, {attributes: true, attributeFilter: ['class']});
-  set();
-  return observer;
-}
-
 function cameraPadding() {
   const height = $('map').clientHeight, panel = $('insights').getBoundingClientRect().height;
   const edge = Math.min(48, Math.max(12, (height - panel) / 6));
@@ -936,6 +901,18 @@ function pitchedPadding() {
   return {top: Math.round(toolbar.bottom - mapTop + 12), bottom: Math.round($('insights').getBoundingClientRect().height + 40), left: 24, right: 24};
 }
 
+/**
+ * The legend's box on the map canvas on wider screens: a pitched fit keeps every framed vertex out from under it, so the
+ * legend never covers what the camera frames (a 1280 × 680 laptop had it over Pathum Wan, 7 Nov 2026), at the least
+ * zoom-out that clears it (js/camera.js#fitPitched `avoid`). Phones frame above their dock (cameraPadding).
+ */
+function legendAvoid() {
+  const legend = $('map-legend');
+  if (mobilePortrait() || !(legend.offsetHeight > 0) || getComputedStyle(legend).display === 'none') return [];
+  const box = $('map').getBoundingClientRect(), r = legend.getBoundingClientRect();
+  return [{left: r.left - box.left - 8, top: r.top - box.top - 8, right: r.right - box.left + 8, bottom: r.bottom - box.top + 8}];
+}
+
 function vertices(features) {
   const out = [];
   const walk = v => { if (typeof v[0] === 'number') out.push(v); else v.forEach(walk); };
@@ -947,14 +924,14 @@ function vertices(features) {
 function fitArea(feature, {instant = false} = {}) {
   const preset = sheetOpen() ? 'plan' : cameraPreset();
   const pitched = preset !== 'plan' && !mobilePortrait();
-  fitPitched(state.map, featureBounds(feature, maplibregl.LngLatBounds), {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom: 16.5, minZoom: 7, animate: animate() && !instant, points: vertices([feature]), shift: mobilePortrait() ? -0.08 : null});
+  fitPitched(state.map, featureBounds(feature, maplibregl.LngLatBounds), {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom: 16.5, minZoom: 7, animate: animate() && !instant, points: vertices([feature]), shift: mobilePortrait() ? -0.08 : null, avoid: pitched ? legendAvoid() : []});
 }
 
 function fitBounds(b, {instant = false, points = null, maxZoom = 15, apply = true} = {}) {
   const wide = b.getNorth() - b.getSouth() > 0.3 || b.getEast() - b.getWest() > 0.3;
   const preset = wide ? 'plan' : cameraPreset();
   const pitched = preset !== 'plan' && !mobilePortrait();
-  return fitPitched(state.map, b, {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom, minZoom: 4.5, animate: animate() && !instant, points: wide ? null : points, shift: mobilePortrait() && !wide ? -0.12 : null, apply});
+  return fitPitched(state.map, b, {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom, minZoom: 4.5, animate: animate() && !instant, points: wide ? null : points, shift: mobilePortrait() && !wide ? -0.12 : null, apply, avoid: pitched ? legendAvoid() : []});
 }
 
 /** City massing (OpenMapTiles buildings) exists from zoom 13; the 3D focus view needs it to read as a city. */
@@ -1329,9 +1306,9 @@ function initMap() {
   if (!window.maplibregl) throw new Error('Map library is unavailable');
   try {
     state.mapTheme = theme();
-    state.map = new maplibregl.Map({container: 'map', center: BANGKOK_VIEW.center, zoom: BANGKOK_VIEW.zoom, pitch: 0, maxPitch: 85, attributionControl: {compact: true}, style: buildMapStyle(state.mapTheme)});
-    trackAttribution(state.map);
-    foldMapCredits(state.map); // small and out of the way: folds to (i) after 5 s or the first touch (js/map-credits.js)
+    state.map = new maplibregl.Map({container: 'map', center: BANGKOK_VIEW.center, zoom: BANGKOK_VIEW.zoom, pitch: 0, maxPitch: 85, attributionControl: {compact: false}, style: buildMapStyle(state.mapTheme)});
+    // Nothing on the map: the credit is a line under it and the live list is in the help dialog (js/map-credits.js).
+    mirrorMapCredits(state.map, {list: $('map-credit-list')});
     state.map.addControl(new maplibregl.NavigationControl({showCompass: true, visualizePitch: true}), 'top-right');
     state.districtLabels = installAreaLabels(state.map, $('map'), {className: 'district-label', hostId: 'district-labels', hostLabel: 'เขตและอำเภอบนแผนที่', minZoom: 9.2, verb: 'กดเพื่อสำรวจ', onSelect: id => selectDistrict(id, {fromMap: true}), reservedBottom: bottomSpace,
       avoid: () => state.pinPoints, onLayout: () => state.pins?.layout()});
@@ -1404,7 +1381,6 @@ function openMobilePanel() {
   $('panel').classList.add('is-open');
   $('mobile-panel').setAttribute('aria-expanded', 'true');
   $('map-aha').hidden = true;
-  syncCardSpace();
   if (wasOpen) return;
   // Keyboard and screen-reader users land inside the sheet.
   ($('panel-back').hidden ? $('close-mobile-panel') : $('panel-back')).focus({preventScroll: true});
@@ -1418,7 +1394,6 @@ function closeMobilePanel({refit = true, focus = true} = {}) {
   $('mobile-panel').setAttribute('aria-expanded', 'false');
   if (!mobilePortrait()) return;
   if ($('map-aha').innerHTML.trim()) $('map-aha').hidden = false;
-  syncCardSpace();
   if (!wasOpen) return;
   if (focus) $('mobile-panel').focus({preventScroll: true});
   if (refit && state.loaded && state.panel.mode !== 'overview') fitMap();

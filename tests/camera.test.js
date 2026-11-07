@@ -4,7 +4,7 @@
 // nadir, bearing clockwise from north), so the algorithm is checked without a browser.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {wallAzimuth, twoPointBearing, occlusionScore, fitBuilding, screenBounds, CAMERA} from '../js/camera.js';
+import {wallAzimuth, twoPointBearing, occlusionScore, fitBuilding, screenBounds, CAMERA, cornersInside} from '../js/camera.js';
 
 const RAD = Math.PI / 180;
 const LON = 100.544, LAT = 13.744;
@@ -122,4 +122,16 @@ test('two-point bearing avoids a drawn building standing between the camera and 
   assert.equal(occlusionScore(venue, [block], b), 0);
   // A low building far in front stays under the sight line and does not count.
   assert.equal(occlusionScore(venue, [{ring: rect(30, 30, 0, [-160, -160]), height: 6}], 45), 0);
+});
+
+test('containment: inside the padded viewport and out from under each avoid box (the legend on wider screens)', () => {
+  // identity projection: a point's coordinates are its canvas pixels
+  const map = {getContainer: () => ({clientWidth: 400, clientHeight: 300}), project: ([x, y]) => ({x, y})};
+  const pad = {top: 10, bottom: 10, left: 10, right: 10};
+  const legend = [{left: 0, top: 200, right: 150, bottom: 300}];
+  assert.equal(cornersInside(map, [[100, 100], [300, 250]], pad), true);
+  assert.equal(cornersInside(map, [[100, 100], [5, 100]], pad), false, 'outside the padding');
+  assert.equal(cornersInside(map, [[100, 250]], pad, legend), false, 'under the legend');
+  assert.equal(cornersInside(map, [[200, 250], [100, 150]], pad, legend), true, 'beside or above it');
+  assert.equal(cornersInside(map, [[100, 250]], pad), true, 'no avoid box: the old rule');
 });

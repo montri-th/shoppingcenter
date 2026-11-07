@@ -100,10 +100,22 @@ function installHelp() {
   const dialog = document.getElementById('usage-help'), opener = document.getElementById('open-help'), close = document.getElementById('close-help');
   if (!dialog || !opener || !close) return;
   let returnFocus = opener;
-  opener.addEventListener('click', () => {
+  // `target`: the id of a section of the dialog to open at (the map credit's “ที่มา” opens “ที่มาของแผนที่”).
+  const open = (target = null) => {
     returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : opener;
     if (!dialog.open) dialog.showModal();
-    close.focus({preventScroll: true});
+    const section = target ? document.getElementById(target) : null;
+    if (section && dialog.contains(section)) {
+      (section.querySelector('[tabindex="-1"]') || close).focus({preventScroll: true});
+      section.scrollIntoView({block: 'start'});
+    } else close.focus({preventScroll: true});
+  };
+  opener.addEventListener('click', () => open());
+  document.addEventListener('click', event => {
+    const link = event.target instanceof Element ? event.target.closest('[data-open-help]') : null;
+    if (!link || dialog.contains(link)) return;
+    event.preventDefault();
+    open(link.dataset.openHelp);
   });
   close.addEventListener('click', () => dialog.close());
   // Native dialog supplies modal focus containment and Escape/cancel behavior.
