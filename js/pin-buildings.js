@@ -25,19 +25,24 @@
  *
  * CityMETER Building V4 (owner 2026-11-05 00:34: “ใช้แหล่งข้อมูลอาคารเสริมจาก CityMETER: building ด้วย เพื่อซ่อมพื้นที่
  * ต่างจังหวัดที่ OSM มีข้อมูลอาคารจำกัด”): inside a CityMETER unit (js/building-units.js, the 1.15 rule) a point is
- * matched to the CityMETER buildings of its z14 tile too, by the same rules, and the source is chosen per building,
- * OSM first (D32, owner 2026-11-07 08:31, js/building-choice.js): OSM parts (LOD2) stay OSM; the OSM building the point
- * stands in stays unless CityMETER draws it in more detail; else the CityMETER building; else an OSM building within the
- * edge tolerance. Heights of CityMETER buildings are the dataset's model estimates (`height_m`); an OSM building drawn in
- * place of a CityMETER one with the OSM default height (5 m) takes the CityMETER height.
+ * matched to the CityMETER buildings of its z14 tile too, OpenStreetMap first and CityMETER only where OSM has no
+ * building (D35, owner 2026-11-07 16:35, js/building-choice.js): OSM parts (LOD2, with the podium OSM gives the outline)
+ * stay OSM; the OSM building the point stands in stays, always; a CityMETER building the point stands in gives way to the
+ * OSM building that stands for it (same building, or OSM covering COVER_MIN of it) and, for a site point, is not drawn
+ * when it is a model artifact next to OSM buildings (cmArtifact); else an OSM building within the edge tolerance.
+ * Heights of CityMETER buildings are
+ * the dataset's model estimates (`height_m`); an OSM building with the OSM default height (5 m) takes the CityMETER
+ * height of the same building.
  *
  * Sites (several buildings of one venue, “campus style”, as CityMETER · Hotel 0.3.6): a venue with research site points
- * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour.
+ * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour. Each
+ * drawn part carries the index of the point that found it (`point`, feature property `site_point`), so the panel counts
+ * buildings, not parts.
  */
 
 import {lonLatToTile, tileToLonLat} from './mvt.js';
 import {tileBox, cmHeight} from './massing.js';
-import {chooseSource, corners, isDefaultOsmHeight} from './building-choice.js';
+import {chooseSource, podiumHeight, ringSamples, coveredShare, isDefaultOsmHeight, isNarrowTall, COVER_MIN, CM_GAP_M} from './building-choice.js';
 
 export const PIN_TOLERANCE_M = 3;
 export const MAX_PART_AREA_M2 = 150000;
@@ -177,6 +182,13 @@ export function deepOverlap(a, b, minM = DEEP_M) {
 }
 
 const sizeOK = p => p.areaM2 >= MIN_PART_AREA_M2 && p.areaM2 <= MAX_PART_AREA_M2;
+/** One podium part per outline piece (the same object for every point of a site, so it is drawn once). */
+const podiums = new WeakMap();
+function podiumPart(outline, height) {
+  let p = podiums.get(outline);
+  if (!p || p.height !== height) { p = {...outline, hide3d: false, podium: true, height, base: 0}; podiums.set(outline, p); }
+  return p;
+}
 
 /**
  * The building parts a pin stands in. Returns {parts, method: 'inside' | 'edge'} or null.
@@ -200,14 +212,22 @@ export function matchVenue(point, index, {toleranceM = PIN_TOLERANCE_M} = {}) {
   const viaOutline = outlines.length > 0;
   if (outlines.length) {
     const outline = outlines[0];
-    const inside = candidatesInBox(index, outline.bbox).filter(p => !p.hide3d && sizeOK(p) && insidePart(interiorPoint(p), outline));
+    // The outline's pieces in the neighbouring tiles (the same OSM id, overlapping in the tile buffer): the parts of
+    // every piece belong to the building.
+    const pieces = [outline, ...candidatesInBox(index, outline.bbox).filter(q => q.hide3d && q !== outline && q.fid != null
+      && q.fid === outline.fid && q.tile !== outline.tile && deepOverlap(outline, q))];
+    const inside = pieces.flatMap(o => candidatesInBox(index, o.bbox).filter(p => !p.hide3d && sizeOK(p) && insidePart(interiorPoint(p), o)));
     members = [...new Set([...members, ...inside])];
+    // D35: the podium OSM gives the outline under its towers, with the parts that rise above it (lower parts stand
+    // inside it). Samyan Mitrtown: a 22 m podium and towers of 114 m and 180 m, where OpenMapTiles draws a 5 m slab.
+    const h = podiumHeight(outline, members);
+    if (h) members = [...pieces.map(o => podiumPart(o, h)), ...members.filter(p => (p.base || 0) > 0 || (p.height ?? 0) > h + 0.5)];
     if (!members.length) members = [outline];
   }
   // The same building continued in a neighbouring tile (tiles are clipped with a buffer).
   const all = new Set(members);
   for (const m of members) {
-    if (!m.tile) continue;
+    if (!m.tile || m.podium) continue;
     for (const q of candidatesInBox(index, m.bbox)) {
       if (all.has(q) || q.tile === m.tile || q.hide3d || !sizeOK(q)) continue;
       if (deepOverlap(m, q)) all.add(q);
@@ -285,49 +305,90 @@ export function cmRequestsFor(point, zone) {
   return out;
 }
 
-/** A part crossed by its tile's edge (each tile keeps a buffer): its corners and area are the tile's, not the building's. */
-export function cutPart(part) {
-  if (!part?.tile) return false;
-  const [z, x, y] = part.tile.split('/').map(Number);
-  if (![z, x, y].every(Number.isFinite)) return false;
-  const [w, s, e, n] = tileBox({z, x, y}), [bw, bs, be, bn] = part.bbox, eps = 1e-9;
-  return bw < w - eps || be > e + eps || bs < s - eps || bn > n + eps;
-}
-const choiceRecord = p => ({corners: corners(p.outer), areaM2: p.areaM2, height: p.height, base: p.base, cut: cutPart(p)});
-
-/** D32 (OSM first, js/building-choice.js) for one OSM part against the CityMETER parts: {use: 'osm' | 'cm', height, rule}. */
-export function choosePart(part, osm, cm) {
-  const inside = candidatesInBox(cm, part.bbox).filter(c => sizeOK(c) && insidePart(interiorPoint(c), part)).map(choiceRecord);
-  const at = interiorPoint(part);
-  const host = inside.length ? null : candidatesInBox(cm, [at[0], at[1], at[0], at[1]]).filter(c => sizeOK(c) && insidePart(at, c)).sort((a, b) => a.areaM2 - b.areaM2)[0] || null;
-  let hostOsm = null;
-  if (host) {
-    const held = candidatesInBox(osm, host.bbox).filter(p => !p.hide3d && sizeOK(p) && !cutPart(p) && insidePart(interiorPoint(p), host));
-    hostOsm = {count: held.length, areaM2: held.reduce((sum, p) => sum + p.areaM2, 0)};
+/** Shortest distance in metres between two lon/lat rings (0 when a vertex of one lies inside the other). */
+export function ringDistanceM(a, b) {
+  let best = Infinity;
+  for (const [from, to] of [[a, b], [b, a]]) {
+    for (const v of from) {
+      if (pointInRing(v, to)) return 0;
+      best = Math.min(best, distanceToRingM(v, to));
+    }
   }
-  return chooseSource(choiceRecord(part), {inside, host: host && choiceRecord(host), hostOsm});
+  return best;
 }
 
 /**
- * The building of one point in a CityMETER unit (D32, OSM first): OSM parts (LOD2) when OSM maps the building there in
- * parts; else the OSM building the point stands in unless CityMETER draws it in more detail (more buildings, or a finer
- * outline of the same one — js/building-choice.js); else the CityMETER building; else an OSM building within the edge
- * tolerance. An OSM building chosen over a CityMETER one keeps the CityMETER height when its own is the OSM default.
- * `osm`/`cm`: indexes from indexParts.
+ * The OSM building that stands for a CityMETER building (D35), or null: one whose own interior point stands in it or
+ * that holds its interior point, else the one covering most of it when OSM buildings cover COVER_MIN of it.
  */
-export function matchInUnit(point, osm, cm, options) {
-  const fromOsm = matchVenue(point, osm, options);
-  if (fromOsm?.viaOutline) return fromOsm;
-  const fromCm = matchVenue(point, cm, options);
-  if (fromOsm?.method === 'inside') {
-    const main = fromOsm.parts.filter(p => insidePart(point, p)).sort((a, b) => b.areaM2 - a.areaM2)[0] || fromOsm.parts[0];
-    const choice = choosePart(main, osm, cm);
-    if (choice.use === 'cm' && fromCm) return {...fromCm, source: 'cm', rule: choice.rule};
-    if (!choice.height) return {...fromOsm, rule: choice.rule};
-    return {...fromOsm, rule: choice.rule, parts: fromOsm.parts.map(p => (isDefaultOsmHeight(p.height, p.base) ? {...p, height: choice.height, heightFrom: 'cm'} : p))};
+export function osmStandingFor(c, osm) {
+  const cand = candidatesInBox(osm, c.bbox).filter(o => o.areaM2 >= MIN_PART_AREA_M2);
+  if (!cand.length) return null;
+  const at = interiorPoint(c);
+  const direct = cand.find(o => insidePart(at, o)) || cand.find(o => insidePart(interiorPoint(o), c));
+  if (direct) return direct;
+  const samples = ringSamples(c.outer);
+  if (coveredShare(samples, p => cand.some(o => insidePart(p, o))) < COVER_MIN) return null;
+  let best = null, hits = 0;
+  for (const o of cand) {
+    const n = samples.filter(p => insidePart(p, o)).length;
+    if (n > hits) { best = o; hits = n; }
   }
-  if (fromCm) return {...fromCm, source: 'cm'};
-  return fromOsm;
+  return best;
+}
+
+/** The OSM buildings (and outlines of buildings mapped in parts) within `gapM` of a CityMETER building. */
+export function osmNear(c, osm, gapM = CM_GAP_M) {
+  const {kx, ky} = metresPerDegree((c.bbox[1] + c.bbox[3]) / 2);
+  const dLon = gapM / kx, dLat = gapM / ky, [w, s, e, n] = c.bbox;
+  return candidatesInBox(osm, [w - dLon, s - dLat, e + dLon, n + dLat])
+    .filter(o => o.areaM2 >= MIN_PART_AREA_M2 && ringDistanceM(c.outer, o.outer) <= gapM);
+}
+/**
+ * D35: a CityMETER building of a site point that is a model artifact — next to an OSM building (CM_GAP_M) and narrow and
+ * tall, or next to a building OSM maps in 3D parts (js/building-choice.js#CM_ARTIFACT_HEIGHT_M).
+ */
+export function cmArtifact(c, osm) {
+  const near = osmNear(c, osm);
+  return near.length > 0 && (isNarrowTall(c) || near.some(o => o.hide3d));
+}
+
+/** An OSM part with the default height (no height or levels tag) takes the CityMETER height of the same building. */
+function withCmHeights(match, cm) {
+  if (!cm || !match.parts.some(p => isDefaultOsmHeight(p.height, p.base))) return match;
+  const parts = match.parts.map(p => {
+    if (!isDefaultOsmHeight(p.height, p.base)) return p;
+    const inside = candidatesInBox(cm, p.bbox).filter(c => sizeOK(c) && insidePart(interiorPoint(c), p));
+    const at = interiorPoint(p);
+    const host = inside.length ? null : candidatesInBox(cm, [at[0], at[1], at[0], at[1]]).filter(c => sizeOK(c) && insidePart(at, c)).sort((a, b) => a.areaM2 - b.areaM2)[0] || null;
+    const choice = chooseSource({areaM2: p.areaM2, height: p.height, base: p.base}, {inside, host});
+    return choice.height ? {...p, height: choice.height, heightFrom: 'cm'} : p;
+  });
+  return {...match, parts};
+}
+
+/**
+ * The building of one point in a CityMETER unit (D35, OSM first, CityMETER only where OSM has none): OSM parts (LOD2)
+ * when OSM maps the building there in parts; else the OSM building the point stands in, always; else the CityMETER
+ * building the point stands in — unless an OSM building stands for it (then that OSM building), or, for a site point
+ * (`main: false`), it is a model artifact next to OSM buildings (cmArtifact; then nothing, or the OSM building within the
+ * edge tolerance); else an OSM building within the edge tolerance. A default OSM height takes the CityMETER height of
+ * the same building. `osm`/`cm`: indexes from indexParts; `main`: the venue's own pin (its building is never dropped).
+ */
+export function matchInUnit(point, osm, cm, {main = true, ...options} = {}) {
+  const fromOsm = matchVenue(point, osm, options);
+  if (fromOsm?.viaOutline) return {...fromOsm, rule: 'osm-parts'};
+  if (fromOsm?.method === 'inside') return withCmHeights({...fromOsm, rule: 'osm-first'}, cm);
+  const fromCm = matchVenue(point, cm, options);
+  if (fromCm) {
+    const c = fromCm.parts.filter(p => insidePart(point, p)).sort((a, b) => b.areaM2 - a.areaM2)[0] || fromCm.parts[0];
+    const same = osmStandingFor(c, osm);
+    const viaSame = same ? matchVenue(interiorPoint(same), osm, options) : null;
+    if (viaSame) return withCmHeights({...viaSame, method: fromCm.method, rule: viaSame.viaOutline ? 'osm-parts' : 'osm-first'}, cm);
+    if (!main && cmArtifact(c, osm)) return fromOsm ? withCmHeights({...fromOsm, rule: 'osm-first'}, cm) : null;
+    return {...fromCm, source: 'cm', rule: 'cm-fallback'};
+  }
+  return fromOsm ? withCmHeights({...fromOsm, rule: 'osm-first'}, cm) : null;
 }
 
 /* ---------- display shapes ---------- */
@@ -397,6 +458,9 @@ export function pinFeatures(venueId, match) {
       properties: {
         host_id: `pin:${venueId}:${i}`, venue_ids: [venueId], selected_venue_ids: [venueId],
         geometry_role: kind.role, render_as: 'extrusion', match_method: part.site ? 'site' : match.method,
+        // The point (0 = the pin, k = the k-th site point) whose building this part belongs to: the panel counts these.
+        site_point: Number.isInteger(part.point) ? part.point : 0,
+        ...(part.podium ? {podium: true} : {}),
         height_status: kind.heightStatus, height_m: height, base_m: base,
         display_height_m: top + DRAW_LIFT_M, display_base_m: base,
         source: kind.source,
@@ -497,7 +561,7 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
         if (zone) {
           const cmIndex = cmIndexFor(point, zone);
           if (!cmIndex) { pending = true; if (k === 0) pinPending = true; return; }
-          match = matchInUnit(point, index, cmIndex);
+          match = matchInUnit(point, index, cmIndex, {main: k === 0});
         } else match = matchVenue(point, index);
         const t = lonLatToTile(point[0], point[1], PIN_TILE_ZOOM);
         // "No building here" is only known when the point's own z14 tile was read; a distant part of a pitched view
@@ -505,7 +569,7 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
         if (!match && !read.has(`${t.z}/${t.x}/${t.y}`)) { pending = true; if (k === 0) pinPending = true; return; }
         if (!match) return;
         if (k === 0) method = match.method;
-        for (const part of match.parts) if (!taken.has(part)) { taken.add(part); all.push(k === 0 ? part : {...part, site: true}); }
+        for (const part of match.parts) if (!taken.has(part)) { taken.add(part); all.push(k === 0 ? {...part, point: 0} : {...part, site: true, point: k}); }
       });
       const result = all.length ? {parts: all, method: method || 'site', sitePoints: points.length - 1} : null;
       // The pin's own building shows as soon as it is known; site points in tiles not read yet join it later.

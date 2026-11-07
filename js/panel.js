@@ -322,6 +322,8 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   if (d?.nameEn && d.nameEn !== d.nameTh) item('ชื่ออังกฤษ', nameBasis(ev.nameEn?.basis), ev.nameEn?.url);
   item('ประเภท', typeEvidence(ev.type?.status), ev.type?.url, ev.type?.checkedOn);
   if (row.groupBasis === 'owner') note('กลุ่มบนหน้าจอ', `เจ้าของข้อมูลระบุว่าเป็นศูนย์การค้า · ${esc(thaiDate('2026-10-25'))}`);
+  // D36: a retail component with a name of its own reads as the place it is (the registry keeps its component type).
+  if (row.groupBasis === 'retail-identity') note('กลุ่มบนหน้าจอ', 'ทะเบียนจัดเป็นพื้นที่ค้าปลีกในอาคารหรือโครงการ · บนแผนที่แสดงตามลักษณะสถานที่ซึ่งมีชื่อของตัวเอง');
   item('ผ่านนิยาม', tierReading(row), ev.qualification?.url);
   if (row.countBasis === 'component-without-qualified-parent') note('การนับ', 'นับเป็นสถานที่ของตัวเอง · โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม');
   if ((row.children || []).length) note('การนับ', 'นับครั้งเดียว ไม่บวกพื้นที่ย่อย');
@@ -492,12 +494,18 @@ export function buildingReading(row, buildings = [], pinState, site = null, mode
   }
   const pins = buildings.filter(f => PIN_ROLES.has(f.properties?.geometry_role));
   const siteParts = site ? pins.filter(f => f.properties.match_method === 'site') : [];
+  // D35: the panel counts buildings, not parts — one per point (the pin, a site point) that found a building of its own;
+  // an outline OSM maps in parts, with its podium, is one building.
+  const buildingsOf = list => new Set(list.map(f => f.properties.site_point ?? 0)).size;
+  const siteNote = site ? `ไซต์ตามงานวิจัย ${site.n} จุด หนึ่งจุดต่ออาคาร ไม่ใช่ขอบเขตกรรมสิทธิ์` : '';
+  const sourceRule = 'แสดงอาคารจาก OpenStreetMap ก่อน ใช้ CityMETER Building V4 เฉพาะที่ OpenStreetMap ไม่มีอาคาร';
   if (row.hasBuilding && siteParts.length) {
-    // A hosted venue with a research site: its checked footprint plus the site's other buildings.
+    // A hosted venue with a research site: its checked footprint plus the site's other buildings found on the map.
+    const n = 1 + buildingsOf(siteParts);
     const cm = siteParts.some(f => f.properties.geometry_role === 'pin_building_citymeter'), osm = siteParts.some(f => f.properties.geometry_role === 'pin_building_basemap');
     const from = ['รูปทรงอาคารที่ตรวจแล้ว', cm ? 'CityMETER Building V4' : '', osm ? 'แผนที่ฐาน OpenStreetMap (OpenFreeMap)' : ''].filter(Boolean).join(' · ');
-    return {text: `ทั้งโครงการ ${num(site.n)} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`,
-      note: esc(`อาคารของไซต์ตามงานวิจัย ${site.n} หลัง (อาคารหลักตามรูปทรงที่ตรวจแล้ว และพบบนแผนที่อีก ${new Set(siteParts.map(f => f.properties.host_id)).size} ส่วนอาคาร) จาก ${from} · หนึ่งจุดต่ออาคาร ไม่ใช่ขอบเขตกรรมสิทธิ์ · ความสูงของ CityMETER ประมาณจากแบบจำลอง`)};
+    return {text: `ทั้งโครงการ ${num(n)} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`,
+      note: esc(`อาคารหลักตามรูปทรงที่ตรวจแล้ว และอาคารอื่นของไซต์ที่พบบนแผนที่ ${num(n - 1)} หลัง จาก ${from} · ${siteNote} · ${sourceRule} · ความสูงของ CityMETER ประมาณจากแบบจำลอง`)};
   }
   if (row.hasBuilding) {
     const heights = [...new Set(buildings.filter(f => !PIN_ROLES.has(f.properties?.geometry_role)).map(f => buildingHeightLabel(f.properties)))];
@@ -509,13 +517,14 @@ export function buildingReading(row, buildings = [], pinState, site = null, mode
     // D32: an OSM outline may carry the CityMETER height of the same building (its own was the OSM default).
     const hCm = pins.some(f => f.properties.height_status === 'citymeter_model_estimate'), hOsm = pins.some(f => f.properties.height_status === 'basemap_render_height');
     const heights = hCm && hOsm ? 'ความสูงของ CityMETER ประมาณจากแบบจำลอง ของ OpenStreetMap ตามแผนที่ฐาน' : hCm ? (osm ? 'ความสูงประมาณจากแบบจำลองของ CityMETER Building V4' : 'ความสูงประมาณจากแบบจำลอง') : 'ความสูงตามแผนที่ฐาน';
-    const sited = site && pins.some(f => f.properties.match_method === 'site');
-    if (sited) {
-      const built = new Set(pins.map(f => f.properties.host_id)).size;
-      return {text: `ทั้งโครงการ ${num(site.n)} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`,
-        note: esc(`อาคารของไซต์ตามงานวิจัย ${site.n} หลัง (พบบนแผนที่ ${built} ส่วนอาคาร) จาก ${from} · หนึ่งจุดต่ออาคาร ไม่ใช่ขอบเขตกรรมสิทธิ์ · ${heights}`)};
+    const n = buildingsOf(pins);
+    if (site && n >= 2) {
+      return {text: `ทั้งโครงการ ${num(n)} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`,
+        note: esc(`อาคารของไซต์ที่พบบนแผนที่ ${num(n)} หลัง จาก ${from} · ${siteNote} · ${sourceRule} · ${heights}`)};
     }
-    return {text: 'อาคารที่หมุดตั้งอยู่ · สีน้ำเงินบนแผนที่ 3 มิติ', note: esc(`อาคารใน ${from} ที่หมุดอยู่ข้างใน${pinState === 'edge' ? 'หรือห่างขอบไม่เกิน 3 ม.' : ''} · ${heights}`)};
+    // One building (the site's points may all stand in it, as at Samyan Mitrtown: one podium with two towers).
+    return {text: 'อาคารที่หมุดตั้งอยู่ · สีน้ำเงินบนแผนที่ 3 มิติ',
+      note: esc([`อาคารใน ${from} ที่หมุดอยู่ข้างใน${pinState === 'edge' ? 'หรือห่างขอบไม่เกิน 3 ม.' : ''}`, site ? `${siteNote} · พบบนแผนที่เป็นอาคารเดียว` : '', sourceRule, heights].filter(Boolean).join(' · '))};
   }
   if (pinState === null) return {text: 'ยังไม่พบอาคารที่ตำแหน่งหมุด', note: esc('ไม่มีอาคารในแผนที่ฐาน OpenStreetMap หรือ CityMETER Building V4 ที่ตำแหน่งนี้')};
   return {text: '', note: ''};

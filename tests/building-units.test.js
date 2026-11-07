@@ -5,8 +5,9 @@ import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {tileToLonLat, parseVectorTile} from '../js/mvt.js';
 import {shapeTile, shapeCmTile, planCmRequests, installMassing, cmFeatureId, focusFeatureId, cmHeight, tileBox, CM_ID_BASE, CM_SLOTS, DEFAULT_CM_HEIGHT_M, HEIGHT_LIFT_M,
-  MAX_CM_REQUESTS, CITY_LAYER, CONTEXT_LAYER, CONTEXT_SOURCE, CM_CREDIT_LAYER, FOCUS_SOURCE, roundingRadiusM, encloseOffsetM, indexCmBuildings, indexOsmBuildings} from '../js/massing.js';
-import {chooseSource, corners, osmFiner, isDefaultOsmHeight} from '../js/building-choice.js';
+  MAX_CM_REQUESTS, CITY_LAYER, CONTEXT_LAYER, CONTEXT_SOURCE, CM_CREDIT_LAYER, FOCUS_SOURCE, roundingRadiusM, encloseOffsetM, indexCmBuildings, indexOsmBuildings,
+  podiumIndex, ringDistance, PODIUM_ORDINAL_BASE} from '../js/massing.js';
+import {chooseSource, corners, podiumHeight, ringSamples, coveredShare, isDefaultOsmHeight, COVER_MIN, CM_GAP_M, PODIUM_MARGIN_M} from '../js/building-choice.js';
 import {cmTileUrl, zoneAt, zonesFor, zonesOf, validUnitFile, createBuildingUnitStore, createCmTileLoader, CM_TILE_API, CM_ATTRIBUTION} from '../js/building-units.js';
 import {encodeTile, square} from './mvt-encode.js';
 
@@ -41,17 +42,16 @@ const r = roundingRadiusM(16), d = encloseOffsetM(r);
 const cmIdx = () => indexCmBuildings([{tile: T, layer: cmLayer}]);
 const osmIdx = () => indexOsmBuildings([{tile: T, layer: osmLayer, zones: [ZONE]}]);
 
-test('in a CityMETER unit an OSM building with the same outline in CityMETER is replaced by it; parts (LOD2) stay; the city tier hides the feature and its other buildings come back as context', () => {
-  const out = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE], cm: cmIdx(), osm: osmIdx()});
+test('D35 in a CityMETER unit: every OSM building stays (it stands for the CityMETER building of the same outline); parts (LOD2) stay; nothing is hidden or brought back', () => {
+  const out = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE], cm: cmIdx()});
   const drawn = out.features.map(f => f.properties.osm_id).sort();
-  assert.deepEqual(drawn, [203, 204], 'A (201, in the unit) is replaced; the part (203) and the building outside the unit (204) stay');
-  assert.equal(out.replaced, 1);
-  assert.deepEqual([...out.hiddenIds], [201], 'the city tier hides the replaced feature by its tile id');
-  assert.equal(out.context.length, 1, 'B — the same feature, outside the focus — is drawn as context');
-  assert.deepEqual(out.context[0].properties, {height: 6, base: 0});
+  assert.deepEqual(drawn, [201, 203, 204], 'A (201, in the unit) stays OSM; the part (203) and the building outside the unit (204) stay');
+  assert.equal(out.replaced, 0, 'D35: CityMETER never replaces an OSM building');
+  assert.equal(out.hiddenIds.size, 0); assert.equal(out.context.length, 0);
   assert.equal(out.partOutlines.length, 1, 'the outline of the building mapped in parts is handed to the CityMETER tier');
-  assert.equal(out.taken.size, 0); assert.deepEqual(out.rules, {cm: 1});
-  // A zone without any CityMETER building read (D32, OSM first): every OSM building stays.
+  assert.equal(out.taken.size, 1, 'c1: OSM draws it'); assert.deepEqual(out.rules, {'osm-first': 1});
+  assert.equal(out.features.find(f => f.properties.osm_id === 201).properties.render_height, 6, 'a tagged OSM height stays');
+  // A zone without any CityMETER building read: every OSM building stays.
   const bare = shapeTile(T, osmLayer, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE]});
   assert.deepEqual(bare.features.map(f => f.properties.osm_id).sort(), [201, 203, 204]);
   assert.equal(bare.replaced, 0); assert.deepEqual(bare.rules, {'osm-only': 1});
@@ -62,6 +62,10 @@ test('in a CityMETER unit an OSM building with the same outline in CityMETER is 
   // Stable ids: the zone changes which buildings are drawn, never their ids.
   const id = o => o.features.find(f => f.properties.osm_id === 204).id;
   assert.equal(id(out), id(before));
+  // A host-covered feature is still hidden as a whole in the city tier, and its other buildings come back as context.
+  const hosted = shapeTile(T, osmLayer, {regions: [focus], hosts: [ll(square(510, 510, 80))], radiusM: r, offsetM: d});
+  assert.deepEqual([...hosted.hiddenIds], [201]); assert.equal(hosted.context.length, 1);
+  assert.deepEqual(hosted.context[0].properties, {height: 6, base: 0});
 });
 
 test('CityMETER buildings: drawn once (home tile, shared geometry), only in the focus, never inside an OSM parts outline, never over a host or the pin building; height_m is the height', () => {
@@ -93,58 +97,100 @@ test('CityMETER buildings: drawn once (home tile, shared geometry), only in the 
   assert.equal(cmHeight({height_m: 'x'}), DEFAULT_CM_HEIGHT_M); assert.equal(cmHeight({height_m: '0'}), DEFAULT_CM_HEIGHT_M); assert.equal(cmHeight({height_m: '136.71'}), 136.71);
 });
 
-/* ---------- D32: OSM first, CityMETER as the fallback (owner 2026-11-07 08:31) ---------- */
-const rectT = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]];
+/* ---------- D35: OSM first everywhere, CityMETER only where OSM has no building (owner 2026-11-07 16:35) ---------- */
 const octagon = [[620, 200], [680, 200], [700, 220], [700, 280], [680, 300], [620, 300], [600, 280], [600, 220], [620, 200]];
+const rectT = (x0, y0, x1, y1) => [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]];
 const choiceOsm = parseVectorTile(encodeTile([{name: 'building', features: [
   {id: 301, properties: {render_height: 5, render_min_height: 0}, rings: [square(200, 200, 100)]},          // o1: CityMETER has the same outline
-  {id: 302, properties: {render_height: 5, render_min_height: 0}, rings: [octagon]},                         // o2: finer than CityMETER's box, default height
+  {id: 302, properties: {render_height: 5, render_min_height: 0}, rings: [octagon]},                         // o2: CityMETER's box of it, default height
   {id: 303, properties: {render_height: 5, render_min_height: 0}, rings: [square(1000, 200, 100)]},         // o3: CityMETER has nothing here
-  {id: 304, properties: {render_height: 6, render_min_height: 0}, rings: [square(200, 600, 300)]},          // o4: one block where CityMETER has two buildings
+  {id: 304, properties: {render_height: 6, render_min_height: 0}, rings: [square(200, 600, 300)]},          // o4: one block where CityMETER has two
   {id: 305, properties: {render_height: 7, render_min_height: 0}, rings: [square(1000, 600, 100), square(1150, 600, 100)]}, // o5a, o5b: two in one CityMETER block
+  {id: 306, properties: {render_height: 8, render_min_height: 0}, rings: [square(1400, 200, 100)]},         // o6: CityMETER draws it 60 units east
 ]}])).layers.building;
 const choiceCm = parseVectorTile(encodeTile([{name: 'building-detail', features: [
   {properties: {height_m: '10.00'}, rings: [square(200, 200, 100)]},     // c1 = o1
-  {properties: {height_m: '18.00'}, rings: [square(600, 200, 100)]},     // c2 ~ o2 (4 corners)
+  {properties: {height_m: '18.00'}, rings: [square(600, 200, 100)]},     // c2 ~ o2
   {properties: {height_m: '12.00'}, rings: [rectT(205, 605, 345, 895)]}, // c4a in o4
   {properties: {height_m: '14.00'}, rings: [rectT(355, 605, 495, 895)]}, // c4b in o4
   {properties: {height_m: '9.00'}, rings: [rectT(990, 590, 1260, 710)]}, // c5 holds o5a and o5b
+  {properties: {height_m: '6.00'}, rings: [square(1600, 1600, 60)]},     // c6: no OSM building near — the fallback
+  {properties: {height_m: '31.00'}, rings: [square(1120, 200, 50)]},     // c7: 12 m east of o3 — a block OSM has mapped
+  {properties: {height_m: '40.00'}, rings: [square(1460, 200, 100)]},    // c8: o6 drawn 60 units apart (interior points miss)
 ]}])).layers['building-detail'];
 
-test('D32 OSM first: per building, the more detailed source draws it — same outline → CityMETER, finer OSM outline or OSM-only → OSM (default height takes CityMETER\'s), more buildings wins either way', () => {
+test('D35 OSM first: every OSM building is drawn (a default height takes the CityMETER height of the same building); CityMETER only where no OSM building stands for it or next to it', () => {
   const cm = indexCmBuildings([{tile: T, layer: choiceCm}]);
   const osm = indexOsmBuildings([{tile: T, layer: choiceOsm, zones: [ZONE]}]);
-  assert.equal(cm.size, 5);
-  const out = shapeTile(T, choiceOsm, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE], cm, osm});
-  const drawn = out.features.map(f => f.properties.osm_id).sort();
-  assert.deepEqual(drawn, [302, 303, 305, 305], 'o2 (finer), o3 (OSM only), o5a and o5b (two where CityMETER has one); o1 and o4 replaced');
-  assert.equal(out.replaced, 2);
-  assert.deepEqual(out.rules, {cm: 2, 'osm-finer': 1, 'osm-only': 1, 'osm-more-buildings': 2});
-  const o2 = out.features.find(f => f.properties.osm_id === 302);
-  assert.equal(o2.properties.render_height, 18, 'the OSM default height (5 m) takes the CityMETER height of the same building');
-  assert.equal(o2.properties.height_source, 'cm');
-  assert.equal(out.features.find(f => f.properties.osm_id === 303).properties.render_height, 5, 'an OSM-only building keeps its own height');
-  assert.ok(out.features.filter(f => f.properties.osm_id === 305).every(f => f.properties.render_height === 7 && !f.properties.height_source), 'a tagged OSM height stays');
-  assert.equal(out.cmHeights, 1); assert.equal(out.osmFirst, 4); assert.equal(out.taken.size, 2, 'c2 and c5');
-  const cmOut = shapeCmTile(T, choiceCm, {regions: [focus], radiusM: r, offsetM: d, taken: out.taken});
-  assert.equal(cmOut.kept, 3, 'c1, c4a, c4b'); assert.equal(cmOut.osmFirst, 2, 'c2 and c5: OSM draws them');
-  assert.deepEqual(cmOut.features.map(f => f.properties.render_height).sort((a, b) => a - b), [10, 12, 14]);
+  assert.equal(cm.size, 8); assert.equal(osm.size, 7);
+  const out = shapeTile(T, choiceOsm, {regions: [focus], radiusM: r, offsetM: d, zones: [ZONE], cm});
+  assert.deepEqual(out.features.map(f => f.properties.osm_id).sort(), [301, 302, 303, 304, 305, 305, 306], 'every OSM building');
+  assert.equal(out.replaced, 0);
+  assert.deepEqual(out.rules, {'osm-first': 5, 'osm-only': 2});
+  const h = id => out.features.find(f => f.properties.osm_id === id).properties;
+  assert.equal(h(301).render_height, 10); assert.equal(h(301).height_source, 'cm', 'the OSM default height takes the CityMETER height');
+  assert.equal(h(302).render_height, 18, 'the octagon keeps its outline and takes the height of the CityMETER box');
+  assert.equal(h(303).render_height, 5, 'an OSM-only building keeps its own height');
+  assert.equal(h(304).render_height, 6, 'one OSM block over two CityMETER buildings: OSM, its tagged height');
+  assert.ok(out.features.filter(f => f.properties.osm_id === 305).every(f => f.properties.render_height === 7 && !f.properties.height_source));
+  assert.equal(out.cmHeights, 2); assert.equal(out.osmFirst, 7); assert.equal(out.taken.size, 5, 'c1, c2, c4a, c4b, c5');
+  const cmOut = shapeCmTile(T, choiceCm, {regions: [focus], radiusM: r, offsetM: d, taken: out.taken, osm});
+  assert.equal(cmOut.kept, 1, 'only c6, where OSM has no building'); assert.equal(cmOut.osmFirst, 7, 'five taken, c7 next to o3, c8 under o6');
+  assert.deepEqual(cmOut.features.map(f => f.properties.render_height), [6]);
+  // Without the OSM footprints (no zone tile read) the taken ones still stay out; c7 and c8 are drawn.
+  assert.equal(shapeCmTile(T, choiceCm, {regions: [focus], radiusM: r, offsetM: d, taken: out.taken}).kept, 3);
 });
 
-test('D32 rule details: corners ignore collinear points; a cut piece never wins on corners; pieces under half a building do not split it; the OSM default height', () => {
-  assert.equal(corners(square(0, 0, 10)), 4);
-  assert.equal(corners([[0, 0], [5, 0], [10, 0], [10, 10], [0, 10], [0, 0]]), 4, 'a point on a straight wall is no corner');
-  assert.equal(corners(octagon), 8);
-  const box = {corners: 4, areaM2: 100, height: 12};
-  assert.equal(osmFiner({corners: 8, areaM2: 92, cut: false}, box), true);
-  assert.equal(osmFiner({corners: 8, areaM2: 92, cut: true}, box), false, 'a piece crossed by the tile edge has the tile\'s corners');
-  assert.equal(osmFiner({corners: 8, areaM2: 40, cut: false}, box), false, 'under half of the CityMETER footprint: a piece, not a finer drawing');
-  assert.equal(osmFiner({corners: 4, areaM2: 250, cut: true}, box), true, 'more than twice the CityMETER footprint');
-  const kiosks = [{corners: 4, areaM2: 20, height: 4}, {corners: 4, areaM2: 25, height: 4}];
-  const mall = chooseSource({corners: 12, areaM2: 5000, height: 5, base: 0}, {inside: kiosks});
-  assert.equal(mall.use, 'osm', 'two kiosks in a mall do not split it'); assert.equal(mall.take.length, 2); assert.equal(mall.height, 4);
-  assert.equal(chooseSource({corners: 4, areaM2: 30, height: 5}, {host: {corners: 4, areaM2: 5000, height: 20}, hostOsm: {count: 2, areaM2: 60}}).use, 'cm', 'two small OSM buildings do not split a large CityMETER one');
+test('D35 rule details: the OSM default height; a podium is an outline lower than its tallest part; coverage by samples; ring distance', () => {
   assert.equal(isDefaultOsmHeight(5, 0), true); assert.equal(isDefaultOsmHeight(5, 3), false); assert.equal(isDefaultOsmHeight(7.32, 0), false);
+  const kiosks = [{areaM2: 20, height: 4}, {areaM2: 25, height: 4}];
+  const mall = chooseSource({areaM2: 5000, height: 5, base: 0}, {inside: kiosks});
+  assert.deepEqual([mall.use, mall.take.length, mall.height, mall.rule], ['osm', 2, 4, 'osm-first']);
+  assert.deepEqual(chooseSource({areaM2: 30, height: 5}, {host: {areaM2: 5000, height: 20}}), {use: 'osm', take: [{areaM2: 5000, height: 20}], height: 20, rule: 'osm-first'});
+  assert.deepEqual(chooseSource({areaM2: 30, height: 9}), {use: 'osm', take: [], height: null, rule: 'osm-only'});
+  // Samyan Mitrtown (7 Nov 2026): outline 22 m (6 levels), parts 5 m (no tag), 26 m, 114 m and 180 m → a 22 m podium.
+  assert.equal(podiumHeight({height: 22, base: 0}, [{height: 5}, {height: 26}, {height: 114}, {height: 180}]), 22);
+  assert.equal(podiumHeight({height: 180, base: 0}, [{height: 114}, {height: 180}]), null, 'the outline carries the tallest part: not a podium');
+  assert.equal(podiumHeight({height: 5, base: 0}, [{height: 60}]), null, 'the default height is no podium');
+  assert.equal(podiumHeight({height: 30, base: 4}, [{height: 60}]), null, 'a raised outline is no podium');
+  assert.equal(podiumHeight({height: 58, base: 0}, [{height: 60}]), null, `within ${PODIUM_MARGIN_M} m of the tallest part`);
+  assert.equal(podiumHeight({height: 22, base: 0}, []), null);
+  const sq = square(0, 0, 100);
+  assert.equal(ringSamples(sq).length, 25);
+  assert.equal(coveredShare(ringSamples(sq), ([x]) => x < 40), 0.4);
+  assert.equal(coveredShare([], () => true), 0);
+  assert.ok(COVER_MIN > 0 && COVER_MIN < 0.5); assert.equal(CM_GAP_M, 20);
+  assert.equal(ringDistance(square(0, 0, 10), square(20, 0, 10)), 10);
+  assert.equal(ringDistance(square(0, 0, 10), square(5, 5, 10)), 0);
+  assert.equal(corners(square(0, 0, 10)), 4);
+});
+
+test('D35 podiums: an outline OSM gives a podium height under its towers is drawn as that podium, in every tile of the building; other outlines stay hidden', () => {
+  const layer = parseVectorTile(encodeTile([{name: 'building', features: [
+    {id: 401, properties: {render_height: 22, render_min_height: 0, hide_3d: true}, rings: [square(2200, 2200, 400)]}, // podium outline
+    {id: 402, properties: {render_height: 114, render_min_height: 0}, rings: [square(2250, 2250, 100)]},            // tower
+    {id: 403, properties: {render_height: 5, render_min_height: 0}, rings: [square(2400, 2400, 150)]},              // part without a height tag
+    {id: 404, properties: {render_height: 60, render_min_height: 0, hide_3d: true}, rings: [square(200, 2200, 300)]}, // outline = tallest part
+    {id: 405, properties: {render_height: 60, render_min_height: 0}, rings: [square(250, 2250, 100)]},
+  ]}])).layers.building;
+  const podiums = podiumIndex([{tile: T, layer}]);
+  assert.deepEqual([...podiums], [[401, 22]]);
+  const out = shapeTile(T, layer, {regions: [focus], radiusM: r, offsetM: d, podiums});
+  const byId = id => out.features.filter(f => f.properties.osm_id === id);
+  assert.equal(byId(401).length, 1); assert.equal(byId(401)[0].properties.render_height, 22); assert.equal(byId(401)[0].properties.podium, true);
+  assert.equal(byId(404).length, 0, 'an outline with its tallest part\'s height is not drawn (OpenMapTiles hide_3d)');
+  assert.deepEqual(out.features.map(f => f.properties.osm_id).sort(), [401, 402, 403, 405]);
+  assert.ok(byId(401)[0].id % 2 ** 24 >= PODIUM_ORDINAL_BASE, 'podium ids are counted apart: every other building keeps its id');
+  const plain = shapeTile(T, layer, {regions: [focus], radiusM: r, offsetM: d});
+  assert.equal(plain.features.find(f => f.properties.osm_id === 402).id, byId(402)[0].id);
+  // The pieces of one outline in two tiles share its id: a tall part in the other tile makes both pieces a podium.
+  const east = {...T, x: T.x + 1};
+  const westPiece = parseVectorTile(encodeTile([{name: 'building', features: [{id: 501, properties: {render_height: 20, render_min_height: 0, hide_3d: true}, rings: [square(3900, 100, 300)]}]}])).layers.building;
+  const eastPiece = parseVectorTile(encodeTile([{name: 'building', features: [
+    {id: 501, properties: {render_height: 20, render_min_height: 0, hide_3d: true}, rings: [square(-200, 100, 300)]},
+    {id: 502, properties: {render_height: 90, render_min_height: 0}, rings: [square(20, 150, 60)]},
+  ]}])).layers.building;
+  assert.deepEqual([...podiumIndex([{tile: T, layer: westPiece}, {tile: east, layer: eastPiece}])], [[501, 20]]);
 });
 
 test('CityMETER requests: one per tile and tile unit meeting it, nearest the camera first, bounded; a zone is drawn in a tile only with all its requests', () => {
@@ -216,7 +262,7 @@ function fakeMap() {
   };
 }
 
-test('installMassing draws a CityMETER unit from its tiles (one shared reader), hides the replaced city-tier features (one hashed match), credits the source while drawn, and falls back to OSM when a tile fails', async () => {
+test('installMassing draws a CityMETER unit from its tiles (one shared reader), OSM first (D35: CityMETER only where OSM has no building), credits the source while drawn, hides host-covered city-tier features (one hashed match), and falls back to OSM when a tile fails', async () => {
   const map = fakeMap();
   let cmOk = true;
   const fetched = [];
@@ -231,18 +277,23 @@ test('installMassing draws a CityMETER unit from its tiles (one shared reader), 
   const res = await massing.update({regions: [focus], zones: [ZONE], zoom: 16, enabled: true, city: true, latitude: 13.75, center: tileToLonLat(100, 100, T)});
   assert.equal(res.cm.requests, 2, 'its own tile and the western one (the focus and the unit box both touch the west edge)');
   assert.ok(fetched.some(u => u === cmTileUrl(T, ZONE.tileUnits[0], 'MUNICIPALITY')));
-  assert.equal(res.cm.kept, 2); assert.equal(res.replaced, 1); assert.equal(res.context, 1);
+  assert.equal(res.cm.kept, 1, 'c4 only: OSM draws c1 (A), c2 stands in the parts outline'); assert.equal(res.replaced, 0); assert.equal(res.context, 0);
+  assert.equal(res.cm.osmFirst, 1); assert.equal(res.cm.inParts, 1);
+  assert.equal(map.filters[CITY_LAYER], undefined, 'nothing replaced: the city tier filter is never changed');
+  assert.equal(map.visibility[CM_CREDIT_LAYER], 'visible', 'CityMETER Building V4 is credited while drawn');
+  assert.deepEqual(map.data[FOCUS_SOURCE].features.map(f => f.properties.source || 'osm').sort(), ['cm', 'osm', 'osm', 'osm']);
+  // A host over A: the city tier hides A's feature as a whole, and its building outside the focus comes back as context.
+  const hosted = await massing.update({regions: [focus], hosts: [ll(square(510, 510, 80))], zones: [ZONE], zoom: 16, enabled: true, city: true, latitude: 13.75, center: tileToLonLat(100, 100, T)});
+  assert.equal(hosted.context, 1);
   assert.deepEqual(map.filters[CITY_LAYER], ['all', ['!=', ['get', 'hide_3d'], true], ['match', ['id'], [201], false, true]]);
   assert.equal(map.data[CONTEXT_SOURCE].features.length, 1);
   assert.ok(Number.isFinite(map.data[CONTEXT_SOURCE].features[0].properties.fade), 'context carries its distance fade');
-  assert.equal(map.visibility[CM_CREDIT_LAYER], 'visible', 'CityMETER Building V4 is credited while drawn');
   assert.equal(map.visibility[CONTEXT_LAYER], 'visible');
-  assert.deepEqual(map.data[FOCUS_SOURCE].features.map(f => f.properties.source || 'osm').sort(), ['cm', 'cm', 'osm', 'osm']);
   // Pin buildings from CityMETER keep the credit on even with no CityMETER building in the focus.
   massing.creditPinBuildings(true);
   cmOk = false;
   const unitB = {...ZONE, id: 'unit-b', tileUnits: [{id: 'unit-b', bbox: ZONE.bbox}]};
-  const fallback = await massing.update({regions: [ll(square(10, 10, 3000))], zones: [unitB], zoom: 16, enabled: true, city: true, latitude: 13.75, center: tileToLonLat(100, 100, T)});
+  const fallback = await massing.update({regions: [ll(square(10, 10, 3000))], hosts: [], zones: [unitB], zoom: 16, enabled: true, city: true, latitude: 13.75, center: tileToLonLat(100, 100, T)});
   assert.equal(fallback.cm.failed, fallback.cm.requests); assert.equal(fallback.cm.kept, 0); assert.equal(fallback.replaced, 0);
   assert.deepEqual(map.filters[CITY_LAYER], ['all', ['!=', ['get', 'hide_3d'], true]]);
   assert.equal(map.data[CONTEXT_SOURCE].features.length, 0);

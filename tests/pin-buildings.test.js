@@ -36,18 +36,26 @@ test('site-sized polygons are not a venue building; a podium and its tower are b
   assert.deepEqual(m.parts.map(p => p.height).sort((a, b) => a - b), [5, 40]);
 });
 
-test('an outline with building:parts (hide_3d) gives its parts, never a neighbour sharing a wall', () => {
-  const features = [
-    feature(10, [rect(0, 0, 50, 50)], {hide_3d: true, render_height: 30}),
+test('an outline with building:parts (hide_3d) gives its parts, never a neighbour sharing a wall; with its own podium height under its towers, the podium too (D35)', () => {
+  const parts = [
     feature(11, [rect(0, 0, 20, 20)], {render_height: 12}),
     feature(12, [rect(30, 0, 50, 20)], {render_height: 60}),
     feature(13, [rect(0, 30, 50, 50)], {render_height: 8}),
     feature(14, [rect(50, 0, 80, 50)], {render_height: 9}), // shares the outline's east wall
   ];
-  const m = matchVenue(at(25, 25), indexOf(features)); // a courtyard point: only the outline contains it
-  assert.equal(m.method, 'inside');
-  assert.deepEqual(m.parts.map(p => p.fid).sort(), [11, 12, 13]);
-  assert.ok(!m.parts.some(p => p.hide3d), 'the outline itself is not drawn');
+  // The outline carries the height of its tallest part (Simple 3D Buildings): its parts only.
+  const tallest = matchVenue(at(25, 25), indexOf([feature(10, [rect(0, 0, 50, 50)], {hide_3d: true, render_height: 60}), ...parts])); // a courtyard point
+  assert.equal(tallest.method, 'inside'); assert.ok(tallest.viaOutline);
+  assert.deepEqual(tallest.parts.map(p => p.fid).sort(), [11, 12, 13]);
+  assert.ok(!tallest.parts.some(p => p.hide3d || p.podium), 'the outline itself is not drawn');
+  // No height tag on the outline (the 5 m default): its parts only.
+  assert.deepEqual(matchVenue(at(25, 25), indexOf([feature(10, [rect(0, 0, 50, 50)], {hide_3d: true, render_height: 5}), ...parts])).parts.map(p => p.fid).sort(), [11, 12, 13]);
+  // A 30 m outline under a 60 m tower: the podium, and the parts that rise above it (12 m and 8 m stand inside it).
+  const podium = matchVenue(at(25, 25), indexOf([feature(10, [rect(0, 0, 50, 50)], {hide_3d: true, render_height: 30}), ...parts]));
+  assert.deepEqual(podium.parts.map(p => [p.fid, p.height, Boolean(p.podium)]).sort((a, b) => a[0] - b[0]), [[10, 30, true], [12, 60, false]]);
+  assert.ok(podium.parts.every(p => !p.hide3d), 'the podium is drawn as a solid');
+  const f = pinFeatures('V', podium).find(x => x.properties.podium);
+  assert.equal(f.properties.height_m, 30); assert.equal(f.properties.base_m, 0);
 });
 
 test('a merged multi-part feature yields only the polygon the pin stands in', () => {
@@ -153,47 +161,68 @@ test('CityMETER parts: whole buildings in lon/lat with their model height; holes
   assert.equal(cmParts(layer, T14, seen).length, 0, 'the same buildings read again (another tile or tile unit) add nothing');
 });
 
-test('in a CityMETER unit the pin maps to the CityMETER building; OSM parts (LOD2) stay OSM; without a CityMETER building the OSM one is kept', () => {
-  const cm = indexParts(cmParts(cmLayer([{properties: {height_m: '15'}, rings: [tileRect(0, 0, 40, 40)]}]), T14));
+test('D35 in a CityMETER unit: the OSM building the pin stands in always wins; OSM parts (LOD2) stay OSM; CityMETER only where OSM has none', () => {
+  const cm = indexParts(cmParts(cmLayer([
+    {properties: {height_m: '15'}, rings: [tileRect(0, 0, 40, 40)]},       // under the OSM building 60
+    {properties: {height_m: '12'}, rings: [tileRect(400, 400, 440, 440)]}, // no OSM building near: the fallback
+    {properties: {height_m: '31'}, rings: [tileRect(45, 0, 60, 15)]},      // 7 m from OSM 60, narrow and tall: an artifact
+    {properties: {height_m: '6'}, rings: [tileRect(45, 20, 60, 35)]},      // 7 m from OSM 60, low: a shed OSM has not mapped
+    {properties: {height_m: '8'}, rings: [tileRect(-60, 0, -45, 40)]},     // 5 m from the LOD2 outline 64
+  ]), T14));
   const osmPlain = indexOf([feature(60, [rect(2, 2, 38, 38)])]);
-  const viaCm = matchInUnit(at(20, 20), osmPlain, cm);
-  assert.equal(viaCm.source, 'cm'); assert.equal(viaCm.parts[0].source, 'cm');
+  const osmWins = matchInUnit(at(20, 20), osmPlain, cm);
+  assert.equal(osmWins.source, undefined); assert.equal(osmWins.parts[0].fid, 60); assert.equal(osmWins.rule, 'osm-first');
+  assert.equal(osmWins.parts[0].height, 20, 'a tagged OSM height stays');
   const lod2 = indexOf([feature(61, [rect(0, 0, 50, 50)], {hide_3d: true}), feature(62, [rect(5, 5, 45, 45)], {render_height: 60})]);
   const kept = matchInUnit(at(20, 20), lod2, cm);
-  assert.ok(kept.viaOutline && kept.parts.every(p => p.source !== 'cm'), 'a building OSM maps in parts stays OSM');
+  assert.ok(kept.viaOutline && kept.parts.every(p => p.source !== 'cm'), 'a building OSM maps in parts stays OSM'); assert.equal(kept.rule, 'osm-parts');
   const noCm = matchInUnit(at(200, 200), indexOf([feature(63, [rect(190, 190, 220, 220)])]), cm);
   assert.equal(noCm.parts[0].fid, 63, 'CityMETER has no building there: the OSM building is kept');
   assert.equal(matchInUnit(at(500, 500), osmPlain, cm), null);
-  const f = pinFeatures('V', viaCm)[0];
+  const fallback = matchInUnit(at(420, 420), osmPlain, cm);
+  assert.equal(fallback.source, 'cm'); assert.equal(fallback.rule, 'cm-fallback'); assert.equal(fallback.parts[0].height, 12);
+  assert.equal(matchInUnit(at(420, 420), osmPlain, cm, {main: false}).source, 'cm', 'a site point far from OSM buildings: CityMETER too');
+  const next = matchInUnit(at(52, 7), osmPlain, cm);
+  assert.equal(next.source, 'cm', 'the venue pin\'s own building is never dropped (D28)');
+  assert.equal(matchInUnit(at(52, 7), osmPlain, cm, {main: false}), null, 'a site point in a narrow, tall CityMETER block next to an OSM building: an artifact');
+  assert.equal(matchInUnit(at(52, 27), osmPlain, cm, {main: false}).source, 'cm', 'a low CityMETER building next to an OSM building stays a site building');
+  const nextToLod2 = indexOf([feature(64, [rect(-40, 0, 0, 40)], {hide_3d: true, render_height: 20}), feature(65, [rect(-35, 5, -5, 35)], {render_height: 60})]);
+  assert.equal(matchInUnit(at(-52, 20), nextToLod2, cm, {main: false}), null, 'next to a building OSM maps in 3D parts: an artifact');
+  assert.equal(matchInUnit(at(-52, 20), nextToLod2, cm).source, 'cm', 'the venue pin keeps it');
+  const f = pinFeatures('V', fallback)[0];
   assert.equal(f.properties.geometry_role, PIN_SOURCES.cm.role);
   assert.equal(f.properties.height_status, 'citymeter_model_estimate');
   assert.equal(f.properties.source, 'CityMETER Building V4');
-  assert.equal(f.properties.height_m, 15);
-  assert.deepEqual(f._ring, viaCm.parts[0].outer, 'the exact CityMETER ring, for the massing tier to drop the same building');
+  assert.equal(f.properties.height_m, 12);
+  assert.deepEqual(f._ring, fallback.parts[0].outer, 'the exact CityMETER ring, for the massing tier to drop the same building');
 });
 
-test('D32 OSM first for pins: a finer OSM outline wins (its default height takes CityMETER\'s); an OSM block over two CityMETER buildings gives way; two OSM buildings in one CityMETER block stay OSM', () => {
+test('D35 for pins: an OSM building with the default height takes the CityMETER height of the same building; an OSM block over two CityMETER buildings stays OSM; a CityMETER building OSM draws a little apart gives way to it', () => {
   const ring = pts => [...pts, pts[0]].map(([x, y]) => [LON + x / kx, LAT + y / ky]);
   const octagon = ring([[105, 100], [135, 100], [140, 105], [140, 135], [135, 140], [105, 140], [100, 135], [100, 105]]);
   const cm = indexParts(cmParts(cmLayer([
     {properties: {height_m: '22'}, rings: [tileRect(100, 100, 140, 140)]},
-    {properties: {height_m: '9'}, rings: [tileRect(201, 1, 229, 29)]}, {properties: {height_m: '11'}, rings: [tileRect(231, 1, 259, 29)]},
+    {properties: {height_m: '9'}, rings: [tileRect(201, 1, 235, 29)]}, {properties: {height_m: '11'}, rings: [tileRect(237, 1, 259, 29)]},
     {properties: {height_m: '16'}, rings: [tileRect(300, -50, 380, -10)]},
+    {properties: {height_m: '40'}, rings: [tileRect(525, 0, 565, 40)]}, // OSM 84 drawn 25 m west of it
   ]), T14));
   const osm = indexOf([feature(80, [octagon], {render_height: 5}), feature(81, [rect(200, 0, 260, 30)], {render_height: 5}),
-    feature(82, [rect(302, -48, 338, -12)], {render_height: 20}), feature(83, [rect(342, -48, 378, -12)], {render_height: 20})]);
-  const finer = matchInUnit(at(120, 120), osm, cm);
-  assert.equal(finer.source, undefined, 'the OSM octagon, not the CityMETER box'); assert.equal(finer.parts[0].fid, 80); assert.equal(finer.rule, 'osm-finer');
-  assert.equal(finer.parts[0].height, 22); assert.equal(finer.parts[0].heightFrom, 'cm');
-  const f = pinFeatures('V', finer)[0];
+    feature(82, [rect(302, -48, 338, -12)], {render_height: 20}), feature(83, [rect(342, -48, 378, -12)], {render_height: 20}),
+    feature(84, [rect(500, 0, 540, 40)], {render_height: 18})]);
+  const oct = matchInUnit(at(120, 120), osm, cm);
+  assert.equal(oct.source, undefined, 'the OSM octagon, not the CityMETER box'); assert.equal(oct.parts[0].fid, 80); assert.equal(oct.rule, 'osm-first');
+  assert.equal(oct.parts[0].height, 22); assert.equal(oct.parts[0].heightFrom, 'cm');
+  const f = pinFeatures('V', oct)[0];
   assert.equal(f.properties.geometry_role, PIN_SOURCES.osm.role, 'drawn as the OSM building');
   assert.equal(f.properties.height_status, 'citymeter_model_estimate', 'with the CityMETER model height');
   assert.equal(f.properties.source, PIN_SOURCES.osmCmHeight.source);
   const block = matchInUnit(at(215, 15), osm, cm);
-  assert.equal(block.source, 'cm', 'the OSM block holds two CityMETER buildings'); assert.equal(block.parts[0].height, 9);
+  assert.equal(block.source, undefined, 'D35: the OSM block stays OSM'); assert.equal(block.parts[0].fid, 81);
+  assert.equal(block.parts[0].height, 9, 'its default height takes the height of the larger CityMETER building in it');
   const split = matchInUnit(at(320, -30), osm, cm);
-  assert.equal(split.parts[0].fid, 82, 'two OSM buildings in one CityMETER block: OSM'); assert.equal(split.rule, 'osm-more-buildings');
-  assert.equal(split.parts[0].height, 20, 'a tagged OSM height stays');
+  assert.equal(split.parts[0].fid, 82); assert.equal(split.parts[0].height, 20, 'a tagged OSM height stays');
+  const apart = matchInUnit(at(555, 20), osm, cm);
+  assert.equal(apart.source, undefined, 'OSM covers the CityMETER building by more than COVER_MIN: the OSM building'); assert.equal(apart.parts[0].fid, 84);
 });
 
 test('CityMETER requests of a point: its z14 tile (and the neighbour within a few metres of an edge), per tile unit meeting it', () => {

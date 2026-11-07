@@ -6,7 +6,7 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Release 0.1.21 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.1.22 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
@@ -168,6 +168,17 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.22 - OpenStreetMap first everywhere, CityMETER only where OSM has no building (D35)
+
+Owner 7 Nov 2026 16:35: “ตอนนี้สามย่านมิตรทาวน์ มี mass หลายก้อนทั้งๆที่ของจริงเป็น podium เดียว แต่มี 2 towers Central world ก็มี building mass เกินมา … เช็คดีๆเรื่องการใช้ 3d building mass จาก OSM ที่ LOD สูงกว่าเป็นหลัก แล้วใช้ จาก CityMETER เป็น fallback เท่านั้น บังคับเรื่องนี้ให้ทั่วทั้งเวบ” (DATA_METHOD §11.6).
+
+- **Cause:** the D32 rule let CityMETER Building V4 win over an OpenStreetMap building (two or more CityMETER blocks inside one OSM building, or the same outline without more corners), and site points took the CityMETER building first. At Samyan Mitrtown, which OSM maps as one podium with two towers (building parts), six CityMETER blocks of 15–785 m² and 31–92 m stood 0–17 m from the podium. An OSM outline with its own, lower height (the podium under the towers) was hidden with its parts drawn alone. In the z14 tile of Samyan and CentralWorld, 469 of 597 CityMETER-only buildings lie within 20 m of an OSM building, 262 of them at least 15 m tall on less than 300 m² (shadows, trees, pieces of the same buildings).
+- **Rule, for the context buildings, the pin buildings and the site buildings alike:** OSM building parts (LOD2), with the outline as the podium when OSM gives it a real height lower than its tallest part by more than 3 m → an OSM building (LOD1), always; a 5 m default height takes the CityMETER model height of the same building → a CityMETER building only where no OSM building stands for it (interior point either way, or 30% covered); around the venues it is not drawn within 20 m of an OSM building. The building a pin stands in is never dropped; a site point's CityMETER building next to OSM is dropped only as a model artifact (at least 15 m tall on less than 300 m², or next to an OSM building mapped in parts).
+- **Measured on the live tiles (venue buildings before → after):** Samyan Mitrtown 10 (6 CityMETER) → 1 (the OSM podium with two towers) · CentralWorld 7 (7 CityMETER) → 6 (all OSM) · Mega Bangna 91 (84) → 64 (40) · Talad Charoen Si, Ubon 131 → 131 (62 CityMETER) · Doi Wao market 107 → 103 · Srinakarin train market 97 → 85 · Kham Thiang 90 → 88 · The Circle Ratchaphruek 80 → 73 · Ubon Square 68 → 65. Focus update in Korat about 215 ms.
+- **Panel:** a project's building count follows its site points (one per building), not the number of drawn pieces; the evidence line says OpenStreetMap is shown first and CityMETER only where OSM has no building. The coordinate line names a point taken from a building OpenStreetMap names for the venue.
+- Venue data unchanged in this release (export of 7 Nov 2026 used by 0.1.20–0.1.21). D36 (component rows without a qualified parent read as the place they are, e.g. Chamchuri Square as a shopping centre) and 23 new points from buildings OpenStreetMap names for the venue (written to the research sheet and read back) take effect with the next data rebuild.
+- Cache tag `20261107-r31`.
 
 ## 0.1.21 - exact branch links and directory coverage
 
