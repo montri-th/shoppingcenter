@@ -177,6 +177,7 @@ Owner 7 Nov 2026 11:15 and 11:56 (D33; PRODUCT_STATEMENT §8 and §10 red team; 
 - **Rail stations (CityMETER · Transit, as CityMETER · Hotel):** 195 operating stations (`data/stations.json`, pinned commit and file SHA-256) drawn as quiet rings; a station opens the venues of the filters within 500 m, nearest first, with the radius on the map; the venue panel and the table name the nearest station and its straight-line distance.
 - **Phone:** the card and the area legend are one dock; the card keeps the finding in two lines and one line under it; the zoom buttons step aside on touch phones; the map credit folds to its (i) after five seconds or the first touch (`js/map-credits.js`, OSMF guidelines); the first view frames the three districts in the free map box (`fitPitched` zoomed round the canvas centre and stepped out to the country on a 393 × 659 phone).
 - **Sites, third round (D31):** 93 more sites, 1,137 buildings (91 markets) from 67 one-degree OpenStreetMap boxes covering the last 1,992 venues without a site; the published sites are now 392 with 5,743 buildings. LIVE Ramintra drops two more small design parts outside its site.
+- **`llms.txt`** (as the sibling demos): what each figure means, the snapshot, deep links and what not to claim, for agents and analysts.
 - Cache tag `20261107-r27`.
 
 ## 0.1.18 - one rounded style for every venue building, OpenStreetMap first, Esplanade Ratchada

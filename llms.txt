@@ -1,0 +1,30 @@
+# CityMETER · ศูนย์การค้า (Shopping centers)
+
+> Qualified retail venues of Thailand — shopping centres, community malls, outlets, markets, fuel stations with shops, host stores and retail inside projects — counted under one definition, by district (เขต/อำเภอ), with operators, the shops their lists name, their buildings and the straight-line distance to rail stations (CityMETER Transit). A Landometer CityMETER public research demo, release 0.1.19 (2026-11-07). Research master export 2026-11-07.
+
+What one figure means:
+- venues (แห่ง) = qualified, countable venues of the research master: several consumer businesses with one common area manager, by source evidence or by a category rule the data owner accepted (the venue panel says which). A parent complex never adds its components. Records still awaiting the definition check, or whose check closed unconfirmed, are grey context dots and never counted. Not a census; not footfall, sales, rent, vacancy, occupancy or market share.
+- shops inside (ร้านข้างใน) = branches that 21 registry shop datasets list for a venue, one entry per branch. A venue without a list reads "—", never 0; a shop missing from a list is not shown to be absent.
+- density (แห่ง/ตร.กม.) = venues per km² of the district area of CityMETER production (RTSD 2019 boundaries, production codes).
+- distances = straight lines between reference points (haversine), not walking routes or catchments; stations are operating stations only (construction stations are projects, not services).
+- size (GLA/GFA) appears only in a venue's own panel; legacy estimates never enter rankings, totals or filters.
+- sites = one interior point per building of a multi-building venue (392 venues, 5,743 buildings), mostly from OpenStreetMap areas checked with fixed rules (© OpenStreetMap contributors, ODbL 1.0); a site is not a land title, a deed area or ownership.
+
+Snapshot (release 0.1.19; fixtures, recompute from data):
+- 11,139 registry rows; 6,265 qualified; 6,151 countable; 6,145 open or awaiting status, 4 planned, 2 closed; 6,081 located in 733 districts of 77 provinces.
+- First finding (owner decision D33): 23% of Bangkok's shopping centres, community malls and outlets (46 of 199) are in Pathum Wan, Watthana and Khlong Toei, on 2.2% of its area; 65% of the 46 lie within 500 m of an operating rail station, against 39% (60 of 153) elsewhere in Bangkok.
+- Every type ranked by count: Mueang Chiang Mai has the most (103, mostly markets).
+
+Deep links (https://montri-th.github.io/shoppingcenter/):
+- default type set = centres (mall, community, outlet) · ?group=all — every type · ?group={centres|mall|community|outlet|market|hoststore|component|fuel|other}
+- ?province={code} — production codes, e.g. BKK, CMI · ?district={code} — e.g. 1007 (เขตปทุมวัน) · ?areas={code},{code} | ?areas=all
+- ?venue={venue id} · ?station={CityMETER Transit station id, e.g. RAILCAT:BTS_SUKHUMVIT:CEN} · ?brand={brand key} · ?record={registry id of a context record}
+- ?q={text} · ?status={planned|closed|all} · ?operator={group id|__other__|__none__} · ?role={shop role or facility} · ?view={rank|mix|operators} · ?view3d=0 · ?pending=0
+
+Data and method:
+- [Product statement](https://montri-th.github.io/shoppingcenter/PRODUCT_STATEMENT.md): users, problem, decisions, red team (§10)
+- [Data and method](https://montri-th.github.io/shoppingcenter/DATA_METHOD.md): definition, counting, first finding, stations, sites, limits
+- [Venues](https://montri-th.github.io/shoppingcenter/data/venues.json): rows + meta (definitions, counts, checks.firstView)
+- [Rail stations](https://montri-th.github.io/shoppingcenter/data/stations.json) · [Sites](https://montri-th.github.io/shoppingcenter/data/venue-sites.json) · [Shop-list index](https://montri-th.github.io/shoppingcenter/data/tenant-index.json)
+
+Do not claim from this data: footfall, sales, rent, vacancy, occupancy, market share, a market gap or a "golden location", that a venue is open today, walking time, that being near a station causes visits or sales, that a district without venues has none, that a shop not in a list is absent, or that a building height is measured (CityMETER heights are model estimates).
