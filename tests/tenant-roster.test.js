@@ -71,11 +71,11 @@ test('linked datasets (build-report.linkedDatasets): pinned release, only gated 
     assert.match(receipt.files['data/fitness.json'], /^[0-9a-f]{64}$/);
     const items = [], hosts = new Set();
     for (const file of shards) for (const [id, roster] of Object.entries(read('data/tenants/' + file).venues)) {
-      for (const item of roster.items.filter(x => x.dataset === dataset)) { items.push(item); hosts.add(id); }
+      for (const item of roster.items.filter(x => x.dataset === dataset && x.sourceRole === 'dataset_accepted_host_link')) { items.push(item); hosts.add(id); }
     }
     assert.equal(items.length, receipt.publishedItems, `${dataset}: items (a canonical rebuild must be followed by scripts/link-dataset-tenants.py)`);
     assert.equal(hosts.size, receipt.publishedVenueHosts);
-    assert.equal(report.datasets[dataset], receipt.publishedItems);
+    assert.equal(report.datasets[dataset], receipt.publishedItems + (report.venueNetwork?.newItemsByDataset?.[dataset] || 0));
     assert.equal(items.filter(x => x.logo).length, receipt.withLogo);
     for (const item of items) {
       assert.equal(item.sourceRole, 'dataset_accepted_host_link');
@@ -113,10 +113,10 @@ test('named-host research datasets: receipts, gated items, one item per branch (
     assert.match(receipt.unit, /one branch/);
     assert.ok(!/docs\.google|drive\.google|spreadsheets\/d\//.test(JSON.stringify(receipt)), 'no private links or sheet ids in the receipt');
     const items = [], hosts = new Set();
-    for (const [id, list] of byVenue) for (const item of list.filter(x => x.dataset === dataset)) { items.push(item); hosts.add(id); }
+    for (const [id, list] of byVenue) for (const item of list.filter(x => x.dataset === dataset && x.sourceRole === 'dataset_source_named_host_listing')) { items.push(item); hosts.add(id); }
     assert.equal(items.length, receipt.publishedItems, `${dataset}: run scripts/link-research-tenants.py after every roster rebuild`);
     assert.equal(hosts.size, receipt.publishedVenueHosts);
-    assert.equal(report.datasets[dataset] || 0, receipt.publishedItems);
+    assert.equal(report.datasets[dataset] || 0, receipt.publishedItems + (report.venueNetwork?.newItemsByDataset?.[dataset] || 0));
     assert.equal(items.reduce((n, x) => n + (x.sourceObservationCount || 1), 0), receipt.publishedSourceObservations);
     if (receipt.kind === 'reviewed_candidate_host') {
       assert.ok(receipt.candidateRows >= receipt.reviewAccepted && receipt.reviewAccepted >= receipt.publishedSourceObservations, dataset);

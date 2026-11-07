@@ -6,28 +6,28 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.1.20 · Research snapshot: ข้อมูลตรวจถึง 7 พ.ย. 2569 · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
-ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (export 7 พ.ย. 2569 13:57 น. · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
+ที่มา: CityMETER Shopping Centers & Retail Venues Research Master แท็บ 01_VENUES (อ่านกลับ 7 พ.ย. 2569 หลังตรวจจุดค้าปลีก 31 แห่ง · 11,139 รายการ · คิวตรวจนิยามยังเป็น 0) · ขอบเขต: รูปเขตกรมแผนที่ทหาร (RTSD 2562) ชุดเดียวกับ CityMETER production ใช้รหัสเขตของ OpenGISData-Thailand (commit `fafcea1`) และรหัสจังหวัดของ CityMETER production · ค่าล่าสุดอ่านจาก `meta.counts` ใน [data/venues.json](data/venues.json) เสมอ ตารางนี้เป็นภาพ ณ วันที่ข้างต้น
 
 | สิ่งที่นับ | จำนวน | ความหมาย |
 |---|---:|---|
 | ทะเบียนทั้งหมด | 11,139 รายการ | ทุกอย่างที่เคยถูกเรียกว่าพื้นที่ค้าปลีก ไม่ใช่จำนวนศูนย์การค้าที่เปิดจริง |
 | ผ่านนิยาม retail venue | 6,265 รายการ | ด้วยหลักฐานปัจจุบัน 789 · ตามกฎรายประเภทที่เจ้าของข้อมูลยอมรับ 5,247 (ตลาด 3,904 · สถานีบริการน้ำมันที่มีร้านค้า 1,173 · มีหลายกิจการอยู่ภายใน 66 · ร้านหลักกับกิจการที่สอง 55 · อื่น ๆ 49) · หลักฐานย้อนหลัง 224 · โครงการอนาคต 5 |
 | นับได้ (หักที่ไม่นับแยก 114: พื้นที่ย่อย 85 · อาจซ้ำ 16 · รอตรวจการนับ 12 · บริบทหลายสถานที่ 1) | 6,151 แห่ง | เปิดอยู่หรือรอยืนยันสถานะ 6,145 · กำลังจะเปิด 4 · ปิดแล้ว 2 · รวมพื้นที่ค้าปลีกที่เป็นศูนย์การค้าแต่โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม 7 แห่ง (D6) |
-| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,082 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 59 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ (เอสพลานาด งามวงศ์วาน-แคราย ได้จุดแล้วใน 0.1.19) · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
+| มีพิกัดในเขต/อำเภอ (จาก 6,145) | 6,084 แห่ง | 77 จังหวัด 733 เขต/อำเภอ · 57 แห่งไม่มีพิกัดที่ผ่านเกณฑ์ (ตรวจจุดค้าปลีก 31 แห่ง: เลือกจุดอ้างอิง 23 แห่ง อีก 8 แห่งรอหลักฐาน; คงบทบาทการนับเดิม) · 4 แห่งพิกัดอยู่นอกขอบเขตเขต/อำเภอ (ริมทะเลหรือแนวชายแดน) จึงไม่นับในพื้นที่ใด |
 | ตรวจแล้ว ยังยืนยันไม่ได้ | 4,866 รายการ | `reviewed_definition_unconfirmed` · บนแผนที่เป็นจุดเทาเงียบ 4,848 จุด ซ่อนได้ ค้นหาได้ ไม่นับในตัวเลขใด ๆ (D4) · รอตรวจ 0 |
 | ทะเบียนสรุปว่าไม่ใช่สถานที่แยก | 8 รายการ | รวมโครงการแม่ที่เป็นบริบท ดุสิต เซ็นทรัล พาร์ค (ห้างที่นับคือ เซ็นทรัล พาร์ค) · ไม่แสดงและไม่นับ |
 | อาคารของสถานที่ที่มีรูปทรงผ่านเกณฑ์ | 77 สถานที่ (75 อยู่ในชุดที่นับได้) | 130 รูปทรง: parts 10 สถานที่ · footprint อย่างเดียว 67 สถานที่ · สถานที่อื่นแสดงอาคารที่หมุดตั้งอยู่จากแผนที่ฐานเมื่อหาได้ |
 | ไซต์หลายอาคาร (แท็บไซต์ของชีตวิจัย อ่านกลับ 7 พ.ย. 2569 รอบสาม) | 392 สถานที่ · 5,743 อาคาร | 60 จังหวัด · ตลาด 262 · ศูนย์การค้า 83 · คอมมูนิตี้มอลล์ 41 · เอาท์เล็ต 4 · ไฮเปอร์มาร์เก็ตที่มีร้านเช่า 2 · ขอบเขตจาก OpenStreetMap ตรวจด้วยกฎอัตโนมัติ 388 · ผังของผู้ดำเนินการ 3 · ตามคำตอบเจ้าของ 1 (เมกาบางนา) · ไม่ใช่โฉนดหรือกรรมสิทธิ์ |
 | ร้านที่ชุดข้อมูลร้านค้ายืนยันว่าอยู่ข้างใน (ความสัมพันธ์แบบ primary ในทะเบียน) | 1,626 รายการใน 425 สถานที่ที่นับได้ | ประวัติ — หน้าเว็บรุ่น 0.1.8 ไม่ใช้ตัวเลขนี้แล้ว (D22) · 74 รายการของ 43 สถานที่ที่เพิ่มหลัง 26 ต.ค. ยังไม่อยู่ในรายชื่อร้าน |
-| รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 5 พ.ย. 2569) | 5,493 สาขา ใน 619 สถานที่ จาก 21 ชุดข้อมูล | หนึ่งรายการคือหนึ่งสาขา (D23) · ชุดเดิม 2,461 · 7 ชุดที่ sheet จับคู่ชื่อศูนย์ (Sport 319 · Apparel 681 · Furniture 107 · Pet 58 · Massage & Spa 21 · Salon & Barber 62 · Nail 23) · 4 ชุดที่ผ่านการตรวจลิงก์ศูนย์ (Beauty 1,075 · Beauty Clinic 436 · Playground 103 · Car Service 147) · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
+| รายชื่อร้านข้างใน (ทุกตัวเลข “ร้านข้างใน” ของหน้าเว็บ · 7 พ.ย. 2569) | 6,701 รายการ ใน 638 สถานที่ จาก 25 ชุดข้อมูล | ชุดเดิม 5,493 รายการคงข้อเท็จจริงเดิม · เพิ่ม 1,208 รายการที่ผ่านการตรวจแหล่งและตัวตน · True Digital Park 122 รายการจาก 17 ชุด · รายการ provisional, component ซ้ำ และตัวตน/พิกัดขัดแย้งไม่เข้าเว็บ · สถานที่ที่ยังไม่มีรายชื่อแสดง “—” |
 
 ข้อค้นพบแรก (คำนวณใหม่ทุกครั้งจากข้อมูล ไม่ใช่ค่าคงที่ · D33 ตั้งแต่ 0.1.19): หน้าแรกนับศูนย์การค้า คอมมูนิตี้มอลล์ และเอาท์เล็ต แล้วเรียงเขตตามจำนวน — **46 จาก 199 แห่งของกรุงเทพฯ (23%) อยู่ใน ปทุมวัน 22 · วัฒนา 13 · คลองเตย 11 บนพื้นที่ 34.5 จาก 1,571.4 ตร.กม. (2.2%) · 30 จาก 46 แห่ง (65%) อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้าที่เปิดให้บริการ เทียบกับ 60 จาก 153 แห่ง (39%) ในเขตอื่นของกรุงเทพฯ** (ระยะเส้นตรงระหว่างจุดอ้างอิง · สถานีจาก CityMETER · Transit release `transit-data-2026-10-31-r1` · เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · ล้างตัวกรองเป็นทุกประเภทได้ · ก่อน 0.1.19 (D1, ทุกประเภท เรียงตามความหนาแน่น): **50 จาก 890 แห่งของกรุงเทพฯ (6%) อยู่ใน 3 เขตที่แน่นที่สุด — สัมพันธวงศ์ พระนคร บางรัก — บนพื้นที่ 10.8 จาก 1,571.4 ตร.กม. (0.7%) หรือแน่นกว่าค่าเฉลี่ยของกรุงเทพฯ ราว 8 เท่า** ตัวหารคือสถานที่ที่นับได้และมีพิกัดในกรุงเทพฯ (เป็นจำนวนสถานที่ ไม่ใช่ยอดขาย footfall ค่าเช่า หรืออัตราว่าง) · อำเภอที่มีมากที่สุดในประเทศ: เมืองเชียงใหม่ 103 แห่ง
 
-ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,082 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,331) ศูนย์การค้า 245 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 146 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
+ตลาดเป็นกลุ่มใหญ่ที่สุดของชุดนี้ (4,024 จาก 6,084 แห่งที่มีพิกัด) รองลงมาคือสถานีบริการน้ำมันและจุดพักรถ (1,332) ศูนย์การค้า 245 · ไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า 210 · คอมมูนิตี้มอลล์ 147 · พื้นที่ค้าปลีกในโครงการ 107 · เอาท์เล็ต 13 · อื่น ๆ 6 ตลาดส่วนใหญ่ยังมีสถานะปัจจุบันแบบรอยืนยัน — นับใน “เปิดอยู่หรือรอยืนยันสถานะ” ตามกฎเดิม และแผงสถานที่บอกสถานะของแต่ละแห่ง
 
 ## ใช้งาน
 
@@ -168,6 +168,13 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.1.20 - official-directory network and retail reference points
+
+- Official-directory research:23,217 source observations /55canonical hosts /7publisher collections. Existing source identities reused; Miscellaneous receives unmatched categories using the Luxury template, with provisional names and migration crosswalks kept separate.
+- Public roster:6,701 items at638hosts from25datasets;1,208new, all5,493original facts preserved; True Digital Park122items /17datasets. Source-card/unit identity checks and point/operation/scope holds prevent research intake from becoming extra branches automatically.
+- Original31 venues:23source-qualified reference points selected,8NULL holds; all31linked to source-branch evidence. Existing count roles, qualification and primary graph preserved. Located supply6,084; current392sites /5,743building points and D33/D34 unchanged.
+- Validation:208/208 tests, independent projection reproduction and34-file idempotence; desktop/390px Chrome rendered checks. See `DATA_METHOD.md` §9.6 and `handoff/VERIFICATION.md`. Cache tag `20261107-r29`.
 
 ## 0.1.19 r28 - nothing over the map but the map: the credit beside it
 

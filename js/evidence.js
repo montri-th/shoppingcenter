@@ -112,6 +112,10 @@ export const STORE_DATASETS = Object.freeze({
   'research.TH.beauty_clinic': 'คลินิกความงาม',
   'research.TH.playground': 'เครื่องเล่นและครอบครัว',
   'research.TH.car_service': 'บริการรถยนต์',
+  'research.TH.miscellaneous': 'ร้านค้าและบริการอื่น',
+  'research.TH.hobby': 'งานอดิเรกและของสะสม',
+  'research.TH.hospital': 'บริการสุขภาพและทันตกรรม',
+  'research.TH.school': 'การเรียนรู้และคลาสเรียน',
 });
 export const storeDataset = id => STORE_DATASETS[id] || id;
 
