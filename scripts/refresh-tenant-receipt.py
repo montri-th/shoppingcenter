@@ -36,6 +36,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--previous', required=True, help='the venue core the roster receipt names (e.g. git show HEAD:data/venues.json)')
     ap.add_argument('--data', default=str(DATA))
+    ap.add_argument('--reason', default='full refresh of the venue core from a new export of the Research Master; the roster is unchanged',
+                    help='why the core changed (e.g. a meta-only change such as scripts/refresh-first-view.py)')
     a = ap.parse_args()
     data = Path(a.data)
     report_path = data / 'tenants' / 'build-report.json'
@@ -72,7 +74,7 @@ def main():
     report['venueCoreRefresh'] = {
         'on': datetime.now(timezone.utc).astimezone().date().isoformat(),
         'by': 'scripts/refresh-tenant-receipt.py',
-        'reason': 'full refresh of the venue core from a new export of the Research Master; the roster is unchanged',
+        'reason': a.reason,
         'coreAsOf': core['meta'].get('asOf'),
         'export01VenuesSha256': core['meta'].get('inputs', {}).get('01_VENUES', {}).get('sha256'),
         'previousCoreSha256': previous_sha,

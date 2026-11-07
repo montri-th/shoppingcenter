@@ -64,6 +64,8 @@ GLYPHS = {
     'palette': ('palette', 0xE40A),
     'route': ('route', 0xEACD),
     'touch': ('touch_app', 0xE913),
+    # rail stations of CityMETER · Transit (D33, owner 2026-11-07: patterns of the sibling demos)
+    'train': ('train', 0xE570),
 }
 AXES = {'FILL': 0, 'wght': 300, 'GRAD': 0, 'opsz': 24}
 ROOT = Path(__file__).resolve().parent.parent

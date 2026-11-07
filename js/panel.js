@@ -4,7 +4,7 @@
  * Every actionable element carries data-action (and data-id) and the app binds one delegated
  * click handler. Actions: select-district · select-venue · select-pending · select-province ·
  * back · explore-top · all-districts · country · open-charts · open-table · open-panel ·
- * clear-filter · set-group · set-status · toggle-pending · select-brand · tenant-role (data-role) ·
+ * clear-filter · set-group · set-status · toggle-pending · select-brand · select-station · tenant-role (data-role) ·
  * more-tenants · more-brand-venues · retry-tenants · retry-index. The back button of a detail view lives
  * in the panel's top row (index.html #panel-back), next to the breadcrumb.
  *
@@ -17,7 +17,7 @@
  * instead of one. Units: แห่ง = one qualified retail venue; แห่ง/ตร.กม. = venues per km².
  * Missing is never zero: an unknown key field says “ยังไม่มีข้อมูล”.
  */
-import {GROUPS, groupById, STATUSES, tierReading, contextState, provinceByCode, districtWord, hasPoint, rowProvince, BANGKOK} from './model.js';
+import {GROUPS, groupById, groupLabel, STATUSES, tierReading, contextState, provinceByCode, districtWord, hasPoint, rowProvince, BANGKOK} from './model.js';
 import {venueLogoMarkup, getVenueLogo} from './venue-logos.js';
 import {formatDensity} from './scales.js';
 import {cueSVG} from './cues.js';
@@ -52,6 +52,9 @@ export function thaiDate(iso) {
 
 export const provinceShort = code => (code === BANGKOK ? 'กรุงเทพฯ' : provinceByCode(code)?.th || code || '');
 const unitWord = code => districtWord(code);
+const KM = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 1});
+/** A straight-line distance in words: “250 ม.”, “1.2 กม.” (the method is in the evidence list and the help). */
+export const meters = m => (m < 1000 ? `${num(Math.round(m / 10) * 10)} ม.` : `${KM.format(m / 1000)} กม.`);
 
 /** Decorative LDS icon (aria-hidden); the text next to it carries the meaning. */
 export const icon = role => `<i class="pictogram pic-${esc(role)}" aria-hidden="true"></i>`;
@@ -102,8 +105,25 @@ function statusLists(planned, closed) {
 }
 
 /** Data line: dataset · source · date · boundary — carried by every panel that shows numbers. */
-export function dataLine(asOf, shops = null) {
-  return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))}${shops ? ` · ${shopSource(shops)}` : ''} · ขอบเขตเขต/อำเภอ กรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+export function dataLine(asOf, shops = null, transit = null) {
+  return `<p class="hint panel-foot">${PRODUCT_TITLE} · CityMETER research · ตรวจถึง ${esc(thaiDate(asOf))}${shops ? ` · ${shopSource(shops)}` : ''}${transit ? ` · ${transitSource(transit)}` : ''} · ขอบเขตเขต/อำเภอ กรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER · <a href="DATA_METHOD.md" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+}
+
+/** Where the rail figures come from (D33): CityMETER · Transit, operating stations, the release date (data/stations.json meta). */
+function transitSource(meta = {}) {
+  return `สถานีรถไฟฟ้าที่เปิดให้บริการจาก CityMETER · Transit${meta.asOf ? ` ข้อมูล ${esc(thaiDate(meta.asOf))}` : ''}`;
+}
+
+/**
+ * D33 rail line of the first finding: the share of the focus districts' venues within 500 m (straight line) of an
+ * operating station, against the rest of the province. Null when no venue of the province is near a station (a province
+ * without rail) or the stations did not load.
+ */
+export function railReading(insight) {
+  const r = insight?.rail;
+  if (!r || !r.focus.total || !(r.focus.near + r.rest.near)) return null;
+  const pct = x => Math.round((x.near / x.total) * 100);
+  return {focus: pct(r.focus), focusCount: r.focus.total, rest: r.rest.total ? pct(r.rest) : null};
 }
 
 /** Where the shop numbers come from (D22): the shop-list index meta — dataset count and check dates. */
@@ -138,7 +158,7 @@ export function densityRatio(insight) {
  * focusMode: 'auto' (first-Aha districts carry the detail), 'explicit' (chosen districts) or
  * 'none' (every district of the reading in detail).
  */
-export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = [], shops = null}) {
+export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = [], shops = null, transit = null}) {
   const s = model.summary;
   const count = insight.districts.length;
   const pCode = insight.province;
@@ -161,12 +181,13 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
     const actions = focusMode === 'auto'
       ? `<button type="button" data-action="all-districts" data-id="${esc(pCode)}" class="btn">ดูทุก${word}ใน${esc(provinceShort(pCode))}</button><button type="button" data-action="country" class="btn quiet">${icon('country')}ทั้งประเทศ</button>`
       : `<button type="button" data-action="explore-top" class="btn primary">ดู ${num(count)} ${word}นี้</button>${readCode ? `<button type="button" data-action="country" class="btn quiet">${icon('country')}ทั้งประเทศ</button>` : ''}`;
-    const top = insight.topCount && insight.topCount.count > 0 && national ? insight.topCount : null;
-    const ratio = densityRatio(insight);
-    const denser = ratio >= 2 ? ` · แน่นกว่าค่าเฉลี่ยของ${esc(provinceShort(pCode))} <strong class="data-number">${num(Math.round(ratio))}</strong> เท่า` : '';
+    // D33: districts ranked by count, so the first one is already the country's top; D1 (density) still names it.
+    const top = insight.rank !== 'count' && insight.topCount && insight.topCount.count > 0 && national ? insight.topCount : null;
+    const rail = railReading(insight);
     aha = `<section class="aha${focusMode === 'auto' ? ' is-auto' : ''}" aria-label="ข้อค้นพบ"><p class="eyebrow">${icon('idea')}ข้อค้นพบแรก</p>
       <h2><span class="aha-number data-number">${num(share)}%</span><span class="aha-headline">ของ${esc(subject)}ใน${esc(provinceShort(pCode))} อยู่ใน ${num(count)} ${word}นี้</span></h2>
-      <p class="aha-copy">${names}<br><strong class="data-number">${num(insight.count)}</strong> จาก ${num(insight.total)} แห่ง บนพื้นที่เพียง <strong class="data-number">${PCT.format(insight.areaShare)}%</strong> ของ${esc(provinceShort(pCode))}${denser}</p>
+      <p class="aha-copy">${names}<br><strong class="data-number">${num(insight.count)}</strong> จาก ${num(insight.total)} แห่ง บนพื้นที่ <strong class="data-number">${PCT.format(insight.areaShare)}%</strong> ของ${esc(provinceShort(pCode))}</p>
+      ${rail ? `<p class="aha-rail"><strong class="data-number">${num(rail.focus)}%</strong> ของ ${num(rail.focusCount)} แห่งนี้อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้า${rail.rest !== null ? ` · ที่อื่นใน${esc(provinceShort(pCode))} <strong class="data-number">${num(rail.rest)}%</strong>` : ''}</p>` : ''}
       ${top ? `<p class="aha-secondary">มากที่สุดในประเทศ: <button type="button" class="link-button" data-action="select-district" data-id="${esc(top.code)}">${esc(unitWord(top.province))}${esc(top.th)}</button> <span class="data-number">${num(top.count)}</span> แห่ง</p>` : ''}
       <div class="aha-actions">${actions}<button type="button" data-action="open-charts" class="btn quiet">${icon('chart')}เทียบพื้นที่</button></div></section>`;
   }
@@ -195,7 +216,7 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
   }
   // Rows that no district holds (no point, or a point outside every boundary line): named once, listed in the table.
   const unlocated = model.unlocated.length ? `<p class="hint">อีก ${num(model.unlocated.length)} แห่งยังระบุ${readCode ? unitWord(readCode) : 'เขต/อำเภอ'}ไม่ได้ · <button type="button" class="link-button" data-action="open-table">ดูในตาราง</button></p>` : '';
-  return `${aha}${metrics}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf, shops)}`;
+  return `${aha}${metrics}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf, shops, focusMode !== 'explicit' && railReading(insight) ? transit : null)}`;
 }
 
 /* ---------- Search results ---------- */
@@ -292,7 +313,7 @@ function phoneLink(phone) {
   return first.replace(/\D/g, '').length >= 6 ? `<a class="chip-link" href="tel:${esc(first)}">${icon('contact')}${esc(text)}</a>` : (text ? `<span class="chip-link is-text">${icon('contact')}${esc(text)}</span>` : '');
 }
 
-function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null, site = null} = {}) {
+function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null, site = null, transit = null} = {}) {
   const ev = d?.ev || {};
   const rowsHtml = [];
   const item = (label, text, url, date, extra = '') => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${esc(text || 'ตามแหล่งที่บันทึก')}${date ? ` · ${esc(thaiDate(date))}` : ''}${extra}</span>${url ? link(url, 'แหล่ง') : '<span class="hint">ไม่มีลิงก์สาธารณะ</span>'}</li>`);
@@ -313,6 +334,7 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   else item('พิกัด', 'ยังไม่มีพิกัด', '');
   if (buildingNote) note('อาคาร', buildingNote);
   if (site) note('ไซต์', `${esc(site.source)}${site.url ? ` · ${link(site.url, siteLinkLabel(site.url))}` : ''}${site.checkedOn ? ` · ตรวจ ${esc(thaiDate(site.checkedOn))}` : ''}`);
+  if (row.rail && transit) note('รถไฟฟ้า', `สถานีที่เปิดให้บริการที่ใกล้ที่สุด วัดเป็นเส้นตรงระหว่างจุดอ้างอิง ไม่ใช่ระยะเดิน · ${esc(row.rail.station.lines || '')} · CityMETER · Transit ${esc(transit.release || '')}${transit.asOf ? ` ข้อมูล ${esc(thaiDate(transit.asOf))}` : ''} · ${link(transit.source, 'แหล่ง')}`);
   item('ตัวตน', 'แหล่งยืนยันตัวตนสถานที่', ev.identity?.url);
   for (const a of row._amenities || []) item('สิ่งอำนวยความสะดวก', `${AMENITY_LABELS[a.kind] || a.kind} · ${a.basis === 'owner_reported' ? 'เจ้าของข้อมูลแจ้ง' : 'หน้าเว็บของศูนย์'}`, a.sourceUrl, a.checkedOn);
   if (tenants?.roster) {
@@ -425,6 +447,29 @@ export function mapCardBrand(bp) {
   return card({mark: `<span class="map-card-mark">${icon('brand')}</span>`, crumb: `แบรนด์ในรายชื่อร้าน${role ? ` · ${esc(role)}` : ''}`, title: esc(bp.brand.name), line: `พบใน ${num(bp.places)} สถานที่ · ${num(bp.provinces.filter(p => p.code).length)} จังหวัด`, actions: `${cardBack}${cardOpen()}`});
 }
 
+/* ---------- Station (CityMETER · Transit) ---------- */
+
+/**
+ * Station view (as CityMETER · Hotel): the venues of the filters within the radius of an operating rail station,
+ * nearest first, with their straight-line distance. sp = {station, radius, rows, distance, summary}.
+ */
+export function renderStation(sp, {asOf = '', shops = null, transit = null, subject = SUBJECT} = {}) {
+  if (!sp) return '';
+  const s = sp.station, rows = sp.rows, sum = sp.summary || {};
+  const list = rows.length
+    ? `<ul class="venue-list">${rows.slice(0, 40).map(r => venueRow(r, {meta: `${meters(sp.distance.get(r.id) || 0)} · ${groupById(r.group).th}`, hideStatus: true})).join('')}</ul>${rows.length > 40 ? `<p class="hint"><button type="button" class="link-button" data-action="open-table">อีก ${num(rows.length - 40)} แห่งในตาราง</button></p>` : ''}`
+    : `<p class="hint">ไม่พบ${esc(subject)}ที่มีพิกัดในระยะ ${esc(meters(sp.radius))} (0 แห่ง)</p>`;
+  return `<section class="detail-head station">
+      <p class="eyebrow">${icon('train')}สถานีรถไฟฟ้า${s.lines ? ` · ${esc(s.lines)}` : ''}</p>
+      <h2>สถานี${esc(s.name)}</h2>${s.nameEn || s.codes ? `<p class="subtle">${esc([s.nameEn, s.codes].filter(Boolean).join(' · '))}</p>` : ''}
+      <div class="metrics compact">${metricTile(rows.length, `แห่งในระยะ ${meters(sp.radius)}`, 'venue')}${metricTile(sum.operators ?? 0, 'ผู้บริหาร', 'operator')}${metricTile(sum.stores ?? '—', 'ร้านข้างใน', 'store')}</div>
+      ${rows.length ? `<div class="detail-actions"><button type="button" class="btn" data-action="open-table">${icon('table')}รายการ</button></div>` : ''}
+    </section>
+    ${(sum.groups || []).length > 1 ? `<section class="panel-section"><div class="section-heading">${heading('segment', 'ประเภท')}<span class="hint">แห่ง</span></div>${groupBars(sum.groups, rows.length)}</section>` : ''}
+    <section class="panel-section"><div class="section-heading">${heading('venue', `${subject}ในระยะ ${meters(sp.radius)}`)}<span class="hint">ใกล้ที่สุดก่อน</span></div>${list}</section>
+    ${dataLine(asOf, shops, transit)}`;
+}
+
 /** The words of a site's evidence link: its OpenStreetMap outline, or the project's own layout page. */
 export const siteLinkLabel = url => (/^https:\/\/(www\.)?openstreetmap\.org\//.test(url || '') ? 'ขอบเขตใน OpenStreetMap' : 'ผังโครงการ');
 
@@ -484,7 +529,7 @@ export function buildingReading(row, buildings = [], pinState, site = null, mode
  * chips and a short fact list. Everything that qualifies a value — bases, methods, the full
  * opening-hours note, coordinates, the building source — waits in “หลักฐานรายช่อง”.
  */
-export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -534,6 +579,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
         ${fact('gla', 'ขนาด', sizeFacts(size, {shown}))}
         ${fact('address', 'ที่อยู่', d?.address ? esc(d.address) : '')}
         ${fact('building', 'อาคาร', drawn ? esc(drawn) : '')}
+        ${fact('train', 'รถไฟฟ้า', r.rail ? `<button type="button" class="link-button" data-action="select-station" data-id="${esc(r.rail.station.id)}">สถานี${esc(r.rail.station.name)}</button> · <span class="data-number">${esc(meters(r.rail.m))}</span>` : '')}
         ${fact('checked', 'สัตว์เลี้ยง', amenityFacts(r._amenities))}
       </dl>
       ${!d && !detailError ? '<p class="hint">กำลังโหลดรายละเอียด…</p>' : ''}${detailError ? '<p class="hint">โหลดรายละเอียดไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</p>' : ''}
@@ -541,7 +587,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
     ${storeBlock}
     ${renderPeers(peers, r)}
     ${children}
-    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants, site}) : ''}</ul>
+    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants, site, transit}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
     ${dataLine(asOf, shops)}`;
 }
@@ -575,7 +621,16 @@ export function mapCardAha(insight, {mode = 'auto', subject = SUBJECT} = {}) {
   const area = mode === 'auto'
     ? `<button type="button" class="btn quiet" data-action="all-districts" data-id="${esc(insight.province)}">ดูทุก${word}</button>`
     : `<button type="button" class="btn quiet" data-action="explore-top">ดู ${num(insight.districts.length)} ${word}นี้</button>`;
-  return card({crumb, title: `${num(Math.round(insight.share))}% ของ${esc(subject)}ใน${esc(provinceShort(insight.province))} อยู่ใน ${num(insight.districts.length)} ${word}`, line: insight.districts.map(x => esc(x.th)).join(' · '), actions: `${area}${cardOpen()}`});
+  const rail = railReading(insight);
+  const line = rail ? `${num(rail.focus)}% อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้า${rail.rest !== null ? ` · ที่อื่น ${num(rail.rest)}%` : ''}` : insight.districts.map(x => esc(x.th)).join(' · ');
+  return card({crumb, title: `${num(Math.round(insight.share))}% ของ${esc(subject)}ใน${esc(provinceShort(insight.province))} อยู่ใน ${num(insight.districts.length)} ${word}`, line, actions: `${area}${cardOpen()}`});
+}
+
+/** Station card: the station, its lines and how many venues of the filters lie within its radius. */
+export function mapCardStation(sp) {
+  if (!sp) return '';
+  const s = sp.station;
+  return card({crumb: `สถานีรถไฟฟ้า${s.lines ? ` · ${esc(s.lines)}` : ''}`, title: `สถานี${esc(s.name)}`, line: `${num(sp.rows.length)} แห่งในระยะ ${esc(meters(sp.radius))}`, actions: `${cardBack}${cardOpen()}`});
 }
 
 /** Venue card: logo, name, type · area and the strongest figure. */
@@ -617,7 +672,7 @@ export function renderFilterChips(values, labels) {
   const push = (key, text) => chips.push(`<li><button type="button" class="filter-chip" data-action="clear-filter" data-id="${esc(key)}" aria-label="ล้างตัวกรอง ${esc(text)}"><span>${esc(text)}</span><i aria-hidden="true">×</i></button></li>`);
   if (values.search) push('search', `ค้นหา “${values.search}”`);
   if (values.status) push('status', labels.status[values.status] || values.status);
-  if (values.group) push('group', groupById(values.group).th);
+  if (values.group) push('group', groupLabel(values.group));
   if (values.operator) push('operator', labels.operator[values.operator] || values.operator);
   if (values.province) push('province', provinceByCode(values.province)?.th || values.province);
   if (values.role) push('role', `ข้างในมี${labels.role?.[values.role] || values.role}`);

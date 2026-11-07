@@ -11,13 +11,13 @@
    "venue_id": "VN-af6f8f302b8c83",
    "file": "data/venue-models/VN-af6f8f302b8c83.json",
    "bbox": [
-    100.658557,
+    100.658862,
     13.840817,
     100.660047,
     13.841649
    ],
-   "parts": 10,
-   "bytes": 6573,
+   "parts": 8,
+   "bytes": 6128,
    "maxHeightM": 16.5,
    "source": {
     "kind": "owner_design_file",

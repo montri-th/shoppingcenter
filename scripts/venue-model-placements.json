@@ -13,8 +13,8 @@
               "placement": "วางตำแหน่งโดยให้ทิศเหนือของแบบตรงกับทิศเหนือจริง และวางอาคารโค้งบนโครงอาคารที่กำลังก่อสร้างในภาพดาวเทียม คลาดได้หลายเมตร"},
    "placement": {"method": "curved_building_on_frame_under_construction", "centre": [0.0, 0.0], "rotation_deg": 0.0, "shift_m": [-21.6, 23.9],
                  "min_thickness_m": 0.6, "thin_keep_area_m2": 2000, "min_area_m2": 12, "simplify_m": 0.3,
-                 "drop_parts": [8, 13, 14, 15, 16],
-                 "drop_reason": "owner 2026-11-07 08:25: “Live Ramintra พี่วางตึกเกินขอบเขต site ไปสองก้อน … ตัดสองก้อนนั้นออก เหลือไว้แค่อันกลาง” — the 8,465 m² slab about 270 m north (mass 8) and the curved pieces about 200 m west (masses 13–16) are left out"}
+                 "drop_parts": [0, 2, 8, 13, 14, 15, 16],
+                 "drop_reason": "owner 2026-11-07 08:25: “Live Ramintra พี่วางตึกเกินขอบเขต site ไปสองก้อน … ตัดสองก้อนนั้นออก เหลือไว้แค่อันกลาง” — the 8,465 m² slab about 270 m north (mass 8) and the curved pieces about 200 m west (masses 13–16) are left out; owner 2026-11-07 11:15 (“OK ทุกข้อ”): the two small pieces about 90 m west of the middle mass, 117 m² (mass 2) and 12 m² (mass 0), are left out too"}
   }
  }
 }

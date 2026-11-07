@@ -3,7 +3,9 @@
  *
  *  pending-points  — records still waiting for the definition check (owner decision D4):
  *                    quiet light dots from zoom 11, never counted, no logo, not in the tab
- *                    order; hidden with the legend switch (URL pending=0).
+ *                    order; hidden with the legend switch (URL pending=0). They follow the filter
+ *                    “ประเภท” (D33): the first view's centres show the centres still waiting, not the
+ *                    thousands of fuel stations and host stores.
  *  venue-context   — qualified venues outside the focus: small neutral dots.
  *  venue-focus     — qualified venues in the focus when the focus is larger than the DOM pin
  *                    budget (pins.js MAX_DOM_PINS): group colour + group shape icons. Below
@@ -13,7 +15,7 @@
  * Colours come from theme tokens (series fills, --text-disabled, --border-default, marker
  * roles); icons are re-created with the style on theme change. One point = one record.
  */
-import {GROUPS, hasPoint} from './model.js';
+import {GROUPS, hasPoint, groupMatches} from './model.js';
 import {cueImage} from './cues.js';
 import {GEOJSON_MAXZOOM} from './map-layers.js';
 
@@ -46,16 +48,22 @@ export function venueFeatures(rows, focusIds) {
   };
 }
 
-/** Pending records arrive columnar (data/pending.json): [id, name, lon, lat, province, district, group]. */
-export function pendingFeatures(pending) {
+/**
+ * Pending records arrive columnar (data/pending.json): [id, name, lon, lat, province, district, group]. `group` is the
+ * filter value ('' every type, a type set or a type: model.js groupMatches); `i` stays the index in pending.rows.
+ */
+export function pendingFeatures(pending, group = '') {
   const rows = Array.isArray(pending?.rows) ? pending.rows : [];
-  return {
-    type: 'FeatureCollection',
-    features: rows.filter(r => Number.isFinite(r[2]) && Number.isFinite(r[3])).map((r, i) => ({
-      type: 'Feature', geometry: {type: 'Point', coordinates: [r[2], r[3]]}, properties: {i, id: r[0]},
-    })),
-  };
+  const features = [];
+  rows.forEach((r, i) => {
+    if (!Number.isFinite(r[2]) || !Number.isFinite(r[3]) || !groupMatches(group, {group: r[6]})) return;
+    features.push({type: 'Feature', geometry: {type: 'Point', coordinates: [r[2], r[3]]}, properties: {i, id: r[0]}});
+  });
+  return {type: 'FeatureCollection', features};
 }
+
+/** How many pending records the filter value shows (the legend count). */
+export const pendingCount = (pending, group = '') => (Array.isArray(pending?.rows) ? pending.rows.filter(r => groupMatches(group, {group: r[6]})).length : 0);
 
 export function installVenuePoints(map, {onSelect, onSelectPending} = {}) {
   addIcons(map);
@@ -104,16 +112,16 @@ export function installVenuePoints(map, {onSelect, onSelectPending} = {}) {
     map.on('mouseleave', layer, () => { map.getCanvas().style.cursor = ''; });
   }
 
-  let pendingSet = false;
+  let pendingSet = null, pendingGroup = null;
   /**
    * rows: every qualified venue in the current scope that has a point; focusIds: the ids with
    * detail; gpuFocus: draw the focus here (true when the focus exceeds the DOM budget).
    */
-  function update({rows = [], focusIds = new Set(), gpuFocus = false, pending = null, showPending = true} = {}) {
+  function update({rows = [], focusIds = new Set(), gpuFocus = false, pending = null, showPending = true, group = ''} = {}) {
     // Focus venues are drawn by the DOM pins unless gpuFocus: keep them out of the context dots either way.
     map.getSource(SOURCES.venues)?.setData(venueFeatures(rows, focusIds));
     if (map.getLayer(POINT_LAYERS.focus)) map.setLayoutProperty(POINT_LAYERS.focus, 'visibility', gpuFocus ? 'visible' : 'none');
-    if (pending && !pendingSet) { map.getSource(SOURCES.pending)?.setData(pendingFeatures(pending)); pendingSet = true; }
+    if (pending && (pendingSet !== pending || pendingGroup !== group)) { map.getSource(SOURCES.pending)?.setData(pendingFeatures(pending, group)); pendingSet = pending; pendingGroup = group; }
     if (map.getLayer(POINT_LAYERS.pending)) map.setLayoutProperty(POINT_LAYERS.pending, 'visibility', showPending ? 'visible' : 'none');
   }
   function dispose() {

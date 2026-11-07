@@ -210,6 +210,16 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Not checked yet: `npm run verify:live` against the 01:07 data (waiting for the deploy), a real phone.
 - Later (7 Nov 2026): commit `9ab7366` deployed with the 01:07 data; `npm run verify:live` **1,154 ok**. A real phone is still not checked.
 
+## 0.1.19 - first view on centres, rail stations, one phone dock, a quiet credit (`20261107-r27`)
+
+- Owner 7 Nov 2026 11:15 and 11:56 → “เลือก ข)” (D33; PRODUCT_STATEMENT §8 and §10; DATA_METHOD §6, §6.1, §11.5).
+- `npm test`: **205 of 205 pass** (new: `stations` 5, `map-credits` 5, D33 cases in `area-insight` and `panel`).
+- First finding: JS (`summarizeAreaInsight`, `rank: 'count'`, `near`) equals the pipeline's function (`scripts/build-data.py#first_finding_d33`, written by `scripts/refresh-first-view.py` into `meta.checks.firstView`; venue rows unchanged, shop-list receipt renamed the core): Bangkok, 1007 · 1039 · 1033 (22 · 13 · 11), 46 of 199, 34.469 km²; rail 30 of 46 and 60 of 153 within 500 m.
+- Stations: `data/stations.json` 195 operating stations from `montri-th/transit` commit `5f5232d077be08929d8a3325b7003be492688b09`, `data/transit.json` SHA-256 `0916636a7c50a8832f25c073a9b667bc440ee74aef41bdfe499e663e1cc0bb18`, release `transit-data-2026-10-31-r1` (27,604 bytes).
+- Sites, third round: 67 Overpass boxes (overpass-api.de, OSM 7 Nov 08:43–11:47 ICT) → 149 picked → 146 drafts → 94 rows; site tab rows 556–648 appended and row 106 filled (94 rows read back by per-row hash, other rows unchanged); SC-C3039 failed `check` (an interior point on its own edge) → row 647 written back as `single_building` and read back; `check` 93 of 93; `data/venue-sites.json` 392 sites, 5,743 buildings (input SHA-256 `dcd0b35d…eb650`, 161,448 bytes, 647 rows). Other-use POIs: 3 queries, 219 elements, OSM 12:30–12:33 ICT (a first run had one group from a mirror at 24 Jul 2026; the whole set was asked again).
+- LIVE Ramintra: `drop_parts` [0, 2, 8, 13, 14, 15, 16]: 8 parts, 6,128 bytes, farthest vertex 128 m.
+- Container (local build, headless Chromium; OpenFreeMap tiles and unpkg stubbed, so the basemap and OSM buildings are not drawn): first view at 393 × 659 dark — zoom 11.18, pitch 40, the three districts at y 161–288 between the toolbar (96) and the dock; 375 × 553 light — zoom 10.6, y 127–208; 1440 × 820 light — zoom 12.57, pitch 56, y 378–664. Every type (`?group=all`) on 393 × 659: Chiang Mai, 59%, framed, no rail line. Station view Siam (`?station=RAILCAT:BTS_SUKHUMVIT:CEN`): 6 venues within 500 m nearest first (Siam Paragon 110 m … CentralWorld 490 m), radius drawn, no district fill or labels, phone zoom 13.65, desktop 14.88. Venue Siam Paragon on 375 × 553: card above the open credit, the building framed above it. Credit: folds after five seconds on phones (desktop folded about 6.4 s after it opened: the timer waits for the busy main thread in headless Chromium), a reader-opened credit stays past six seconds, a touch folds it, no horizontal overflow.
+
 ## 0.1.18 - one rounded style for every venue building, OpenStreetMap first, Esplanade Ratchada (`20261107-r25`)
 
 - Owner 7 Nov 2026 08:25 (LIVE Ramintra, Esplanade and Tops, rounded corners) and 08:31 (OpenStreetMap first) (D32; DATA_METHOD §11.2, §11.4).

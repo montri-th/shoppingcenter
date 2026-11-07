@@ -28,6 +28,18 @@ def thai_date(iso):
     return f'{d} {THAI_MONTHS[m - 1]} {y + 543}'
 
 
+def first_view_line(fv, provinces):
+    """D33 first finding (meta.checks.firstView, scripts/build-data.py): centres by count, with the rail line."""
+    if not fv or not fv.get('total'):
+        return ''
+    place = provinces.get(fv['province'], fv['province'])
+    rail = fv.get('rail')
+    near = (f' · {rail["focusNear"] / rail["focusTotal"] * 100:.0f}% ของ {rail["focusTotal"]} แห่งนี้อยู่ในระยะ {rail["radiusM"]} ม. '
+            f'จากสถานีรถไฟฟ้า (ที่อื่นใน{place} {rail["restNear"] / rail["restTotal"] * 100:.0f}%)') if rail and rail.get('focusTotal') and rail.get('restTotal') else ''
+    return (f'<p>ข้อค้นพบแรก: ศูนย์การค้า คอมมูนิตี้มอลล์ และเอาท์เล็ต {fv["count"]} จาก {fv["total"]} แห่งของ{place} '
+            f'({fv["count"] / fv["total"] * 100:.0f}%) อยู่ใน 3 เขตที่มีมากที่สุด{near}</p>')
+
+
 def main():
     venues = json.loads((ROOT / 'data' / 'venues.json').read_text())
     provinces = {f['properties']['code']: f['properties']['th'] for f in json.loads((ROOT / 'data' / 'provinces.geojson').read_text())['features']}
@@ -42,6 +54,7 @@ def main():
         f'<p>ศูนย์การค้า ตลาด และสถานที่ค้าปลีกที่เปิดอยู่หรือรอยืนยันสถานะ {len(supply):,} แห่ง '
         f'(มีพิกัด {len(located):,} แห่งใน {len(per)} จังหวัด) · ข้อมูลตรวจถึง {thai_date(as_of)} · '
         f'ขอบเขตจังหวัดและเขต/อำเภอจากกรมแผนที่ทหาร (RTSD) ชุดเดียวกับ CityMETER</p>',
+        first_view_line(meta['checks'].get('firstView'), provinces) or
         f'<p>ข้อค้นพบแรก: {aha["count"]} จาก {aha["total"]} แห่งของ{provinces.get(aha["province"], aha["province"])} '
         f'({aha["count"] / aha["total"] * 100:.0f}%) อยู่ใน 3 เขตที่แน่นที่สุด</p>',
         '<table><caption>จำนวนสถานที่ต่อจังหวัด</caption><thead><tr><th scope="col">จังหวัด</th><th scope="col">แห่ง</th></tr></thead><tbody>',

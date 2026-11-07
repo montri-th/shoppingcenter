@@ -70,9 +70,23 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 #map { position: absolute; inset: 0; }
 /* .map-panel: the vendor stylesheet (loaded later by js/vendors.js) sets bottom: 0, which hid the credit behind the bar. */
 .map-panel .maplibregl-ctrl-bottom-right, .map-panel .maplibregl-ctrl-bottom-left { bottom: var(--bottom-panel-height); }
-.maplibregl-ctrl-attrib { font: 11px/18px var(--font-body); }
-.map-panel .maplibregl-ctrl-attrib { background: color-mix(in srgb, var(--surface-card) 85%, transparent); color: var(--text-metadata); }
-.map-panel .maplibregl-ctrl-attrib a { color: var(--text-secondary); }
+/* Map credit (owner 2026-11-07 11:15: “บังจอ บังแผนที่เกะกะมาก … ป้ายไม่ควรเป็นสีที่เด่นเกินไป”): the theme's own quiet
+   surface instead of the vendor's white box (which won over this file in dark), caption size, and folded to its (i)
+   button five seconds after it first opens or at the first touch of the map (js/map-credits.js). The (i) keeps the
+   licence one tap away: a 44 px target (LDS CTRL-01) drawn as a small circle that stays in the corner. */
+.maplibregl-ctrl-attrib { font: 12px/16px var(--font-body); }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib { color: var(--text-metadata); background: transparent; }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { margin: 0 6px 6px 0; min-height: 44px; padding: 0 44px 0 0; border: 1px solid transparent; border-radius: 22px; background: transparent; box-sizing: border-box; }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 0 44px 0 12px; background: color-mix(in srgb, var(--surface-card) 90%, transparent); border-color: var(--border-hairline); }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-inner { padding-block: 13px; }
+.map-panel .maplibregl-ctrl-attrib a { color: var(--text-secondary); text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 40%, transparent); text-underline-offset: 2px; }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; top: auto; bottom: 0; right: 0; left: auto; border-radius: 50%; background: none; box-shadow: none; color: var(--text-metadata); }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::before { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: color-mix(in srgb, var(--surface-card) 88%, transparent); border: 1px solid var(--border-hairline); }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show .maplibregl-ctrl-attrib-button::before { background: transparent; border-color: transparent; }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::after { content: "i"; position: absolute; inset: 0; display: grid; place-items: center; font: 600 13px/1 var(--font-body); }
+.pictograms-ready .map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button::after { content: "\E88E"; font: 300 18px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus { box-shadow: none; }
+.map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib .maplibregl-ctrl-attrib-button:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: -3px; }
 
 /* 4. Reading panel -------------------------------------------------------- */
 .panel { position: absolute; right: 0; top: 0; bottom: 0; width: var(--panel-width); background: var(--surface-card); border-left: 1px solid var(--border-default); overflow: auto; scrollbar-width: thin; z-index: 10; overscroll-behavior: contain; }
@@ -128,6 +142,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .aha-headline { font-size: 17px; }
 .aha-copy { margin-top: 10px; font-size: 13px; line-height: 1.65; color: var(--text-secondary); }
 .aha-copy strong { color: var(--text-primary); }
+/* D33 rail line: the focus districts' share within 500 m of a station against the rest of the province. */
+.aha-rail { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-hairline); font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+.aha-rail strong { color: var(--text-primary); }
 .aha-secondary { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-hairline); font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
 .aha-actions { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
 .aha-actions .btn { flex: 1 1 auto; white-space: normal; }
@@ -150,9 +167,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 /* pictogram-glyphs:start (scripts/build-pictogram-font.py) */
 @font-face {
   font-family: "LDS Material Symbols Rounded Pictogram";
-  src: url("assets/icons/material-pictogram-300.woff2?v=ab4a8142c9d6") format("woff2");
+  src: url("assets/icons/material-pictogram-300.woff2?v=554d097c4e6b") format("woff2");
   font-style: normal; font-weight: 300; font-display: block;
-  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913;
+  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913, U+E570;
 }
 .pic-brand::before { content: "\EAD5"; }
 .pic-store::before { content: "\EA12"; }
@@ -194,6 +211,7 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .pic-palette::before { content: "\E40A"; }
 .pic-route::before { content: "\EACD"; }
 .pic-touch::before { content: "\E913"; }
+.pic-train::before { content: "\E570"; }
 /* pictogram-glyphs:end */
 .pictogram { display: inline-block; width: 20px; height: 20px; font: 300 20px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; letter-spacing: normal; text-transform: none; font-synthesis: none; vertical-align: -4px; visibility: hidden; color: var(--text-secondary); }
 .pictograms-ready .pictogram { visibility: visible; }
@@ -427,6 +445,9 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 .cue-swatch { display: inline-flex; width: 12px; height: 12px; flex: 0 0 12px; vertical-align: -1px; }
 .cue-swatch svg { width: 100%; height: 100%; fill: var(--pin-fill); stroke: var(--map-marker-stroke); stroke-width: .9; stroke-linejoin: round; }
 .legend-building { width: 12px; height: 12px; background: var(--map-active-layer); border: 1px solid var(--map-selected-stroke); transform: skewY(-12deg); }
+/* Rail stations of CityMETER · Transit (context marks in foundation colours, as CityMETER · Hotel). */
+.legend-station { box-sizing: border-box; width: 10px; height: 10px; border-radius: 50%; background: var(--surface-card); border: 1.6px solid var(--text-secondary); }
+.map-panel.is-province-zoom .legend-station-item { display: none; }
 .legend-massing { width: 12px; height: 12px; border: 1px solid var(--border-default); transform: skewY(-12deg); border-radius: 2px; }
 .legend-massing.is-focus { background: var(--basemap-massing-focus); }
 .legend-massing.is-quiet { background: var(--basemap-massing-quiet); }
@@ -446,6 +467,8 @@ code { font-family: var(--font-mono); font-size: 11px; padding: 0 3px; border-ra
 
 /* Compact Aha on the map (mobile only; see responsive section) */
 .map-aha { display: none; }
+/* The phone dock (card + legend in one box) adds no box on wider screens. */
+.map-dock { display: contents; }
 
 /* Neighborhood labels */
 .area-labels { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
@@ -594,24 +617,32 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .map-toolbar::-webkit-scrollbar { display: none; }
   .map-toolbar button { font-size: 12px; min-height: 38px; padding: 6px 10px; flex: 0 0 auto; }
   .map-toolbar button#mobile-panel { display: inline-flex; }
-  .map-legend { bottom: calc(var(--bottom-panel-height) + 8px); max-width: calc(100% - 16px); padding: 8px 10px; gap: 4px; }
   .legend-marks { display: none; }
   .map-status { display: none; }
-  /* Map card: the reading of the current level over the map; its primary button opens the sheet. */
-  .map-aha { display: grid; gap: 8px; position: absolute; left: 8px; right: 8px; bottom: calc(var(--bottom-panel-height) + 74px); z-index: 5; padding: 10px 12px; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); }
-  /* The map credit (OpenStreetMap · OpenMapTiles · CityMETER) stays readable, as in CityMETER · Hotel 0.3.5: while it is
-     open (on load) the legend and the card sit above its live height (--attrib-height, app.js trackAttribution); folded
-     to its (i) button they drop back and leave the button its corner. */
-  .map-legend { bottom: calc(var(--bottom-panel-height) + var(--attrib-height, 32px) + 4px); }
-  .map-aha { bottom: calc(var(--bottom-panel-height) + var(--attrib-height, 32px) + 70px); }
-  .map-panel.is-attrib-compact .map-legend { bottom: calc(var(--bottom-panel-height) + 8px); max-width: calc(100% - 56px); }
-  .map-panel.is-attrib-compact .map-aha { bottom: calc(var(--bottom-panel-height) + 74px); }
-  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) .map-aha { bottom: calc(var(--bottom-panel-height) + 8px); }
-  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) .map-legend { display: none; }
-  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"]) :is(.maplibregl-ctrl-bottom-right, .maplibregl-ctrl-bottom-left) { bottom: calc(var(--bottom-panel-height) + var(--map-card-space, 0px) + 8px); }
+  /* Map dock (D33 declutter, owner 2026-11-07 11:56 “หน้าจอ … รกมาก”; the pattern of CityMETER · Hotel 0.3.5): the card
+     of the current level and the area legend read as one compact card at the foot of the map. While the map credit is
+     open (on load, at most five seconds — js/map-credits.js) the dock sits above its live height (--attrib-height,
+     app.js trackAttribution); folded to its (i) button the dock drops to the tray and leaves the button its corner. */
+  .map-dock { position: absolute; left: 8px; right: 8px; bottom: calc(var(--bottom-panel-height) + var(--attrib-height, 32px) + 4px); z-index: 5; display: flex; flex-direction: column; background: var(--surface-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); overflow: hidden; transition: bottom .2s ease, right .2s ease; }
+  .map-panel.is-attrib-compact .map-dock { right: 52px; bottom: calc(var(--bottom-panel-height) + 8px); }
+  .map-panel .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { max-width: calc(100cqw - 12px); }
+  /* Map card: the reading of the current level; its primary button opens the sheet. The province is in the toolbar and
+     the district names are on the map (labels with counts), so the card keeps the finding and one line under it. */
+  .map-dock .map-aha { display: grid; gap: 6px; position: static; padding: 9px 10px 8px 12px; background: transparent; border: 0; border-radius: 0; }
+  .map-dock .map-aha[hidden] { display: none; }
+  .map-dock .map-legend { position: static; max-width: none; padding: 6px 12px 6px; gap: 4px; border: 0; border-radius: 0; background: transparent; }
+  .map-dock .map-aha:not([hidden]) + .map-legend { border-top: 1px solid var(--border-hairline); }
+  .map-panel:is([data-card="venue"], [data-card="pending"], [data-card="brand"], [data-card="station"]) .map-legend { display: none; }
+  /* Legend in one row: the level and unit, then the 41-sample ramp with its ticks (and the zero swatch). */
+  .map-dock #legend-areas { flex-wrap: nowrap; gap: 8px; }
+  .map-dock .legend-title { flex: 0 1 auto; min-width: 0; font-size: 11px; line-height: 1.3; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .map-dock .legend-steps { flex: 1 1 auto; min-width: 0; gap: 6px; }
+  .map-dock .legend-ramp { width: auto; flex: 1 1 auto; min-width: 120px; max-width: 220px; }
+  .map-dock .ramp-tick:not(.is-start):not(.is-end) { display: none; }
   .map-card-main { display: flex; align-items: center; gap: 10px; min-width: 0; }
   .map-card-text { min-width: 0; flex: 1 1 auto; }
-  .map-aha h2 { font-size: 15px; line-height: 1.35; font-family: var(--font-body); font-weight: 600; overflow-wrap: anywhere; }
+  .map-aha h2 { font-size: 14px; line-height: 1.35; font-family: var(--font-body); font-weight: 600; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+  .map-aha[data-kind="aha"] .map-aha-crumb { display: none; }
   .map-aha p { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
   .map-card-text p:not(.map-aha-crumb) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .map-aha .map-aha-crumb { font-size: 11px; color: var(--text-metadata); margin: 0 0 2px; }
@@ -648,6 +679,11 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 }
 @media (max-width: 760px) and (orientation: portrait) {
 }
+/* Phones zoom with two fingers: the zoom buttons step aside for the map; the compass (north, tilt) stays (as CityMETER ·
+   Hotel 0.3.5). */
+@media (max-width: 760px) and (orientation: portrait) and (pointer: coarse) {
+  .map-panel .maplibregl-ctrl-zoom-in, .map-panel .maplibregl-ctrl-zoom-out { display: none; }
+}
 @media (min-width: 761px), (orientation: landscape) {
   /* The map credit wraps upward on the right instead of running under the legend and status on the left (as CityMETER ·
      Hotel): 100cqw = the map panel's width; 470px = legend (8 + 380) + gap + the credit's own padding and margin. */
@@ -659,7 +695,7 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .map-panel.is-detail-zoom #legend-areas { display: none; }
 /* A venue or record is read at building scale from the first frame: the area ramp steps aside at once,
    so the free map box measured for the two-point fit is the box the camera ends in. */
-.map-panel:is([data-card="venue"], [data-card="pending"]) #legend-areas { display: none; }
+.map-panel:is([data-card="venue"], [data-card="pending"], [data-card="station"]) #legend-areas { display: none; }
 @media (max-width: 760px) and (orientation: portrait) { .map-panel.is-detail-zoom .map-legend { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0s !important; transition-duration: 0s !important; }

@@ -4,14 +4,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync, readdirSync} from 'node:fs';
-import {filterVenues, prepareRows, applyShopLists, summarize, tierReading, hasPoint, rowProvince} from '../js/model.js';
+import {filterVenues, prepareRows, applyShopLists, summarize, tierReading, hasPoint, rowProvince, DEFAULT_GROUP, groupLabel} from '../js/model.js';
+import {parseStations, attachNearestStations, nearRail} from '../js/stations.js';
 import {buildTenantIndex, buildAmenities, roleVenueCounts} from '../js/tenants.js';
 import {hierarchyReading} from '../js/evidence.js';
 import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.js';
 import {summarizeAreaInsight} from '../js/area-insight.js';
 import {buildDistrictModel} from '../js/map-layers.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from '../js/profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, thaiDate, hoursShort, mapCardAha, mapCardVenue, mapCardDistrict, mapCardSearch, PRODUCT_TITLE} from '../js/panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, dataLine, buildingReading, densityRatio, railReading, thaiDate, hoursShort, mapCardAha, mapCardVenue, mapCardDistrict, mapCardSearch, PRODUCT_TITLE} from '../js/panel.js';
 import {configureVenueLogos, getVenueLogo} from '../js/venue-logos.js';
 import {rankAreas, groupMatrix} from '../js/chart-model.js';
 
@@ -43,8 +44,37 @@ test('overview: Aha numbers, metrics and provenance come from the rows', () => {
   assert.ok(!/caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน/.test(html), 'no caveat on the first view');
   const ratio = densityRatio(insight);
   assert.ok(Math.abs(ratio - (insight.count / insight.areaKm2) / (insight.total / insight.provinceAreaKm2)) < 1e-9, 'share ÷ area share = density ratio');
-  if (ratio >= 2) assert.ok(html.includes(`แน่นกว่าค่าเฉลี่ยของ`) && html.includes(`>${Math.round(ratio)}<`));
+  // D33: the area share stays; the density ratio left the first view (fewer numbers, owner 2026-11-07 “รกมาก”).
+  assert.ok(html.includes(`>${insight.areaShare.toLocaleString('th-TH', {maximumFractionDigits: 1})}%<`));
+  assert.ok(!html.includes('แน่นกว่าค่าเฉลี่ยของ'));
+  assert.ok(!html.includes('aha-rail'), 'no rail line without stations');
   assert.equal(overview.summary.venues, focusRows.length);
+});
+
+test('D33 first view: centres by count, the rail line and its source (CityMETER · Transit)', () => {
+  const stations = parseStations(read('data/stations.json'));
+  const located = prepareRows(venues.rows.map(r => ({...r})));
+  attachNearestStations(located, stations);
+  const centres = filterVenues(located, {group: DEFAULT_GROUP});
+  const insight = summarizeAreaInsight(centres, districts, {rank: 'count', near: r => nearRail(r)});
+  const model = buildDistrictModel(summarizeDistricts(centres, districtsInScope(districts, insight.province)));
+  const focusRows = centres.filter(r => insight.districtIds.includes(r.districtCode));
+  const overview = buildOverviewModel({rows: focusRows, scopeRows: centres, areas: model.areas, readCode: insight.province});
+  const transit = read('data/stations.json').meta;
+  const html = renderOverview({insight, model: overview, focusMode: 'auto', readCode: insight.province, asOf, subject: groupLabel(DEFAULT_GROUP), transit});
+  const rail = railReading(insight);
+  assert.ok(rail && rail.focusCount === insight.count);
+  assert.ok(html.includes(`>${rail.focus}%<`) && html.includes(`ของ ${insight.count.toLocaleString('th-TH')} แห่งนี้อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้า`));
+  if (rail.rest !== null) assert.ok(html.includes(`>${rail.rest}%<`));
+  assert.ok(html.includes('CityMETER · Transit') && html.includes(dataLine(asOf, null, transit)), 'the rail figures name their dataset, source and date');
+  assert.ok(html.includes(`ของ${groupLabel(DEFAULT_GROUP)}ใน`), 'the headline says what is counted');
+  assert.ok(!/caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน/.test(html), 'no caveat on the first view');
+  const card = mapCardAha(insight, {mode: 'auto', subject: groupLabel(DEFAULT_GROUP)});
+  assert.ok(card.includes(`${rail.focus}% อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้า`), 'the phone card carries the rail line');
+  // a province without rail: no rail line, the district names instead
+  const cmi = summarizeAreaInsight(filterVenues(located, {}), districts, {province: 'CMI', rank: 'count', near: r => nearRail(r)});
+  assert.equal(railReading(cmi), null);
+  assert.ok(!renderOverview({insight: cmi, model: buildOverviewModel({rows: [], scopeRows: [], areas: []}), focusMode: 'auto', readCode: 'CMI', asOf, transit}).includes('CityMETER · Transit'));
 });
 
 test('overview: the venues in districts and the ones no district holds add up to the whole scope', () => {

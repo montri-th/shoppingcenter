@@ -607,6 +607,57 @@ def first_finding(located_supply, district_meta, prov_area):
     return aha, per_district, per_province
 
 
+# D33 (owner 2026-11-07 11:56, option ข): the first view reads shopping centres, community malls and outlets
+# (js/model.js GROUP_SETS.centres) and ranks districts by count; the rail line counts the ones within 500 m (straight
+# line between reference points) of an operating station of CityMETER · Transit (data/stations.json).
+CENTRE_GROUPS = ('mall', 'community', 'outlet')
+STATION_RADIUS_M = 500
+
+
+def haversine_m(lat1, lon1, lat2, lon2):
+    """Metres between two points (mean Earth radius; the formula of js/stations.js and CityMETER · Hotel)."""
+    r = 6371008.8
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = p2 - p1, math.radians(lon2 - lon1)
+    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(min(1.0, math.sqrt(h)))
+
+
+def load_stations(path=None):
+    """Operating stations of data/stations.json as (lat, lon) pairs, with the file's meta; ([], None) without it."""
+    path = Path(path) if path else DATA / 'stations.json'
+    if not path.exists():
+        return [], None
+    doc = json.loads(path.read_text(encoding='utf-8'))
+    f = doc['fields']
+    lat, lon = f.index('lat'), f.index('lon')
+    return [(s[lat], s[lon]) for s in doc['stations']], doc.get('meta')
+
+
+def first_finding_d33(located_supply, district_meta, stations):
+    """D33: the three districts with the most centres in the province of the district with the most (ties: density,
+    then the smaller code), and the share of their centres within STATION_RADIUS_M of a station against the rest of
+    that province. An independent check of js/area-insight.js summarizeAreaInsight(…, {rank: 'count', near})."""
+    rows = [r for r in located_supply if r['group'] in CENTRE_GROUPS]
+    if not rows:
+        return None
+    dist_by_code = {d['code']: d for d in district_meta}
+    per = Counter(r['districtCode'] for r in rows)
+    dens = {c: n / dist_by_code[c]['areaKm2'] for c, n in per.items()}
+    top = max(per, key=lambda c: (per[c], dens[c], -int(c)))
+    prov = dist_by_code[top]['province']
+    in_prov = [c for c in per if dist_by_code[c]['province'] == prov]
+    ranked = sorted(in_prov, key=lambda c: (-per[c], -dens[c], c))[:3]
+    near = lambda r: any(haversine_m(r['lat'], r['lon'], la, lo) <= STATION_RADIUS_M for la, lo in stations)
+    focus = [r for r in rows if r['districtCode'] in ranked]
+    rest = [r for r in rows if r['districtCode'] in in_prov and r['districtCode'] not in ranked]
+    return {'groups': list(CENTRE_GROUPS), 'rank': 'count', 'province': prov, 'districts': ranked,
+            'counts': {c: per[c] for c in ranked}, 'count': len(focus), 'total': sum(per[c] for c in in_prov),
+            'areaKm2': round(sum(dist_by_code[c]['areaKm2'] for c in ranked), 3),
+            'rail': {'radiusM': STATION_RADIUS_M, 'focusNear': sum(map(near, focus)), 'focusTotal': len(focus),
+                     'restNear': sum(map(near, rest)), 'restTotal': len(rest)} if stations else None}
+
+
 def district_details(districts_geojson, district_meta, prod_provinces, mapshaper):
     """Per-province detail polygons (DETAIL_INTERVAL metres, topology kept), keyed by province abbreviation."""
     by_boundary = {d['boundaryCode']: d['code'] for d in district_meta}
@@ -938,6 +989,10 @@ def main():
     supply = [r for r in countable if r['status'] == 'supply']
     located_supply = [r for r in supply if r['located'] and r['districtCode']]
     aha, per_district, per_province = first_finding(located_supply, district_meta, prov_area)
+    stations, stations_meta = load_stations()
+    first_view = first_finding_d33(located_supply, district_meta, stations)
+    if first_view and stations_meta:
+        first_view['stations'] = {k: stations_meta.get(k) for k in ('commit', 'sha256', 'release', 'asOf')}
     counts = {
         'registry': len(df), 'qualified': len(rows), 'tiers': dict(Counter(r['tier'] for r in rows)),
         'countable': len(countable), 'supply': len(supply), 'planned': sum(r['status'] == 'planned' for r in countable),
@@ -997,7 +1052,7 @@ def main():
                                  'legacy_venue_type only while venue_type is unclassified (basis legacy)'},
         'operatorGroups': [{'id': g, 'label': l, 'patterns': p} for g, l, p in OPERATOR_GROUPS],
         'counts': counts,
-        'checks': {'aha': aha, 'problems': problems, 'districtCodeRemaps': remapped,
+        'checks': {'aha': aha, 'firstView': first_view, 'problems': problems, 'districtCodeRemaps': remapped,
                    'keywordMappedTypes': [{'qualified': q, 'venueType': t, 'group': g, 'rows': n}
                                           for (q, t, g), n in sorted(unmapped_types.items(), key=lambda x: (not x[0][0], x[0][1]))],
                    'componentsWithoutParent': orphans, 'geometryLinksWithoutFeature': sorted(missing_geom),

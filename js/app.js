@@ -20,23 +20,29 @@
  * scope are quiet GPU dots (venue-points.js), and pending records (D4) are lighter dots that
  * are never counted. One click router decides what a map click opens.
  * Camera: 3D presets (camera.js), basemap generated (map-style.js) on OpenFreeMap tiles.
- * Panel modes: overview | district | venue | pending | brand (with a back stack); search results
+ * Panel modes: overview | district | venue | pending | brand | station (with a back stack); search results
  * replace the overview while a query is typed. Brand view (?brand=<key>): the venues whose shop
  * list has the brand (data/tenant-index.json, loaded on demand, like the nearby-centre comparison
- * of the venue panel); its pins are those venues and no district is focused.
- * URL: q, status, group, operator, province, role, district, venue, brand, record, pending, areas, view,
+ * of the venue panel); its pins are those venues and no district is focused. Station view (?station=<id>, as
+ * CityMETER · Hotel): the venues of the filters within 500 m of an operating rail station of CityMETER · Transit
+ * (data/stations.json, js/stations.js), framed with the radius drawn on the map.
+ * First view (D33, owner 2026-11-07): the filter “ประเภท” starts on shopping centres, community malls and outlets
+ * (model.js DEFAULT_GROUP; a link without `group` reads it, `?group=all` keeps every type) and the first finding ranks
+ * districts by count, with the share within 500 m of a station against the rest of the province.
+ * URL: q, status, group, operator, province, role, district, venue, brand, station, record, pending, areas, view,
  * view3d — restored on load. Shop counts (“ร้านข้างใน”) and the filter “ข้างในมี” (role) come from the shop-list index
  * and the centre facilities, loaded right after the core data (D22): until they arrive a shop figure reads “—”. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
-import {GROUPS, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, applyShopLists, operatorRanking, districtWord, groupById, contextState, BANGKOK} from './model.js';
+import {GROUPS, GROUP_SETS, DEFAULT_GROUP, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, applyShopLists, operatorRanking, districtWord, groupById, groupLabel, contextState, BANGKOK} from './model.js';
+import {parseStations, attachNearestStations, nearRail, rowsNearStation, installStationLayer, STATION_RADIUS_M, STATION_LAYERS} from './stations.js';
 import {indexDistricts, summarizeDistricts, districtsInScope, districtLabel} from './areas.js';
 import {summarizeAreaInsight, filterDistrictRows} from './area-insight.js';
 import {renderInsightChart} from './charts.js';
 import {provinceAreas} from './chart-model.js';
 import {loadMapLibrary} from './vendors.js';
 import {installVenuePins, MAX_DOM_PINS} from './pins.js';
-import {installVenuePoints, POINT_LAYERS} from './venue-points.js';
+import {installVenuePoints, POINT_LAYERS, pendingCount} from './venue-points.js';
 import {installVenueBuildings, HOST_LAYERS} from './buildings.js';
 import {installPinBuildings} from './pin-buildings.js';
 import {createVenueModels} from './venue-models.js';
@@ -46,7 +52,7 @@ import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBou
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {createDistrictDetail, provincesAtPoints, DETAIL_MIN_ZOOM} from './district-detail.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand} from './panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderStation, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, meters, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand, mapCardStation} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing, groundAt} from './camera.js';
@@ -58,6 +64,7 @@ import {loadDetail, cachedDetail} from './details.js';
 import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
+import {foldMapCredits} from './map-credits.js';
 
 const $ = id => document.getElementById(id);
 const FIELDS = ['search', 'status', 'group', 'operator', 'province', 'role'];
@@ -94,6 +101,8 @@ const state = {
   sites: new Map(), siteMeta: null,
   // Building masses from a venue's own design file (js/venue-models.js): an index at start, a venue's file when needed.
   models: null,
+  // Operating rail stations of CityMETER · Transit (data/stations.json): list, index, meta, and the map layer.
+  stationList: [], stationById: new Map(), stationMeta: null, stations: null,
 };
 const tenantSelection = createTenantSelection({changed: selection => {
   if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel();
@@ -124,9 +133,24 @@ function currentBrand() {
 }
 const asList = value => Array.isArray(value) ? value : (typeof value === 'string' ? (() => { try { const x = JSON.parse(value); return Array.isArray(x) ? x : []; } catch { return []; } })() : []);
 const subjectWord = () => {
-  const f = values(), base = f.group ? groupById(f.group).th : SUBJECT;
+  const f = values(), base = f.group ? groupLabel(f.group) : SUBJECT;
   return f.role ? `${f.group ? base : 'สถานที่'}ที่มี${INSIDE_LABELS[f.role] || f.role}` : base;
 };
+const currentStation = () => (state.panel.mode === 'station' ? state.stationById.get(state.panel.id) || null : null);
+let stationMemo = {key: '', rows: null, value: null};
+/** Station view: the venues of the filters within STATION_RADIUS_M of the open station, nearest first. */
+function stationProfile() {
+  const s = currentStation();
+  if (!s) return null;
+  if (stationMemo.key !== s.id || stationMemo.rows !== state.scopeRows) {
+    const near = rowsNearStation(state.scopeRows, s, STATION_RADIUS_M);
+    const rows = near.map(x => x.row);
+    stationMemo = {key: s.id, rows: state.scopeRows, value: {station: s, radius: STATION_RADIUS_M, rows, distance: new Map(near.map(x => [x.row.id, x.m])), summary: summarize(rows)}};
+  }
+  return stationMemo.value;
+}
+/** The first finding counts venues within 500 m of a station only when the stations loaded (else no rail line). */
+const railTest = () => (state.stationList.length ? r => nearRail(r, STATION_RADIUS_M) : null);
 
 /** The province whose districts are drawn and ranked ('' = the whole country). */
 function readingProvince() {
@@ -136,6 +160,8 @@ function readingProvince() {
   if (state.panel.mode === 'venue') { const r = currentVenue(); return r ? rowProvince(r) : ''; }
   if (state.panel.mode === 'pending') return pendingCard()?.province?.code || '';
   if (state.panel.mode === 'brand') { const b = currentBrand(); return b?.provinces.length === 1 ? b.provinces[0].code : ''; }
+  // A station is read in the province of the nearest venue within its radius (stations carry no province code).
+  if (state.panel.mode === 'station') { const first = stationProfile()?.rows.find(r => r.provinceCode); return first ? first.provinceCode : ''; }
   if (state.focusAreaIds.length) return state.districts.get(state.focusAreaIds[0])?.province || '';
   if (state.autoFocus && !f.search) return state.insight?.province || '';
   return '';
@@ -143,11 +169,16 @@ function readingProvince() {
 
 function saveURL() {
   const f = values(), p = new URLSearchParams();
-  for (const k of FIELDS) if (f[k]) p.set(URL_KEYS[k], f[k]);
+  for (const k of FIELDS) {
+    // D33: the first view's type set is the default and stays out of the link; every type is written as `all`.
+    if (k === 'group') { if (f.group !== DEFAULT_GROUP) p.set(URL_KEYS.group, f.group || 'all'); continue; }
+    if (f[k]) p.set(URL_KEYS[k], f[k]);
+  }
   if (state.panel.mode === 'district') p.set('district', state.panel.id);
   if (state.panel.mode === 'venue') p.set('venue', state.panel.id);
   if (state.panel.mode === 'pending') { const c = pendingCard(); if (c) p.set('record', c.id); }
   if (state.panel.mode === 'brand') p.set('brand', state.panel.id);
+  if (state.panel.mode === 'station') p.set('station', state.panel.id);
   if (state.focusAreaIds.length) p.set('areas', state.focusAreaIds.join(','));
   else if (!state.autoFocus) p.set('areas', 'all');
   if (!state.showPending) p.set('pending', '0');
@@ -169,7 +200,7 @@ function applyTheme() {
     state.pinBuildings?.dispose(); state.pinBuildings = null;
     state.buildings?.dispose(); state.buildings = null;
     state.massing?.dispose(); state.massing = null;
-    state.points = null; state.districtLayers = null; state.provinceLayers = null;
+    state.points = null; state.districtLayers = null; state.provinceLayers = null; state.stations = null;
     state.mapTheme = next;
     state.map.setStyle(buildMapStyle(next), {diff: false});
   }
@@ -182,12 +213,14 @@ const provinceScopeRows = () => (state.panel.mode === 'brand' && currentBrand() 
 
 function update({fit = false, camera = true} = {}) {
   const f = values();
+  if (state.panel.mode === 'station' && !currentStation()) state.panel = overviewPanel();
   const district = selectedDistrict();
   state.scopeRows = filterVenues(state.all, f);
   state.baseRows = district ? state.scopeRows.filter(r => r.districtCode === district.code) : state.scopeRows;
-  state.insight = summarizeAreaInsight(state.scopeRows, state.districts, {province: f.province});
-  state.focusIds = district || state.panel.mode === 'brand' ? [] : state.focusAreaIds.length ? state.focusAreaIds : (state.autoFocus && !f.search ? state.insight.districtIds : []);
-  state.rows = state.focusIds.length ? filterDistrictRows(state.baseRows, new Set(state.focusIds)) : state.baseRows;
+  // D33: districts ranked by count; the rail line counts venues within 500 m of an operating station.
+  state.insight = summarizeAreaInsight(state.scopeRows, state.districts, {province: f.province, rank: 'count', near: railTest()});
+  state.focusIds = district || ['brand', 'station'].includes(state.panel.mode) ? [] : state.focusAreaIds.length ? state.focusAreaIds : (state.autoFocus && !f.search ? state.insight.districtIds : []);
+  state.rows = currentStation() ? stationProfile()?.rows || [] : state.focusIds.length ? filterDistrictRows(state.baseRows, new Set(state.focusIds)) : state.baseRows;
   state.page = 0;
   const readCode = readingProvince();
   state.districtModel = buildDistrictModel(summarizeDistricts(state.scopeRows, districtsInScope(state.districts, readCode)));
@@ -229,6 +262,7 @@ function detailRows() {
   }
   if (state.panel.mode === 'pending') return [];
   if (state.panel.mode === 'brand') return currentBrand()?.rows || [];
+  if (state.panel.mode === 'station') return stationProfile()?.rows || [];
   return state.rows;
 }
 
@@ -239,7 +273,7 @@ function updatePins() {
   const pointRows = state.scopeRows.filter(hasPoint);
   const inScope = new Set(state.scopeRows);
   for (const r of focus) if (!inScope.has(r)) pointRows.push(r);
-  state.points?.update({rows: pointRows, focusIds: ids, gpuFocus, pending: state.pending, showPending: state.showPending});
+  state.points?.update({rows: pointRows, focusIds: ids, gpuFocus, pending: state.pending, showPending: state.showPending, group: values().group});
   const domPins = gpuFocus ? focus.filter(r => r.id === currentVenue()?.id) : focus;
   state.pinPoints = domPins.map(r => [r.lon, r.lat]);
   if (state.pins) {
@@ -254,9 +288,10 @@ function renderCrumbs() {
   const v = currentVenue();
   const c = pendingCard();
   const district = selectedDistrict() || (v?.districtCode ? state.districts.get(v.districtCode) : null) || c?.district || null;
-  const province = values().province || (v ? rowProvince(v) : '') || c?.province?.code || (focusMode() !== 'none' && !values().search ? state.insight?.province : '') || '';
+  const st = currentStation();
+  const province = values().province || (v ? rowProvince(v) : '') || c?.province?.code || (st ? readingProvince() : '') || (focusMode() !== 'none' && !values().search ? state.insight?.province : '') || '';
   const b = currentBrand();
-  const crumbs = buildBreadcrumb({province: b ? '' : province, district: b ? null : district, venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : b ? {id: '', label: b.brand.name} : null});
+  const crumbs = buildBreadcrumb({province: b ? '' : province, district: b ? null : district, venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : b ? {id: '', label: b.brand.name} : st ? {id: '', label: `สถานี${st.name}`} : null});
   $('crumbs').innerHTML = renderBreadcrumb(crumbs);
   document.title = `${breadcrumbText(crumbs)} · ${PRODUCT_TITLE} · CityMETER`;
   return crumbs;
@@ -297,7 +332,7 @@ function renderPanel() {
     const profile = buildVenueProfile({row: v, detail, byId: state.byId, districts: state.districts});
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
-    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null});
+    html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null, transit: state.stationMeta});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -309,6 +344,10 @@ function renderPanel() {
       : state.tenantIndexState === 'error' ? '<p class="hint">โหลดรายชื่อร้านไม่สำเร็จ <button type="button" class="link-button" data-action="retry-index">ลองอีกครั้ง</button></p>'
       : '<p class="hint" role="status">กำลังโหลดรายชื่อร้าน…</p>';
     cardHtml = mapCardBrand(b); cardLabel = 'แบรนด์ที่เลือก';
+  } else if (mode === 'station') {
+    const sp = stationProfile();
+    html = renderStation(sp, {asOf, shops: shopMeta(), transit: state.stationMeta, subject: subjectWord()});
+    cardHtml = mapCardStation(sp, {subject: subjectWord()}); cardLabel = 'สถานีที่เลือก';
   }
   if (!html && f.search) {
     const results = searchAll(f.search, {rows: state.all, pending: state.pending});
@@ -322,7 +361,7 @@ function renderPanel() {
     const areas = state.districtModel.areas;
     const model = buildOverviewModel({rows: state.rows, scopeRows: state.scopeRows, areas, kind: 'district', readCode, ...statusRows({province: readCode || f.province})});
     const provinces = (state.provinceModel?.provinces || []).filter(p => p.count > 0).sort((a, b) => b.count - a.count);
-    html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces, shops: shopMeta()});
+    html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces, shops: shopMeta(), transit: state.stationMeta});
     cardHtml = mapCardAha(insight, {mode: focusMode(), subject: subjectWord()});
   }
   view.innerHTML = html;
@@ -367,7 +406,7 @@ function goBack() {
   const leaving = state.panel.mode;
   state.panel = previous && previous.mode !== 'overview' ? previous : overviewPanel();
   if (state.panel.mode === 'venue') openVenueDetail(state.panel.id);
-  update({fit: leaving === 'district' || state.panel.mode !== 'overview'});
+  update({fit: ['district', 'station'].includes(leaving) || state.panel.mode !== 'overview'});
 }
 
 function selectDistrict(code, {fromMap = false} = {}) {
@@ -421,6 +460,30 @@ function selectPending(index, {fromMap = false} = {}) {
   update({camera: false});
   if (state.loaded) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: boxOffset(), animate: animate()}); state.lastPreset = cameraPreset(); }
   announce(`${contextState(c.reviewed)} ${c.name}`);
+}
+
+/**
+ * Open an operating rail station of CityMETER · Transit (as CityMETER · Hotel): the venues of the filters within
+ * STATION_RADIUS_M (straight line) of its reference point, framed with the radius drawn on the map.
+ */
+function selectStation(id) {
+  const s = state.stationById.get(id);
+  if (!s) return;
+  if (state.panel.mode !== 'station' || state.panel.id !== id) pushHistory();
+  state.focusAreaIds = [];
+  state.panel = {mode: 'station', id};
+  closeMobilePanel({refit: false, focus: false});
+  update({camera: false});
+  if (state.loaded) { fitStation(s); state.lastPreset = cameraPreset(); }
+  announce(`สถานี${s.name} ${num(stationProfile()?.rows.length || 0)} แห่งในระยะ ${meters(STATION_RADIUS_M)}`);
+}
+/** The station's radius (and a margin) in the free map box. */
+function fitStation(s = currentStation(), {instant = false} = {}) {
+  if (!s || !state.loaded) return;
+  const r = STATION_RADIUS_M + 150, dLat = r / 110574, dLon = r / (111320 * Math.cos((s.lat * Math.PI) / 180));
+  const LB = maplibregl.LngLatBounds;
+  const bounds = new LB([s.lon - dLon, s.lat - dLat], [s.lon + dLon, s.lat + dLat]);
+  fitBounds(bounds, {instant, maxZoom: 16.5, points: [[s.lon - dLon, s.lat - dLat], [s.lon + dLon, s.lat - dLat], [s.lon + dLon, s.lat + dLat], [s.lon - dLon, s.lat + dLat]]});
 }
 
 /** Load the shop-list index once (brand search, brand view, nearby centres); a brand from the URL opens when it arrives. */
@@ -670,6 +733,7 @@ function onPanelAction(event) {
   switch (action) {
     case 'select-district': selectDistrict(id); break;
     case 'select-venue': selectVenue(id); break;
+    case 'select-station': selectStation(id); break;
     case 'select-pending': selectPending(id); break;
     case 'select-province': selectProvince(id); break;
     case 'back': goBack(); break;
@@ -704,7 +768,7 @@ function onPanelAction(event) {
       if (state.panel.mode === 'venue' && state.panel.id === id) { tenantSelection.select(id, {retry: true}); renderPanel(); }
       break;
     case 'clear-filter': clearFilter(id); break;
-    case 'set-group': $('group').value = id; state.panel = state.panel.mode === 'district' ? state.panel : overviewPanel(); update({fit: state.panel.mode === 'overview'}); break;
+    case 'set-group': $('group').value = id; state.panel = ['district', 'station'].includes(state.panel.mode) ? state.panel : overviewPanel(); update({fit: state.panel.mode === 'overview'}); break;
     case 'crumb-country': $('province').value = ''; showCountry(); break;
     case 'crumb-province': selectProvince(id); break;
     case 'crumb-district': selectDistrict(id); break;
@@ -741,7 +805,7 @@ function renderLegend() {
       : `สถานที่ต่อตารางกิโลเมตรของ${word} (ตัวหาร = พื้นที่เขต/อำเภอของ CityMETER ตามขอบเขตกรมแผนที่ทหาร) · สีไล่ 41 ระดับของ LDS ตามลำดับค่า · สีเดียวกันทั้งสองธีม`;
   }
   $('toggle-pending').setAttribute('aria-pressed', String(state.showPending));
-  $('pending-count').textContent = state.pending ? num(state.pending.rows.length) : '';
+  $('pending-count').textContent = state.pending ? num(pendingCount(state.pending, values().group)) : '';
   const terrainItem = $('legend-terrain');
   if (terrainItem) terrainItem.hidden = !(state.terrainActive && state.view3d);
   // Which outlines the buildings come from: CityMETER Building V4 inside CityMETER units, OpenStreetMap elsewhere.
@@ -816,10 +880,11 @@ function renderTable() {
       <td>${groupSwatch(g)} ${esc(g.th)}</td>
       <td>${r.operatorLabel ? esc(r.operatorLabel) : '<span class="hint">ยังไม่มีข้อมูล</span>'}</td>
       <td>${d ? esc(districtLabel(d)) : `<span class="hint">${hasPoint(r) ? 'หมุดอยู่นอกเส้นเขต' : 'ยังไม่มีพิกัด'}</span>`}<small>${esc(provinceByCode(rowProvince(r))?.th || r.addrProvince || '')}</small></td>
+      <td>${r.rail ? `${esc(r.rail.station.name)}<small class="data-number">${esc(meters(r.rail.m))}</small>` : `<span class="hint">${state.stationList.length && hasPoint(r) ? 'เกิน 2 กม.' : '—'}</span>`}</td>
       <td>${statusPill(r)}</td>
       <td class="data-number">${r.shopCount ? num(r.shopCount) : '<span class="hint">—</span>'}</td>
       <td><small class="data-number">${esc(r.id)}</small></td></tr>`;
-  }).join('') || '<tr><td colspan="7">ไม่พบสถานที่ตามตัวกรอง</td></tr>';
+  }).join('') || '<tr><td colspan="8">ไม่พบสถานที่ตามตัวกรอง</td></tr>';
   $('page-label').textContent = list.length ? `${num(start + 1)}–${num(Math.min(start + pageSize, list.length))} / ${num(list.length)}` : '0 แห่ง';
   $('prev-page').disabled = state.page === 0;
   $('next-page').disabled = start + pageSize >= list.length;
@@ -829,8 +894,9 @@ function renderTable() {
 /* ---------- map ---------- */
 /**
  * The map credit (OpenStreetMap · OpenMapTiles · CityMETER) must stay readable on a phone (as CityMETER · Hotel 0.3.5):
- * its live height — open on load, folded to its (i) button after the first drag — becomes --attrib-height on the map
- * panel, which keeps the phone legend and card above it while it is open; `is-attrib-compact` drops them back.
+ * its live height — open on load, folded to its (i) button after five seconds or the first touch (js/map-credits.js) —
+ * becomes --attrib-height on the map panel, which keeps the phone legend and card above it while it is open;
+ * `is-attrib-compact` drops them back.
  */
 function trackAttribution(map) {
   const panel = map.getContainer().closest('.map-panel');
@@ -842,9 +908,9 @@ function trackAttribution(map) {
     panel.style.setProperty('--attrib-height', `${height}px`);
     panel.classList.toggle('is-attrib-compact', el.classList.contains('maplibregl-compact') && !el.classList.contains('maplibregl-compact-show'));
     syncCardSpace();
-    // The credit fills in as sources load, after the first view was framed: on a phone that moves the card, so the first
-    // view is framed again until the user moves the map.
-    if (mobilePortrait() && state.initialCameraDone && !state.userCamera && Math.abs(height - last) > 12 && !state.panel.id && refits < 2) { refits++; fitMap({instant: true}); }
+    // The credit fills in as sources load, after the first view was framed: on a phone that moves the card up, so the
+    // first view is framed again until the user moves the map. Its fold only gives the map room back: no refit then.
+    if (mobilePortrait() && state.initialCameraDone && !state.userCamera && height - last > 12 && !state.panel.id && refits < 2) { refits++; fitMap({instant: true}); }
     last = height;
   };
   const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null;
@@ -920,6 +986,7 @@ function fitMap({instant = false} = {}) {
   const c = pendingCard();
   if (c) { framePoint(state.map, [c.lon, c.lat], {preset: cameraPreset(), zoom: 15.5, offset: boxOffset(), animate: animate() && !instant}); return; }
   if (state.panel.mode === 'brand') { fitBrand({instant}); return; }
+  if (state.panel.mode === 'station') { fitStation(currentStation(), {instant}); return; }
   const LB = maplibregl.LngLatBounds;
   const focus = state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
   if (focus.length) {
@@ -977,6 +1044,12 @@ function requestDistrictDetail() {
   });
 }
 
+/**
+ * Where the district fill switches off: the station view has none (0.01, not 0 — MapLibre reads a maxzoom of 0 as
+ * unset), terrain mode reads the relief from its zoom.
+ */
+const districtFillMaxZoom = () => (state.panel.mode === 'station' ? 0.01 : state.terrainActive ? TERRAIN.minZoom : FILL_MAX_ZOOM);
+
 function updateSpatialLayers() {
   if (!state.loaded) return;
   const map = state.map;
@@ -988,11 +1061,12 @@ function updateSpatialLayers() {
   if (pm) state.provinceModel = pm;
   state.provinceLabels?.update(pm ? pm.provinces.filter(p => p.count > 0 && (!readCode || p.code === readCode)).map(p => ({...p, quiet: Boolean(readCode)})) : [], {visible: true, LngLatBounds: maplibregl.LngLatBounds, unit: 'แห่ง', maxZoom: readCode ? 7.5 : PROVINCE_LABEL_MAX_ZOOM});
   state.districtArgs = {summaries: state.districtModel.areas, selectedId: d?.code || '', focusIds: state.focusIds, visible: true, minzoom: readCode ? 0 : PROVINCE_FILL_MAX_ZOOM,
-    fillMaxZoom: state.terrainActive ? TERRAIN.minZoom : FILL_MAX_ZOOM};
+    fillMaxZoom: districtFillMaxZoom()};
   const dm = state.districtLayers?.update({...state.districtArgs, geometryOf: districtGeometry});
   requestDistrictDetail();
   if (dm) state.districtModel = dm;
-  const labelAreas = (dm?.areas || []).filter(a => a.count > 0 || a.focused || a.id === d?.code).map(a => ({...a, center: Number.isFinite(a.feature.properties?.labelLon) ? [a.feature.properties.labelLon, a.feature.properties.labelLat] : null}));
+  // A station reads its radius: no district fill or district labels over it (outlines stay).
+  const labelAreas = state.panel.mode === 'station' ? [] : (dm?.areas || []).filter(a => a.count > 0 || a.focused || a.id === d?.code).map(a => ({...a, center: Number.isFinite(a.feature.properties?.labelLon) ? [a.feature.properties.labelLon, a.feature.properties.labelLat] : null}));
   // Quiet (non-focus) district labels wait for a closer zoom so the focus reads first.
   state.districtLabels?.update(labelAreas, {selectedId: d?.code || '', visible: true, LngLatBounds: maplibregl.LngLatBounds, unit: 'แห่ง', minZoom: readCode ? 9.2 : 10, quietMinZoom: 13.2});
   renderLegend();
@@ -1003,6 +1077,7 @@ function updateSpatialLayers() {
   state.buildings?.update({rows: detail, enabled: true, theme: theme()});
   refreshMassing(detail);
   updatePendingMarker();
+  state.stations?.select(currentStation()?.id || '', STATION_RADIUS_M);
   state.pins?.layout();
 }
 
@@ -1040,6 +1115,8 @@ function focusGeometry(detail) {
   const venues = detail.filter(hasPoint);
   const v = currentVenue();
   if (v && hasPoint(v)) return {regions: circleRegions([v], Math.max(650, siteReach(v))), anchors: [[v.lon, v.lat]]};
+  const st = currentStation();
+  if (st) return {regions: circleRegions([st], STATION_RADIUS_M + 200), anchors: [[st.lon, st.lat], ...venues.slice(0, 40).map(r => [r.lon, r.lat])]};
   const d = selectedDistrict();
   const districts = d ? [d] : state.focusIds.map(id => state.districts.get(id)).filter(Boolean);
   if (!districts.length) return {regions: [], anchors: []};
@@ -1154,6 +1231,8 @@ function routeClick(e) {
   if (f) { selectPending(f.properties.i, {fromMap: true}); return; }
   f = pick([HOST_LAYERS.extrusion, HOST_LAYERS.outline], e.point);
   if (f) { const id = asList(f.properties?.venue_ids).find(x => state.byId.has(x)); if (id) { selectVenue(id, {fromMap: true}); return; } }
+  const station = state.stations?.hitTest(e.point);
+  if (station) { selectStation(station); return; }
   f = pick([state.districtLayers?.layerIds.fill].filter(Boolean), e.point);
   if (f) { selectDistrict(f.properties.id, {fromMap: true}); return; }
   f = pick([state.provinceLayers?.layerIds.fill].filter(Boolean), e.point);
@@ -1166,7 +1245,7 @@ function routeHover(e) {
   hoverFrame = requestAnimationFrame(() => {
     const map = state.map;
     if (!map) return;
-    const layers = [POINT_LAYERS.focus, POINT_LAYERS.context, POINT_LAYERS.pending, HOST_LAYERS.extrusion, HOST_LAYERS.outline, state.districtLayers?.layerIds.fill, state.provinceLayers?.layerIds.fill].filter(id => id && map.getLayer(id));
+    const layers = [POINT_LAYERS.focus, POINT_LAYERS.context, POINT_LAYERS.pending, HOST_LAYERS.extrusion, HOST_LAYERS.outline, state.stations ? STATION_LAYERS.ring : '', state.districtLayers?.layerIds.fill, state.provinceLayers?.layerIds.fill].filter(id => id && map.getLayer(id));
     const over = Boolean(state.xray?.hitTest([e.point.x, e.point.y])) || map.queryRenderedFeatures([[e.point.x - 4, e.point.y - 4], [e.point.x + 4, e.point.y + 4]], {layers}).length > 0;
     map.getCanvas().style.cursor = over ? 'pointer' : '';
   });
@@ -1230,12 +1309,15 @@ function installSpatialLayers() {
     const hillBefore = ['province-fill', 'district-fill', 'water'].find(id => map.getLayer(id));
     state.terrain = installTerrain(map, {beforeId: hillBefore, colors: terrainColors(), onChange: active => {
       state.terrainActive = active;
-      if (state.districtArgs) state.districtLayers?.update({...state.districtArgs, fillMaxZoom: active ? TERRAIN.minZoom : FILL_MAX_ZOOM, geometryOf: districtGeometry});
+      if (state.districtArgs) state.districtLayers?.update({...state.districtArgs, fillMaxZoom: districtFillMaxZoom(), geometryOf: districtGeometry});
       renderLegend();
       onGroundChange();
     }, onLoaded: onGroundChange, site: () => { const v = venueLevel() ? currentVenue() : null; return v && hasPoint(v) ? [v.lon, v.lat] : null; }});
     state.terrain.setEnabled(state.view3d);
   } catch (e) { state.terrain = null; console.warn('Terrain unavailable', e); }
+  // Rail stations (CityMETER · Transit): quiet, clickable context under the venue dots.
+  try { state.stations = state.stationList.length ? installStationLayer(map, state.stationList) : null; }
+  catch (e) { state.stations = null; console.warn('Station layer unavailable', e); }
   // Venue and pending dots sit above every 3D layer so they are never hidden inside a building.
   state.points = installVenuePoints(map);
   updatePins();
@@ -1249,6 +1331,7 @@ function initMap() {
     state.mapTheme = theme();
     state.map = new maplibregl.Map({container: 'map', center: BANGKOK_VIEW.center, zoom: BANGKOK_VIEW.zoom, pitch: 0, maxPitch: 85, attributionControl: {compact: true}, style: buildMapStyle(state.mapTheme)});
     trackAttribution(state.map);
+    foldMapCredits(state.map); // small and out of the way: folds to (i) after 5 s or the first touch (js/map-credits.js)
     state.map.addControl(new maplibregl.NavigationControl({showCompass: true, visualizePitch: true}), 'top-right');
     state.districtLabels = installAreaLabels(state.map, $('map'), {className: 'district-label', hostId: 'district-labels', hostLabel: 'เขตและอำเภอบนแผนที่', minZoom: 9.2, verb: 'กดเพื่อสำรวจ', onSelect: id => selectDistrict(id, {fromMap: true}), reservedBottom: bottomSpace,
       avoid: () => state.pinPoints, onLayout: () => state.pins?.layout()});
@@ -1374,6 +1457,8 @@ function fillOptions() {
   for (const p of PROVINCES.filter(p => counts.has(p.code)).sort((a, b) => a.th.localeCompare(b.th, 'th'))) {
     const o = document.createElement('option'); o.value = p.code; o.textContent = p.th; $('province').append(o);
   }
+  // D33: the type set the first view reads comes first, then each type.
+  for (const set of Object.values(GROUP_SETS)) { const o = document.createElement('option'); o.value = set.id; o.textContent = set.th; $('group').append(o); }
   for (const g of GROUPS) { const o = document.createElement('option'); o.value = g.id; o.textContent = g.th; $('group').append(o); }
   for (const [value, label] of Object.entries(STATUS_FILTERS)) { if (!value) continue; const o = document.createElement('option'); o.value = value; o.textContent = label; $('status').append(o); }
   const opCounts = new Map();
@@ -1387,10 +1472,13 @@ function fillOptions() {
 
 function restoreFromURL() {
   const p = new URLSearchParams(location.search);
+  // D33: a link without `group` reads the first view's type set; `group=all` keeps every type.
+  $('group').value = DEFAULT_GROUP;
   for (const k of FIELDS) {
     const v = p.get(URL_KEYS[k]);
     if (v == null) continue;
     if (k === 'search') { $(k).value = v; continue; }
+    if (k === 'group' && v === 'all') { $(k).value = ''; continue; }
     if ([...$(k).options].some(o => o.value === v)) $(k).value = v;
   }
   if (['rank', 'mix', 'operators'].includes(p.get('view'))) state.view = p.get('view');
@@ -1401,6 +1489,7 @@ function restoreFromURL() {
   state.showPending = p.get('pending') !== '0';
   if (p.get('venue') && state.byId.has(p.get('venue'))) { state.panel = {mode: 'venue', id: p.get('venue')}; openVenueDetail(state.panel.id); }
   else if (p.get('district') && state.districts.has(p.get('district'))) state.panel = {mode: 'district', id: p.get('district')};
+  else if (p.get('station') && state.stationById.has(p.get('station'))) state.panel = {mode: 'station', id: p.get('station')};
   else if (p.get('brand')) { state.pendingBrand = p.get('brand'); ensureTenantIndex(); }
   state.pendingRecord = p.get('record') || '';
   state.pendingRole = p.get('role') || '';
@@ -1520,7 +1609,7 @@ async function loadPending() {
 
 async function init() {
   try {
-    const resources = ['data/venues.json', 'data/districts.geojson', 'data/provinces.geojson', 'data/venue-buildings.geojson', 'data/venue-logos.json'];
+    const resources = ['data/venues.json', 'data/districts.geojson', 'data/provinces.geojson', 'data/venue-buildings.geojson', 'data/venue-logos.json', 'data/stations.json'];
     const results = await Promise.allSettled(resources.map(r => fetchJSON(r)));
     if (results[0].status === 'rejected') throw results[0].reason;
     state.data = results[0].value;
@@ -1547,6 +1636,14 @@ async function init() {
     state.buildingData = results[3].status === 'fulfilled' ? results[3].value : {type: 'FeatureCollection', features: []};
     const logos = configureVenueLogos(results[4].status === 'fulfilled' ? results[4].value : {assets: []});
     if (!logos.complete) console.info('Venue logo registry', logos);
+    // Operating rail stations (CityMETER · Transit, D33): the nearest one of each located venue, the station layer and
+    // view. Without the file the page reads as before: no rail line, no station layer.
+    if (results[5].status === 'fulfilled') {
+      state.stationList = parseStations(results[5].value);
+      state.stationMeta = state.stationList.length ? results[5].value.meta || null : null;
+      state.stationById = new Map(state.stationList.map(s => [s.id, s]));
+      attachNearestStations(state.all, state.stationList);
+    } else console.warn('Rail stations unavailable', results[5].reason);
 
     fillOptions();
     restoreFromURL();

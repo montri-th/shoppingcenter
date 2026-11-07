@@ -28,6 +28,20 @@ export const GROUPS = Object.freeze([
 const GROUP_MAP = new Map(GROUPS.map(g => [g.id, g]));
 export const groupById = id => GROUP_MAP.get(id) || GROUP_MAP.get('other');
 
+/**
+ * Group sets (D33, owner 2026-11-07 11:56: the first finding counts shopping centres, community malls and outlets —
+ * the formats a tenant, a leasing team or an investor compares first). The first view reads this set; clearing its
+ * filter chip shows every type. A set is a filter value like a group id (`?group=all` keeps every type in a link).
+ */
+export const GROUP_SETS = Object.freeze({
+  centres: Object.freeze({id: 'centres', th: 'ศูนย์การค้า คอมมูนิตี้มอลล์ และเอาท์เล็ต', ids: Object.freeze(['mall', 'community', 'outlet'])}),
+});
+export const DEFAULT_GROUP = 'centres';
+/** Does a row (or a record with `group`) fall in the filter value: '' = every type, a set id or a group id. */
+export const groupMatches = (value, row) => !value || (GROUP_SETS[value] ? GROUP_SETS[value].ids.includes(row?.group) : row?.group === value);
+/** Words for a filter value: the set's or the group's Thai name ('' for every type). */
+export const groupLabel = value => (!value ? '' : GROUP_SETS[value]?.th || groupById(value).th);
+
 /** Operation status of a countable venue (operation_group): supply is what every count uses. */
 export const STATUSES = Object.freeze({
   supply: 'เปิดอยู่หรือรอยืนยันสถานะ',
@@ -194,7 +208,7 @@ export function filterVenues(rows, f = {}) {
     const status = f.status || '';
     if (status === '' && r.status !== 'supply') return false;
     if ((status === 'planned' || status === 'closed') && r.status !== status) return false;
-    if (f.group && r.group !== f.group) return false;
+    if (f.group && !groupMatches(f.group, r)) return false;
     if (f.operator && (f.operator === '__none__' ? r.operatorGroup : f.operator === '__other__' ? r.operatorGroup !== 'other' : r.operatorGroup !== f.operator)) return false;
     if (f.province && rowProvince(r) !== f.province) return false;
     if (f.district && r.districtCode !== f.district) return false;

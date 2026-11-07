@@ -113,6 +113,12 @@ export function projectAltitude(map, [lng, lat, z = 0]) {
   return {x: (cx + 1) / 2 * t.width, y: (1 - cy) / 2 * t.height};
 }
 
+/** Screen point in the middle of the padded box ([x, y] in canvas pixels). */
+function paddedMiddle(map, padding) {
+  const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
+  return [(padding.left + w - padding.right) / 2, (padding.top + h - padding.bottom) / 2];
+}
+
 function cornersInside(map, corners, padding) {
   const w = map.getContainer().clientWidth, h = map.getContainer().clientHeight;
   return corners.every(c => {
@@ -145,12 +151,18 @@ export function fitPitched(map, bounds, {preset = 'city', padding = {top: 24, bo
   map.jumpTo({center: flat.center, zoom, pitch: p.pitch, bearing: p.bearing, padding: view});
   let guard = 0;
   if (p.pitch > 0) {
+    // Zoom around the middle of the padded box, where the flat fit put the bounds. Zooming around the map centre
+    // drew the area towards the canvas middle — on a phone that is under the card, so no zoom ever fitted and the
+    // camera stepped out to the country (owner 2026-11-07 11:56, a 393 × 659 browser: zoom 5.45, the districts 3 px).
+    const box = paddedMiddle(map, padding);
+    const around = map.unproject(box);
+    const zoomAround = z => (typeof map.zoomTo === 'function' ? map.zoomTo(z, {around, duration: 0, animate: false}) : map.jumpTo({zoom: z}));
     // Zoom out until every vertex is inside the padded viewport…
-    while (!cornersInside(map, corners, padding) && zoom > minZoom && guard++ < 60) { zoom -= 0.1; map.jumpTo({zoom}); }
+    while (!cornersInside(map, corners, padding) && zoom > minZoom && guard++ < 60) { zoom -= 0.1; zoomAround(zoom); }
     // …then zoom in while they all still fit (foreshortening leaves room the flat fit did not use).
     while (zoom + 0.1 <= maxZoom && guard++ < 120) {
-      map.jumpTo({zoom: zoom + 0.1});
-      if (!cornersInside(map, corners, padding)) { map.jumpTo({zoom}); break; }
+      zoomAround(zoom + 0.1);
+      if (!cornersInside(map, corners, padding)) { zoomAround(zoom); break; }
       zoom += 0.1;
     }
     zoom = Math.round(zoom * 100) / 100;
