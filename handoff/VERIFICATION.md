@@ -305,3 +305,26 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Rendered live, owner's Chrome, viewport 1568 × 755 (7 Nov 2026 19:58–20:02 ICT): first view “24% … อยู่ใน 3 เขตนี้ · ปทุมวัน · วัฒนา · คลองเตย · 56 จาก 232 แห่ง บนพื้นที่ 2.2% ของกรุงเทพฯ · 64% ของ 56 แห่งนี้อยู่ในระยะ 500 ม. จากสถานีรถไฟฟ้า · ที่อื่นในกรุงเทพฯ 39%”. Chamchuri Square “ศูนย์การค้า · เขตปทุมวัน”, its building in the host blue, the regrouping note in “หลักฐานรายช่อง” (light and dark). Park Silom “ศูนย์การค้า · เขตบางรัก”, coordinate line “จุดในอาคารที่ OpenStreetMap ตั้งชื่อตามสถานที่ ไม่ใช่ประตูทางเข้า”. Life Center at Q House Lumpini “คอมมูนิตี้มอลล์ · เขตสาทร”, the Q House building in the host blue. Marché Thonglor “ศูนย์การค้า · เขตวัฒนา”, 7 shops listed. Samyan Mitrtown (dark) one OpenStreetMap building, the podium with two towers. The owner's theme was restored to light.
 - Seen in the check, not changed: Park Silom stands in Bang Rak, one of the 22 building units where the map reads OpenStreetMap only (D25; about 113 venues by the unit files), and OpenStreetMap gives its building no height, so it is drawn at the 5 m default; CityMETER heights lend themselves only inside CityMETER units. Extending the fallback to those units changes D25 and waits for the owner.
 - Not checked in this release: 390 px (no layout or CSS changed).
+
+## 0.1.25 — Google AI Mode, Google Maps and Street View facing the building (`20261107-r34`, D37)
+
+- Scope: `js/look-around.js` (new), `js/panel.js#lookBar`, `js/app.js#refineLook`, `js/navigation.js` (no extra new-tab glyph on these chips), `styles.css` (chips 44 px), pictogram subset + `ai`, `maps`, `streetview`, tests, docs. Venue data unchanged. Rebased on 0.1.24 r33 (`6b0e522`, the tenant identity round pushed at 21:34), so version and cache tag moved to 0.1.25 / `20261107-r34`.
+- Local: 225/225 tests (`look-around` 11). Playwright with the npm MapLibre and stub tiles: the venue panel at 390 × 844 light and dark, 360 × 740, 1440 × 900 light and dark, 1280 × 680 dark — three 44 px capsules (two rows at 360–390 px and in the 370 px desktop panel), no horizontal overflow; the venue's own link chips 44 px.
+- Tuning before the release, on live tiles in the owner's Chrome (7 Nov 2026 22:20–22:40 ICT): service roads weighted too lightly put Samyan Mitrtown's viewpoint on a drop-off lane touching the building (gap 0 m) → `service` 6, gap pad 40 m; CentralWorld first stood under the BTS and the Rama 1 skywalk (Google's panorama showed only the deck) → × 2 within 15 m of a viaduct, skywalk or tollway; then on Ratchadamri it looked down the road at Big C (the road segment ended beside the building) → heading at the nearest wall.
+- Live: `main` `2dbcd74`; GitHub Pages served `20261107-r34` at 22:49:27 ICT, about a minute after the push; `npm run verify:live`: **1,172 ok, 0 failed**.
+- Rendered live, owner's Chrome, window 606 × 646 css px (dpr 2), theme `auto` (system dark) and light: Samyan Mitrtown's sheet shows “ถาม AI Mode · เปิด Google Maps · ดู Street View” in one row under เว็บไซต์ · รายชื่อร้าน · phone, all 44 px. Clicking each: Street View opened “940 Phaya Thai Rd” (imagery Apr 2024) facing Samyan's entrance, the panorama 2.6 m from the computed viewpoint (heading 277°, pitch 10°, fov 100°, primary road 25 m from the wall); Google Maps opened the place “Samyan Mitrtown”; AI Mode opened with the question “สามย่านมิตรทาวน์ (ศูนย์การค้า เขตปทุมวัน กรุงเทพมหานคร บริหารโดย Frasers Property) ติดต่อเช่าพื้นที่ได้ทางไหน …”, Google asked “Continue with this search?” once, then answered with a section on leasing contacts.
+- Street View views the live page computed, opened one by one (22:55–23:05 ICT):
+
+| Venue | Road the view stands on | Heading | What the panorama shows |
+|---|---|---:|---|
+| สามย่านมิตรทาวน์ | Phaya Thai, primary, 25 m from the wall | 277° | the entrance, square on |
+| เซ็นทรัลเวิลด์ | Ratchadamri, secondary, 53 m | 260° | the east plaza and the mall |
+| เมกาบางนา | Bang Na–Trat frontage road, secondary, 61 m | 187° | the mall behind the footbridges |
+| ตลาดนัดจตุจักร ชลบุรี | Sukhumvit, trunk, 38 m | 123° | the market building and sign |
+| เซ็นทรัล ขอนแก่น | Sri Chan, secondary, 26 m | 9° | the facade and its sculpted tower |
+| เทอร์มินอล 21 โคราช | AH12, trunk, 89 m | 305° | the facade and the Terminal 21 sign |
+| เซ็นทรัล อุดร | Prajaksinlapakom, tertiary, 56 m | 8° | the entrance plaza |
+| ทรู ดิจิทัล พาร์ค | an internal road, minor, 52 m | 247° | down the road, the building on the right — not the frontage |
+
+  Eight venues picked by hand, not a sample; 7 face their building. True Digital Park's main building is the one its pin stands in, inside a campus. Review screenshots of Google imagery stay internal.
+- The owner's theme was `auto` at the start and is `auto` again. Not checked: a physical phone; the English UI (the page is Thai; the labels pair Thai verbs with Google product names).
