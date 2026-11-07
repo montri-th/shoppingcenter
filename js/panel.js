@@ -322,6 +322,8 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   if (d?.nameEn && d.nameEn !== d.nameTh) item('ชื่ออังกฤษ', nameBasis(ev.nameEn?.basis), ev.nameEn?.url);
   item('ประเภท', typeEvidence(ev.type?.status), ev.type?.url, ev.type?.checkedOn);
   if (row.groupBasis === 'owner') note('กลุ่มบนหน้าจอ', `เจ้าของข้อมูลระบุว่าเป็นศูนย์การค้า · ${esc(thaiDate('2026-10-25'))}`);
+  // D36: a retail component with a name of its own reads as the place it is (the registry keeps its component type).
+  if (row.groupBasis === 'retail-identity') note('กลุ่มบนหน้าจอ', 'ทะเบียนจัดเป็นพื้นที่ค้าปลีกในอาคารหรือโครงการ · บนแผนที่แสดงตามลักษณะสถานที่ซึ่งมีชื่อของตัวเอง');
   item('ผ่านนิยาม', tierReading(row), ev.qualification?.url);
   if (row.countBasis === 'component-without-qualified-parent') note('การนับ', 'นับเป็นสถานที่ของตัวเอง · โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม');
   if ((row.children || []).length) note('การนับ', 'นับครั้งเดียว ไม่บวกพื้นที่ย่อย');

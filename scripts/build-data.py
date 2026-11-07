@@ -400,6 +400,58 @@ TYPE_KEYWORDS = [
 ]
 
 
+# D36 (owner 2026-11-07 16:35: “พวกอาคาร mixed use ตอนนี้ยังดูสับสนอยู่ … จามจุรีสแควร์ ก็ไม่แสดงเป็นศูนย์การค้า … ให้ consistent
+# เข้าใจง่าย หาสาเหตุให้เจอ จะได้แก้เคสแบบเดียวกันนี้ที่เกิดกับอาคารอื่นๆด้วยให้ครบ”). The registry's venue_type says where a place
+# sits (a retail component of a larger site); the display group says what kind of place it is for a shopper. Before
+# D36 every component type read as `component`, which the first view (D33, centres) leaves out — Chamchuri Square, Park
+# Silom and other named centres were counted yet never shown with the centres. A component-typed row now keeps the
+# group `component` only when it is a zone: of a qualified registry venue (its parent), by a child role, by a zone type
+# (hospital, transport terminal, duty free, retail zone), of a non-retail host (a hotel, hospital, airport, university
+# or government building) or a retail area with no name of its own (the research team's “พื้นที่ค้าปลีก …”). Otherwise it
+# reads as the place it is: an anchor-store gallery (Lotus's, Big C, Makro, Index Living Mall, Tops, HomePro …) →
+# hoststore; a market type → market; its own name says community mall → community; shopping-centre, mixed-use and
+# managed retail components → mall; office, residential, resort and service podiums → community. Inference, for
+# navigation; counting follows D6 (a component without a qualified parent counts when its group is mall or community).
+COMPONENT_CHILD_ROLES = {'child_zone', 'child_venue', 'child_component_not_independent_center_count',
+                         'retail_subarea_do_not_count_as_separate_parent_mall'}
+COMPONENT_ZONE_TYPES = {'hospital_retail_component', 'hospital_green_market_component_scope_pending',
+                        'transport_terminal_retail_component', 'transport_terminal_retail_scope',
+                        'duty_free_retail_component', 'retail_zone'}
+COMPONENT_COMMUNITY_TYPES = {'office_retail_podium', 'office_retail_component', 'residential_retail_podium',
+                             'retail_and_service_component', 'resort_retail_component',
+                             'industrial_estate_commercial_plaza_retail_and_service_component'}
+ANCHOR_WORDS = re.compile(r"lotus|โลตัส|big ?c\b|บิ๊กซี|makro|แม็คโคร|\bindex\b|อินเด็กซ์|\btops\b|ท็อปส์|foodland|ฟู้ดแลนด์|"
+                          r"villa market|homepro|โฮมโปร|ไทวัสดุ|thai watsadu|global house|โกลบอลเฮ้าส์", re.I)
+HOST_WORDS = re.compile(r'โรงแรม|โรงพยาบาล|ท่าอากาศยาน|มหาวิทยาลัย|ศูนย์ราชการ|อาคารเรียน|\bhotel\b|\bhospital\b|\bairport\b|\buniversity\b', re.I)
+NO_NAME_OF_ITS_OWN = re.compile(r'พื้นที่ค้าปลีก|พื้นที่พาณิชย์|ส่วนค้าปลีก')
+COMMUNITY_NAME = re.compile(r'community|คอมมูนิตี้', re.I)
+
+
+def retail_identity(r):
+    """D36: (group, reason) for a component-typed registry row, before its parent is known (that check comes after)."""
+    t = r['venue_type'] or ''
+    names = ' '.join(text(r[c]) or '' for c in ('name_th', 'name_en', 'venue_name'))
+    if (r['count_role'] or '') in COMPONENT_CHILD_ROLES:
+        return 'component', 'child-role'
+    if ANCHOR_WORDS.search(' '.join([names, r['venue_subtype'] or '', r['operator_name'] or ''])):
+        return 'hoststore', 'anchor-store-gallery'
+    if t in COMPONENT_ZONE_TYPES:
+        return 'component', 'zone-type'
+    # The name, not the operator: a university, hospital or hotel company runs named shopping places too (Chamchuri
+    # Square and Siam Scape by Chulalongkorn's property office, Monthien Mall by a hotel manager).
+    if (r['venue_subtype'] or '') == 'hotel_retail_component' or HOST_WORDS.search(names):
+        return 'component', 'non-retail-host'
+    if NO_NAME_OF_ITS_OWN.search(text(r['name_th']) or ''):
+        return 'component', 'no-retail-name'
+    if 'market' in t:
+        return 'market', 'market-type'
+    if COMMUNITY_NAME.search(names):
+        return 'community', 'own-name-community'
+    if t in COMPONENT_COMMUNITY_TYPES:
+        return 'community', 'podium-or-service-retail'
+    return 'mall', 'shopping-centre-retail'
+
+
 def display_group(venue_type, legacy):
     t = venue_type or ''
     if t and t != 'unclassified':
@@ -763,6 +815,7 @@ def main():
     logo_by_key = {r['logo_key']: r for _, r in logos.iterrows() if text(r.get('logo_key'))}
 
     rows, pending = [], []
+    identity = {}  # D36: venue_id → (group, reason) of the component-typed rows
     unmapped_types, vocab, coord_vocab, role_vocab = Counter(), Counter(), Counter(), Counter()
     outside = Counter()
     as_of = args.as_of
@@ -772,6 +825,8 @@ def main():
         group, basis = display_group(r['venue_type'], r['legacy_venue_type'])
         if basis == 'evidence-keyword':
             unmapped_types[(tier in QUALIFIED_TIERS, r['venue_type'], group)] += 1
+        if group == 'component':
+            identity[r['venue_id']] = retail_identity(r)
         located = is_located(r)
         lat, lon = coord(r['latitude']), coord(r['longitude'])
         area = locator.locate(lon, lat) if located else None
@@ -910,6 +965,15 @@ def main():
         for r in rows:
             if r['citymeterId'] in lux_ids:
                 r['luxuryPlace'] = r['citymeterId']
+    # D36: a retail component that is no zone of a qualified registry venue reads as the place it is.
+    regrouped = []
+    for r in rows:
+        if r['group'] != 'component' or r['id'] not in identity or (r['parentId'] and r['parentId'] in by_id):
+            continue
+        group, reason = identity[r['id']]
+        if group != 'component':
+            regrouped.append({'id': r['id'], 'name': r['name'], 'group': group, 'reason': reason, 'counted': r['countable']})
+            r['group'], r['groupBasis'] = group, 'retail-identity'
     orphans = []
     for r in rows:
         if r['parentId'] and r['parentId'] in by_id:
@@ -1000,6 +1064,7 @@ def main():
         'unlocatedSupply': sum(not r['located'] for r in supply), 'provinces': len(per_province), 'districts': len(per_district),
         'components': len(rows) - len(countable), 'componentsWithoutParent': sum(not o['counted'] for o in orphans),
         'componentsCountedAsVenue': sum(o['counted'] for o in orphans),
+        'componentsRegrouped': dict(Counter(x['group'] for x in regrouped)),
         'holds': dict(Counter(r['countHold'] for r in rows if not r['countable'])),
         'ownerRules': dict(Counter(r['ownerRule'] for r in rows if r['ownerRule'])),
         'ownerRulesSupply': dict(Counter(r['ownerRule'] for r in supply if r['ownerRule'])),
@@ -1049,13 +1114,19 @@ def main():
                          'keywords': [{'group': g, 'contains': list(w)} for g, w in TYPE_KEYWORDS],
                          'rule': 'evidence venue_type from the table first; an evidence type missing from the table takes the '
                                  'first keyword group whose word it contains (basis evidence-keyword), else other; '
-                                 'legacy_venue_type only while venue_type is unclassified (basis legacy)'},
+                                 'legacy_venue_type only while venue_type is unclassified (basis legacy)',
+                         'componentIdentity': 'D36: a component-typed row stays component only as a zone (a qualified '
+                                              'parent, a child role, a hospital / terminal / duty-free / retail-zone type, a '
+                                              'hotel, hospital, airport, university or government host, or no retail name '
+                                              'of its own); otherwise anchor-store gallery → hoststore, market type → market, '
+                                              'own name community → community, office / residential / resort / service podium '
+                                              '→ community, other retail components → mall (basis retail-identity)'},
         'operatorGroups': [{'id': g, 'label': l, 'patterns': p} for g, l, p in OPERATOR_GROUPS],
         'counts': counts,
         'checks': {'aha': aha, 'firstView': first_view, 'problems': problems, 'districtCodeRemaps': remapped,
                    'keywordMappedTypes': [{'qualified': q, 'venueType': t, 'group': g, 'rows': n}
                                           for (q, t, g), n in sorted(unmapped_types.items(), key=lambda x: (not x[0][0], x[0][1]))],
-                   'componentsWithoutParent': orphans, 'geometryLinksWithoutFeature': sorted(missing_geom),
+                   'componentsWithoutParent': orphans, 'componentsRegrouped': regrouped, 'geometryLinksWithoutFeature': sorted(missing_geom),
                    'qualificationFallback': [{'status': st, 'rows': n} for (st, tier, rule), n in sorted(vocab.items()) if rule == 'fallback'],
                    'countRoleFallback': [{'role': role, 'rows': n} for (role, kind), n in sorted(role_vocab.items()) if kind == 'fallback']},
         'release': 'research snapshot published as a demo by the owner; registry release_status remains on hold per row '
@@ -1126,6 +1197,7 @@ def main():
                                 for (role, kind), n in sorted(role_vocab.items(), key=lambda x: (x[0][1], -x[1]))],
         'keywordMappedTypes': meta['checks']['keywordMappedTypes'],
         'componentsWithoutParent': orphans,
+        'componentsRegrouped': regrouped,
         'geometryLinksWithoutFeature': sorted(missing_geom),
         'review': [
             'qualificationVocabulary rule "fallback": new status values; add them to qualification_rule() before publishing.',
@@ -1134,6 +1206,7 @@ def main():
             'keywordMappedTypes with qualified=true: add the venue_type to TYPE_TO_GROUP so the group basis is "evidence".',
             'coordinateVocabulary: confirm every status/role read as located is a selected reference point.',
             'componentsWithoutParent: retail components whose parent is not qualified are counted nowhere.',
+            'componentsRegrouped (D36): component-typed rows shown as the place they are; check the reason of each new one.',
         ],
     }
     write_json(DATA / 'build-report.json', report)

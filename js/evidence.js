@@ -59,6 +59,8 @@ export function coordinateReading(role, status) {
   if (has(role, 'host_registry')) text = 'จุดอ้างอิงจากทะเบียน CityMETER';
   else if (has(role, 'retailer_branch')) text = 'จุดสาขาของร้านหลัก';
   else if (has(role, 'provider')) text = 'จุดจากผู้ให้บริการแผนที่';
+  else if (has(status, 'osm_named')) text = 'จุดในอาคารที่ OpenStreetMap ตั้งชื่อตามสถานที่';
+  else if (has(role, 'host_building_interior')) text = 'จุดในอาคารของสถานที่';
   else if (has(role, 'complex', 'site')) text = 'จุดอ้างอิงของโครงการ';
   const notEntrance = has(role, 'not_entrance', 'not_host_entrance') ? ' ไม่ใช่ประตูทางเข้า' : '';
   const verify = has(status, 'not_field_verified', 'not_spatially_validated') ? ' · ยังไม่ตรวจภาคสนาม' : '';
