@@ -55,6 +55,8 @@ const CELL_DEG = 0.0015;
 const DEEP_M = 0.6;
 
 const RAD = Math.PI / 180;
+// Height annotations keep the indexed part's identity for pin/site deduplication.
+const sourcePartOf = new WeakMap();
 /** Metres per degree of longitude / latitude at a latitude (local equirectangular frame). */
 export const metresPerDegree = lat => ({kx: 111320 * Math.cos(lat * RAD), ky: 110574});
 
@@ -362,7 +364,10 @@ function withCmHeights(match, cm) {
     const at = interiorPoint(p);
     const host = inside.length ? null : candidatesInBox(cm, [at[0], at[1], at[0], at[1]]).filter(c => sizeOK(c) && insidePart(at, c)).sort((a, b) => a.areaM2 - b.areaM2)[0] || null;
     const choice = chooseSource({areaM2: p.areaM2, height: p.height, base: p.base}, {inside, host});
-    return choice.height ? {...p, height: choice.height, heightFrom: 'cm'} : p;
+    if (!choice.height) return p;
+    const annotated = {...p, height: choice.height, heightFrom: 'cm'};
+    sourcePartOf.set(annotated, sourcePartOf.get(p) || p);
+    return annotated;
   });
   return {...match, parts};
 }
@@ -569,7 +574,12 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
         if (!match && !read.has(`${t.z}/${t.x}/${t.y}`)) { pending = true; if (k === 0) pinPending = true; return; }
         if (!match) return;
         if (k === 0) method = match.method;
-        for (const part of match.parts) if (!taken.has(part)) { taken.add(part); all.push(k === 0 ? {...part, point: 0} : {...part, site: true, point: k}); }
+        for (const part of match.parts) {
+          const sourcePart = sourcePartOf.get(part) || part;
+          if (taken.has(sourcePart)) continue;
+          taken.add(sourcePart);
+          all.push(k === 0 ? {...part, point: 0} : {...part, site: true, point: k});
+        }
       });
       const result = all.length ? {parts: all, method: method || 'site', sitePoints: points.length - 1} : null;
       // The pin's own building shows as soon as it is known; site points in tiles not read yet join it later.

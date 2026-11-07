@@ -274,6 +274,38 @@ test('live matcher in a CityMETER unit: waits for the province units and the til
   pins.dispose();
 });
 
+test('D35 height annotations keep one source building across the pin and site reference, with a distinct parking building once', async () => {
+  const main = rect(0, 0, 40, 40), parking = rect(100, 0, 130, 30);
+  const osm = [feature(90, [main], {render_height: 5}), feature(91, [parking], {render_height: 5})];
+  const map = {
+    getSource: id => id === 'openmaptiles' ? {} : null, getZoom: () => 16,
+    getBounds: () => ({contains: () => true}), querySourceFeatures: () => osm,
+    on() {}, off() {},
+  };
+  const [w, s, e, n] = tileBox(T14);
+  const zone = {id: 'z', tileType: 'MUNICIPALITY', tileUnits: [{id: 'z', bbox: [w, s, e, n]}]};
+  const changes = [];
+  const pins = installPinBuildings(map, {cm: {
+    settled: () => true, zoneAt: () => zone,
+    load: async () => cmLayer([
+      {properties: {height_m: '22'}, rings: [tileRect(0, 0, 40, 40)]},
+      {properties: {height_m: '9'}, rings: [tileRect(100, 0, 130, 30)]},
+    ]),
+  }, onChange: change => changes.push(change)});
+  try {
+    pins.update({rows: [{id: 'P', lon: at(20, 20)[0], lat: at(20, 20)[1], province: 'BKK',
+      points: [at(21, 20), at(115, 15)]}]});
+    await new Promise(resolve => setTimeout(resolve, 450));
+    const features = changes.at(-1).features;
+    assert.equal(features.length, 2, 'the shared main footprint is drawn once after height annotation');
+    assert.deepEqual(features.map(f => [f.properties.site_point, f.properties.height_m]), [[0, 22], [2, 9]]);
+    assert.equal(features.filter(f => pointInRing(at(20, 20), f._ring)).length, 1);
+    assert.equal(features.filter(f => pointInRing(at(115, 15), f._ring)).length, 1, 'parking stays distinct and appears once');
+    assert.ok(features.every(f => f.properties.geometry_role === PIN_SOURCES.osm.role), 'OSM-first selection is unchanged');
+    assert.deepEqual(features.map(f => f._ring), [main, parking], 'source coordinates remain the OSM rings');
+  } finally { pins.dispose(); }
+});
+
 test('a site that is still waiting for one point is drawn as its other tiles arrive, not frozen at the first snapshot (0.1.13, Mega Bangna)', async () => {
   const handlers = {};
   const map = {

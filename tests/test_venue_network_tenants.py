@@ -49,7 +49,221 @@ def owner_record():
                                  'sourceKind':'explicit_authorized_owner_conversation', 'nativeReadbackVerified':True,
                                  'status':'open','fieldVerified':False,'publicChatUrl':None})
 
+def round3_food_record(**changes):
+    row = record(projectionKind='round3_known_food_directory', projectionRound=3,
+                 sourceArtifactKey=network.ROUND3_MARKER+'restaurants',
+                 sourceRowKey='R3KFOBS-'+'a'*24, sourceBranchId='cpn-mappedin:KBI:el_a123',
+                 sourceUrl='https://map.centralpattana.co.th/mall/KBI?location=published-location',
+                 nativeFoodReadbackVerified=True, staticScreenVerified=True, nativeIdentityHold=False,
+                 identityResolutionVerified=True, sourceUnitConflict=False, sourceFloorConflict=False,
+                 rawPointConflict=False, directoryRoutingPointSelected=False,
+                 nativeSelectedPointRole='store_source_point',
+                 identityResolutionMethods=['exact_selected_authoritative_host_UUID_crosswalk'])
+    row['identityResolutionEvidence'] = {
+        'sourceObservationId':row['sourceRowKey'], 'publisherObservationId':row['sourceBranchId'],
+        'canonicalOutletIds':row['canonicalOutletIds'][:], 'venueIds':row['venueIds'][:],
+        'methods':row['identityResolutionMethods'][:], 'nativeReadbackVerified':True,
+        'masterFloorUnitPreserved':True,
+        'selectedHostIdentityStatus':'current_source_uuid_and_external_id_verified',
+        'selectedHostUuid':'01234567-89ab-cdef-0123-456789abcdef'}
+    row.update(changes)
+    return row
+
+def lush_record(**changes):
+    branch='one-bangkok';outlet,host,unit=network.REVIEWED_LUSH[branch]
+    row=record(dataset='research.TH.beauty', projectionKind='round3_beauty_official_locator',
+               projectionRound=3, sourceArtifactKey=network.ROUND3_MARKER+'beauty',
+               sourceRowKey='BESRCP-R3-'+'a'*18,nativeCaptureReceiptId='BESRCP-R3-'+'a'*18,
+               sourceRecordRole='fresh_primary_HTTP_capture_receipt_with_reviewed_existing_canonical_branch',
+               originalNativeObservationId='BEO-'+ 'b'*18,existingSourceIds=['BEO-'+'b'*18,outlet],
+               sourceBranchId=branch,sourceNativeBranchId=branch,
+               brand='LUSH',brandId='BEB-03e78e0ed96758f598',canonicalOutletIds=[outlet],venueIds=[host],
+               sourceUrl='https://th.lush.com/en/stores/'+branch,
+               sourceAuthority='official_brand_consumer_locator',
+               sourceListingRole='official_consumer_beauty_location',unitFloor=unit,
+               storeFormat='mall_shop',nativeStoreFormat='mall_shop',nativeScopeStatus='approved_core',
+               nativeBeautyReadbackVerified=True,nativeUnitEvidenceVerified=True,nativeScopeApproved=True,
+               nativeIdentityHold=False,sourceUnitConflict=False,rawPointConflict=False,
+               physicalShopfrontVerified=False)
+    row.update(changes)
+    return row
+
+def degree_record(ordinal=1, **changes):
+    index=ordinal if ordinal<=12 else ordinal-12
+    outlet,host,url,sha=network.REVIEWED_425[index]
+    row=record(dataset=network.MISC,projectionKind='round3_misc_425_consumer_locator',projectionRound=3,
+               sourceArtifactKey=network.ROUND3_MARKER+'miscellaneous',
+               sourceRowKey='round3-425-view-'+str(ordinal),
+               sourceBranchId='425:th-our-stores:5ebcc4d3958803d0:'+str(ordinal),
+               sourceNativeBranchId='DOM-card-'+str(ordinal),brand='425 Degree',
+               brandId='BR-MISC-67ac042caff040f11d0f',canonicalOutletIds=[outlet],venueIds=[host],
+               sourceAuthority='official_brand_consumer_locator',sourceUrl='https://www.425degree.com/our-stores',
+               sourceSha256='5ebcc4d3958803d054cee6c729a1fae878bf4b84359623c6b11cfdb970115af6',
+               sourceListingRole='consumer_visible_store_or_service',nativeMiscReadbackVerified=True,
+               category='electronics_mobile_accessories',
+               nativePublicQualificationReadbackVerified=True,nativeIdentityHold=False,sourceUnitConflict=False,
+               rawPointConflict=False,sourceCountry='TH',scopeStatus='miscellaneous_current_registry_gap',
+               brandIdentityRole='retail_banner_or_service_provider',nativeFormatScopeApproval=False,
+               nativeScopeApprovalChanged=False,physicalShopfrontVerified=False,physicalUnitMerge=False,
+               unitContinuityAsserted=False,currentPOSDelta=0,
+               storeFormat='425_Degree_official_individually_named_consumer_store_with_owner_floorplan',
+               nativeStoreFormat='official_named_consumer_store_floorplan_identity_unit_continuity_not_verified',
+               linkedFloorplanEvidence={'sourceObservationId':'425:th-floorplan:'+sha[:16]+':'+str(index),
+                   'sourceUrl':url,'sourceSha256':sha,'sourceHashScope':'exact owner-linked floorplan image bytes',
+                   'checkedOn':'2026-11-07','nativeReadbackVerified':True,
+                   'sourceRole':'named_consumer_shop_floorplan_identity_not_georeferenced_point'})
+    row.update(changes)
+    return row
+
+def national_record(**changes):
+    row=degree_record()
+    row.update(projectionKind='round3_misc_national_consumer_locator',sourceRowKey='round3-national:No-34',
+               sourceBranchId='true:shoplocations:version-14092026:No-34',sourceNativeBranchId='No-34',
+               brand='True Shop',brandId='BR-MISC-af7ce357d04848826916',
+               canonicalOutletIds=['OUT-1'],existingSourceIds=['OUT-1'],venueIds=['HOST-1'],
+               sourceUrl=network.TRUE_CONSUMER_PUBLICATION[2][0],
+               sourceSha256=network.TRUE_CONSUMER_PUBLICATION[2][1],
+               sourcePeriod='locator_file_version14092026_not_operating_date',
+               category='mobile_telecom_consumer_store_or_service',
+               storeFormat=network.NATIONAL_CONSUMER_FORMATS['BR-MISC-af7ce357d04848826916'],
+               nativeStoreFormat=network.NATIONAL_CONSUMER_FORMATS['BR-MISC-af7ce357d04848826916'],
+               rawPublisherMarker=[13,100],rawMarkerBinding='publisher_branch_bound_locator_or_directions_marker',
+               sourceRawMarkerReadbackVerified=True,
+               consumerPublicationBinding={
+                   'kind':'live_consumer_HTML_to_pinned_HTML_to_pinned_JSON','nativeReadbackVerified':True,
+                   'parentConsumerUrl':network.TRUE_CONSUMER_PUBLICATION[0][0],
+                   'parentConsumerSha256':network.TRUE_CONSUMER_PUBLICATION[0][1],
+                   'intermediateUrl':network.TRUE_CONSUMER_PUBLICATION[1][0],
+                   'intermediateSha256':network.TRUE_CONSUMER_PUBLICATION[1][1],
+                   'exactSourceUrl':network.TRUE_CONSUMER_PUBLICATION[2][0],
+                   'exactSourceSha256':network.TRUE_CONSUMER_PUBLICATION[2][1]})
+    row.pop('linkedFloorplanEvidence')
+    row.update(changes)
+    return row
+
 class Gates(unittest.TestCase):
+    def test_national_cards_need_the_exact_live_consumer_publication_chain_and_specific_format(self):
+        row=national_record()
+        self.assertIsNone(network.gate(row,'2026-11-07'))
+        for change in [{'consumerPublicationBinding':{}},{'sourceUrl':'https://assets.contentstack.io/unreviewed.json'},
+                       {'sourceNativeBranchId':'No-35'},{'storeFormat':'TrueSphere lounge'},
+                       {'sourcePeriod':'confirmed_open_2026-09-14'},{'sourceRawMarkerReadbackVerified':False},
+                       {'rawPointConflict':True},{'rawMarkerBinding':'viewport_context_unproven'},
+                       {'rawPublisherMarker':[None,None]}]:
+            self.assertIsNotNone(network.gate({**row,**change},'2026-11-07'),change)
+        q=copy.deepcopy(row);q['consumerPublicationBinding']['parentConsumerSha256']='f'*64
+        self.assertIsNotNone(network.gate(q,'2026-11-07'))
+        q={**row,'sourceBranchId':'true:shoplocations:version-14092026:No-611','sourceNativeBranchId':'No-611'}
+        self.assertIsNotNone(network.gate(q,'2026-11-07'))
+
+    def test_ais_consumer_linked_api_is_not_a_general_staging_or_partner_permission(self):
+        url,sha=next(iter(network.AIS_CONSUMER_REQUESTS.items()))
+        row=national_record(brand='AIS',brandId='HOB-BR-P-92b2dcf82cbe',sourceNativeBranchId='45',
+            sourceBranchId='ais-main-consumer:TH:LocationInfoProfile:location-45',sourceUrl=url,sourceSha256=sha,
+            storeFormat=network.NATIONAL_CONSUMER_FORMATS['HOB-BR-P-92b2dcf82cbe'],
+            nativeStoreFormat=network.NATIONAL_CONSUMER_FORMATS['HOB-BR-P-92b2dcf82cbe'],
+            consumerPublicationBinding={'kind':'live_official_consumer_HTML_to_regional_API',
+                'nativeReadbackVerified':True,'bindingId':network.AIS_CONSUMER_PUBLICATION[0],
+                'parentConsumerUrl':network.AIS_CONSUMER_PUBLICATION[1],
+                'parentConsumerSha256':network.AIS_CONSUMER_PUBLICATION[2],
+                'exactSourceUrl':url,'exactSourceSha256':sha})
+        self.assertIsNone(network.gate(row,'2026-11-07'))
+        for change in [{'sourceUrl':'https://stg-connex.ais.co.th/phxPartner/v1/partner/private'},
+                       {'sourceUrl':'https://retail.ais.th/'},{'sourceAuthority':'payment_partner_list'},
+                       {'nativeStoreFormat':'DIRECT_SALES_PERSONAL_CONTACT'},
+                       {'consumerPublicationBinding':{}},{'brandId':'OTHER-DEALER'}]:
+            self.assertIsNotNone(network.gate({**row,**change},'2026-11-07'),change)
+
+    def test_425_host_only_record_without_view_to_native_branch_floorplan_proof_stays_out(self):
+        r=degree_record()
+        self.assertIsNone(network.gate(r,'2026-11-07'))
+        for change in [{'linkedFloorplanEvidence':None},{'sourceNativeBranchId':'DOM-card-2'},
+                       {'brandId':'UNREVIEWED-BANNER'},{'venueIds':['OTHER-HOST']},
+                       {'nativeIdentityHold':True},{'nativePublicQualificationReadbackVerified':False},
+                       {'nativeFormatScopeApproval':True},{'physicalUnitMerge':True},
+                       {'unitContinuityAsserted':True},{'sourceUnitConflict':True},
+                       {'rawPointConflict':True},{'selectedCoordinates':[13,100]},
+                       {'storeFormat':'product_counter'},{'sourceUrl':'https://www.425degree.com/partner-list'}]:
+            self.assertIsNotNone(network.gate({**r,**change},'2026-11-07'),change)
+        q=copy.deepcopy(r);q['linkedFloorplanEvidence']['sourceSha256']='f'*64
+        self.assertIsNotNone(network.gate(q,'2026-11-07'))
+
+    def test_round3_food_needs_resolved_source_identity_not_only_an_accepted_host(self):
+        r=round3_food_record()
+        self.assertIsNone(network.gate(r,'2026-11-07'))
+        for key,value in [('identityResolutionVerified',False),('staticScreenVerified',False),
+                          ('nativeFoodReadbackVerified',False),('nativeIdentityHold',True),
+                          ('sourceUnitConflict',True),('sourceFloorConflict',True),('rawPointConflict',True),
+                          ('directoryRoutingPointSelected',True),('storeFormat','department_product_presence')]:
+            self.assertIsNotNone(network.gate({**r,key:value},'2026-11-07'),key)
+        for key,value in [('publisherObservationId','unrelated-card'),('venueIds',['OTHER-HOST']),
+                          ('canonicalOutletIds',['OTHER-OUTLET']),('masterFloorUnitPreserved',False),
+                          ('selectedHostIdentityStatus','historical_candidate_only'),('selectedHostUuid',None)]:
+            q=copy.deepcopy(r);q['identityResolutionEvidence'][key]=value
+            self.assertIsNotNone(network.gate(q,'2026-11-07'),key)
+        for proof in [None,True,{}]:
+            self.assertIsNotNone(network.gate({**r,'identityResolutionEvidence':proof},'2026-11-07'))
+
+    def test_round3_floor_alias_does_not_need_or_invent_a_host_uuid(self):
+        r=round3_food_record(identityResolutionMethods=['exact_ordinal_or_spacing_alias'])
+        r['identityResolutionEvidence'].update(methods=r['identityResolutionMethods'],
+                                               selectedHostUuid=None,selectedHostIdentityStatus=None)
+        self.assertIsNone(network.gate(r,'2026-11-07'))
+        r['identityResolutionMethods']=['nearest_host_or_similar_floor']
+        r['identityResolutionEvidence']['methods']=r['identityResolutionMethods']
+        self.assertIsNotNone(network.gate(r,'2026-11-07'))
+
+    def test_round3_publisher_keys_cannot_be_rehomed_or_gain_a_generic_directory_permission(self):
+        r=round3_food_record()
+        for change in [{'sourceUrl':'https://map.centralpattana.co.th/mall/OTHER'},
+                       {'sourceUrl':'https://unreviewed.centralpattana.co.th/mall/KBI'},
+                       {'sourceUrl':'https://map.centralpattana.co.th/mall/KBI?access_token=private'},
+                       {'sourceAuthority':'retained_primary_brand_or_host_master'},
+                       {'projectionKind':'base'},{'projectionRound':2},
+                       {'sourceArtifactKey':network.ROUND2_MARKER+'restaurants'}]:
+            self.assertIsNotNone(network.gate({**r,**change},'2026-11-07'),change)
+
+    def test_round3_source_point_conflict_is_held_even_when_selected_coordinates_are_null(self):
+        self.assertIsNotNone(network.gate(round3_food_record(rawPointConflict=True),'2026-11-07'))
+        for point in [[True,100],[float('nan'),100],[13,None],[13,100,1]]:
+            self.assertIsNotNone(network.gate(round3_food_record(selectedCoordinates=point),'2026-11-07'))
+        self.assertIsNotNone(network.gate(round3_food_record(selectedCoordinates=[13,100],
+                                                              nativeSelectedPointRole='host_centroid'),'2026-11-07'))
+
+    def test_lush_gate_is_limited_to_the_reviewed_brand_store_child_host_and_unit(self):
+        r=lush_record()
+        self.assertIsNone(network.gate(r,'2026-11-07'))
+        for change in [{'brandId':'OTHER-BEAUTY-BRAND'},{'sourceBranchId':'unreviewed-store'},
+                       {'venueIds':['PARENT-COMPLEX']},{'unitFloor':'Parade | 2F | guessed-unit'},
+                       {'nativeScopeStatus':'scope_review'},{'nativeUnitEvidenceVerified':False},
+                       {'storeFormat':'department_counter'},{'rawPointConflict':True},
+                       {'selectedCoordinates':[13,100]},{'physicalShopfrontVerified':True},
+                       {'sourceUrl':'https://other.th.lush.com/en/stores/one-bangkok'}]:
+            self.assertIsNotNone(network.gate({**r,**change},'2026-11-07'),change)
+        self.assertIsNone(network.gate(lush_record(sourceBranchId='westville',sourceNativeBranchId='westville',
+                                                  canonicalOutletIds=[network.REVIEWED_LUSH['westville'][0]],
+                                                  venueIds=[network.REVIEWED_LUSH['westville'][1]],
+                                                  unitFloor='GF | unit not stated',
+                                                  sourceUrl='https://th.lush.com/en/stores/westville'),'2026-11-07'))
+
+    def test_lush_source_role_and_basis_describe_its_brand_locator_without_a_counter_claim(self):
+        row=lush_record();host=row['venueIds'][0]
+        item=network.food_item([row],{'id':host,'name':'The Parade'})
+        self.assertEqual(item['sourceRole'],'official_brand_exact_named_host_listing')
+        self.assertEqual(item['sourceAuthority'],'official_brand_consumer_locator')
+        self.assertIn('brand_locator',item['relationshipBasis'])
+        self.assertEqual(item['storeFormat'],'mall_shop')
+        self.assertNotIn('format unresolved',item['identityNote'])
+        self.assertNotIn('venue_directory',item['relationshipBasis'])
+
+    def test_lush_fresh_hash_and_date_must_reference_the_actual_new_capture_receipt(self):
+        row=lush_record()
+        for change in [{'sourceRowKey':row['originalNativeObservationId']},
+                       {'nativeCaptureReceiptId':'missing-capture'},
+                       {'sourceRecordRole':'older_native_branch_observation'},
+                       {'originalNativeObservationId':None},{'existingSourceIds':row['canonicalOutletIds']}]:
+            self.assertIsNotNone(network.gate({**row,**change},'2026-11-07'),change)
+
     def test_chagee_owner_open_requires_exact_dated_native_assertion_and_branch_host_point(self):
         r=owner_record()
         self.assertIsNone(network.gate(r,'2026-11-07'))
@@ -142,6 +356,72 @@ class Gates(unittest.TestCase):
             self.assertEqual(network.gate({**r,**change},'2026-11-07'),'service_scope_or_identity_hold')
 
 class Reconciliation(unittest.TestCase):
+    def test_national_raw_branch_marker_runs_the_current_host_point_gate_even_when_chosen_point_is_null(self):
+        row=national_record(rawPublisherMarker=[13.02,100],rawPointConflict=False)
+        self.assertIsNone(network.gate(row,'2026-11-07'))
+        p=payload([row]);p['meta']['round3MiscNativeReadbackVerified']=True
+        check=network.point_checker(VENUES,{'features':[]})
+        result,receipt=network.merge(p,{},VENUES,check)
+        self.assertEqual(result,{})
+        self.assertEqual(receipt['omitted']['raw_branch_marker_host_conflict'],1)
+        row=national_record();p['observations']=[row]
+        result,receipt=network.merge(p,{},VENUES,check)
+        self.assertEqual(receipt['newItems'],1)
+        item=result['HOST-1'][0]
+        self.assertEqual(item['sourceRole'],network.BRAND_ROLE)
+        self.assertNotIn('format unresolved',item['identityNote'])
+        self.assertNotIn('rawPublisherMarker',item)
+        self.assertNotIn('companyOperator',item)
+
+    def test_425_repeated_views_are_one_branch_with_one_floorplan_and_no_format_or_operator_upgrade(self):
+        rows=[degree_record(1),degree_record(13)];vid=rows[0]['venueIds'][0]
+        venues={vid:{'id':vid,'name':'CentralWorld','lat':13,'lon':100}}
+        p=payload(rows);p['meta']['round3MiscNativeReadbackVerified']=True
+        result,receipt=network.merge(p,{},venues,lambda point,host:(True,None))
+        self.assertEqual(receipt['newItems'],1)
+        item=result[vid][0]
+        self.assertEqual(item['sourceRole'],network.BRAND_ROLE)
+        self.assertEqual(item['sourceAuthority'],'official_brand_consumer_locator')
+        self.assertEqual(item['sourceObservationCount'],2)
+        self.assertEqual(len(item['supportingSourceEvidence']),1)
+        self.assertNotIn('format unresolved',item['identityNote'])
+        self.assertNotIn('companyOperator',item)
+        self.assertEqual({x['sourceAuthority'] for x in item['sourceEvidence']},{'official_brand_consumer_locator'})
+        again,_=network.merge(p,result,venues,lambda point,host:(True,None))
+        self.assertEqual(result,again)
+
+    def test_round3_meta_proof_and_far_point_checks_are_still_required(self):
+        r=round3_food_record()
+        with self.assertRaises(ValueError):self.merge([r])
+        p=payload([r]);p['meta']['round3FoodNativeReadbackVerified']=True
+        result,receipt=network.merge(p,{},VENUES,lambda own,vid:(False,901))
+        self.assertEqual(result,{})
+        self.assertEqual(receipt['omitted']['far_point_conflict'],1)
+
+    def test_round3_corroboration_preserves_round2_facts_and_reruns_without_duplication(self):
+        first=record(projectionRound=2,projectionKind='round2_known_food_directory',
+                     sourceArtifactKey=network.ROUND2_MARKER+'restaurants',
+                     nativeFoodReadbackVerified=True,staticScreenVerified=True,nativeIdentityHold=False)
+        initial,_=self.merge([first]);frozen=copy.deepcopy(initial['HOST-1'][0])
+        p=payload([first,round3_food_record()]);p['meta']['round3FoodNativeReadbackVerified']=True
+        result,_=network.merge(p,initial,VENUES,lambda own,vid:(True,None))
+        item=copy.deepcopy(result['HOST-1'][0]);evidence=item.pop('corroboratingMembershipEvidence')
+        self.assertEqual(item,frozen)
+        self.assertEqual(evidence[0]['projectionRound'],3)
+        again,_=network.merge(p,result,VENUES,lambda own,vid:(True,None))
+        self.assertEqual(result,again)
+
+    def test_round3_keeps_dated_chagee_owner_operation_separate_and_unchanged(self):
+        owner=owner_record();vid=network.OWNER_CHAGEE['venueId']
+        venues={**VENUES,vid:{'id':vid,'name':'Samyan Mitrtown','lat':13.7347,'lon':100.5284}}
+        first,_=network.merge(payload([owner]),{},venues,lambda own,host:(True,None))
+        frozen=copy.deepcopy(first[vid])
+        p=payload([owner,round3_food_record()]);p['meta']['round3FoodNativeReadbackVerified']=True
+        result,_=network.merge(p,first,venues,lambda own,host:(True,None))
+        self.assertEqual(result[vid],frozen)
+        self.assertEqual(result[vid][0]['operationEvidence']['sourceRole'],'owner_direct_assertion')
+        self.assertNotIn('sourceSha256',result[vid][0]['sourceEvidence'][1])
+
     def test_round2_exact_source_corroborates_without_changing_round1_item_facts(self):
         first=record()
         initial,_=self.merge([first])
