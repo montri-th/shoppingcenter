@@ -414,6 +414,33 @@ TYPE_KEYWORDS = [
 # navigation; counting follows D6 (a component without a qualified parent counts when its group is mall or community).
 COMPONENT_CHILD_ROLES = {'child_zone', 'child_venue', 'child_component_not_independent_center_count',
                          'retail_subarea_do_not_count_as_separate_parent_mall'}
+
+# D41 (owner 8 Nov 2026 01:18, “Yes”: Siam Square One, Siam Scape and the other places in the Siam Square block are its
+# sub-areas; the block the owner defined on 7 Nov 20:58 counts once as Siam Square). A counted place whose own type reads
+# `other` (a retail precinct or district) and whose sub-areas (non-counted children) include shopping centres shows with
+# them: on the map and in the first view (D33) the block is the one place that holds those centres, so it must not drop
+# out of the centres when they stop counting on their own. Its group is the centre group most of its sub-areas read as
+# (mall, then community, then outlet on a tie); basis `sub-areas`. Inference, for navigation; the parent still counts
+# once and its sub-areas never count (the registry's own venue_type is unchanged).
+SUBAREA_PARENT_GROUPS = {'other'}
+SUBAREA_GROUPS = ('mall', 'community', 'outlet')
+
+
+def groups_from_subareas(rows, by_id):
+    """D41: regroup each counted `other` place whose sub-areas include centres (rows need children); the receipt list."""
+    out = []
+    for r in rows:
+        if not r['countable'] or r['group'] not in SUBAREA_PARENT_GROUPS or not r.get('children'):
+            continue
+        parts = [by_id[c] for c in r['children'] if c in by_id and not by_id[c]['countable']]
+        centres = Counter(p['group'] for p in parts if p['group'] in SUBAREA_GROUPS)
+        if not centres:
+            continue
+        group = min(centres, key=lambda g: (-centres[g], SUBAREA_GROUPS.index(g)))
+        out.append({'id': r['id'], 'name': r['name'], 'groupBefore': r['group'], 'group': group,
+                    'subAreas': [{'id': p['id'], 'name': p['name'], 'group': p['group']} for p in parts]})
+        r['group'], r['groupBasis'] = group, 'sub-areas'
+    return out
 COMPONENT_ZONE_TYPES = {'hospital_retail_component', 'hospital_green_market_component_scope_pending',
                         'transport_terminal_retail_component', 'transport_terminal_retail_scope',
                         'duty_free_retail_component', 'retail_zone'}
@@ -992,6 +1019,8 @@ def main():
     # The receipt of each regrouped row says whether it counts after D6 (countedBefore: before the regroup).
     for x in regrouped:
         x['countedBefore'], x['counted'] = x['counted'], by_id[x['id']]['countable']
+    # D41: a counted retail precinct whose sub-areas are shopping centres shows with them (SUBAREA_GROUPS).
+    subarea_groups = groups_from_subareas(rows, by_id)
 
     # ------------------------------------------------------------ buildings
     links = pd.read_csv(find_export(args.master, '13_BUILDING_LINKS'), dtype=str, keep_default_na=False) \
@@ -1068,6 +1097,7 @@ def main():
         'components': len(rows) - len(countable), 'componentsWithoutParent': sum(not o['counted'] for o in orphans),
         'componentsCountedAsVenue': sum(o['counted'] for o in orphans),
         'componentsRegrouped': dict(Counter(x['group'] for x in regrouped)),
+        'groupsFromSubAreas': dict(Counter(x['group'] for x in subarea_groups)),
         'holds': dict(Counter(r['countHold'] for r in rows if not r['countable'])),
         'ownerRules': dict(Counter(r['ownerRule'] for r in rows if r['ownerRule'])),
         'ownerRulesSupply': dict(Counter(r['ownerRule'] for r in supply if r['ownerRule'])),
@@ -1123,13 +1153,18 @@ def main():
                                               'hotel, hospital, airport, university or government host, or no retail name '
                                               'of its own); otherwise anchor-store gallery → hoststore, market type → market, '
                                               'own name community → community, office / residential / resort / service podium '
-                                              '→ community, other retail components → mall (basis retail-identity)'},
+                                              '→ community, other retail components → mall (basis retail-identity)',
+                         'subAreas': 'D41: a counted place whose group is ' + ' / '.join(sorted(SUBAREA_PARENT_GROUPS)) +
+                                     ' and whose sub-areas (children that do not count) include ' + ', '.join(SUBAREA_GROUPS) +
+                                     ' shows in the group most of them read as (that order on a tie; basis sub-areas); '
+                                     'it still counts once and its sub-areas never count'},
         'operatorGroups': [{'id': g, 'label': l, 'patterns': p} for g, l, p in OPERATOR_GROUPS],
         'counts': counts,
         'checks': {'aha': aha, 'firstView': first_view, 'problems': problems, 'districtCodeRemaps': remapped,
                    'keywordMappedTypes': [{'qualified': q, 'venueType': t, 'group': g, 'rows': n}
                                           for (q, t, g), n in sorted(unmapped_types.items(), key=lambda x: (not x[0][0], x[0][1]))],
-                   'componentsWithoutParent': orphans, 'componentsRegrouped': regrouped, 'geometryLinksWithoutFeature': sorted(missing_geom),
+                   'componentsWithoutParent': orphans, 'componentsRegrouped': regrouped, 'groupsFromSubAreas': subarea_groups,
+                   'geometryLinksWithoutFeature': sorted(missing_geom),
                    'qualificationFallback': [{'status': st, 'rows': n} for (st, tier, rule), n in sorted(vocab.items()) if rule == 'fallback'],
                    'countRoleFallback': [{'role': role, 'rows': n} for (role, kind), n in sorted(role_vocab.items()) if kind == 'fallback']},
         'release': 'research snapshot published as a demo by the owner; registry release_status remains on hold per row '
@@ -1201,6 +1236,7 @@ def main():
         'keywordMappedTypes': meta['checks']['keywordMappedTypes'],
         'componentsWithoutParent': orphans,
         'componentsRegrouped': regrouped,
+        'groupsFromSubAreas': subarea_groups,
         'geometryLinksWithoutFeature': sorted(missing_geom),
         'review': [
             'qualificationVocabulary rule "fallback": new status values; add them to qualification_rule() before publishing.',
@@ -1210,6 +1246,7 @@ def main():
             'coordinateVocabulary: confirm every status/role read as located is a selected reference point.',
             'componentsWithoutParent: retail components whose parent is not qualified are counted nowhere.',
             'componentsRegrouped (D36): component-typed rows shown as the place they are; check the reason of each new one.',
+            'groupsFromSubAreas (D41): retail precincts shown with the shopping centres that are their sub-areas; check each new one.',
         ],
     }
     write_json(DATA / 'build-report.json', report)

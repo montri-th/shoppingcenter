@@ -10,6 +10,11 @@ test('national coverage audit separates native candidates, accepted links, publi
     {cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8'});
 });
 
+test('the coverage receipt names a new core only after a points-only or an owner-decided hierarchy check (D41)', () => {
+  execFileSync('python3', ['-I', fileURLToPath(new URL('./test_coverage_receipt_refresh.py', import.meta.url))],
+    {cwd: fileURLToPath(new URL('..', import.meta.url)), encoding: 'utf8'});
+});
+
 test('published coverage receipt binds the reviewed roster, core and every newly admitted source identity', () => {
   const read = relative => readFileSync(new URL(relative, import.meta.url));
   const digest = bytes => createHash('sha256').update(bytes).digest('hex');

@@ -339,6 +339,15 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .tenant-pagination { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .tenant-pagination .btn { min-height: 40px; }
 .tenant-datasets { margin-top: 12px; font-size: 11px; }
+/* D39: the first view's line about the other types; its button keeps a touch-sized hit area inside the sentence. */
+.other-types .link-button { padding: 4px 0; }
+/* D41: which sub-areas' shops the list holds (each shop row also names its sub-area). */
+.tenant-subareas { margin: 6px 0 2px; font-size: 13px; overflow-wrap: anywhere; }
+/* D40: brands with a counter inside the centre's department stores — folded under the shops, never a shop row. */
+.counter-details summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.counter-store-name { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
+.counter-floor { margin: 0 0 6px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); overflow-wrap: anywhere; }
+.counter-floor strong { color: var(--text-primary); font-weight: 600; }
 /* Shop mix chips (one role of the list), nearby centres and brand lists: neutral tokens only, no data colour. */
 .tenant-mix { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
 .mix-chip { color: var(--text-primary); }

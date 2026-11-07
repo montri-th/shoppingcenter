@@ -58,5 +58,45 @@ class RetailIdentity(unittest.TestCase):
                          ('community', 'own-name-community'))
 
 
+def venue(vid, group, countable=True, children=None):
+    return {'id': vid, 'name': vid, 'group': group, 'groupBasis': 'evidence', 'countable': countable,
+            **({'children': children} if children else {})}
+
+
+class SubAreaGroups(unittest.TestCase):
+    """D41 (owner 8 Nov 2026 01:18): a counted precinct shows with the shopping centres that are its sub-areas."""
+
+    def run_rule(self, rows):
+        return bd.groups_from_subareas(rows, {r['id']: r for r in rows})
+
+    def test_precinct_takes_the_group_most_of_its_sub_areas_read_as(self):
+        rows = [venue('SQ', 'other', children=['A', 'B', 'C']), venue('A', 'mall', False), venue('B', 'component', False),
+                venue('C', 'mall', False)]
+        out = self.run_rule(rows)
+        self.assertEqual(rows[0]['group'], 'mall')
+        self.assertEqual(rows[0]['groupBasis'], 'sub-areas')
+        self.assertEqual([(x['id'], x['groupBefore'], x['group']) for x in out], [('SQ', 'other', 'mall')])
+        self.assertEqual([s['id'] for s in out[0]['subAreas']], ['A', 'B', 'C'])
+
+    def test_tie_reads_mall_then_community_then_outlet(self):
+        rows = [venue('P', 'other', children=['A', 'B']), venue('A', 'community', False), venue('B', 'outlet', False)]
+        self.run_rule(rows)
+        self.assertEqual(rows[0]['group'], 'community')
+
+    def test_left_alone(self):
+        cases = [
+            [venue('P', 'other', children=['A']), venue('A', 'other', False)],              # sub-areas hold no centre
+            [venue('P', 'other', children=['A']), venue('A', 'mall', True)],                # the child counts on its own
+            [venue('P', 'other', False, children=['A']), venue('A', 'mall', False)],        # the parent does not count
+            [venue('P', 'market', children=['A']), venue('A', 'mall', False)],              # a market keeps its group
+            [venue('P', 'other', children=['GONE'])],                                       # unknown child id
+        ]
+        for rows in cases:
+            before = rows[0]['group']
+            self.assertEqual(self.run_rule(rows), [])
+            self.assertEqual(rows[0]['group'], before)
+            self.assertEqual(rows[0]['groupBasis'], 'evidence')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -164,7 +164,18 @@ export function densityRatio(insight) {
  * focusMode: 'auto' (first-Aha districts carry the detail), 'explicit' (chosen districts) or
  * 'none' (every district of the reading in detail).
  */
-export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = [], shops = null, transit = null}) {
+/**
+ * D39 (owner 8 Nov 2026 01:18, choice ก): the type filter starts on centres (D33); one quiet line says how many venues of
+ * the other types the same filters leave out in the area being read, with the button that shows every type.
+ */
+export function otherTypesLine(others) {
+  if (!others || !(others.count > 0)) return '';
+  const top = (others.groups || []).filter(g => g.count > 0 && g.id !== 'other').slice(0, 3).map(g => esc(groupById(g.id).short));
+  const list = top.length > 1 ? `${top.slice(0, -1).join(' ')} และ${top[top.length - 1]}` : top[0] || '';
+  return `<p class="hint other-types">${esc(others.where)} ยังมีสถานที่ค้าปลีกประเภทอื่นอีก <strong class="data-number">${num(others.count)}</strong> แห่ง${list ? ` เช่น ${list}` : ''} · <button type="button" class="link-button" data-action="clear-filter" data-id="group">ดูทุกประเภท</button></p>`;
+}
+
+export function renderOverview({insight, model, focusMode = 'auto', readCode = '', national = true, subject = SUBJECT, asOf = '', provinces = [], shops = null, transit = null, others = null}) {
   const s = model.summary;
   const count = insight.districts.length;
   const pCode = insight.province;
@@ -222,7 +233,7 @@ export function renderOverview({insight, model, focusMode = 'auto', readCode = '
   }
   // Rows that no district holds (no point, or a point outside every boundary line): named once, listed in the table.
   const unlocated = model.unlocated.length ? `<p class="hint">อีก ${num(model.unlocated.length)} แห่งยังระบุ${readCode ? unitWord(readCode) : 'เขต/อำเภอ'}ไม่ได้ · <button type="button" class="link-button" data-action="open-table">ดูในตาราง</button></p>` : '';
-  return `${aha}${metrics}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf, shops, focusMode !== 'explicit' && railReading(insight) ? transit : null)}`;
+  return `${aha}${metrics}${otherTypesLine(others)}${mix}${areaList}${unlocated}${statusLists(model.planned, model.closed)}${dataLine(asOf, shops, focusMode !== 'explicit' && railReading(insight) ? transit : null)}`;
 }
 
 /* ---------- Search results ---------- */
@@ -319,7 +330,7 @@ function phoneLink(phone) {
   return first.replace(/\D/g, '').length >= 6 ? `<a class="chip-link" href="tel:${esc(first)}">${icon('contact')}${esc(text)}</a>` : (text ? `<span class="chip-link is-text">${icon('contact')}${esc(text)}</span>` : '');
 }
 
-function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null, site = null, transit = null} = {}) {
+function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = null, site = null, transit = null, children = [], parent = null} = {}) {
   const ev = d?.ev || {};
   const rowsHtml = [];
   const item = (label, text, url, date, extra = '') => rowsHtml.push(`<li><span class="ev-label">${esc(label)}</span><span class="ev-text">${esc(text || 'ตามแหล่งที่บันทึก')}${date ? ` · ${esc(thaiDate(date))}` : ''}${extra}</span>${url ? link(url, 'แหล่ง') : '<span class="hint">ไม่มีลิงก์สาธารณะ</span>'}</li>`);
@@ -330,9 +341,16 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   if (row.groupBasis === 'owner') note('กลุ่มบนหน้าจอ', `เจ้าของข้อมูลระบุว่าเป็นศูนย์การค้า · ${esc(thaiDate('2026-10-25'))}`);
   // D36: a retail component with a name of its own reads as the place it is (the registry keeps its component type).
   if (row.groupBasis === 'retail-identity') note('กลุ่มบนหน้าจอ', 'ทะเบียนจัดเป็นพื้นที่ค้าปลีกในอาคารหรือโครงการ · บนแผนที่แสดงตามลักษณะสถานที่ซึ่งมีชื่อของตัวเอง');
+  // D41: a retail precinct whose sub-areas are shopping centres shows with them.
+  if (row.groupBasis === 'sub-areas') {
+    const label = groupById(row.group).th;
+    const names = children.filter(c => !c.countable && c.group === row.group).map(c => esc(c.name)).join(' · ');
+    note('กลุ่มบนหน้าจอ', `ทะเบียนจัดประเภทของที่นี่ไว้ในกลุ่มอื่น ๆ · แสดงกับ${esc(label)} เพราะพื้นที่ย่อย${names ? ` (${names})` : ''} เป็น${esc(label)} และทั้งโครงการนับเป็นสถานที่เดียว`);
+  }
   item('ผ่านนิยาม', tierReading(row), ev.qualification?.url);
   if (row.countBasis === 'component-without-qualified-parent') note('การนับ', 'นับเป็นสถานที่ของตัวเอง · โครงการแม่ไม่อยู่ในชุดที่ผ่านนิยาม');
   if ((row.children || []).length) note('การนับ', 'นับครั้งเดียว ไม่บวกพื้นที่ย่อย');
+  if (!row.countable && parent?.countable && row.countHold === 'component') note('การนับ', `เป็นพื้นที่ย่อยของ${esc(parent.name)} นับรวมกับที่นั่นครั้งเดียว และร้านของที่นี่แสดงในรายชื่อร้านของ${esc(parent.name)}ด้วย`);
   item('สถานะ', operationReading(row.operationGroup), ev.operation?.url);
   if (d?.hours && (hoursScope(d.hoursScope) || hoursShort(d.hours) !== String(d.hours).trim())) note('เวลาเปิด', [hoursShort(d.hours) !== String(d.hours).trim() ? esc(d.hours) : '', esc(hoursScope(d.hoursScope))].filter(Boolean).join(' · '));
   if (d?.yearOpened || d?.openedDate) note('เปิดเมื่อ', d.openedDate ? 'วันที่แหล่งรายงาน' : 'ปีที่แหล่งรายงาน');
@@ -347,6 +365,8 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
   for (const a of row._amenities || []) item('สิ่งอำนวยความสะดวก', `${AMENITY_LABELS[a.kind] || a.kind} · ${a.basis === 'owner_reported' ? 'เจ้าของข้อมูลแจ้ง' : 'หน้าเว็บของศูนย์'}`, a.sourceUrl, a.checkedOn);
   if (tenants?.roster) {
     note('รายชื่อร้าน', `รายการที่เชื่อมสถานที่แล้วจากชุดข้อมูลในทะเบียน · ตรวจทะเบียน ${esc(thaiDate(tenants.roster.meta?.asOf || ''))} · รายชื่ออาจยังไม่ครบทั้งศูนย์และไม่ได้ยืนยันว่าทุกร้านเปิดอยู่วันนี้ ลิงก์ข้างชื่อร้านเปิดหลักฐานต้นทางตามวันที่ของแต่ละรายการ`);
+    const parts = listedSubAreas(tenants.roster);
+    if (parts.length) note('ร้านในพื้นที่ย่อย', `รวมร้านที่ลงไว้กับพื้นที่ย่อย ${parts.map(part => `${esc(part.name)} ${num(part.items)} ร้าน`).join(' · ')} · แต่ละร้านมีชื่อพื้นที่ย่อยกำกับ และนับครั้งเดียว`);
     const listed = tenants.roster.directory;
     if (listed?.items > 0) note('ไดเรกทอรีของศูนย์', `${num(listed.items)} รายการตามไดเรกทอรีทางการของศูนย์ · ตรวจ ${esc(thaiDate(listed.meta?.checkedTo || listed.meta?.asOf || ''))} · ชื่อ ชั้น ยูนิต และหมวดตามที่ศูนย์ลง ยังไม่อยู่ในการค้นและการเทียบตามแบรนด์จนกว่าจะเชื่อมกับชุดข้อมูลแบรนด์ · ไม่รวมเคาน์เตอร์แบรนด์ในห้างสรรพสินค้า จุดบริการของศูนย์ กิจกรรม และร้านที่ยังไม่เปิด · ชื่อเดียวกันบนชั้นเดียวกับร้านที่ลงไว้แล้วไม่แสดงซ้ำ แต่ชื่อที่ศูนย์เขียนต่างภาษากับชุดข้อมูลแบรนด์อาจปรากฏสองครั้งจนกว่าจะเชื่อมแบรนด์`);
     const ownerFacts = (tenants.roster.items || []).flatMap(item => [item, ...(item.corroboratingMembershipEvidence || [])])
@@ -355,10 +375,26 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
     note('ลำดับร้าน', 'ประเมินบทบาทต่อศูนย์: ร้านหลักที่แหล่งระบุ → ร้านที่ตรงกับเอกลักษณ์หรือรูปแบบศูนย์ → ห้างและความบันเทิง ซูเปอร์มาร์เก็ต ร้านปลายทาง อาหาร และบริการ ตามบริบทของศูนย์ บทบาทเดียวกันเรียงตามชื่อ ไม่ใช่อันดับจากยอดขายหรือจำนวนผู้เข้าชม โลโก้ไม่เพิ่มลำดับ');
     const profile = tenants.roster.profile;
     if (profile?.sourceUrl) item('เอกลักษณ์ศูนย์', profile.label, profile.sourceUrl, profile.checkedOn);
+    const counterBrands = (tenants.roster.counters || []).reduce((n, st) => n + (st?.brands || 0), 0);
+    if (counterBrands) note('แบรนด์ในห้างสรรพสินค้า', `${num(counterBrands)} แบรนด์ที่ไดเรกทอรีของศูนย์ลงไว้เป็นเคาน์เตอร์ในห้างสรรพสินค้าของศูนย์ · ตรวจ ${esc(thaiDate((tenants.roster.counters || []).map(st => st.checkedOn).filter(Boolean).sort().pop() || ''))} · เป็นแบรนด์ภายในห้าง ไม่ใช่ร้านแยกของศูนย์ จึงไม่นับในร้านข้างใน ไม่อยู่ในการค้นตามแบรนด์ และแบรนด์เดียวกันอาจอยู่ในรายชื่อร้านด้วย`);
     note('นับร้าน', `หนึ่งรายการคือหนึ่งสาขาที่แหล่งทางการลงไว้ แบรนด์เดียวมีได้หลายสาขาในศูนย์เดียว แหล่งสองแห่งที่ระบุสาขาเดียวกันนับครั้งเดียว${listed?.items > 0 ? ' · รายการจากไดเรกทอรีของศูนย์นับหนึ่งชื่อต่อหนึ่งชั้นและยูนิต' : ''} ตัวเลขร้านข้างในของแผนที่ ตาราง และพื้นที่ใช้รายชื่อชุดเดียวกันนี้`);
   }
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
   return rowsHtml.join('');
+}
+
+/** “in <place>”: Thai names follow ใน directly, other scripts after a space. */
+const inPlace = name => (/^[\u0E00-\u0E7F]/.test(name) ? `ใน${name}` : `ใน ${name}`);
+
+/** D41: the sub-areas with listed shops in this list, most shops first. */
+const listedSubAreas = roster => (roster?.subAreas || []).filter(part => part.items > 0)
+  .sort((a, b) => b.items - a.items || String(a.name).localeCompare(String(b.name), 'th'));
+
+/** D41: the sub-areas whose listed shops this list holds (tenants.js#createTenantLoader parts), one line. */
+export function subAreaLine(roster) {
+  const parts = listedSubAreas(roster);
+  if (!parts.length) return '';
+  return `<p class="subtle tenant-subareas">รวมร้านในพื้นที่ย่อย ${parts.map(part => `${esc(part.name)} <span class="data-number">${num(part.items)}</span>`).join(' · ')}</p>`;
 }
 
 /** Ten names at a time. The complete roster and the historical aggregate are separate populations. */
@@ -382,13 +418,31 @@ export function renderTenantList(row, selection) {
     <ol class="tenant-list" aria-label="ร้านข้างใน ${esc(row.name)}${role ? ` · ${esc(TENANT_ROLE_LABELS[role])}` : ''}">${shown.map((item, index) => {
       const name = item.displayName || item.brand || item.name;
       const position = item.unitFloor && !/ชั้น|ห้อง|floor|unit/i.test(item.unitFloor) ? `ตำแหน่ง ${item.unitFloor}` : item.unitFloor;
-      const sub = [TENANT_ROLE_LABELS[tenantRole(item)], item.displayQualifier, position || item.branch].filter(Boolean).filter(value => value !== name);
+      const sub = [TENANT_ROLE_LABELS[tenantRole(item)], item.subArea ? inPlace(item.subArea) : '', item.displayQualifier, position || item.branch].filter(Boolean).filter(value => value !== name);
       const status = /closure_conflict/.test(item.status || '') ? 'สถานะขัดกัน' : /status_recheck_required/.test(item.status || '') ? 'สถานะรอตรวจ' : ['closed_source_evidence', 'permanently_closed'].includes(item.status) ? 'ปิดตามหลักฐาน' : '';
       const source = safeURL(item.sourceUrl);
       const checked = item.checkedOn ? ` · ตรวจ ${thaiDate(item.checkedOn)}` : '';
       return `<li class="tenant-row" data-tenant-index="${index}" data-tenant-id="${esc(item.id)}" tabindex="-1">${logoMarkup(item)}<span class="tenant-name"><strong>${esc(name)}</strong><small>${sub.map(esc).join(' · ')}${status ? ` · ${esc(status)}` : ''}</small></span>${source ? `<a class="source-link tenant-source" href="${esc(source)}" target="_blank" rel="noopener" title="${esc(name + checked)}" aria-label="${esc('หลักฐาน ' + name + checked)}">แหล่ง</a>` : ''}</li>`;
     }).join('')}</ol>
     <div class="tenant-pagination"><span class="hint">แสดง ${num(shown.length)} จาก ${num(items.length)} ร้าน</span>${shown.length < items.length ? `<button type="button" class="btn" data-action="more-tenants" data-id="${esc(row.id)}" aria-label="ดูเพิ่มอีก ${num(Math.min(TENANT_PAGE_SIZE, items.length - shown.length))} ร้านใน ${esc(row.name)}">ดูเพิ่ม ${num(Math.min(TENANT_PAGE_SIZE, items.length - shown.length))} ร้าน</button>` : ''}</div>`;
+}
+
+/**
+ * D40 (owner 8 Nov 2026 01:18): brands with a counter inside the centre's department stores, floor by floor, as the
+ * centre's directory lists them — a section of its own under the shops, folded, never counted as shops.
+ */
+export function renderCounters(row, selection) {
+  const stores = (selection?.roster?.counters || []).filter(st => st?.brands > 0 && Array.isArray(st.floors));
+  const total = stores.reduce((n, st) => n + st.brands, 0);
+  if (!total) return '';
+  const body = stores.map(st => {
+    const source = safeURL(st.sourceUrl);
+    const floors = st.floors.map(f => `<p class="counter-floor">${f.floor ? `<strong>${esc(f.floor)}</strong> ` : ''}${f.brands.map(esc).join(' · ')}</p>`).join('');
+    return `<div class="counter-store"><p class="counter-store-name">${esc(st.store)}${st.subArea ? ` <span class="hint">${esc(inPlace(st.subArea))}</span>` : ''} <span class="hint">${num(st.brands)} แบรนด์${source ? ` · <a class="source-link" href="${esc(source)}" target="_blank" rel="noopener">แหล่ง</a>` : ''}</span></p>${floors}</div>`;
+  }).join('');
+  const names = stores.map(st => esc(st.store)).join(' · ');
+  return `<section class="panel-section counter-section" aria-labelledby="counter-title"><div class="section-heading">${heading('brand', 'แบรนด์ในห้างสรรพสินค้า', 'counter-title')}<span class="hint">${num(total)} แบรนด์</span></div>
+    <details class="counter-details"><summary>${names} · ดูแบรนด์ตามชั้น</summary>${body}</details></section>`;
 }
 
 /** Shop mix of one venue: one chip per role with its count; a chip shows only that role in the list. */
@@ -583,7 +637,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
   // The datasets of the list itself (once loaded); never the older link snapshot's datasets.
   const datasetIds = tenants?.roster ? [...new Set((tenants.roster.items || []).map(item => item.dataset))].sort() : [];
   const storeSources = listedStores && datasetIds.length ? datasetIds.map(x => esc(storeDataset(x))).join(' · ') : '';
-  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${tenants?.roster ? renderTenantMix(r, tenants) : ''}${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>`;
+  const storeBlock = `<section class="panel-section tenant-section"><div class="section-heading">${heading('store', 'ร้านข้างใน')}${listedStores ? `<span class="hint">${num(listedStores)} ร้านในข้อมูล</span>` : ''}</div>${tenants?.roster ? renderTenantMix(r, tenants) : ''}${subAreaLine(tenants?.roster)}${renderTenantList(r, tenants)}${storeSources ? `<p class="subtle tenant-datasets">${storeSources}</p>` : ''}${luxury || fitness ? `<p class="links">${[luxury, fitness].filter(Boolean).join(' ')}</p>` : ''}</section>${tenants?.roster ? renderCounters(r, tenants) : ''}`;
   const parent = p.parent ? `<p class="subtle">อยู่ใน <button type="button" class="link-button" data-action="select-venue" data-id="${esc(p.parent.id)}">${esc(p.parent.name)}</button></p>` : '';
   const children = p.children.length ? `<section class="panel-section"><div class="section-heading">${heading('building', 'พื้นที่ย่อยในโครงการ')}<span class="hint">ไม่นับแยก</span></div>${venueList(p.children, {limit: 20})}</section>` : '';
   const building = buildingReading(r, buildings, pinState, site, model);
@@ -616,7 +670,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
     ${storeBlock}
     ${renderPeers(peers, r)}
     ${children}
-    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants, site, transit}) : ''}</ul>
+    <section class="panel-section evidence"><details${d ? '' : ' hidden'}><summary>${icon('evidence')}หลักฐานรายช่อง${d?.checkedOn ? ` <span class="hint">· ตรวจ ${esc(thaiDate(d.checkedOn))}</span>` : ''}</summary><ul class="evidence-list">${d ? evidenceRows(r, d, {buildingNote: [building.text === 'ยังไม่พบอาคารที่ตำแหน่งหมุด' ? esc(building.text) : '', building.note].filter(Boolean).join(' · '), addressNote, tenants, site, transit, children: p.children, parent: p.parent}) : ''}</ul>
       <p class="hint ids">รหัส <code>${esc(r.id)}</code>${r.scId && r.scId !== r.id ? ` · Shopping Center <code>${esc(r.scId)}</code>` : ''}${d?.citymeterId ? ` · CityMETER <code>${esc(d.citymeterId)}</code>` : ''}${d?.ev?.identity?.production ? ` · ${link(d.ev.identity.production, 'บันทึกใน CityMETER')}` : ''}</p></details></section>
     ${dataLine(asOf, shops)}`;
 }

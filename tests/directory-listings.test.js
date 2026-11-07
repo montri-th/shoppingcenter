@@ -8,14 +8,14 @@ import {fileURLToPath} from 'node:url';
 import {createTenantLoader, createDirectoryLoader, createTenantIndexLoader, createDirectoryCountsLoader, mergeDirectoryCounts, buildTenantIndex,
   tenantRole, tenantMix, rankTenants, TENANT_ROLE_LABELS, DIRECTORY_DATASET} from '../js/tenants.js';
 import {shardOf} from '../js/details.js';
-import {renderTenantList, renderVenue, dataLine} from '../js/panel.js';
+import {renderTenantList, renderVenue, renderCounters, dataLine} from '../js/panel.js';
 import {storeDataset} from '../js/evidence.js';
 
 const read = path => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
 const bytes = path => readFileSync(new URL(`../${path}`, import.meta.url));
 const visible = html => html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
 const CAVEAT = /caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน|ช่องว่างตลาด|ทำเลทอง/;
-const meta = {schemaVersion: '1', asOf: '2026-11-07', dataset: DIRECTORY_DATASET, shards: 32, rule: 'D38', items: 2, venues: 1, checkedFrom: '2026-11-07', checkedTo: '2026-11-07'};
+const meta = {schemaVersion: '1', asOf: '2026-11-07', dataset: DIRECTORY_DATASET, shards: 32, rule: 'D38 · D40', items: 2, venues: 1, checkedFrom: '2026-11-07', checkedTo: '2026-11-07'};
 const dirItem = (id, extra = {}) => ({id: `${DIRECTORY_DATASET}:18_OFFICIAL_TENANTS:${id}`, name: `Shop ${id}`, brand: `Shop ${id}`, category: 'Fashion',
   directoryRole: 'apparel', unitFloor: 'ชั้น L1 · ยูนิต 101', dataset: DIRECTORY_DATASET, sourceRole: 'official_venue_directory_listing',
   sourceUrl: `https://example.com/shop/${id}`, checkedOn: '2026-11-07', status: 'publisher_listed_not_field_verified', sourceObservationIds: [id], sourceObservationCount: 1, ...extra});
@@ -110,6 +110,27 @@ test('the venue panel lists directory entries with floor, unit, role and source,
   assert.doesNotMatch(dataLine('2026-11-07', {datasets: {a: 1}, checkedTo: '2026-11-04'}), /ไดเรกทอรี/);
 });
 
+test('D40: department-store brands come with the venue’s directory as a folded list of their own, never as shops', async () => {
+  const stores = [{store: 'Central Department Store', brands: 3, floors: [{floor: 'ชั้น L1', brands: ['Clinique', 'YSL']}, {floor: 'ชั้น L2', brands: ['YSL', 'Zara Home']}],
+    sourceUrl: 'https://example.com/directory', checkedOn: '2026-11-07', sourceObservationCount: 4}];
+  const directory = createDirectoryLoader(async () => ({ok: true, json: async () => ({meta, venues: {V1: {items: [dirItem('a')], counters: stores}}})}));
+  const roster = await createTenantLoader(async path => /profiles/.test(path) ? {ok: false, status: 404}
+    : {ok: true, json: async () => ({meta: {}, venues: {V1: {items: []}}})}, {directory})('V1');
+  assert.equal(roster.items.length, 1, 'counters never become shop items');
+  assert.deepEqual(roster.counters, stores);
+  const row = {id: 'V1', name: 'Centre One', group: 'mall'};
+  const html = renderCounters(row, {roster});
+  assert.match(html, /แบรนด์ในห้างสรรพสินค้า/);
+  assert.match(html, /<span class="hint">3 แบรนด์<\/span>/);
+  assert.match(html, /<details class="counter-details"><summary>Central Department Store · ดูแบรนด์ตามชั้น<\/summary>/);
+  assert.match(html, /<strong>ชั้น L1<\/strong> Clinique · YSL/);
+  assert.match(html, /href="https:\/\/example\.com\/directory"/);
+  assert.equal(renderCounters(row, {roster: {items: [], counters: []}}), '');
+  const index = mergeDirectoryCounts(buildTenantIndex({meta: {datasets: {}}, venueIds: [], datasets: [], categories: [], formats: [], brands: [], rows: []}),
+    {meta, venues: {V1: {items: 1, roles: {apparel: 1}, counterBrands: 3}}});
+  assert.equal(index.venues.get('V1').items, 1, 'department-store brands are not counted as shops');
+});
+
 /* ---------- the published directory (data/directory) ---------- */
 
 const counts = read('data/directory/counts.json');
@@ -141,6 +162,7 @@ test('published directory: 32 shards by the roster shard function, one dataset, 
       assert.equal(String(shardOf(vid, 32)).padStart(2, '0') + '.json', file, `${vid} in its shard`);
       assert.ok(venues.get(vid)?.countable, `${vid}: a counted venue of data/venues.json`);
       assert.equal(v.items.length, counts.venues[vid].items, `${vid}: counts.json matches the shard`);
+      if (!v.items.length) continue;
       const roles = {};
       for (const item of v.items) {
         roles[item.directoryRole] = (roles[item.directoryRole] || 0) + 1;
@@ -168,13 +190,36 @@ test('published directory: 32 shards by the roster shard function, one dataset, 
     }
   }
   assert.equal(items, counts.meta.items);
+  // D40: department-store brands, per store and floor; each count matches its floors
+  let brands = 0, venuesWith = 0;
+  for (const [, shard] of published) {
+    for (const [vid, v] of Object.entries(shard.venues)) {
+      if (!v.counters) continue;
+      venuesWith++;
+      for (const st of v.counters) {
+        assert.ok(st.store && /department store/i.test(st.store), `${vid}: ${st.store}`);
+        const unique = new Set(st.floors.flatMap(f => f.brands));
+        assert.equal(st.brands, unique.size, `${vid} ${st.store}: brand count`);
+        for (const f of st.floors) {
+          assert.ok(f.floor === '' || /^ชั้น \S+$/.test(f.floor), `${vid}: ${f.floor}`);
+          for (const b of f.brands) assert.ok(b && !/department store/i.test(b) && !/^\W*(atm|toilets?|parking|information)\b/i.test(b), `${vid}: ${b}`);
+        }
+        assert.match(st.sourceUrl, /^https:\/\/[^\s]+$/);
+        assert.match(st.checkedOn, /^\d{4}-\d{2}-\d{2}$/);
+        brands += st.brands;
+      }
+      assert.equal(counts.venues[vid].counterBrands, v.counters.reduce((n, st) => n + st.brands, 0), `${vid}: counterBrands`);
+    }
+  }
+  assert.equal(brands, counts.meta.counterBrands);
+  assert.equal(venuesWith, counts.meta.counterVenues);
   assert.equal(Object.keys(counts.venues).length, counts.meta.venues);
   assert.equal(report.entries.directoryItems, items);
 });
 
 test('published directory: every exported row has one disposition, bound to the roster and the core it was built against', () => {
   const r = report.rows;
-  assert.equal(r.shownAsDirectoryItems + r.alreadyShownByRoster + r.held, report.input.rows);
+  assert.equal(r.shownAsDirectoryItems + r.shownAsDepartmentStoreBrands + r.alreadyShownByRoster + r.held, report.input.rows);
   assert.equal(Object.values(r.byReason).reduce((a, b) => a + b, 0), report.input.rows);
   assert.match(report.input.sha256, /^[a-f0-9]{64}$/);
   const roster = createHash('sha256');

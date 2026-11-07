@@ -270,9 +270,17 @@ export function applyShopLists(rows, index, amenities = new Map()) {
   return rows;
 }
 
-/** Prepare rows once after load: search key and nothing else (source values unchanged). */
+/**
+ * Prepare rows once after load: search key and nothing else (source values unchanged). D41: a counted place's key also
+ * holds the names of its sub-areas (children that do not count), so a sub-area's name finds the place that counts it.
+ */
 export function prepareRows(rows) {
-  for (const r of rows) Object.defineProperty(r, '_search', {value: searchKey(r), enumerable: false});
+  const byId = new Map(rows.map(r => [r.id, r]));
+  for (const r of rows) {
+    const parts = r.countable ? (r.children || []).map(id => byId.get(id)).filter(c => c && !c.countable) : [];
+    const names = parts.flatMap(c => [c.name, c.nameEn, ...(c.aliases || [])]).filter(Boolean).map(normalizeText);
+    Object.defineProperty(r, '_search', {value: [searchKey(r), ...names].join('|'), enumerable: false});
+  }
   return rows;
 }
 

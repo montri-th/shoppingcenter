@@ -24,7 +24,10 @@ observation id or the linked outlet id first, then by the same name on the same 
 the roster lists adds the other floors — owner D23, 4 Nov 2026 21:24). A row whose host is a retail component of a
 counted parent (One Bangkok's Parade, The Storeys) is shown at the parent and keeps registeredChildVenueId.
 A brand match that the sheet confirmed (brand_match_status registry_brand_membership_linked, one matched brand) adds
-the brand id and its verified logo; candidates never do. Directory entries are what the centre lists on the check
+the brand id and its verified logo; candidates never do.
+Department-store brand counters (D40, owner 8 Nov 2026 01:18: a separate category) are listed per venue under their
+store ('YSL | Central Department Store'), floor by floor, in the shard's `counters`: never a shop of the centre, never in
+the shop counts, the shop roles or brand search. Directory entries are what the centre lists on the check
 date: not field-verified operation, not a legal tenant, not a physical-shop census.
 The optional --receipt writes one line per directory row (observation id → shown item, already shown, or held and
 why) for the research sheet's public_projection_status; it stays outside this repository.
@@ -55,8 +58,10 @@ COMPONENT_SCOPE_HOLD = ('held_counter_or_component', 'parent_component_scope_hel
 # Facilities of the centre itself. English words count only at the start of the listed name (so “Foot Locker” stays a
 # shop) or as a whole phrase; Thai words anywhere; an ATM never is a shop (a bank branch is).
 FACILITY_START = re.compile(r'^\W*(atm|cdm|adm|toilets?|restrooms?|wc|parking|car ?park|information|lifts?|elevators?|escalators?|'
-                            r'lockers?|nursery|baby|prayer|musall?a|first aid|smoking|drop[ -]?off|taxi|bus stop|charging)\b', re.I)
-FACILITY_ANY = re.compile(r'\b(atm|cdm|adm)\b|customer (service|relations?)|information (counter|desk|center|centre)|'
+                            r'lockers?|nursery room|prayer|musall?a|first aid|smoking|drop[ -]?off|taxi|bus stop|charging|'
+                            r'customer (service|relations?))\b', re.I)
+# (“Baby Lovett” and “Huawei Customer Service Center” are shops: a brand name may start with Baby or hold the words.)
+FACILITY_ANY = re.compile(r'\b(atm|cdm|adm)\b|information (counter|desk|center|centre)|'
                           r'mother ?(&|and) ?baby|baby (care|room|changing)|prayer room|charging station|'
                           r'ตู้เอทีเอ็ม|ตู้ฝาก|ห้องน้ำ|สุขา|ที่จอดรถ|ลานจอดรถ|ประชาสัมพันธ์|ลิฟต์|บันไดเลื่อน|ห้องละหมาด|ห้องให้นม|'
                           r'ห้องแม่และเด็ก|ล็อกเกอร์|ห้องปฐมพยาบาล|จุดจอดแท็กซี่|ป้ายรถเมล์|ห้องสูบบุหรี่', re.I)
@@ -272,7 +277,8 @@ def floor_text(floor, unit):
     return ' · '.join(p for p in parts if p)
 
 
-RECEIPT_OUTCOME = {'shown': 'shown_as_directory_item', 'represented': 'already_shown_by_brand_roster', 'held': 'held'}
+RECEIPT_OUTCOME = {'shown': 'shown_as_directory_item', 'represented': 'already_shown_by_brand_roster',
+                   'counter': 'shown_as_department_store_brand', 'held': 'held'}
 RECEIPT_HELD = {
     'department_store_counter': 'held_department_store_counter_not_outlet',
     'held_source_observation': 'held_source_observation_not_additive_outlet',
@@ -291,9 +297,66 @@ def receipt_status(outcome, reason, before):
         return 'published_as_venue_directory_listing'
     if outcome == 'represented':
         return 'published_via_existing_brand_roster_listing'
+    if outcome == 'counter':
+        return 'published_as_department_store_brand_presence'
     if before.startswith('held_'):
         return before  # the sheet's own hold stays as the sheet wrote it
     return RECEIPT_HELD.get(reason, 'held_' + reason)
+
+
+STORE_LABEL = re.compile(r'department store|ห้างสรรพสินค้า', re.I)
+
+
+def counter_parts(label, category):
+    """'YSL | Central Department Store' → ('YSL', 'Central Department Store'); the store's own row has no brand."""
+    brand, _, store = str(label or '').partition(' | ')
+    brand, store = brand.strip(), (store or category or '').strip()
+    if STORE_LABEL.search(brand):  # a department store's own row ('ZEN DEPARTMENT STORE'), not a brand inside it
+        return '', store or brand
+    return brand, store
+
+
+def department_store_brands(counter_groups, disposition):
+    """Per host: the department stores and, floor by floor, the brands with a counter there (D40)."""
+    out = collections.defaultdict(dict)
+    for (host, store_key, _), g in counter_groups.items():
+        store = out[host].setdefault(store_key, {'store': g['store'], 'brands': {}, 'rows': 0, 'checked': set(), 'urls': [],
+                                                 'ids': []})
+        floors = {}
+        for r in g['rows']:
+            for part in re.split(r'\s*\|\s*', r['floor_raw'] or ''):
+                code = floor_code(part)
+                if code:
+                    floors.setdefault(floor_key(code), code)
+            if iso_date(r['checked_on']):
+                store['checked'].add(iso_date(r['checked_on']))
+            url = public_url(r['source_url']) or public_url(r['detail_url'])
+            if url and url not in store['urls']:
+                store['urls'].append(url)
+            store['ids'].append(r['observation_id'].strip())
+            disposition[r['observation_id'].strip()] = ('counter', 'department_store_brand', '')
+        store['rows'] += len(g['rows'])
+        store['brands'][g['brand']] = floors
+    result = {}
+    for host, stores in out.items():
+        listed = []
+        for st in sorted(stores.values(), key=lambda x: (-len(x['brands']), x['store'])):
+            by_floor = collections.defaultdict(set)
+            for brand, floors in st['brands'].items():
+                for key, code in (floors.items() or [('', '')]):
+                    by_floor[(key, code)].add(brand)
+            order = sorted(by_floor, key=lambda kc: floor_order(kc[1]) if kc[1] else (9999, ''))
+            listed.append({
+                'store': st['store'],
+                'brands': len(st['brands']),
+                'floors': [{'floor': f'ชั้น {code}' if code else '', 'brands': sorted(by_floor[(key, code)], key=str.lower)}
+                           for key, code in order],
+                'sourceUrl': st['urls'][0] if st['urls'] else '',
+                'checkedOn': max(st['checked']) if st['checked'] else '',
+                'sourceObservationCount': st['rows'],
+            })
+        result[host] = listed
+    return result
 
 
 def roster_keys(item):
@@ -348,13 +411,32 @@ def main():
         return None, None, 'host_held_without_counted_parent'
 
     disposition, groups = {}, collections.OrderedDict()
+    counter_groups = collections.OrderedDict()
     for r in rows:
         oid = r['observation_id'].strip()
         label = r['tenant_label'].strip()
         reason = ''
         if r['outlet_match_status'] == COUNTER:
-            reason = 'department_store_counter'
-        elif r['public_projection_status'].startswith('held_') and not component_scope_only(r):
+            # D40 (owner 8 Nov 2026 01:18, “separate category”): a brand counter inside the department store is listed
+            # as the store's brand, never as a shop of the centre.
+            brand, store = counter_parts(label, r['category_raw'])
+            if not brand:
+                reason = 'department_store_name_row'
+            elif 'coming_soon' in r['operation_status']:
+                reason = 'coming_soon_not_confirmed_open'
+            elif r['brand_match_status'] == NOT_A_SHOP or is_facility(brand):
+                reason = 'centre_facility_not_a_shop'
+            elif not (public_url(r['detail_url']) or public_url(r['source_url'])):
+                reason = 'no_public_source_link'
+            if not reason:
+                host, child, reason = host_of(r)
+            if reason:
+                disposition[oid] = ('held', reason, '')
+            else:
+                key = (host, norm(store), norm(brand))
+                counter_groups.setdefault(key, {'host': host, 'store': store, 'brand': brand, 'rows': []})['rows'].append(r)
+            continue
+        if r['public_projection_status'].startswith('held_') and not component_scope_only(r):
             reason = r['public_projection_status']
         elif r['count_role'] == HELD_OBSERVATION:
             reason = 'held_source_observation'
@@ -380,6 +462,7 @@ def main():
     by_host = collections.defaultdict(list)
     for key, g in groups.items():
         by_host[g['host']].append((key, g))
+    counters = department_store_brands(counter_groups, disposition)
 
     shards = [dict() for _ in range(SHARDS)]
     counts, coverage = {}, []
@@ -490,14 +573,22 @@ def main():
                          'shownByRoster': represented, 'directoryItems': len(added), 'rosterItems': len(items),
                          'shownTotal': len(items) + len(added)})
 
+    for host, stores in counters.items():
+        shards[shard_of(host)].setdefault(host, {'items': [], 'entries': 0})['counters'] = stores
+        counts.setdefault(host, {'items': 0, 'roles': {}})['counterBrands'] = sum(st['brands'] for st in stores)
+    totals['counterBrands'] = sum(st['brands'] for stores in counters.values() for st in stores)
+
     data_dir = data / 'directory'
     data_dir.mkdir(exist_ok=True)
     checked = sorted(i['checkedOn'] for v in shards for e in v.values() for i in e['items'] if i['checkedOn'])
-    meta = {'schemaVersion': '1', 'asOf': a.exported_on, 'dataset': DATASET, 'shards': SHARDS, 'rule': 'D38',
-            'items': totals['added'], 'venues': len(counts),
+    meta = {'schemaVersion': '1', 'asOf': a.exported_on, 'dataset': DATASET, 'shards': SHARDS, 'rule': 'D38 · D40',
+            'items': totals['added'], 'venues': sum(1 for c in counts.values() if c['items']),
+            'counterBrands': totals['counterBrands'], 'counterVenues': len(counters),
             'checkedFrom': checked[0] if checked else '', 'checkedTo': checked[-1] if checked else '',
             'source': 'official centre directories collected in the Research Master (18_OFFICIAL_TENANTS)',
-            'scope': 'directory entries not already shown by the brand roster; listed names, not field-verified shops'}
+            'scope': 'directory entries not already shown by the brand roster; listed names, not field-verified shops',
+            'counterScope': 'brands with a counter inside a department store of the centre, as its directory lists them; '
+                            'not shops of the centre, not in the shop counts or brand search'}
     for n, venues_in in enumerate(shards):
         body = {'meta': meta, 'venues': dict(sorted(venues_in.items()))}
         (data_dir / f'{n:02d}.json').write_text(json.dumps(body, ensure_ascii=False, separators=(',', ':')) + '\n')
@@ -512,11 +603,14 @@ def main():
         'rosterSha256': hashlib.sha256(b''.join((data / 'tenants' / f'{n:02d}.json').read_bytes() for n in range(SHARDS))).hexdigest(),
         'venueCoreSha256': hashlib.sha256((data / 'venues.json').read_bytes()).hexdigest(),
         'rows': {'shownAsDirectoryItems': sum(1 for v in disposition.values() if v[0] == 'shown'),
+                 'shownAsDepartmentStoreBrands': sum(1 for v in disposition.values() if v[0] == 'counter'),
                  'alreadyShownByRoster': sum(1 for v in disposition.values() if v[0] == 'represented'),
                  'held': sum(1 for v in disposition.values() if v[0] == 'held'),
                  'byReason': dict(sorted(reasons.items(), key=lambda x: -x[1]))},
-        'entries': {'directoryEntries': totals['groups'], 'shownByRoster': totals['represented'], 'directoryItems': totals['added']},
-        'venues': len(counts),
+        'entries': {'directoryEntries': totals['groups'], 'shownByRoster': totals['represented'], 'directoryItems': totals['added'],
+                    'departmentStoreBrands': totals['counterBrands']},
+        'venues': sum(1 for c in counts.values() if c['items']),
+        'counterVenues': len(counters),
         'coverage': sorted(coverage, key=lambda c: (-c['directoryEntries'], c['venueId'])),
         'unit': 'one entry = one listed name on one floor and unit of one centre; repeats of the same name, floor and unit are one entry',
         'limits': [

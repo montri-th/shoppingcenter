@@ -35,12 +35,14 @@ export function createDirectoryLoader(fetchImpl = (...args) => fetch(...args)) {
     })().catch(error => { cache.delete(path); throw error; }));
     const json = await cache.get(path);
     const items = json.venues[id]?.items;
-    return {items: Array.isArray(items) ? items : [], meta: json.meta};
+    // D40: the brands with a counter inside the centre's department stores — a list of their own, never shop items.
+    const counters = json.venues[id]?.counters;
+    return {items: Array.isArray(items) ? items : [], counters: Array.isArray(counters) ? counters : [], meta: json.meta};
   };
 }
 
 /** Failed requests are evicted so the panel's retry can recover without reloading the map. */
-export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {directory = null} = {}) {
+export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {directory = null, parts = () => []} = {}) {
   const cache = new Map();
   let profiles;
   const read = async path => {
@@ -53,7 +55,7 @@ export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {dir
     } finally { clearTimeout(timer); }
   };
   const readProfiles = () => profiles ||= read('data/tenant-profiles.json').catch(() => null);
-  return async id => {
+  const own = async id => {
     const path = `data/tenants/${String(shardOf(id, SHARDS)).padStart(2, '0')}.json`;
     if (!cache.has(path)) cache.set(path, read(path).then(json => {
       if (!json?.venues || typeof json.venues !== 'object') throw new Error('Invalid tenant shard');
@@ -66,11 +68,63 @@ export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {dir
     const extra = listed?.items?.length ? listed.items : [];
     return {...roster, items: extra.length ? [...roster.items, ...extra] : roster.items,
       directory: listed ? {items: extra.length, meta: listed.meta || {}} : null,
+      counters: listed?.counters?.length ? listed.counters : [],
       profile: profileData?.venues?.[id] || null, meta: json.meta || {}};
+  };
+  return async id => {
+    const subAreas = (parts(id) || []).filter(p => p?.id && p.id !== id);
+    const [main, ...rest] = await Promise.all([own(id), ...subAreas.map(p => own(p.id))]);
+    if (!subAreas.length) return main;
+    // D41: the listed shops of the sub-areas follow the place's own, each with the sub-area it is in (copies: the
+    // sub-area's own panel reads the same cached items untagged).
+    const tag = (part, value) => ({...value, subArea: part.name, subAreaId: part.id});
+    const items = [...main.items, ...rest.flatMap((r, i) => r.items.map(item => tag(subAreas[i], item)))];
+    const counters = [...main.counters, ...rest.flatMap((r, i) => r.counters.map(st => tag(subAreas[i], st)))];
+    const directory = main.directory ? {...main.directory, items: [main, ...rest].reduce((n, r) => n + (r.directory?.items || 0), 0)} : null;
+    return {...main, items, counters, directory, subAreas: subAreas.map((p, i) => ({id: p.id, name: p.name, items: rest[i].items.length}))};
   };
 }
 
 export const loadTenants = createTenantLoader(undefined, {directory: createDirectoryLoader()});
+
+/**
+ * D41: the sub-areas of a counted place — its children that do not count on their own (a zone, a building of the block).
+ * Their listed shops show at the place too (tenant loader `parts`, index rollUpSubAreas); a child that counts keeps its own.
+ */
+export function subAreasOf(row, byId) {
+  if (!row?.countable || !Array.isArray(row.children)) return [];
+  return row.children.map(id => byId.get(id)).filter(child => child && !child.countable).map(child => ({id: child.id, name: child.name}));
+}
+
+/**
+ * D41: each counted place's index entry also holds its sub-areas' listed shops (counts, roles, brands), and a brand listed
+ * in a sub-area is listed at the place instead — a complex counted once, so “พบใน N สถานที่” never counts a block twice.
+ * The sub-area's own entry (its own panel, the sub-area list) is unchanged. Applied once per index; returns the index.
+ */
+export function rollUpSubAreas(index, rows, byId) {
+  if (!index?.venues || index.subAreasRolledUp || !rows?.length) return index;
+  for (const row of rows) {
+    for (const part of subAreasOf(row, byId)) {
+      const child = index.venues.get(part.id);
+      if (!child?.items) continue;
+      let entry = index.venues.get(row.id);
+      if (!entry) index.venues.set(row.id, entry = {items: 0, roles: new Map(), brands: new Map()});
+      entry.items += child.items;
+      if (child.directoryItems) entry.directoryItems = (entry.directoryItems || 0) + child.directoryItems;
+      for (const [role, n] of child.roles) entry.roles.set(role, (entry.roles.get(role) || 0) + n);
+      for (const [key, role] of child.brands) {
+        if (!entry.brands.has(key)) entry.brands.set(key, role);
+        const brand = index.brands.get(key);
+        if (!brand?.venues.has(part.id)) continue;
+        const n = brand.venues.get(part.id);
+        brand.venues.delete(part.id);
+        brand.venues.set(row.id, (brand.venues.get(row.id) || 0) + n);
+      }
+    }
+  }
+  Object.defineProperty(index, 'subAreasRolledUp', {value: true, enumerable: false});
+  return index;
+}
 
 /** Selection state outlives panel repaints. Late responses never replace a newly selected venue. */
 export function createTenantSelection({load = loadTenants, changed = () => {}} = {}) {

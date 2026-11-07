@@ -34,7 +34,7 @@
  * and the centre facilities, loaded right after the core data (D22): until they arrive a shop figure reads “—”. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
-import {GROUPS, GROUP_SETS, DEFAULT_GROUP, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, summarize, hasPoint, rowProvince, prepareRows, applyShopLists, operatorRanking, districtWord, groupById, groupLabel, contextState, BANGKOK} from './model.js';
+import {GROUPS, GROUP_SETS, DEFAULT_GROUP, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, groupMatches, summarize, hasPoint, rowProvince, prepareRows, applyShopLists, operatorRanking, districtWord, groupById, groupLabel, contextState, BANGKOK} from './model.js';
 import {parseStations, attachNearestStations, nearRail, rowsNearStation, installStationLayer, STATION_RADIUS_M, STATION_LAYERS} from './stations.js';
 import {indexDistricts, summarizeDistricts, districtsInScope, districtLabel} from './areas.js';
 import {summarizeAreaInsight, filterDistrictRows} from './area-insight.js';
@@ -61,7 +61,7 @@ import {installTerrain, TERRAIN} from './terrain.js';
 import {guardRetainedTiles, guardElevationFreeze} from './maplibre-guard.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {loadDetail, cachedDetail} from './details.js';
-import {createTenantSelection, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
+import {createTenantSelection, createTenantLoader, createDirectoryLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
@@ -107,9 +107,11 @@ const state = {
   // Operating rail stations of CityMETER · Transit (data/stations.json): list, index, meta, and the map layer.
   stationList: [], stationById: new Map(), stationMeta: null, stations: null,
 };
-const tenantSelection = createTenantSelection({changed: selection => {
-  if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel();
-}});
+// D41: a place's shop list also holds the listed shops of its sub-areas (each shop names the sub-area it is in).
+const tenantSelection = createTenantSelection({
+  load: createTenantLoader(undefined, {directory: createDirectoryLoader(), parts: id => subAreasOf(state.byId.get(id), state.byId)}),
+  changed: selection => { if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel(); },
+});
 
 /* ---------- helpers ---------- */
 const values = () => Object.fromEntries(FIELDS.map(k => [k, $(k).value]));
@@ -156,6 +158,22 @@ function stationProfile() {
 const railTest = () => (state.stationList.length ? r => nearRail(r, STATION_RADIUS_M) : null);
 
 /** The province whose districts are drawn and ranked ('' = the whole country). */
+/**
+ * D39: venues the type filter leaves out under the same other filters, in the province being read (or the country):
+ * their count and the groups with the most of them. Null when every type is shown.
+ */
+function otherTypes(f, province = '') {
+  if (!f.group) return null;
+  const inArea = r => !province || rowProvince(r) === province;
+  const all = filterVenues(state.all, {...f, group: ''}).filter(inArea);
+  const others = all.filter(r => !groupMatches(f.group, r));
+  if (!others.length) return null;
+  const counts = new Map();
+  for (const r of others) counts.set(r.group, (counts.get(r.group) || 0) + 1);
+  return {count: others.length, where: province ? `ใน${provinceShort(province)}` : 'ทั่วประเทศ',
+    groups: [...counts].map(([id, count]) => ({id, count})).sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))};
+}
+
 function readingProvince() {
   const f = values();
   if (f.province) return f.province;
@@ -365,7 +383,8 @@ function renderPanel() {
     const areas = state.districtModel.areas;
     const model = buildOverviewModel({rows: state.rows, scopeRows: state.scopeRows, areas, kind: 'district', readCode, ...statusRows({province: readCode || f.province})});
     const provinces = (state.provinceModel?.provinces || []).filter(p => p.count > 0).sort((a, b) => b.count - a.count);
-    html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces, shops: shopMeta(), transit: state.stationMeta});
+    html = renderOverview({insight, model, focusMode: focusMode(), readCode: f.province || (focusMode() === 'none' ? '' : readCode), national: !f.province, subject: subjectWord(), asOf, provinces, shops: shopMeta(), transit: state.stationMeta,
+      others: otherTypes(f, f.province || (focusMode() === 'none' ? '' : readCode))});
     cardHtml = mapCardAha(insight, {mode: focusMode(), subject: subjectWord()});
   }
   view.innerHTML = html;
@@ -515,7 +534,7 @@ function ensureTenantIndex() {
   if (state.tenantIndex || state.tenantIndexState === 'loading') return;
   state.tenantIndexState = 'loading';
   loadTenantIndex().then(index => {
-    state.tenantIndex = index; state.tenantIndexState = 'ready';
+    state.tenantIndex = rollUpSubAreas(index, state.all, state.byId); state.tenantIndexState = 'ready';
     const role = shopListsChanged();
     const key = state.pendingBrand;
     state.pendingBrand = '';

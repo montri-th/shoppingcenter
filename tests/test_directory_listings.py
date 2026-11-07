@@ -29,7 +29,7 @@ assert b.floor_key(b.floor_code('3rd Floor')) == b.floor_key('3F') == b.floor_ke
 assert b.norm('ร้านกาแฟ') != b.norm('รานกาแฟ')
 for label in ('ATM Bangkok Bank', 'Toilet', 'ห้องน้ำชั้น 2', 'Customer Service', 'Parking B1', 'ตู้เอทีเอ็ม กสิกร', 'Prayer Room'):
     assert b.is_facility(label), label
-for label in ('Foot Locker', 'Babylon Kids', 'Infinity Gold', 'Kasikornbank'):
+for label in ('Foot Locker', 'Babylon Kids', 'Infinity Gold', 'Kasikornbank', 'BABY LOVETT', 'Baby Face Clinic', 'Huawei Customer Service Center'):
     assert not b.is_facility(label), label
 # roles from the centre's own category, conservatively from the name when the category is blank
 assert b.role_of('Food & Beverage', 'Anything') == 'food'
@@ -92,7 +92,11 @@ with tempfile.TemporaryDirectory() as tmp:
         dict(ok, observation_id='o1', venue_id='V1', tenant_label='Uniqlo', floor_raw='L2', unit_raw='201', category_raw='Fashion'),
         dict(ok, observation_id='o2', venue_id='V1', tenant_label='Uniqlo', floor_raw='L3', unit_raw='301', category_raw='Fashion'),
         dict(ok, observation_id='o3', venue_id='V1', tenant_label='Toilet', floor_raw='L1'),
-        dict(ok, observation_id='o4', venue_id='V1', tenant_label='Counter X', outlet_match_status=b.COUNTER),
+        dict(ok, observation_id='o4', venue_id='V1', tenant_label='YSL | Central Department Store', category_raw='Central Department Store', floor_raw='L1', outlet_match_status=b.COUNTER),
+        dict(ok, observation_id='o4b', venue_id='V1', tenant_label='YSL | Central Department Store', category_raw='Central Department Store', floor_raw='L2', outlet_match_status=b.COUNTER),
+        dict(ok, observation_id='o4c', venue_id='V1', tenant_label='Clinique | Central Department Store', category_raw='Central Department Store', floor_raw='L1', outlet_match_status=b.COUNTER),
+        dict(ok, observation_id='o4d', venue_id='V1', tenant_label='CENTRAL DEPARTMENT STORE', category_raw='Central Department Store', floor_raw='L1 | L2', outlet_match_status=b.COUNTER),
+        dict(ok, observation_id='o4e', venue_id='V1', tenant_label='Customer Service | Central Department Store', category_raw='Central Department Store', floor_raw='L1', outlet_match_status=b.COUNTER),
         dict(ok, observation_id='o5', venue_id='V1', tenant_label='Wing Y', public_projection_status='held_counter_or_component'),
         dict(ok, observation_id='o6', venue_id='V1', tenant_label='Soon Z', operation_status='coming_soon_listing'),
         dict(ok, observation_id='o7', venue_id='V1', tenant_label='Café Amazon', floor_raw='G Floor', unit_raw='G01', category_raw='Food & Beverage', detail_url='https://example.com/amazon'),
@@ -142,27 +146,35 @@ with tempfile.TemporaryDirectory() as tmp:
     assert linked['brandId'] == 'research.TH.restaurants:R1' and linked['brandLinked'] is True and linked['logo']['file'] == 'assets/tenant-logos/r1.png'
     assert not any(i.get('brandId') for i in items if i is not linked), 'only a confirmed brand match carries a brand id'
     counts = json.loads((data / 'directory' / 'counts.json').read_text())
-    assert counts['venues'] == {'V1': {'items': 5, 'roles': {'apparel': 1, 'department': 1, 'dining': 1, 'food': 1, 'shop': 1}},
+    assert counts['venues'] == {'V1': {'items': 5, 'roles': {'apparel': 1, 'department': 1, 'dining': 1, 'food': 1, 'shop': 1}, 'counterBrands': 2},
                                 'V5': {'items': 1, 'roles': {'shop': 1}}}, counts['venues']
+    assert counts['meta']['counterBrands'] == 2 and counts['meta']['counterVenues'] == 1
     assert counts['meta']['dataset'] == b.DATASET and counts['meta']['items'] == 6 and counts['meta']['venues'] == 2
     report = json.loads((data / 'directory' / 'build-report.json').read_text())
     assert report['input']['rows'] == len(rows)
     r = report['rows']
-    assert r['shownAsDirectoryItems'] + r['alreadyShownByRoster'] + r['held'] == len(rows)
+    assert r['shownAsDirectoryItems'] + r['shownAsDepartmentStoreBrands'] + r['alreadyShownByRoster'] + r['held'] == len(rows)
+    assert r['shownAsDepartmentStoreBrands'] == 3
     with receipt.open(encoding='utf-8') as f:
         lines = list(csv.DictReader(f))
     status = {x['observation_id']: x['public_projection_status'] for x in lines}
-    out = {x['observation_id']: ({'shown_as_directory_item': 'shown', 'already_shown_by_brand_roster': 'represented'}.get(x['web_outcome'], x['web_outcome']),
+    out = {x['observation_id']: ({'shown_as_directory_item': 'shown', 'already_shown_by_brand_roster': 'represented', 'shown_as_department_store_brand': 'counter'}.get(x['web_outcome'], x['web_outcome']),
                                  x['reason'], x['web_item_id']) for x in lines}
     assert out['o1'] == ('represented', 'shown_by_roster_name_floor', 'research.TH.apparel:02_STORES:U1'), out['o1']
     assert out['o14'] == ('represented', 'shown_by_roster_identity', 'research.TH.misc:x:ID1')
     assert status['o1'] == 'published_via_existing_brand_roster_listing' and status['o7'] == 'published_as_venue_directory_listing'
-    assert status['o4'] == 'held_department_store_counter_not_outlet' and status['o3'] == 'held_centre_facility_not_a_shop'
+    assert status['o3'] == 'held_centre_facility_not_a_shop'
     assert status['o5'] == 'held_counter_or_component', 'the sheet keeps its own hold as written'
     assert status['o18'] == 'published_as_venue_directory_listing', 'a component-scope hold shown at the single venue'
     assert all(x['web_release'] == '0.1.27' and x['exported_on'] == '2026-11-07' for x in lines)
     assert out['o3'][1] == out['o17'][1] == 'centre_facility_not_a_shop'
-    assert out['o4'][1] == 'department_store_counter'
+    assert out['o4'][:2] == out['o4c'][:2] == ('counter', 'department_store_brand')
+    assert out['o4d'][1] == 'department_store_name_row' and out['o4e'][1] == 'centre_facility_not_a_shop'
+    assert status['o4'] == 'published_as_department_store_brand_presence'
+    stores = shard['venues']['V1']['counters']
+    assert [st['store'] for st in stores] == ['Central Department Store'] and stores[0]['brands'] == 2
+    assert stores[0]['floors'] == [{'floor': 'ชั้น L1', 'brands': ['Clinique', 'YSL']}, {'floor': 'ชั้น L2', 'brands': ['YSL']}]
+    assert stores[0]['sourceUrl'] == 'https://example.com/directory' and stores[0]['sourceObservationCount'] == 3
     assert out['o5'][1] == 'held_counter_or_component'
     assert out['o6'][1] == 'coming_soon_not_confirmed_open'
     assert out['o12'][1] == 'no_public_source_link'

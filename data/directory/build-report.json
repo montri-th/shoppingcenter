@@ -11,19 +11,21 @@
     "hosts": 68
   },
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
-  "venueCoreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
+  "venueCoreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
   "rows": {
-    "shownAsDirectoryItems": 15137,
+    "shownAsDirectoryItems": 15154,
+    "shownAsDepartmentStoreBrands": 7735,
     "alreadyShownByRoster": 3161,
-    "held": 8657,
+    "held": 905,
     "byReason": {
-      "directory_item": 15137,
-      "department_store_counter": 7749,
+      "directory_item": 15154,
+      "department_store_brand": 7735,
       "shown_by_roster_identity": 1835,
       "shown_by_roster_name_floor": 1326,
       "held_counter_or_component": 674,
       "held_consumer_location_or_visibility": 163,
-      "centre_facility_not_a_shop": 40,
+      "centre_facility_not_a_shop": 23,
+      "department_store_name_row": 14,
       "held_event_or_public_space_component_not_retailer_qualified": 14,
       "held_shared_or_department_format_independence_review": 10,
       "held_venue_amenity_or_lounge_operator_review": 4,
@@ -32,11 +34,13 @@
     }
   },
   "entries": {
-    "directoryEntries": 18078,
+    "directoryEntries": 18095,
     "shownByRoster": 3137,
-    "directoryItems": 14941
+    "directoryItems": 14958,
+    "departmentStoreBrands": 7268
   },
   "venues": 65,
+  "counterVenues": 18,
   "coverage": [
     {
       "venueId": "SC-007290",
@@ -50,11 +54,11 @@
     {
       "venueId": "SC-001245",
       "name": "เซ็นทรัลเวิลด์",
-      "directoryEntries": 706,
+      "directoryEntries": 708,
       "shownByRoster": 116,
-      "directoryItems": 590,
+      "directoryItems": 592,
       "rosterItems": 185,
-      "shownTotal": 775
+      "shownTotal": 777
     },
     {
       "venueId": "SC-006426",
@@ -68,11 +72,11 @@
     {
       "venueId": "SC-012204",
       "name": "เมกาบางนา",
-      "directoryEntries": 589,
+      "directoryEntries": 592,
       "shownByRoster": 124,
-      "directoryItems": 465,
+      "directoryItems": 468,
       "rosterItems": 172,
-      "shownTotal": 637
+      "shownTotal": 640
     },
     {
       "venueId": "SC-000401",
@@ -95,11 +99,11 @@
     {
       "venueId": "SC-001360",
       "name": "ซีคอนสแควร์ ศรีนครินทร์",
-      "directoryEntries": 442,
+      "directoryEntries": 444,
       "shownByRoster": 16,
-      "directoryItems": 426,
+      "directoryItems": 428,
       "rosterItems": 38,
-      "shownTotal": 464
+      "shownTotal": 466
     },
     {
       "venueId": "SC-000761",
@@ -167,11 +171,11 @@
     {
       "venueId": "SC-011757",
       "name": "เซ็นทรัล หาดใหญ่",
-      "directoryEntries": 365,
+      "directoryEntries": 367,
       "shownByRoster": 54,
-      "directoryItems": 311,
+      "directoryItems": 313,
       "rosterItems": 71,
-      "shownTotal": 382
+      "shownTotal": 384
     },
     {
       "venueId": "SC-001536",
@@ -203,20 +207,20 @@
     {
       "venueId": "SC-014484",
       "name": "เซ็นทรัล อุดร",
-      "directoryEntries": 324,
+      "directoryEntries": 325,
       "shownByRoster": 47,
-      "directoryItems": 277,
+      "directoryItems": 278,
       "rosterItems": 68,
-      "shownTotal": 345
+      "shownTotal": 346
     },
     {
       "venueId": "SC-006549",
       "name": "เซ็นทรัล นอร์ทวิลล์",
-      "directoryEntries": 322,
+      "directoryEntries": 324,
       "shownByRoster": 37,
-      "directoryItems": 285,
+      "directoryItems": 287,
       "rosterItems": 43,
-      "shownTotal": 328
+      "shownTotal": 330
     },
     {
       "venueId": "SC-003895",
@@ -275,11 +279,11 @@
     {
       "venueId": "SC-015770",
       "name": "เซ็นทรัล เชียงใหม่ แอร์พอร์ต",
-      "directoryEntries": 287,
+      "directoryEntries": 288,
       "shownByRoster": 34,
-      "directoryItems": 253,
+      "directoryItems": 254,
       "rosterItems": 42,
-      "shownTotal": 295
+      "shownTotal": 296
     },
     {
       "venueId": "SC-C0015",
@@ -318,6 +322,15 @@
       "shownTotal": 275
     },
     {
+      "venueId": "SC-005868",
+      "name": "เซ็นทรัล นครศรี",
+      "directoryEntries": 263,
+      "shownByRoster": 35,
+      "directoryItems": 228,
+      "rosterItems": 38,
+      "shownTotal": 266
+    },
+    {
       "venueId": "SC-001164",
       "name": "เดอะมอลล์ไลฟ์สโตร์ บางแค",
       "directoryEntries": 262,
@@ -325,15 +338,6 @@
       "directoryItems": 142,
       "rosterItems": 137,
       "shownTotal": 279
-    },
-    {
-      "venueId": "SC-005868",
-      "name": "เซ็นทรัล นครศรี",
-      "directoryEntries": 262,
-      "shownByRoster": 35,
-      "directoryItems": 227,
-      "rosterItems": 38,
-      "shownTotal": 265
     },
     {
       "venueId": "SC-005210",
@@ -374,11 +378,11 @@
     {
       "venueId": "SC-013641",
       "name": "เซ็นทรัล สุราษฎร์ธานี",
-      "directoryEntries": 238,
+      "directoryEntries": 239,
       "shownByRoster": 44,
-      "directoryItems": 194,
+      "directoryItems": 195,
       "rosterItems": 52,
-      "shownTotal": 246
+      "shownTotal": 247
     },
     {
       "venueId": "SC-005123",
@@ -554,20 +558,20 @@
     {
       "venueId": "VN-7e2155ac67fe96",
       "name": "เอสพลานาด รัชดา",
-      "directoryEntries": 123,
+      "directoryEntries": 124,
       "shownByRoster": 10,
-      "directoryItems": 113,
+      "directoryItems": 114,
       "rosterItems": 17,
-      "shownTotal": 130
+      "shownTotal": 131
     },
     {
       "venueId": "SC-000067",
       "name": "เซ็นทรัล กระบี่",
-      "directoryEntries": 120,
+      "directoryEntries": 121,
       "shownByRoster": 27,
-      "directoryItems": 93,
+      "directoryItems": 94,
       "rosterItems": 31,
-      "shownTotal": 124
+      "shownTotal": 125
     },
     {
       "venueId": "SC-006590",
