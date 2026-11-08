@@ -44,6 +44,9 @@ SITE_SOURCES = {  # boundary_source codes → the words of the evidence line
     # a draft that Claude's automated checks passed (owner 2026-11-05 23:57 “พี่ทำให้จบเลยได้มั้ย”); a person's later
     # check turns it into osm_outline
     'osm_outline_auto': 'ขอบเขตพื้นที่จาก OpenStreetMap · ตรวจด้วยกฎอัตโนมัติ',
+    # every building of a block the data owner drew by its roads (D44, owner 2026-11-08 11:40, Siam Square: Rama I –
+    # Chula Soi 64, Phaya Thai – Henri Dunant, given 2026-11-07 20:58); no evidence link of its own
+    'owner_block': 'บล็อกตามที่เจ้าของข้อมูลกำหนด',
 }
 
 

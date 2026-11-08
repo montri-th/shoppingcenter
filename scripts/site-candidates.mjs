@@ -10,8 +10,8 @@
 //       → sites/<venue_id>/candidates.json · candidates.csv · candidates.png and .svg (numbered buildings, north up, pin red)
 //   node scripts/site-candidates.mjs row <venue_id> (--pick 1,2,5 | --site site.geojson [--add 3,7] [--drop 12])
 //       [--osm-point "lon,lat;lon,lat"]
-//       --source site_layout|dol_parcels+site_layout|osm_outline|osm_outline+site_layout|osm_outline_auto --evidence <https page of the layout
-//       or of the OpenStreetMap outline> [--main "…"] [--notes "…"] [--by "…"]
+//       --source site_layout|dol_parcels+site_layout|osm_outline|osm_outline+site_layout|osm_outline_auto|owner_block --evidence <https page of the layout
+//       or of the OpenStreetMap outline; none for owner_block> [--main "…"] [--notes "…"] [--by "…"]
 //       → sites/<venue_id>/row.json · picked.png and .svg and the row in sites/site_rows.csv (one row per venue_id)
 //       --osm-point: a building of the site that CityMETER does not have. The map then draws its OpenStreetMap outline
 //       (js/pin-buildings.js matchInUnit), so the point must stand in no CityMETER building and in an OpenStreetMap one
@@ -43,10 +43,12 @@ import {cmParts, interiorPoint, pointInRing} from '../js/pin-buildings.js';
 import {tileBox} from '../js/massing.js';
 import {sitePng, siteSvg} from './site-picture.mjs';
 import {createOsmReader} from './site-osm.mjs';
-import {outlinePolys, polysFromOverpass, polysGeoJson, outlineStats, otherVenuesAt, draftReach, draftPick, edgeHints, osmOnly, boxMeets} from './site-draft.mjs';
+import {outlinePolys, polysFromOverpass, polysGeoJson, outlineStats, otherVenuesAt, draftReach, draftPick, edgeHints, osmOnly, boxMeets, sitePoint} from './site-draft.mjs';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
-const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels', 'osm_outline', 'osm_outline+site_layout', 'osm_outline_auto'];
+// owner_block: every building of a block the data owner drew by its roads (D44, Siam Square); --site is the block and
+// --evidence may be left out (the owner's definition is the evidence; the notes name the roads and the date).
+const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels', 'osm_outline', 'osm_outline+site_layout', 'osm_outline_auto', 'owner_block'];
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 const COLUMNS = ['venue_id', 'venue_name', 'boundary_status', 'boundary_source', 'boundary_evidence_url', 'boundary_geojson', 'buildings_in_boundary',
   'building_count', 'main_building_note', 'checked_by', 'checked_on', 'notes'];
@@ -113,7 +115,8 @@ async function buildingsNear(row, reach) {
         if (pointInRing(point, part.outer) && !part.holes.some(h => pointInRing(point, h))) dist = 0;
         else for (const [x, y] of part.outer) dist = Math.min(dist, Math.hypot((x - row.lon) * kx, (y - row.lat) * ky));
         if (dist > reach) continue;
-        found.push({point: ip.map(v => +v.toFixed(6)), outer: part.outer, holes: part.holes, area_m2: Math.round(part.areaM2),
+        // the row's point stays clear of the walls (sitePoint); the unit above is still decided by the map's interior point
+        found.push({point: sitePoint(part, ip), outer: part.outer, holes: part.holes, area_m2: Math.round(part.areaM2),
           height_m: part.height, dist_m: Math.round(dist)});
       }
     }
@@ -284,7 +287,8 @@ if (cmd === 'candidates') {
   }
   const source = opt('source'), evidence = opt('evidence');
   if (!SOURCES.includes(source)) fail(`--source must be one of ${SOURCES.join(' | ')}`);
-  if (!/^https:\/\//.test(evidence) || /docs\.google|drive\.google|google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(evidence)) fail('--evidence must be a public https page of the site layout (no Google Maps, Drive or Docs link)');
+  if (!(source === 'owner_block' && !evidence) && (!/^https:\/\//.test(evidence) || /docs\.google|drive\.google|google\.[a-z.]+\/maps|maps\.app\.goo\.gl/.test(evidence))) fail('--evidence must be a public https page of the site layout (no Google Maps, Drive or Docs link)');
+  if (source === 'owner_block' && !opt('site')) fail('--source owner_block needs --site <the block the owner drew, as GeoJSON>');
   let picked = new Set(ids(opt('pick'))), siteRings = null, sitePolys = null;
   if (opt('site')) {
     sitePolys = outlinePolys(JSON.parse(readFileSync(opt('site'), 'utf8')));

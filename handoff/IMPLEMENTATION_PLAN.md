@@ -281,3 +281,10 @@ Next: the research team reviews the 11 market pairs of `review.csv` (another mar
 Owner 8 Nov 2026 09:17: “สำหรับ One Bangkok … ในที่สุดน่าจะเหลือชื่อเดียวคือ One Bangkok นั่นแหละ ควรเอา directory มารวมกันเป็นจุดเดียว / ส่วนอาคารสำนักงาน โรงแรม และที่พัก จะแสดงเป็นอาคารพื้นหลัง / เช็คเคสนี้ว่ามีเกิดขึ้นกับที่อื่นอีกมั้ย หาสาเหตุแล้วแก้พร้อมกัน”. Registry: 26 venue points moved into the buildings OpenStreetMap names for them, One Bangkok's into Parade (130 cells of `01_VENUES`, read back); site tab row 17 (One Bangkok's three retail buildings). Code: `js/pin-buildings.js#continuations` / `#stripFit` (a neighbouring tile's piece is the building only with the same height, inside it across the shared strip and not overlapping a piece taken in that tile), `scripts/build-directory-listings.py` (zone named only with a point of its own). Tests: `pin-buildings` (three new cases), `test_directory_listings.py`. Method DATA_METHOD §11.9; decision PRODUCT_STATEMENT D43, §16.
 
 Next: the research team looks for building evidence for the 112 venues still outside every drawn building (37 with a building within 10 m first); if the owner wants the brand roster at One Bangkok without zone words in its unit text, rerun the private coverage audit.
+
+## 0.1.31 — Siam Square: every building of the owner's block (`20261108-r41`, D44)
+
+Owner 8 Nov 2026 11:40: “สยามสแควร์ควรจะแสดง highlight ทุกอาคารภายในกรอบที่เคยแจ้งไปเลยนะ” (the block of 7 Nov 20:58). Site tab row 649 appended (D31) and read back: 45 buildings, `boundary_source = owner_block`. Code: `scripts/build-venue-sites.py#SITE_SOURCES` and `scripts/site-candidates.mjs` (`owner_block`, evidence optional), `scripts/site-draft.mjs#sitePoint` (a row's point at least 0.5 m inside the walls; the courtyard case). Data: `data/venue-sites.json` 393 sites, 5,746 buildings. Test: `site-draft` (courtyard). Method DATA_METHOD §11.10; decision PRODUCT_STATEMENT D44, §17.
+
+Next: the research team compares Siam Square's site with the property office's own layout when one is found; `owner_block` serves any other block the owner defines by its roads.
+

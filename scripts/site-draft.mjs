@@ -196,6 +196,43 @@ export const draftReach = maxDistM => Math.min(DRAFT_MAX_M, Math.ceil(maxDistM) 
 /** The drafted buildings: candidates whose interior point stands in the outline (exactly what `row --site` picks). */
 export const draftPick = (candidates, polys) => new Set(candidates.filter(c => inPolys(c.point, polys)).map(c => c.cid));
 
+export const SITE_POINT_MARGIN_M = 0.5;
+const fix6 = v => +v.toFixed(6);   // the helper's rounding of every point it writes (6 decimals, as the sheet keeps it)
+/** Metres from point p to the nearest edge of any of the rings. */
+export function ringClearance(p, rings) {
+  const {kx, ky} = metresAt(p[1]);
+  let d = Infinity;
+  for (const r of rings) for (let i = 0; i < r.length - 1; i++) {
+    const ax = (r[i][0] - p[0]) * kx, ay = (r[i][1] - p[1]) * ky, bx = (r[i + 1][0] - p[0]) * kx, by = (r[i + 1][1] - p[1]) * ky;
+    const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / (dx * dx + dy * dy || 1)));
+    d = Math.min(d, Math.hypot(ax + t * dx, ay + t * dy));
+  }
+  return d;
+}
+/**
+ * The point a site row stores for a building: the map's interior point, rounded as the helper writes it, when it stays
+ * SITE_POINT_MARGIN_M inside the building; else the point of a 41 × 41 grid over the building that stands in it farthest
+ * from its walls. A building round a courtyard at Siam Square had its interior point 2 cm from the courtyard's edge and
+ * the rounded point in the courtyard, so `check` failed and the D28 review dropped the building (owner 2026-11-08 11:40:
+ * every building of the block). The map still files the building under the unit of its interior point.
+ */
+export function sitePoint(part, ip = interiorPoint(part)) {
+  const holes = part.holes || [], rings = [part.outer, ...holes];
+  const inside = p => pointInRing(p, part.outer) && !holes.some(h => pointInRing(p, h));
+  const first = [fix6(ip[0]), fix6(ip[1])];
+  if (inside(first) && ringClearance(first, rings) >= SITE_POINT_MARGIN_M) return first;
+  let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+  for (const [x, y] of part.outer) { w = Math.min(w, x); e = Math.max(e, x); s = Math.min(s, y); n = Math.max(n, y); }
+  let best = null, bestD = 0;
+  for (let i = 0; i <= 40; i++) for (let j = 0; j <= 40; j++) {
+    const p = [fix6(w + ((e - w) * (i + 0.5)) / 41), fix6(s + ((n - s) * (j + 0.5)) / 41)];
+    if (!inside(p)) continue;
+    const d = ringClearance(p, rings);
+    if (d > bestD) { bestD = d; best = p; }
+  }
+  return best || first;
+}
+
 const inBuilding = (c, p) => pointInRing(p, c.outer) && !c.holes.some(h => pointInRing(p, h));
 /** Share of a building's footprint inside the outline, from an n × n grid of sample points. */
 export function shareInside(c, polys, n = 12) {

@@ -2,7 +2,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {outlinePolys, polysFromOverpass, polysGeoJson, inPolys, outlineStats, otherPinsIn, classifyPin, draftReach, draftPick,
-  shareInside, edgeHints, osmOnly, packPolys, unpackPolys, isSiteTag, DRAFT_MAX_M} from '../scripts/site-draft.mjs';
+  shareInside, edgeHints, osmOnly, packPolys, unpackPolys, isSiteTag, DRAFT_MAX_M, sitePoint, ringClearance, SITE_POINT_MARGIN_M} from '../scripts/site-draft.mjs';
+import {interiorPoint, pointInRing} from '../js/pin-buildings.js';
 
 const row = {id: 'SC-000001', name: 'ทดสอบ', lon: 100.5, lat: 13.7, countable: true};
 const kx = 111320 * Math.cos((row.lat * Math.PI) / 180), ky = 110574;
@@ -128,4 +129,16 @@ test('draft: interior point in the outline (the rule of row --site); the buildin
   const osm = osmOnly([part(lacking), part(cands[0]), part(building(9, 0, 0, 5, 5)), part(building(10, 300, 300, 340, 340))], cands, polys);
   assert.deepEqual(osm.map(o => o.area_m2), [2850], 'the building CityMETER lacks; not one it has, not a shed, not one outside');
   assert.ok(inPolys(osm[0].point, polys));
+});
+
+test('site points: the map\'s interior point when it stays clear of the walls, else a point clear of a courtyard (Siam Square, 8 Nov 2026)', () => {
+  const plain = {outer: square(-20, -10, 20, 10), holes: []};
+  assert.deepEqual(sitePoint(plain), interiorPoint(plain).map(v => +v.toFixed(6)), 'the map\'s interior point, rounded as the helper writes it');
+  // A building round a courtyard: the vertex average falls in the courtyard and the map's fallback lands on a wall.
+  const ring = {outer: square(-40, -30, 40, 30), holes: [square(-30, -20, 30, 20)]};
+  const ip = interiorPoint(ring), p = sitePoint(ring, ip), rings = [ring.outer, ...ring.holes];
+  assert.ok(ringClearance(ip.map(v => +v.toFixed(6)), rings) < SITE_POINT_MARGIN_M, 'the case: the rounded interior point is on a wall');
+  assert.ok(pointInRing(p, ring.outer) && !pointInRing(p, ring.holes[0]), 'the point stands in the building, not in the courtyard');
+  assert.ok(ringClearance(p, rings) >= 3, `clear of every wall (${ringClearance(p, rings).toFixed(1)} m)`);
+  assert.deepEqual(p, p.map(v => +v.toFixed(6)), '6 decimals');
 });

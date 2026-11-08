@@ -427,3 +427,12 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
   - Moved points: PLATINUM POP (`SC-001260`, two pieces), Bravo BKK (`SC-C0284`) and Lotus's Phibun Mangsahan (`SC-SM-04229`) now draw the building the point stands in (“อาคารที่หมุดตั้งอยู่”).
   - The Shoppes at Belle Grand Rama 9 (`VN-e227eeb6fe50a2`): only its podium's two tile pieces are blue; the residential towers stand grey behind it.
 - Not checked: a physical phone; the English UI; the towers of One Bangkok at their real heights (OpenStreetMap gives them no height; a CityMETER tower of 98.83 m east of Post 1928 is drawn as focus context). The Drive copies of the Product Statement and the plan were not updated: Claude in Chrome has no permission on drive.google.com.
+
+## 0.1.31 — Siam Square: every building of the owner's block (`20261108-r41`, D44) — local verification
+
+- Site tab: row 649 inserted under row 648 and pasted A–Z from text checked by SHA-256 in the page (`4838919d…`, 2,771 characters); gviz read-back 26 cells, 0 mismatches; the build columns of all 648 rows equal the 8 Nov read-back (647 rows) plus the new row (SHA-256 of the whole set compared in the page).
+- `node scripts/site-candidates.mjs check VN-5523fa4482b213` on the 43 CityMETER points: 43 of 43 stand in a drawn building; the two OpenStreetMap points stand in no CityMETER building and in an OpenStreetMap building (`createOsmReader` in Chrome on the live page: ≈274 m², ≈489 m²); all 37 OpenStreetMap buildings of the block hold a site point.
+- `python3 scripts/build-venue-sites.py`: 393 sites, 5,746 buildings (only Siam Square changed); `python3 -I scripts/separate-sites.py`: 0 sites changed, the same 11 review pairs.
+- `npm test`: 254 of 254 pass (new: `site-draft` courtyard case).
+- Not yet: live page check of Siam Square after Pages.
+
