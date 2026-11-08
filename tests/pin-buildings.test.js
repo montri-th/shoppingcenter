@@ -78,6 +78,47 @@ test('the same building continued in the neighbouring tile is found by a real ov
   assert.equal(deepOverlap(parts[1], parts[2]), false);
 });
 
+test('a building of another height overlapping across the tile edge is not a piece of the venue\'s building (One Bangkok towers, 8 Nov 2026)', () => {
+  const east = {...tileOf, x: tileOf.x + 1};
+  const features = [
+    feature(40, [rect(0, 0, 40, 30)], {render_height: 33}),          // the podium in this tile, to the buffer at x = 40
+    feature(41, [rect(30, 0, 90, 30)], {render_height: 33}, east),    // the podium continued in the east tile
+    feature(42, [rect(32, 5, 60, 25)], {render_height: 5}, east),     // a tower OpenStreetMap draws over the podium
+  ];
+  const m = matchVenue(at(10, 15), indexOf(features));
+  assert.deepEqual(m.parts.map(p => p.fid).sort(), [40, 41], 'the podium and its own continuation, not the tower');
+});
+
+test('towers of the same height over a podium cut by the tile edge are not its pieces; a building whose continuation splits in two keeps both (One Bangkok, 8 Nov 2026)', () => {
+  const east = {...tileOf, x: tileOf.x + 1};
+  // Post 1928 and The Storeys: podium and towers all carry OpenStreetMap's default height, 5 m
+  const features = [
+    feature(50, [rect(0, 0, 40, 30)], {render_height: 5}),           // the podium in this tile, to the buffer at x = 40
+    feature(51, [rect(30, 0, 90, 30)], {render_height: 5}, east),     // the podium continued in the east tile
+    feature(52, [rect(34, 5, 60, 25)], {render_height: 5}, east),     // a tower over the podium, whole in the east tile
+    feature(53, [rect(30, 12, 38, 18)], {render_height: 5}, east),    // a tower astride the tile edge: its east-tile piece
+  ];
+  const m = matchVenue(at(10, 15), indexOf(features));
+  assert.deepEqual(m.parts.map(p => p.fid).sort(), [50, 51], 'the podium and its own continuation, never a tower over it');
+  // a U-shaped building: its east-tile continuation is two prongs that do not overlap each other
+  const u = [
+    feature(60, [rect(0, 0, 40, 30)], {render_height: 12}),
+    feature(61, [rect(30, 0, 70, 10)], {render_height: 12}, east),
+    feature(62, [rect(30, 20, 70, 30)], {render_height: 12}, east),
+  ];
+  assert.deepEqual(matchVenue(at(10, 15), indexOf(u)).parts.map(p => p.fid).sort(), [60, 61, 62], 'both prongs are the building');
+  // a building on a tile corner (Big C Samut Songkhram): its pieces in three neighbouring tiles overlap one another in
+  // the buffers and are all the building
+  const north = {...tileOf, y: tileOf.y - 1}, northEast = {...tileOf, x: tileOf.x + 1, y: tileOf.y - 1};
+  const corner = [
+    feature(70, [rect(0, 0, 40, 40)], {render_height: 8}),
+    feature(71, [rect(30, 0, 80, 40)], {render_height: 8}, east),
+    feature(72, [rect(0, 30, 40, 80)], {render_height: 8}, north),
+    feature(73, [rect(30, 30, 80, 80)], {render_height: 8}, northEast),
+  ];
+  assert.deepEqual(matchVenue(at(10, 10), indexOf(corner)).parts.map(p => p.fid).sort(), [70, 71, 72, 73], 'the building across four tiles');
+});
+
 test('only z14 pieces are read when z14 is loaded (a retained parent tile would duplicate them)', () => {
   const parent = {z: 13, x: Math.floor(tileOf.x / 2), y: Math.floor(tileOf.y / 2)};
   const parts = explodeParts([feature(40, [rect(0, 0, 10, 10)]), feature(41, [rect(0, 0, 10, 10)], {}, parent)]);

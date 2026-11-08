@@ -66,91 +66,33 @@
   "publicRosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "publicRosterShardCount": 32,
   "reviewedMembershipReceiptSha256": "401eba8affa0d2780f61d363b4fc41cd56f3bb1a3332d073675590aa220362e9",
-  "venueCoreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
+  "venueCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
   "sourceBaselineCommit": "25a9337707bc93ea70046f57b3319a5aed0ced15",
   "venueCoreRefresh": {
     "on": "2026-11-08",
     "by": "scripts/refresh-coverage-receipt.py",
-    "reason": "registry hierarchy change decided by the owner (D41); points, roster and every other venue field are unchanged",
+    "reason": "new export of the Research Master that places points only: 26 venues moved into the buildings OpenStreetMap names for them (D43, owner 8 Nov 2026 09:17); the roster and every other venue field are unchanged",
     "auditedCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
-    "previousCoreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
-    "coreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
-    "rowsChanged": 4,
+    "previousCoreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
+    "coreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+    "rowsChanged": 26,
     "fieldsChanged": [
-      "children",
-      "countHold",
-      "countRole",
-      "countable",
-      "group",
-      "groupBasis",
-      "parentId"
+      "lat",
+      "lon"
     ],
     "rosterUnchanged": true,
-    "hierarchyChange": {
-      "decision": "D41, owner 8 Nov 2026 01:18 (chat, “Yes”): Siam Square One SC-001223, SIAMSCAPE SC-001222 and Centerpoint Siam Square SC-001236 are sub-areas of Siam Square VN-5523fa4482b213; written to 01_VENUES (parent_venue_id, count_role child_zone) and read back on 8 Nov 2026",
-      "venues": [
-        {
-          "venueId": "SC-001222",
-          "parentId": "VN-5523fa4482b213",
-          "countable": false,
-          "countRole": "child_zone",
-          "group": "component",
-          "fieldsChanged": [
-            "countHold",
-            "countRole",
-            "countable",
-            "group",
-            "groupBasis",
-            "parentId"
-          ]
-        },
-        {
-          "venueId": "SC-001223",
-          "parentId": "VN-5523fa4482b213",
-          "countable": false,
-          "countRole": "child_zone",
-          "group": "mall",
-          "fieldsChanged": [
-            "countHold",
-            "countRole",
-            "countable",
-            "parentId"
-          ]
-        },
-        {
-          "venueId": "SC-001236",
-          "parentId": "VN-5523fa4482b213",
-          "countable": false,
-          "countRole": "child_zone",
-          "group": "mall",
-          "fieldsChanged": [
-            "countHold",
-            "countRole",
-            "countable",
-            "parentId"
-          ]
-        },
-        {
-          "venueId": "VN-5523fa4482b213",
-          "parentId": null,
-          "countable": true,
-          "countRole": "pending_scope_boundary_review",
-          "group": "mall",
-          "fieldsChanged": [
-            "children",
-            "group",
-            "groupBasis"
-          ]
-        }
-      ],
-      "note": "no source record or roster item changed (a parent's panel may also show the listed shops of its sub-areas: the same items); the audit read the parent links before this change, so its next private run reads the new ones (componentPublicationHosts)"
-    },
     "history": [
       {
         "on": "2026-11-08",
         "previousCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
         "coreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
         "rowsChanged": 29
+      },
+      {
+        "on": "2026-11-08",
+        "previousCoreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
+        "coreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
+        "rowsChanged": 4
       }
     ]
   }

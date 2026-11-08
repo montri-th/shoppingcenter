@@ -65,8 +65,10 @@ with tempfile.TemporaryDirectory() as tmp:
     data = tmp / 'data'
     (data / 'tenants').mkdir(parents=True)
     venues = [
-        {'id': 'V1', 'name': 'Centre One', 'countable': True, 'children': ['V2']},
-        {'id': 'V2', 'name': 'Parade', 'countable': False, 'parentId': 'V1'},
+        {'id': 'V1', 'name': 'Centre One', 'countable': True, 'children': ['V2', 'V6'], 'lat': 13.7262, 'lon': 100.5476},
+        {'id': 'V2', 'name': 'Parade', 'countable': False, 'parentId': 'V1', 'lat': None, 'lon': None},
+        # a zone with a point of its own (the map shows it): its name stays on the row (D43)
+        {'id': 'V6', 'name': 'Wing Six', 'countable': False, 'parentId': 'V1', 'lat': 13.7270, 'lon': 100.5462},
         {'id': 'V4', 'name': 'Held Wing', 'countable': False},
         {'id': 'V5', 'name': 'Two-building Centre', 'countable': True},
     ]
@@ -116,6 +118,7 @@ with tempfile.TemporaryDirectory() as tmp:
         dict(ok, observation_id='o19', venue_id='V1', tenant_label='Wing Shop', public_projection_status='held_counter_or_component', relationship_status='parent_component_scope_held'),
         # a counter format the sheet could not resolve: stays held
         dict(ok, observation_id='o20', venue_id='V5', tenant_label='Counter Brand', public_projection_status='held_counter_or_component', relationship_status='exact_publisher_host_or_component_join'),
+        dict(ok, observation_id='o21', venue_id='V6', parent_venue_id='V1', tenant_label='Zone Shop', floor_raw='L5'),
     ]
     export = tmp / 'export.csv'
     with export.open('w', newline='', encoding='utf-8') as f:
@@ -133,7 +136,7 @@ with tempfile.TemporaryDirectory() as tmp:
     by_name = {}
     for i in items:
         by_name.setdefault(i['name'], []).append(i)
-    assert sorted(by_name) == ['Café Amazon', 'Central Department Store', 'Linked Noodle', 'Parade Shop', 'Uniqlo'], sorted(by_name)
+    assert sorted(by_name) == ['Café Amazon', 'Central Department Store', 'Linked Noodle', 'Parade Shop', 'Uniqlo', 'Zone Shop'], sorted(by_name)
     assert len(by_name['Uniqlo']) == 1 and by_name['Uniqlo'][0]['unitFloor'] == 'ชั้น L3 · ยูนิต 301', 'the floor the roster lists is shown once; another floor adds a branch'
     amazon = by_name['Café Amazon'][0]
     assert amazon['sourceObservationIds'] == ['o7', 'o8'] and amazon['sourceObservationCount'] == 2, 'the same name, floor and unit is one entry'
@@ -141,15 +144,18 @@ with tempfile.TemporaryDirectory() as tmp:
     assert amazon['sourceUrl'] == 'https://example.com/amazon' and amazon['dataset'] == b.DATASET and amazon['sourceRole'] == b.SOURCE_ROLE
     assert by_name['Central Department Store'][0]['unitFloor'] == 'ชั้น G, L1, L2' and by_name['Central Department Store'][0]['directoryRole'] == 'department'
     parade = by_name['Parade Shop'][0]
-    assert parade['registeredChildVenueId'] == 'V2' and parade['displayQualifier'] == 'ใน Parade', 'a component row shows at its counted parent'
+    assert parade['registeredChildVenueId'] == 'V2', 'a component row shows at its counted parent'
+    assert 'displayQualifier' not in parade, 'D43 (owner 8 Nov 2026 09:17): a zone without a point of its own is not named on the row'
+    zone = by_name['Zone Shop'][0]
+    assert zone['registeredChildVenueId'] == 'V6' and zone['displayQualifier'] == 'ใน Wing Six', 'a zone the map shows keeps its name'
     linked = by_name['Linked Noodle'][0]
     assert linked['brandId'] == 'research.TH.restaurants:R1' and linked['brandLinked'] is True and linked['logo']['file'] == 'assets/tenant-logos/r1.png'
     assert not any(i.get('brandId') for i in items if i is not linked), 'only a confirmed brand match carries a brand id'
     counts = json.loads((data / 'directory' / 'counts.json').read_text())
-    assert counts['venues'] == {'V1': {'items': 5, 'roles': {'apparel': 1, 'department': 1, 'dining': 1, 'food': 1, 'shop': 1}, 'counterBrands': 2},
+    assert counts['venues'] == {'V1': {'items': 6, 'roles': {'apparel': 1, 'department': 1, 'dining': 1, 'food': 1, 'shop': 2}, 'counterBrands': 2},
                                 'V5': {'items': 1, 'roles': {'shop': 1}}}, counts['venues']
     assert counts['meta']['counterBrands'] == 2 and counts['meta']['counterVenues'] == 1
-    assert counts['meta']['dataset'] == b.DATASET and counts['meta']['items'] == 6 and counts['meta']['venues'] == 2
+    assert counts['meta']['dataset'] == b.DATASET and counts['meta']['items'] == 7 and counts['meta']['venues'] == 2
     report = json.loads((data / 'directory' / 'build-report.json').read_text())
     assert report['input']['rows'] == len(rows)
     r = report['rows']

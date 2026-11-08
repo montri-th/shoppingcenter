@@ -13,7 +13,8 @@
  *  - when the pin is inside an outline that has building:parts (OpenMapTiles hide_3d), the
  *    parts inside that outline, not the outline;
  *  - the same building's piece in a neighbouring tile (tiles are clipped with a buffer), found
- *    by a real interior overlap, so a building on a tile edge is not cut in half;
+ *    by a real interior overlap, so a building on a tile edge is not cut in half — of the same height,
+ *    inside the building across the strip both tiles hold, never a tower drawn over it (D43);
  *  - nothing larger than MAX_PART_AREA_M2 (a site or campus polygon is not one venue).
  *
  * OpenFreeMap merges buildings of equal height into one MultiPolygon feature per tile, so
@@ -187,6 +188,61 @@ export function deepOverlap(a, b, minM = DEEP_M) {
 }
 
 const sizeOK = p => p.areaM2 >= MIN_PART_AREA_M2 && p.areaM2 <= MAX_PART_AREA_M2;
+/** Two tile pieces of one building carry the same height and base (OpenMapTiles render_height / render_min_height). */
+const samePieceHeight = (a, b) => (a.height ?? null) === (b.height ?? null) && (a.base || 0) === (b.base || 0);
+const BAND_SAMPLES = 10;          // a 10 × 10 grid over the strip two neighbouring tiles share
+const PIECE_INSIDE_SHARE = 0.9;   // a continuation lies inside the venue's piece across the shared strip
+const tileXY = key => { const [, x, y] = String(key || '').split('/').map(Number); return Number.isFinite(x) && Number.isFinite(y) ? {x, y} : null; };
+
+/**
+ * How a piece `q` of a neighbouring tile sits on the venue's piece `m` across the strip both tiles hold (each tile is
+ * clipped with a buffer, so a building cut by the tile edge appears in both tiles over that strip). The strip runs
+ * across the tile edge: the two pieces' overlap in x for an east/west neighbour, in y for a north/south one, both for
+ * a corner. Returns {iou, inside}: the shared share of the strip area either piece covers, and the share of q's strip
+ * area inside m. The same building's two pieces coincide there (iou ≈ 1); a tower OpenStreetMap draws over a podium
+ * covers only part of it.
+ */
+export function stripFit(m, q) {
+  const a = tileXY(m.tile), b = tileXY(q.tile);
+  const across = {x: !a || !b || a.x !== b.x, y: !a || !b || a.y !== b.y};
+  const w = across.x ? Math.max(m.bbox[0], q.bbox[0]) : Math.min(m.bbox[0], q.bbox[0]);
+  const e = across.x ? Math.min(m.bbox[2], q.bbox[2]) : Math.max(m.bbox[2], q.bbox[2]);
+  const s = across.y ? Math.max(m.bbox[1], q.bbox[1]) : Math.min(m.bbox[1], q.bbox[1]);
+  const n = across.y ? Math.min(m.bbox[3], q.bbox[3]) : Math.max(m.bbox[3], q.bbox[3]);
+  if (!(w < e && s < n)) return {iou: 0, inside: 0};
+  let inM = 0, inQ = 0, both = 0;
+  for (let i = 0; i < BAND_SAMPLES; i++) {
+    for (let j = 0; j < BAND_SAMPLES; j++) {
+      const p = [w + ((e - w) * (i + 0.5)) / BAND_SAMPLES, s + ((n - s) * (j + 0.5)) / BAND_SAMPLES];
+      const im = insidePart(p, m), iq = insidePart(p, q);
+      if (im) inM++;
+      if (iq) inQ++;
+      if (im && iq) both++;
+    }
+  }
+  const either = inM + inQ - both;
+  return {iou: either ? both / either : 0, inside: inQ ? both / inQ : 0};
+}
+
+/**
+ * The venue piece's continuations in the neighbouring tiles: pieces of the same height and base that really overlap it
+ * and lie inside it across the strip the two tiles share, best fit first; a piece that overlaps one already taken in
+ * the same tile is another building drawn over it (a tower over its podium), never a continuation (the clipped pieces
+ * of one building never overlap inside one tile; pieces of different tiles do, in the buffers). Without this,
+ * OpenStreetMap towers of the default height over One Bangkok's podiums were drawn as podium (D43, owner 8 Nov 2026
+ * 09:17: offices, hotels and residences stay background buildings).
+ */
+function continuations(m, index, taken) {
+  const fits = [];
+  for (const q of candidatesInBox(index, m.bbox)) {
+    if (taken.has(q) || !q.tile || q.tile === m.tile || q.hide3d || !sizeOK(q) || !samePieceHeight(m, q) || !deepOverlap(m, q)) continue;
+    const fit = stripFit(m, q);
+    if (fit.inside >= PIECE_INSIDE_SHARE) fits.push({q, iou: fit.iou});
+  }
+  const kept = [];
+  for (const {q} of fits.sort((x, y) => y.iou - x.iou)) if (!kept.some(k => k.tile === q.tile && deepOverlap(k, q))) kept.push(q);
+  return kept;
+}
 /** One podium part per outline piece (the same object for every point of a site, so it is drawn once). */
 const podiums = new WeakMap();
 function podiumPart(outline, height) {
@@ -229,14 +285,13 @@ export function matchVenue(point, index, {toleranceM = PIN_TOLERANCE_M} = {}) {
     if (h) members = [...pieces.map(o => podiumPart(o, h)), ...members.filter(p => (p.base || 0) > 0 || (p.height ?? 0) > h + 0.5)];
     if (!members.length) members = [outline];
   }
-  // The same building continued in a neighbouring tile (tiles are clipped with a buffer).
+  // The same building continued in a neighbouring tile (tiles are clipped with a buffer): see continuations(). Another
+  // building that overlaps it across the tile edge is not its piece (One Bangkok, D43: the towers OpenStreetMap draws
+  // over the Parade podium, 5 m against 33 m, and over the podiums of Post 1928 and The Storeys at the same 5 m).
   const all = new Set(members);
   for (const m of members) {
     if (!m.tile || m.podium) continue;
-    for (const q of candidatesInBox(index, m.bbox)) {
-      if (all.has(q) || q.tile === m.tile || q.hide3d || !sizeOK(q)) continue;
-      if (deepOverlap(m, q)) all.add(q);
-    }
+    for (const q of continuations(m, index, all)) all.add(q);
   }
   return {parts: [...all], method, ...(viaOutline ? {viaOutline: true} : {})};
 }

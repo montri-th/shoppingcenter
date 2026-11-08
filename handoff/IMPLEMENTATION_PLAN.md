@@ -275,3 +275,9 @@ Owner 8 Nov 2026 08:22, with a phone screenshot of Emporium: “เลือก 
 
 Next: the research team reviews the 11 market pairs of `review.csv` (another market's pin 11–23 m from a site building; possible duplicates such as ตลาดต้นลำไย / ตลาดต้นลำใย); a layout check of the largest separation (Central Eastville, 30 buildings out).
 
+
+## 0.1.30 — One Bangkok as one place, venue points inside their buildings (`20261108-r40`, D43)
+
+Owner 8 Nov 2026 09:17: “สำหรับ One Bangkok … ในที่สุดน่าจะเหลือชื่อเดียวคือ One Bangkok นั่นแหละ ควรเอา directory มารวมกันเป็นจุดเดียว / ส่วนอาคารสำนักงาน โรงแรม และที่พัก จะแสดงเป็นอาคารพื้นหลัง / เช็คเคสนี้ว่ามีเกิดขึ้นกับที่อื่นอีกมั้ย หาสาเหตุแล้วแก้พร้อมกัน”. Registry: 26 venue points moved into the buildings OpenStreetMap names for them, One Bangkok's into Parade (130 cells of `01_VENUES`, read back); site tab row 17 (One Bangkok's three retail buildings). Code: `js/pin-buildings.js#continuations` / `#stripFit` (a neighbouring tile's piece is the building only with the same height, inside it across the shared strip and not overlapping a piece taken in that tile), `scripts/build-directory-listings.py` (zone named only with a point of its own). Tests: `pin-buildings` (three new cases), `test_directory_listings.py`. Method DATA_METHOD §11.9; decision PRODUCT_STATEMENT D43, §16.
+
+Next: the research team looks for building evidence for the 112 venues still outside every drawn building (37 with a building within 10 m first); if the owner wants the brand roster at One Bangkok without zone words in its unit text, rerun the private coverage audit.

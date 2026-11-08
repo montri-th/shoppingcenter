@@ -22,7 +22,8 @@ the whole complex as one venue with no registered components (Central Phuket: Fe
 A directory entry that the brand roster already shows at the venue is not shown twice: matched by the directory
 observation id or the linked outlet id first, then by the same name on the same floor (a brand on more floors than
 the roster lists adds the other floors — owner D23, 4 Nov 2026 21:24). A row whose host is a retail component of a
-counted parent (One Bangkok's Parade, The Storeys) is shown at the parent and keeps registeredChildVenueId.
+counted parent (One Bangkok's Parade, The Storeys) is shown at the parent and keeps registeredChildVenueId; the
+zone is named on the row only when it has a point of its own (D43, owner 8 Nov 2026: one name, One Bangkok).
 A brand match that the sheet confirmed (brand_match_status registry_brand_membership_linked, one matched brand) adds
 the brand id and its verified logo; candidates never do.
 Department-store brand counters (D40, owner 8 Nov 2026 01:18: a separate category) are listed per venue under their
@@ -550,7 +551,11 @@ def main():
             }
             if g['child']:
                 item['registeredChildVenueId'] = g['child']
-                item['displayQualifier'] = f"ใน {venues[g['child']]['name']}"
+                # D43 (owner 8 Nov 2026 09:17, One Bangkok: “ในที่สุดน่าจะเหลือชื่อเดียวคือ One Bangkok … ควรเอา directory มา
+                # รวมกันเป็นจุดเดียว”): a zone without a point of its own is not named on the shop row; the shop reads as
+                # the place's own. A zone the map shows (a point of its own) keeps its name.
+                if venues[g['child']].get('lat') is not None:
+                    item['displayQualifier'] = f"ใน {venues[g['child']]['name']}"
             if brand_id:
                 dataset_id, _, brand = brand_id.partition(':')
                 item['brandId'] = brand_id
