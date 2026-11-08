@@ -398,3 +398,13 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - `npm test` (8 Nov 2026 ICT, Node 22): **251 tests, 251 pass, 0 fail**.
 - **Publication and live verification pending** — a local render is not proof of the live release.
 
+## 0.1.29 — Observed release `9ae4f80` (r39, 8 Nov 2026 ICT)
+
+- Published source: [`9ae4f804c34dbd9e474a5ab3efbc2c3022105331`](https://github.com/montri-th/shoppingcenter/commit/9ae4f804c34dbd9e474a5ab3efbc2c3022105331), release **0.1.29 / `20261108-r39`**. GitHub Pages run `42436495420` succeeded.
+- Live byte attestation at **8 Nov 2026 09:00:12 ICT** (`2026-11-08T02:00:12.145Z`), manifest of the same commit (1,288 tracked files): **1,196 passed, 0 failed**.
+- Real Chrome (the owner's browser, live page, 1710 × 822, theme setting `auto` read before and after, rendered dark by the system), every module at `20261108-r39`, 391 sites loaded:
+  - Emporium `?venue=SC-000288`: no site; the venue draws only its validated footprint and its three parts (tower and podium) — none of EmQuartier's building; panel “อาคาร: อาคารของสถานที่”. In a 390 × 844 frame on the live page (386 px inside the border): the same four features, map card “ศูนย์การค้า · เขตคลองเตย / เอ็มโพเรียม / ร้านข้างใน 67 ร้าน · The Mall Group”, no horizontal overflow.
+  - Central Eastville `?venue=SC-001664` at zoom 17.7 and 16.2: its footprint and three site buildings drawn (“ทั้งโครงการ 4 อาคาร”; the other site points fall in its validated footprint or on OpenStreetMap buildings it already draws); no drawn feature holds Lotus's Ramintra's pin; six other venues' points in its guard list.
+  - Malin Plaza `?venue=SC-015703` at zoom 17.2: eight site buildings drawn (“ทั้งโครงการ 8 อาคาร”), none holding the pins of ตลาดเชียงใหม่คอมเพล็กซ์ (`SC-C3221`) or Kad Na Mor Market (`SC-015702`).
+- Not checked: a physical phone; the English UI. The Drive copies of the Product Statement and the plan were not updated in this check: Claude in Chrome had no permission on drive.google.com.
+
