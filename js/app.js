@@ -45,6 +45,7 @@ import {installVenuePins, MAX_DOM_PINS} from './pins.js';
 import {installVenuePoints, POINT_LAYERS, pendingCount} from './venue-points.js';
 import {installVenueBuildings, HOST_LAYERS} from './buildings.js';
 import {installPinBuildings} from './pin-buildings.js';
+import {siteExclusions} from './site-guard.js';
 import {createVenueModels} from './venue-models.js';
 import {installVenueXray} from './venue-xray.js';
 import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
@@ -101,7 +102,7 @@ const state = {
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
   buildingUnits: null, cmLoad: null, terrain: null, terrainActive: false, buildingSources: {osm: 0, cm: 0}, cmPins: 0,
-  sites: new Map(), siteMeta: null,
+  sites: new Map(), siteMeta: null, siteExclusions: new Map(),
   // Building masses from a venue's own design file (js/venue-models.js): an index at start, a venue's file when needed.
   models: null,
   // Operating rail stations of CityMETER · Transit (data/stations.json): list, index, meta, and the map layer.
@@ -1120,10 +1121,14 @@ function updateSpatialLayers() {
   state.pins?.layout();
 }
 
-/** A venue as the pin matcher reads it: its point, province (for its building units) and site points, if any. */
+/**
+ * A venue as the pin matcher reads it: its point, province (for its building units) and site points, if any, with what
+ * the site must not draw — other venues' points and validated footprints round it (D42, js/site-guard.js).
+ */
 function pinRow(r) {
   const site = state.sites.get(r.id);
-  return {id: r.id, lon: r.lon, lat: r.lat, province: r.provinceCode || rowProvince(r), ...(site ? {points: site.points} : {})};
+  const exclude = site ? state.siteExclusions.get(r.id) : null;
+  return {id: r.id, lon: r.lon, lat: r.lat, province: r.provinceCode || rowProvince(r), ...(site ? {points: site.points} : {}), ...(exclude ? {exclude} : {})};
 }
 
 /**
@@ -1603,6 +1608,9 @@ async function loadSites() {
       const points = site.points.filter(p => Array.isArray(p) && p.length >= 2 && p.every(Number.isFinite) && Math.hypot((p[0] - r.lon) * kx, (p[1] - r.lat) * ky) <= SITE_MAX_M);
       if (points.length) out.set(id, {points, n: Number(site.n) || points.length, source: String(site.source || ''), url: site.url || '', checkedOn: site.checkedOn || ''});
     }
+    // D42 (owner 2026-11-08 08:22): what each site must not draw — other venues' points and validated footprints.
+    const hostFeatures = state.buildingData?.features || [];
+    state.siteExclusions = new Map([...out.keys()].map(id => [id, siteExclusions(state.byId.get(id), state.all, hostFeatures)]).filter(([, ex]) => ex));
     state.sites = out;
     if (state.loaded) updateSpatialLayers();
     if (venueLevel()) renderPanel();

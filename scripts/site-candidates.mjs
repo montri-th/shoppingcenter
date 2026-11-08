@@ -43,7 +43,7 @@ import {cmParts, interiorPoint, pointInRing} from '../js/pin-buildings.js';
 import {tileBox} from '../js/massing.js';
 import {sitePng, siteSvg} from './site-picture.mjs';
 import {createOsmReader} from './site-osm.mjs';
-import {outlinePolys, polysFromOverpass, polysGeoJson, outlineStats, otherPinsIn, draftReach, draftPick, edgeHints, osmOnly, boxMeets} from './site-draft.mjs';
+import {outlinePolys, polysFromOverpass, polysGeoJson, outlineStats, otherVenuesAt, draftReach, draftPick, edgeHints, osmOnly, boxMeets} from './site-draft.mjs';
 
 const MAX_SITE_M = 600;   // scripts/build-venue-sites.py and js/app.js SITE_MAX_M
 const SOURCES = ['dol_parcels+site_layout', 'site_layout', 'dol_parcels', 'osm_outline', 'osm_outline+site_layout', 'osm_outline_auto'];
@@ -231,7 +231,9 @@ if (cmd === 'candidates') {
   pictures(`${dir}/candidates`, row, res.candidates);   // the same numbers as draft.png (an older candidates picture would not match)
   const picked = draftPick(res.candidates, polys);
   const hints = edgeHints(res.candidates, picked, polys);
-  const others = otherPinsIn(row, polys, venues);
+  // D42: other venues in the outline or next to it, and their validated footprints (Emporium's outline held EmQuartier).
+  const hosts = existsSync('data/venue-buildings.geojson') ? JSON.parse(readFileSync('data/venue-buildings.geojson', 'utf8')).features : [];
+  const others = otherVenuesAt(row, polys, venues, {hosts});
   let osm = null, osmNote = '';
   try { osm = osmOnly(await osmBuildingAt.partsIn(stats.bbox), res.candidates, polys); } catch (e) { osmNote = `could not read the OpenStreetMap buildings (${e.message})`; }
   const {kx, ky} = metres(row.lat), pad = 40;
@@ -242,7 +244,7 @@ if (cmd === 'candidates') {
   const points = res.candidates.filter(c => picked.has(c.cid)).map(c => c.point);
   const draft = {venue_id: row.id, name: row.name, osm: osmRef, tags, unit: res.zone.name, reach, pin_m: stats.pinM, max_dist_m: stats.maxDistM,
     outline_m2: stats.areaM2, building_count: points.length, points, cids: [...picked].sort((a, b) => a - b), mostly_outside: hints.mostlyOutside,
-    mostly_inside: hints.mostlyInside, osm_only: osm, other_venues: others.map(v => ({id: v.id, name: v.name, group: v.group})), drafted_on: today};
+    mostly_inside: hints.mostlyInside, osm_only: osm, other_venues: others.map(v => ({id: v.id, name: v.name, group: v.group, why: v.why})), drafted_on: today};
   writeFileSync(`${dir}/draft.json`, JSON.stringify(draft, null, 1));
   console.log(`${row.id} ${row.name}: draft of ${points.length} CityMETER buildings in ${osmRef || 'the outline'} (${stats.areaM2.toLocaleString('en')} m², farthest vertex ${stats.maxDistM} m${stats.pinM ? `, the pin ${stats.pinM} m outside it` : ''}) → ${dir}/draft.png (also .svg)`);
   if (sheet) {
@@ -253,7 +255,7 @@ if (cmd === 'candidates') {
   }
   if (hints.mostlyOutside.length) console.log(`  check: drafted but mostly outside the outline: ${hints.mostlyOutside.join(', ')}`);
   if (hints.mostlyInside.length) console.log(`  check: not drafted but mostly inside the outline: ${hints.mostlyInside.join(', ')}`);
-  if (others.length) console.log(`  other counted venues have their pin in this outline (their buildings are theirs — --drop them): ${others.map(v => `${v.id} ${v.name} (${v.group})`).join(' · ')}`);
+  if (others.length) console.log(`  other venues in or next to this outline (their buildings are theirs — --drop them, or run scripts/separate-sites.py on the row): ${others.map(v => `${v.id} ${v.name} (${v.group}, ${v.why})`).join(' · ')}`);
   if (osm?.length) console.log(`  OpenStreetMap buildings CityMETER does not have (add with --osm-point only if they belong to the centre): ${osm.map(o => `${o.point.join(',')} ≈${o.area_m2} m²`).join('; ')}`);
   if (osmNote) console.log(`  ${osmNote} — run draft again online to see OpenStreetMap buildings CityMETER does not have`);
   const evidence = osmRef ? `https://www.openstreetmap.org/${osmRef}` : '<https page of the layout>';

@@ -11,7 +11,9 @@ boundary_evidence_url, checked_on. Only rows with boundary_status = checked are 
 
 Published per venue: the interior points, their count, the source in words, a public https layout link and the check
 date. The boundary, deed numbers, parcel data, notes and reviewers stay in the sheet. A building more than 600 m from
-the venue's own point, or a point outside Thailand, stops the build (a sheet error, not a site).
+the venue's own point, or a point outside Thailand, stops the build (a sheet error, not a site); so does a site point
+in another venue's validated host footprint, or a building in the sites of two venues of different families (D42,
+owner 2026-11-08 08:22: “เลือก Emporium แล้วมันขึ้น 2 อาคาร รวม EmQuatier ด้วย ต้องแยกกัน”).
 
 Without --sites the file lists no site and the page draws none. The site tab opened on 5 Nov 2026 with no checked
 row. --staged: the CSV is sites/site_rows.csv (rows that `site-candidates.mjs row` staged for the tab), not an export
@@ -74,6 +76,55 @@ def metres(a, b):
     return math.hypot((a[0] - b[0]) * kx, (a[1] - b[1]) * 110574)
 
 
+def point_in_ring(p, ring):
+    inside, j = False, len(ring) - 1
+    for i in range(len(ring)):
+        (xi, yi), (xj, yj) = ring[i][:2], ring[j][:2]
+        if (yi > p[1]) != (yj > p[1]) and p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi:
+            inside = not inside
+        j = i
+    return inside
+
+
+def family(v, venues):
+    """The venue, its parent, the parent's components and its own components (js/site-guard.js familyOf)."""
+    fam = {v['id']}
+    if v.get('parentId'):
+        fam.add(v['parentId'])
+        fam |= set((venues.get(v['parentId']) or {}).get('children') or [])
+    fam |= set(v.get('children') or [])
+    fam |= {r['id'] for r in venues.values() if r.get('parentId') == v['id']}
+    return fam
+
+
+def other_venue_stops(sites, venues):
+    """D42 (owner 2026-11-08 08:22, Emporium shown with EmQuartier's building): a site point standing in another
+    venue's validated host footprint (data/venue-buildings.geojson), or a building in the sites of two venues of
+    different families, is a sheet error — the site took another venue's building. scripts/separate-sites.py finds the
+    rest (another venue's point in a site building) with the building outlines."""
+    stops = []
+    hosts = []
+    for f in json.loads((ROOT / 'data' / 'venue-buildings.geojson').read_text())['features']:
+        if f['properties'].get('geometry_role') != 'host_building_footprint_not_shop_unit':
+            continue
+        g = f['geometry']
+        for poly in ([g['coordinates']] if g['type'] == 'Polygon' else g['coordinates']):
+            hosts.append((set(f['properties'].get('venue_ids') or []), poly))
+    seen = {}
+    for vid, site in sites.items():
+        fam = family(venues[vid], venues)
+        for p in site['points']:
+            for ids, poly in hosts:
+                if ids & fam or not point_in_ring(p, poly[0]) or any(point_in_ring(p, h) for h in poly[1:]):
+                    continue
+                stops.append(f'{vid}: site point {p[0]},{p[1]} stands in the validated footprint of {", ".join(sorted(ids))}')
+            key = (p[0], p[1])
+            if key in seen and seen[key] not in fam:
+                stops.append(f'{vid}: site point {p[0]},{p[1]} is also in the site of {seen[key]} (another family)')
+            seen.setdefault(key, vid)
+    return stops
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--sites', default='', help='CSV of the research site tab (its SHA-256 is recorded)')
@@ -112,6 +163,10 @@ def main():
             sites[vid] = {'points': pts, 'n': len(pts), 'source': SITE_SOURCES.get(code, 'งานวิจัยไซต์'),
                           'url': public_url(r.get('boundary_evidence_url')),
                           'checkedOn': on if re.fullmatch(r'\d{4}-\d{2}-\d{2}', on) else ''}
+        stops = other_venue_stops(sites, venues)
+        if stops:
+            sys.exit('a site holds another venue\'s building (D42; run scripts/separate-sites.py and correct the tab):\n  '
+                     + '\n  '.join(stops))
     doc = {
         'meta': {
             'dataset': 'CityMETER Shopping centers — multi-building sites',

@@ -335,3 +335,28 @@ test('a site that is still waiting for one point is drawn as its other tiles arr
   assert.ok(last.features.some(f => pointInRing(at(1900, 15), f._ring)), 'the building from the slower tile joined the drawn site');
   pins.dispose();
 });
+
+test('D42: a site point never draws another venue\'s building; the venue\'s own pin building stays even with another pin in it (Emporium, 8 Nov 2026)', async () => {
+  const {siteExclusions} = await import('../js/site-guard.js');
+  const handlers = {};
+  const map = {
+    getSource: id => (id === 'openmaptiles' ? {} : null), getZoom: () => 16,
+    getBounds: () => ({contains: ([lon, lat]) => Math.abs(lon - LON) < 0.05 && Math.abs(lat - LAT) < 0.05}),
+    features: [feature(61, [rect(0, 0, 30, 30)]), feature(62, [rect(100, 0, 130, 30)]), feature(63, [rect(200, 0, 230, 30)])],
+    querySourceFeatures() { return this.features; },
+    on(e, h) { (handlers[e] ||= []).push(h); }, off(e, h) { handlers[e] = (handlers[e] || []).filter(x => x !== h); },
+  };
+  const v = {id: 'V', name: 'V', lon: at(15, 15)[0], lat: at(15, 15)[1], countable: true};
+  const inPin = {id: 'X', name: 'X', lon: at(20, 20)[0], lat: at(20, 20)[1], countable: true};     // a shop counted on its own, in V's building
+  const next = {id: 'Y', name: 'Y', lon: at(110, 10)[0], lat: at(110, 10)[1], countable: true};    // the neighbour the site outline took
+  const changes = [];
+  const pins = installPinBuildings(map, {onChange: c => changes.push(c)});
+  try {
+    pins.update({rows: [{id: 'V', lon: v.lon, lat: v.lat, points: [at(115, 15), at(215, 15)], exclude: siteExclusions(v, [v, inPin, next])}]});
+    await new Promise(r => setTimeout(r, 220));
+    const drawn = changes.at(-1).features;
+    assert.deepEqual(drawn.map(f => f.properties.site_point).sort(), [0, 2], 'the pin building and the clean site building');
+    assert.ok(!drawn.some(f => pointInRing(at(115, 15), f._ring)), 'not the neighbour\'s building');
+    assert.ok(drawn.some(f => pointInRing(at(20, 20), f._ring)), 'the venue\'s own building, another venue inside it');
+  } finally { pins.dispose(); }
+});

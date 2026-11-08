@@ -7,6 +7,8 @@
 // and in a browser (the classification of all venues was run from this file on GitHub Pages).
 // Research tool only: nothing here enters the page.
 import {pointInRing, interiorPoint} from '../js/pin-buildings.js';
+import {ringSamples, coveredShare} from '../js/building-choice.js';
+import {familyOf, isOtherVenue, FOOTPRINT_SHARE} from '../js/site-guard.js';
 
 export const DRAFT_MAX_M = 600;     // scripts/build-venue-sites.py SITE_MAX_M and js/app.js SITE_MAX_M
 export const DRAFT_MARGIN_M = 50;   // reach of the candidates beyond the outline's farthest vertex
@@ -122,9 +124,42 @@ export function otherPinsIn(row, polys, venues) {
 }
 
 /**
+ * Other venues an outline may hold (D42, owner 2026-11-08 08:22: “เลือก Emporium แล้วมันขึ้น 2 อาคาร รวม EmQuatier ด้วย
+ * ต้องแยกกัน”): another venue (js/site-guard.js isOtherVenue: counted, or a component of another family) whose point
+ * stands in the outline (`pin_inside`) or within `nearM` of it (`pin_near`: a pin outside its own building, as
+ * EmQuartier's, 19 m from it), and another venue's validated host footprint (`hosts`: data/venue-buildings.geojson
+ * features) with FOOTPRINT_SHARE of its samples in the outline (`host_footprint`). Emporium's outline (The Em District)
+ * passed the D28 check as clean because EmQuartier's pin stands 19 m outside its building and outside the outline.
+ */
+export function otherVenuesAt(row, polys, venues, {nearM = NEAR_M, hosts = []} = {}) {
+  const family = familyOf(row, venues);
+  const out = new Map();
+  for (const v of venues) {
+    if (!isOtherVenue(row, v, family)) continue;
+    const p = [v.lon, v.lat];
+    if (inPolys(p, polys)) out.set(v.id, {id: v.id, name: v.name, group: v.group, why: 'pin_inside'});
+    else if (nearM > 0 && Math.min(...polys.flatMap(poly => poly.map(r => distToSegmentsM(p, r)))) <= nearM) out.set(v.id, {id: v.id, name: v.name, group: v.group, why: 'pin_near'});
+  }
+  const byId = new Map(venues.map(v => [v.id, v]));
+  for (const f of hosts || []) {
+    if (f?.properties?.geometry_role !== 'host_building_footprint_not_shop_unit') continue;
+    const ids = (f.properties.venue_ids || []).filter(id => !family.has(id));
+    if (!ids.length || ids.length < (f.properties.venue_ids || []).length || out.has(ids[0])) continue;
+    const g = f.geometry, rings = g?.type === 'Polygon' ? [g.coordinates[0]] : g?.type === 'MultiPolygon' ? g.coordinates.map(q => q[0]) : [];
+    const samples = rings.flatMap(r => ringSamples(r, 6));
+    if (samples.length && coveredShare(samples, p => inPolys(p, polys)) >= FOOTPRINT_SHARE) {
+      const v = byId.get(ids[0]);
+      out.set(ids[0], {id: ids[0], name: v?.name || '', group: v?.group || '', why: 'host_footprint'});
+    }
+  }
+  return [...out.values()];
+}
+
+/**
  * Class of a venue from the Overpass elements round its pin (`is_in` areas plus site outlines within NEAR_M):
- *   clean       a site outline holds the pin; no other counted venue's pin is in it; every vertex ≤ 600 m from the pin
- *   shared      … another counted venue's pin is in it (its buildings are that venue's until the layout says otherwise)
+ *   clean       a site outline holds the pin; no other venue is in it or next to it; every vertex ≤ 600 m from the pin
+ *   shared      … another venue's pin is in it or within NEAR_M of it, or another venue's validated host footprint is
+ *               in it (otherVenuesAt, D42; its buildings are that venue's until the layout says otherwise)
  *   beyond_600m … a vertex lies more than 600 m from the pin (too large for a site of this page)
  *   near        no outline holds the pin, one lies within NEAR_M m of it (the pin may stand on the road)
  *   commercial  only a landuse=commercial area holds the pin
@@ -132,7 +167,7 @@ export function otherPinsIn(row, polys, venues) {
  *   none        nothing
  * The outline is the smallest site outline that holds the pin (the most specific one).
  */
-export function classifyPin(row, elements, venues) {
+export function classifyPin(row, elements, venues, {hosts = []} = {}) {
   const pin = [row.lon, row.lat], seen = new Set(), areas = [];
   for (const e of elements || []) {
     const key = `${e.type}/${e.id}`;
@@ -146,9 +181,9 @@ export function classifyPin(row, elements, venues) {
   const near = holding ? null : areas.filter(a => isSiteTag(a.tags) && a.stats.pinM <= NEAR_M).sort((a, b) => a.stats.pinM - b.stats.pinM || a.stats.areaM2 - b.stats.areaM2)[0] || null;
   const outline = holding || near;
   if (outline) {
-    const others = otherPinsIn(row, outline.polys, venues);
+    const others = otherVenuesAt(row, outline.polys, venues, {hosts});
     const cls = !holding ? 'near' : outline.stats.maxDistM > DRAFT_MAX_M ? 'beyond_600m' : others.length ? 'shared' : 'clean';
-    return {cls, outline, others: others.map(v => ({id: v.id, group: v.group}))};
+    return {cls, outline, others: others.map(v => ({id: v.id, group: v.group, why: v.why}))};
   }
   if (areas.some(a => isCommercial(a.tags) && a.stats.pinM === 0)) return {cls: 'commercial', outline: pick(areas.filter(a => isCommercial(a.tags) && a.stats.pinM === 0)), others: []};
   if (areas.some(a => isMallBuilding(a.tags) && a.stats.pinM === 0)) return {cls: 'mall_building', outline: null, others: []};

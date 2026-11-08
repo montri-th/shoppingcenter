@@ -75,13 +75,40 @@ test('classification: the smallest site outline holding the pin; shared, beyond 
   const other = {id: 'M-2', lon: at(100, 100)[0], lat: at(100, 100)[1], countable: true, group: 'market'};
   c = classifyPin(row, [site], [row, other]);
   assert.equal(c.cls, 'shared');
-  assert.deepEqual(c.others, [{id: 'M-2', group: 'market'}]);
+  assert.deepEqual(c.others, [{id: 'M-2', group: 'market', why: 'pin_inside'}]);
   assert.equal(classifyPin(row, [wide], venues).cls, 'beyond_600m');
   assert.equal(classifyPin(row, [way(13, square(20, -50, 120, 50), {landuse: 'retail'})], venues).cls, 'near');
   assert.equal(classifyPin(row, [way(14, square(50, -50, 120, 50), {landuse: 'retail'})], venues).cls, 'none', 'more than 30 m away');
   assert.equal(classifyPin(row, [way(15, square(-150, -150, 150, 150), {landuse: 'commercial'})], venues).cls, 'commercial');
   assert.equal(classifyPin(row, [mall], venues).cls, 'mall_building');
   assert.equal(classifyPin(row, [], venues).cls, 'none');
+});
+
+test('D42: an outline next to another venue\'s pin, or holding its validated footprint, is shared (Emporium and EmQuartier)', () => {
+  const site = way(21, square(-150, -150, 150, 150), {landuse: 'retail'});
+  const pin = (id, x, y, more = {}) => ({id, name: id, lon: at(x, y)[0], lat: at(x, y)[1], countable: true, group: 'mall', ...more});
+  // EmQuartier: its pin stands 19 m outside the outline and its own building, its footprint is inside it.
+  const em = pin('EMQ', 169, 0);
+  let c = classifyPin(row, [site], [row, em]);
+  assert.equal(c.cls, 'shared');
+  assert.deepEqual(c.others, [{id: 'EMQ', group: 'mall', why: 'pin_near'}]);
+  assert.equal(classifyPin(row, [site], [row, pin('FAR', 200, 0)]).cls, 'clean', 'a pin 50 m outside is not next to the outline');
+  const footprint = (ids, x0, y0, x1, y1) => ({type: 'Feature', properties: {geometry_role: 'host_building_footprint_not_shop_unit', venue_ids: ids},
+    geometry: {type: 'Polygon', coordinates: [square(x0, y0, x1, y1)]}});
+  c = classifyPin(row, [site], [row, pin('FAR', 400, 0)], {hosts: [footprint(['FAR'], 60, 60, 140, 140)]});
+  assert.equal(c.cls, 'shared');
+  assert.deepEqual(c.others, [{id: 'FAR', group: 'mall', why: 'host_footprint'}]);
+  assert.equal(classifyPin(row, [site], [row], {hosts: [footprint([row.id], 60, 60, 140, 140)]}).cls, 'clean', 'the venue\'s own footprint');
+  assert.equal(classifyPin(row, [site], [row, pin('FAR', 400, 0)], {hosts: [footprint(['FAR'], 140, 60, 300, 140)]}).cls, 'clean',
+    'a footprint mostly outside the outline');
+  // Never the family, a held duplicate, the same name, or an uncounted record.
+  const fam = {...row, parentId: 'P', children: ['K']};
+  const venues = [fam, pin('P', 10, 10), pin('K', 20, 20, {countable: false, countHold: 'component', parentId: row.id}),
+    pin('S', 30, 30, {parentId: 'P'}), pin('D', 40, 40, {countHold: 'duplicate'}), pin('N', 50, 50, {name: row.name}), pin('U', 60, 60, {countable: false})];
+  venues.find(v => v.id === 'P').children = ['S', row.id];
+  assert.equal(classifyPin(fam, [site], venues).cls, 'clean');
+  // A component of another family counts as another venue.
+  assert.equal(classifyPin(row, [site], [row, pin('Z', 30, 30, {countable: false, countHold: 'component', parentId: 'OTHER'})]).cls, 'shared');
 });
 
 test('draft: interior point in the outline (the rule of row --site); the buildings the outline cuts; OSM-only buildings', () => {

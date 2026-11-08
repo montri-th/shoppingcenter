@@ -37,12 +37,15 @@
  * Sites (several buildings of one venue, “campus style”, as CityMETER · Hotel 0.3.6): a venue with research site points
  * (data/venue-sites.json, one interior point per building) maps every point the same way, never to a neighbour. Each
  * drawn part carries the index of the point that found it (`point`, feature property `site_point`), so the panel counts
- * buildings, not parts.
+ * buildings, not parts. A site point never draws another venue's building (D42, owner 2026-11-08 08:22, Emporium and
+ * EmQuartier): a row's `exclude` (js/site-guard.js siteExclusions) drops a site part that holds another venue's point
+ * or covers its validated host footprint; the building the venue's own pin stands in is never dropped.
  */
 
 import {lonLatToTile, tileToLonLat} from './mvt.js';
 import {tileBox, cmHeight} from './massing.js';
 import {chooseSource, podiumHeight, ringSamples, coveredShare, isDefaultOsmHeight, isNarrowTall, COVER_MIN, CM_GAP_M} from './building-choice.js';
+import {otherVenueOf} from './site-guard.js';
 
 export const PIN_TOLERANCE_M = 3;
 export const MAX_PART_AREA_M2 = 150000;
@@ -481,7 +484,8 @@ export function pinFeatures(venueId, match) {
 /**
  * Match pins to buildings whenever the map settles. `onChange({byVenue, features, cm})` fires when the matched set
  * changes (`cm`: how many matched venues stand in a CityMETER building). Venue rows: [{id, lon, lat, province?,
- * points?}] — `points`: the venue's site points (one interior point per building, data/venue-sites.json). A venue is
+ * points?, exclude?}] — `points`: the venue's site points (one interior point per building, data/venue-sites.json);
+ * `exclude`: other venues' points and validated footprints round the site (js/site-guard.js, D42). A venue is
  * matched once its z14 tile is on screen (the map is idle with the pin inside the viewport) and then kept; a venue with
  * no building there is remembered as `null` so the panel can say so.
  *
@@ -577,6 +581,8 @@ export function installPinBuildings(map, {sourceId = 'openmaptiles', minZoom = P
         for (const part of match.parts) {
           const sourcePart = sourcePartOf.get(part) || part;
           if (taken.has(sourcePart)) continue;
+          // D42: a site point never draws another venue's building (the pin's own building, k = 0, is never dropped).
+          if (k > 0 && r.exclude && otherVenueOf(part, r.exclude)) continue;
           taken.add(sourcePart);
           all.push(k === 0 ? {...part, point: 0} : {...part, site: true, point: k});
         }
