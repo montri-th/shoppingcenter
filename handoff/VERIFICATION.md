@@ -418,3 +418,12 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - `npm test` (8 Nov 2026 ICT, Node 22): **253 tests, 253 pass, 0 fail** (new: same-height towers, a U-shaped continuation, a building across four tiles; the directory zone rule).
 - **Publication and live verification pending** — a local render is not proof of the live release.
 
+## 0.1.30 — Observed release `81dcb13` (r40, 8 Nov 2026 ICT)
+
+- Published source: [`81dcb1312962659992e7bfdd545e0f308b3a847c`](https://github.com/montri-th/shoppingcenter/commit/81dcb1312962659992e7bfdd545e0f308b3a847c), release **0.1.30 / `20261108-r40`**. GitHub Pages run `42442775242` succeeded.
+- Live byte attestation at **8 Nov 2026 10:29:11 ICT** (`2026-11-08T03:29:11.762Z`), manifest of the same commit (1,288 tracked files): **1,196 passed, 0 failed**.
+- Real Chrome (the owner's browser, live page, 1710 × 817, theme setting `auto` read before and after, rendered dark by the system), every module and stylesheet at `20261108-r40`:
+  - One Bangkok `?venue=SC-C0015`: the venue draws six pieces of three buildings — Parade where the point stands (OpenStreetMap height 33 m), Post 1928 and The Storeys (CityMETER model heights 26.11 m and 3.5 m) — and none of the towers over them; the panel reads “อาคาร: ทั้งโครงการ 3 อาคาร” and “ร้านข้างใน 293”; no “ใน พาเหรด” or “ใน เดอะ สตอรี่ส์” anywhere in the panel (brand-roster rows still show the source's unit text, e.g. “Parade at One Bangkok | Parade | 1F”). In a 390 × 700 frame of the live page (386 px inside the border): map card “ศูนย์การค้า · เขตปทุมวัน / วัน แบงค็อก (พื้นที่ค้าปลีก) / ร้านข้างใน 293 ร้าน · JLL”, no horizontal overflow.
+  - Moved points: PLATINUM POP (`SC-001260`, two pieces), Bravo BKK (`SC-C0284`) and Lotus's Phibun Mangsahan (`SC-SM-04229`) now draw the building the point stands in (“อาคารที่หมุดตั้งอยู่”).
+  - The Shoppes at Belle Grand Rama 9 (`VN-e227eeb6fe50a2`): only its podium's two tile pieces are blue; the residential towers stand grey behind it.
+- Not checked: a physical phone; the English UI; the towers of One Bangkok at their real heights (OpenStreetMap gives them no height; a CityMETER tower of 98.83 m east of Post 1928 is drawn as focus context). The Drive copies of the Product Statement and the plan were not updated: Claude in Chrome has no permission on drive.google.com.
