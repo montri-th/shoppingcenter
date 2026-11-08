@@ -284,7 +284,7 @@ Next: the research team looks for building evidence for the 112 venues still out
 
 ## 0.1.31 — Siam Square: every building of the owner's block (`20261108-r41`, D44)
 
-Owner 8 Nov 2026 11:40: “สยามสแควร์ควรจะแสดง highlight ทุกอาคารภายในกรอบที่เคยแจ้งไปเลยนะ” (the block of 7 Nov 20:58). Site tab row 649 appended (D31) and read back: 45 buildings, `boundary_source = owner_block`. Code: `scripts/build-venue-sites.py#SITE_SOURCES` and `scripts/site-candidates.mjs` (`owner_block`, evidence optional), `scripts/site-draft.mjs#sitePoint` (a row's point at least 0.5 m inside the walls; the courtyard case). Data: `data/venue-sites.json` 393 sites, 5,746 buildings. Test: `site-draft` (courtyard). Method DATA_METHOD §11.10; decision PRODUCT_STATEMENT D44, §17.
+Owner 8 Nov 2026 11:40: “สยามสแควร์ควรจะแสดง highlight ทุกอาคารภายในกรอบที่เคยแจ้งไปเลยนะ” (the block of 7 Nov 20:58). Site tab row 649 appended (D31) and read back: 45 site points (drawn as 38 buildings, OpenStreetMap first), `boundary_source = owner_block`. Code: `scripts/build-venue-sites.py#SITE_SOURCES` and `scripts/site-candidates.mjs` (`owner_block`, evidence optional), `scripts/site-draft.mjs#sitePoint` (a row's point at least 0.5 m inside the walls; the courtyard case). Data: `data/venue-sites.json` 393 sites, 5,746 buildings. Test: `site-draft` (courtyard). Method DATA_METHOD §11.10; decision PRODUCT_STATEMENT D44, §17.
 
 Next: the research team compares Siam Square's site with the property office's own layout when one is found; `owner_block` serves any other block the owner defines by its roads.
 

@@ -434,5 +434,12 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - `node scripts/site-candidates.mjs check VN-5523fa4482b213` on the 43 CityMETER points: 43 of 43 stand in a drawn building; the two OpenStreetMap points stand in no CityMETER building and in an OpenStreetMap building (`createOsmReader` in Chrome on the live page: ≈274 m², ≈489 m²); all 37 OpenStreetMap buildings of the block hold a site point.
 - `python3 scripts/build-venue-sites.py`: 393 sites, 5,746 buildings (only Siam Square changed); `python3 -I scripts/separate-sites.py`: 0 sites changed, the same 11 review pairs.
 - `npm test`: 254 of 254 pass (new: `site-draft` courtyard case).
-- Not yet: live page check of Siam Square after Pages.
+
+## 0.1.31 — Observed release `84653ca` (r41, 8 Nov 2026 ICT)
+
+- Pages served `index.html` with `20261108-r41` on the third poll (10 s apart); live `data/venue-sites.json`: 393 sites, 5,746 buildings, Siam Square n = 45.
+- `npm run handoff:manifest`: 1,288 files, commit `84653ca`; `npm run verify:live`: 1,196 ok, 0 failed.
+- Chrome, live page `?province=BKK&venue=VN-5523fa4482b213` (desktop 1710 × 817, theme Auto as the owner left it): every OpenStreetMap building piece of the block in the map's tiles (37) is drawn in the venue blue, plus 5 CityMETER buildings OpenStreetMap does not have; no drawn venue building outside the block. Panel: “ทั้งโครงการ 38 อาคาร” (one per site point that found a building of its own: 33 OpenStreetMap, 5 CityMETER; 7 points stand in an OpenStreetMap building another point already drew); evidence rows “ไซต์ · บล็อกตามที่เจ้าของข้อมูลกำหนด · ตรวจ 8 พ.ย. 2569” and “อาคารของไซต์ที่พบบนแผนที่ 38 หลัง … ไซต์ตามงานวิจัย 45 จุด”.
+- 390 px (the live page in a 390 × 744 frame on our own origin; the window resize did not apply to the owner's window): the block draws blue, the phone card reads Siam Square, no horizontal overflow.
+- Site tab L649 (notes) corrected after the live check — “37 OpenStreetMap buildings” → “37 OpenStreetMap building pieces … the page reads 38 buildings”; read back (SHA-256 match); the build columns did not change.
 
