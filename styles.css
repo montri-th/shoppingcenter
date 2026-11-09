@@ -748,3 +748,14 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .map-toolbar button#open-help span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .tabs .tab-label { font-size: 12px; }
 }
+
+/* Map credits (#map-credits): the full, live list behind the bar's “ที่มา” (js/map-credits.js). Moved here from
+   navigation.css in release 0.2.0, when that file became the shared citymeter-shell bytes (js/shell/manifest.json);
+   the help dialog opens at this section from the link's data-open-help (js/shell/navigation.js). */
+.help-credits { margin: 0 0 16px; padding-top: 16px; border-top: 1px solid var(--border-hairline); scroll-margin-top: 8px; }
+.help-credits h3 { display: flex; align-items: center; gap: 6px; font-size: 15px; line-height: 1.4; }
+.help-credits h3 .pictogram { width: 18px; height: 18px; font-size: 18px; color: var(--text-secondary); }
+.help-credits p, .help-credits li { color: var(--text-secondary); font-size: 13px; }
+.help-credits p { margin-top: 4px; }
+.credit-list { margin: 8px 0; padding-left: 20px; }
+.credit-list li { margin: 0 0 4px; }

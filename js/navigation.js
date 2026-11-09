@@ -1,15 +1,13 @@
 /**
- * Approved LDS nav-7 glyphs and the accessible help dialog.
- *
- * Codepoints were verified from this exact font's cmap + GSUB tables. The
- * registry approves only the seven names below; unsupported actions keep
- * visible text and explanatory titles instead of borrowing misleading symbols.
- * Decoration is idempotent and never touches pins, charts, filters or data.
+ * This demo's navigation on the shared header code: the titles of its controls and its pictogram subset. The
+ * nav-7 glyphs and the help dialog are js/shell/navigation.js, the dataset picker js/shell/header.js
+ * (citymeter-shell: edit those in every repository at once, js/shell/manifest.json).
  */
-export const NAV_GLYPHS = Object.freeze({
-  open_in_new: '', menu: '', close: '',
-  light_mode: '', dark_mode: '', contrast: '', groups: '',
-});
+import {installNavigation, NAV_GLYPHS, NAV_ICON_CONTRACT} from './shell/navigation.js';
+import {installHeader} from './shell/header.js';
+
+export {NAV_GLYPHS, NAV_ICON_CONTRACT};
+
 /**
  * LDS pictogram / UI icon subset (Material Symbols Rounded, FILL 0 / wght 300 / GRAD 0 /
  * opsz 24). Test exception to the approved nav-7 subset — metric tiles approved by the owner
@@ -27,31 +25,6 @@ export const PICTOGRAM_CONTRACT = Object.freeze({
   status: 'test exception to LDS nav-7 (metric tiles owner 2026-10-22; UI roles owner 2026-10-25)',
   fallback: 'Text labels carry the meaning; pictograms stay hidden until the font has loaded.',
 });
-export const NAV_ICON_CONTRACT = Object.freeze({
-  assetId: 'icon.material-symbols-rounded.nav-7.300.01',
-  file: 'assets/icons/material-nav-300.woff2', bytes: 2500,
-  sha256: 'd7e283106ed2898726b24504c4e0f5ad524292984a90a4d29553c7dcf53b9657',
-  axes: Object.freeze({FILL: 0, wght: 300, GRAD: 0, opsz: 24}),
-  fallback: 'Visible labels remain usable; hide icon glyphs if the font cannot load.',
-});
-
-function makeIcon(name) {
-  if (!Object.hasOwn(NAV_GLYPHS, name)) throw new Error(`Unapproved navigation glyph: ${name}`);
-  const icon = document.createElement('span');
-  icon.className = 'nav-icon';
-  icon.dataset.navIcon = name;
-  icon.setAttribute('aria-hidden', 'true');
-  icon.textContent = NAV_GLYPHS[name];
-  return icon;
-}
-function decorate(element, name) {
-  if (!element) return;
-  const current = [...element.children].find(child => child.classList.contains('nav-icon'));
-  if (current?.dataset.navIcon === name) return;
-  if (current) current.replaceWith(makeIcon(name)); else element.prepend(makeIcon(name));
-  element.classList.add('nav-decorated');
-}
-
 const TITLES = {
   'fit-map': 'ดูทั้งประเทศ: ทุกจังหวัด ไม่มีโฟกัส',
   'bangkok-map': 'ไปที่กรุงเทพฯ และ 3 เขตที่หนาแน่นที่สุด',
@@ -76,79 +49,12 @@ const TITLES = {
   'tab-operators': 'ดูจำนวนสถานที่ตามผู้บริหาร',
 };
 
-function decorateNavigation() {
-  const byId = (id, name) => decorate(document.getElementById(id), name);
-  byId('close-help', 'close');
-  byId('mobile-panel', 'menu');
-  byId('close-mobile-panel', 'close');
-  byId('toggle-table', 'close');
-  const mode = document.getElementById('theme');
-  if (mode) decorate(mode.closest('label'), mode.value === 'dark' ? 'dark_mode' : mode.value === 'light' ? 'light_mode' : 'contrast');
-  // The Google links of the venue panel (D37) carry their own glyph (AI Mode, Google Maps, Street View) and say Google
-  // in their names, as CityMETER · Hotel's links do; screen readers hear “(เปิดแท็บใหม่)”. One icon per chip.
-  for (const anchor of document.querySelectorAll('.source-link[target="_blank"], .chip-link[target="_blank"]:not(.look-link), .usage-dialog a[target="_blank"], .top-actions a[target="_blank"], .links a[target="_blank"]')) {
-    // This glyph only marks destinations that really open a new browsing context.
-    decorate(anchor, 'open_in_new');
-  }
-  for (const [id, title] of Object.entries(TITLES)) {
-    const element = document.getElementById(id);
-    if (element && element.title !== title) element.title = title;
-  }
-  const reset = document.querySelector('#filters button[type="reset"]');
-  if (reset) reset.title = 'ล้างตัวกรอง';
-}
+// The Google links of the venue panel (D37) carry their own glyph (AI Mode, Google Maps, Street View) and say Google
+// in their names, as CityMETER · Hotel's links do; screen readers hear “(เปิดแท็บใหม่)”. One icon per chip: the other
+// chips that open a new tab (เว็บไซต์, รายชื่อร้าน) get the shared open_in_new glyph.
+const EXTERNAL_CHIPS = '.chip-link[target="_blank"]:not(.look-link)';
 
-function installHelp() {
-  const dialog = document.getElementById('usage-help'), opener = document.getElementById('open-help'), close = document.getElementById('close-help');
-  if (!dialog || !opener || !close) return;
-  let returnFocus = opener;
-  // `target`: the id of a section of the dialog to open at (the map credit's “ที่มา” opens “ที่มาของแผนที่”).
-  const open = (target = null) => {
-    returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : opener;
-    if (!dialog.open) dialog.showModal();
-    const section = target ? document.getElementById(target) : null;
-    if (section && dialog.contains(section)) {
-      (section.querySelector('[tabindex="-1"]') || close).focus({preventScroll: true});
-      section.scrollIntoView({block: 'start'});
-    } else close.focus({preventScroll: true});
-  };
-  opener.addEventListener('click', () => open());
-  document.addEventListener('click', event => {
-    const link = event.target instanceof Element ? event.target.closest('[data-open-help]') : null;
-    if (!link || dialog.contains(link)) return;
-    event.preventDefault();
-    open(link.dataset.openHelp);
-  });
-  close.addEventListener('click', () => dialog.close());
-  // Native dialog supplies modal focus containment and Escape/cancel behavior.
-  dialog.addEventListener('close', () => { const target = returnFocus?.isConnected ? returnFocus : opener; target.focus({preventScroll: true}); });
-  dialog.addEventListener('click', event => {
-    if (event.target !== dialog) return;
-    const bounds = dialog.getBoundingClientRect();
-    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
-  });
+if (typeof document !== 'undefined') {
+  installNavigation({titles: TITLES, pictogramProbe: PICTOGRAM_CONTRACT.glyphs.store, externalLinks: EXTERNAL_CHIPS});
+  installHeader();
 }
-
-export function installNavigation() {
-  decorateNavigation();
-  installHelp();
-  document.getElementById('theme')?.addEventListener('change', decorateNavigation);
-  let queued = false;
-  const observer = new MutationObserver(() => {
-    if (queued) return;
-    queued = true;
-    queueMicrotask(() => { queued = false; decorateNavigation(); });
-  });
-  observer.observe(document.body, {childList: true, subtree: true, attributes: true, attributeFilter: ['aria-expanded']});
-  if (document.fonts?.load) {
-    document.fonts.load('300 24px "LDS Material Symbols Rounded Nav"', '')
-      .then(faces => { document.documentElement.classList.add(faces.length ? 'nav-icons-ready' : 'nav-icons-unavailable'); })
-      .catch(() => document.documentElement.classList.add('nav-icons-unavailable'));
-    document.fonts.load('300 20px "LDS Material Symbols Rounded Pictogram"', PICTOGRAM_CONTRACT.glyphs.store)
-      .then(faces => { document.documentElement.classList.add(faces.length ? 'pictograms-ready' : 'pictograms-unavailable'); })
-      .catch(() => document.documentElement.classList.add('pictograms-unavailable'));
-  } else document.documentElement.classList.add('nav-icons-unavailable', 'pictograms-unavailable');
-  return () => observer.disconnect();
-}
-
-if (typeof document !== 'undefined') installNavigation();
