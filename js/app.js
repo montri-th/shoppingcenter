@@ -29,8 +29,10 @@
  * First view (D33, owner 2026-11-07): the filter “ประเภท” starts on shopping centres, community malls and outlets
  * (model.js DEFAULT_GROUP; a link without `group` reads it, `?group=all` keeps every type) and the first finding ranks
  * districts by count, with the share within 500 m of a station against the rest of the province.
- * URL: q, status, group, operator, province, role, district, venue, brand, station, record, pending, areas, view,
- * view3d — restored on load. Shop counts (“ร้านข้างใน”) and the filter “ข้างในมี” (role) come from the shop-list index
+ * URL (own names, inside): q, status, group, operator, province, role, district, venue, brand, station, record,
+ * pending, areas, view, view3d — written in the shared grammar d · at · e · n · f.* · focus · view · v3d by
+ * citymeter-shell (js/shell/url.js), one browser history entry per level (the back button goes up a level),
+ * restored on load. Shop counts (“ร้านข้างใน”) and the filter “ข้างในมี” (role) come from the shop-list index
  * and the centre facilities, loaded right after the core data (D22): until they arrive a shop figure reads “—”. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
@@ -61,6 +63,8 @@ import {createBuildingUnitStore, createCmTileLoader, CM_ATTRIBUTION} from './bui
 import {installTerrain, TERRAIN} from './terrain.js';
 import {guardRetainedTiles, guardElevationFreeze} from './maplibre-guard.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
+import {createCodec, createNavigator} from './shell/url.js';
+import {pageTitle} from './shell/title.js';
 import {loadDetail, cachedDetail} from './details.js';
 import {createTenantSelection, createTenantLoader, createDirectoryLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
@@ -142,6 +146,9 @@ const subjectWord = () => {
   const f = values(), base = f.group ? groupLabel(f.group) : SUBJECT;
   return f.role ? `${f.group ? base : 'สถานที่'}ที่มี${INSIDE_LABELS[f.role] || f.role}` : base;
 };
+/** The tab title's subject, short so the place fits in 60 characters: one type's name, else the dataset's name (the
+ * first view's type set and the other sets) or สถานที่ค้าปลีก (every type). */
+const titleSubject = () => { const g = values().group; return GROUPS.some(x => x.id === g) ? groupLabel(g) : g ? PRODUCT_TITLE : SUBJECT; };
 const currentStation = () => (state.panel.mode === 'station' ? state.stationById.get(state.panel.id) || null : null);
 let stationMemo = {key: '', rows: null, value: null};
 /** Station view: the venues of the filters within STATION_RADIUS_M of the open station, nearest first. */
@@ -189,6 +196,23 @@ function readingProvince() {
   return '';
 }
 
+/* ---------- address (citymeter-shell, js/shell/url.js) ---------- */
+// The page keeps its own parameter names inside (saveURL / restoreFromURL); the shell writes them in the shared
+// grammar d · at · e · n · f.* · focus · view · v3d, and opening a district, a venue, a pending record, a station or a
+// brand adds one browser history entry, so the back button goes up a level. `at` reaches the district (BKK/D/1007).
+// The filters are `f.q`, `f.status`, `f.group`, `f.operator`, `f.role` and `f.pending`. The `e` kinds are
+// provisional until the dataset registry declares them: `venue` (this dataset's venue ids, SC- / VN-), `record` (a
+// pending record) and `station` (CityMETER · Transit's station ids); a brand page is the network `n=brand:<key>`.
+// Old links (?province=, ?district=, ?venue=, ?record=, ?station=, ?brand=, ?q=, ?group=, ?areas=, ?view3d= …) still
+// open and are rewritten.
+const nav = createNavigator(createCodec({
+  dataset: 'shoppingCenter', levels: ['P', 'D'], place: {province: 'province', D: 'district'},
+  items: {venue: 'venue', record: 'record', station: 'station'}, networks: {brand: 'brand'},
+  filters: ['q', 'status', 'group', 'operator', 'role', 'pending'],
+  rename: {areas: 'focus', view: 'view', view3d: 'v3d'},
+  provinceOf: (code, kind) => (kind === 'D' ? state.districts?.get(code)?.province || '' : ''),
+}), {onPop: restoreFromHistory});
+
 function saveURL() {
   const f = values(), p = new URLSearchParams();
   for (const k of FIELDS) {
@@ -206,7 +230,7 @@ function saveURL() {
   if (!state.showPending) p.set('pending', '0');
   if (state.view !== 'rank') p.set('view', state.view);
   if (!state.view3d) p.set('view3d', '0');
-  history.replaceState(null, '', location.pathname + (p.size ? '?' + p : ''));
+  nav.commit(p);
 }
 
 /* ---------- theme ---------- */
@@ -313,9 +337,12 @@ function renderCrumbs() {
   const st = currentStation();
   const province = values().province || (v ? rowProvince(v) : '') || c?.province?.code || (st ? readingProvince() : '') || (focusMode() !== 'none' && !values().search ? state.insight?.province : '') || '';
   const b = currentBrand();
-  const crumbs = buildBreadcrumb({province: b ? '' : province, district: b ? null : district, venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : b ? {id: '', label: b.brand.name} : st ? {id: '', label: `สถานี${st.name}`} : null});
+  const crumbs = buildBreadcrumb({province: b ? '' : province, district: b ? null : district, brand: b ? {id: state.panel.id, label: b.brand.name} : null,
+    venue: v ? {id: v.id, label: v.name} : c ? {id: '', label: c.name} : st ? {id: '', label: `สถานี${st.name}`} : null});
   $('crumbs').innerHTML = renderBreadcrumb(crumbs);
-  document.title = `${breadcrumbText(crumbs)} · ${PRODUCT_TITLE} · CityMETER`;
+  // Tab title: what the view shows, then the product, ≤ 60 characters (LDS FAVICON-01, js/shell/title.js).
+  const place = crumbs[crumbs.length - 1].label;
+  document.title = pageTitle(v || c || b || st ? place : `${titleSubject()} ${place}`);
   return crumbs;
 }
 
@@ -446,6 +473,8 @@ function renderMapCard(html, label, kind) {
 function pushHistory() { state.history.push({...state.panel}); if (state.history.length > 20) state.history.shift(); }
 
 function goBack() {
+  // Every level is a browser history entry (citymeter-shell): go up the way the browser's button does.
+  if (nav.canGoBack()) { nav.back(); return; }
   const previous = state.history.pop();
   const leaving = state.panel.mode;
   state.panel = previous && previous.mode !== 'overview' ? previous : overviewPanel();
@@ -827,8 +856,9 @@ function onPanelAction(event) {
     case 'set-group': $('group').value = id; state.panel = ['district', 'station'].includes(state.panel.mode) ? state.panel : overviewPanel(); update({fit: state.panel.mode === 'overview'}); break;
     case 'crumb-country': $('province').value = ''; showCountry(); break;
     case 'crumb-province': selectProvince(id); break;
-    case 'crumb-district': selectDistrict(id); break;
-    case 'crumb-venue': selectVenue(id); break;
+    case 'crumb-area': selectDistrict(id); break;
+    case 'crumb-network': selectBrand(id); break;
+    case 'crumb-site': selectVenue(id); break;
     case 'crumb-expand': { const ol = target.closest('.crumbs'); ol.classList.add('is-expanded'); target.setAttribute('aria-expanded', 'true'); ol.querySelector('.crumb:not(.crumb-more)')?.focus({preventScroll: true}); break; }
     case 'toggle-pending': togglePending(); break;
     default: break;
@@ -1513,7 +1543,7 @@ function fillOptions() {
 }
 
 function restoreFromURL() {
-  const p = new URLSearchParams(location.search);
+  const p = nav.read();
   // D33: a link without `group` reads the first view's type set; `group=all` keeps every type.
   $('group').value = DEFAULT_GROUP;
   for (const k of FIELDS) {
@@ -1535,6 +1565,24 @@ function restoreFromURL() {
   else if (p.get('brand')) { state.pendingBrand = p.get('brand'); ensureTenantIndex(); }
   state.pendingRecord = p.get('record') || '';
   state.pendingRole = p.get('role') || '';
+}
+
+/** Browser back / forward (citymeter-shell): show the level the restored address names. */
+function restoreFromHistory() {
+  for (const f of FIELDS) $(f).value = '';
+  Object.assign(state, {view: 'rank', focusAreaIds: [], autoFocus: true, panel: overviewPanel(), history: [], pendingBrand: '', pendingRecord: '', framed: null});
+  restoreFromURL();
+  // A brand or a pending record opens at once when its data is already here (on a fresh load: when it arrives).
+  if (state.panel.mode === 'overview' && state.pendingBrand && state.tenantIndex?.brands.has(state.pendingBrand)) {
+    state.panel = {mode: 'brand', id: state.pendingBrand}; state.brandLimit = 30; state.pendingBrand = '';
+  }
+  if (state.panel.mode === 'overview' && state.pendingRecord && state.pending) {
+    const i = state.pending.rows.findIndex(r => r[0] === state.pendingRecord);
+    if (i >= 0) state.panel = {mode: 'pending', id: String(i)};
+  }
+  $('toggle-3d').setAttribute('aria-pressed', String(state.view3d));
+  syncEyeToggle();
+  update({fit: true});
 }
 
 function wireEvents() {

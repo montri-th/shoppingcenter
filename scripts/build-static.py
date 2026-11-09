@@ -83,6 +83,8 @@ def main():
                   lambda m: m.group(1) + '\n  <script type="application/ld+json">' + json.dumps(ld, ensure_ascii=False) + '</script>\n  ' + m.group(2), html, flags=re.S)
     tag = re.search(r'src="js/app\.js\?v=([\w.-]+)"', html).group(1)
     imports = {f'./js/{f.name}': f'./js/{f.name}?v={tag}' for f in sorted((ROOT / 'js').glob('*.js'))}
+    # citymeter-shell: its modules are mapped too; js/shell/launch.js is the classic launch script, not a module.
+    imports.update({f'./js/shell/{f.name}': f'./js/shell/{f.name}?v={tag}' for f in sorted((ROOT / 'js/shell').glob('*.js')) if f.name != 'launch.js'})
     importmap = '<script type="importmap">' + json.dumps({'imports': imports}, separators=(',', ':')) + '</script>'
     html = re.sub(r'(<!-- importmap:start -->).*?(<!-- importmap:end -->)',
                   lambda m: m.group(1) + '\n  ' + importmap + '\n  ' + m.group(2), html, flags=re.S)

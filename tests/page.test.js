@@ -14,8 +14,10 @@ test('entry scripts and stylesheets share one cache tag; the import map versions
   const block = html.match(/<script type="importmap">(.*?)<\/script>/s);
   assert.ok(block, 'import map present');
   const map = JSON.parse(block[1]).imports;
-  const modules = readdirSync(new URL('../js/', import.meta.url)).filter(f => f.endsWith('.js'));
-  assert.deepEqual(Object.keys(map).sort(), modules.map(f => `./js/${f}`).sort());
+  const modules = readdirSync(new URL('../js/', import.meta.url)).filter(f => f.endsWith('.js')).map(f => `./js/${f}`);
+  // citymeter-shell: its modules are mapped too; js/shell/launch.js is the classic launch script, not a module.
+  const shell = readdirSync(new URL('../js/shell/', import.meta.url)).filter(f => f.endsWith('.js') && f !== 'launch.js').map(f => `./js/shell/${f}`);
+  assert.deepEqual(Object.keys(map).sort(), [...modules, ...shell].sort());
   for (const [from, to] of Object.entries(map)) assert.equal(to, `${from}?v=${tag}`);
   assert.ok(html.indexOf('type="importmap"') < html.indexOf('type="module"'), 'the map precedes every module script');
 });

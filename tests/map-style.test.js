@@ -35,7 +35,8 @@ test('breadcrumb mirrors production levels: ประเทศไทย › จ�
   const pathumWan = {code: '1007', th: 'ปทุมวัน', province: 'BKK'};
   const crumbs = buildBreadcrumb({province: 'PKT', district: pathumWan});
   assert.deepEqual(crumbs.map(c => c.label), ['ประเทศไทย', 'กรุงเทพมหานคร', 'เขตปทุมวัน'], 'the district’s own province wins over a stale filter');
-  assert.equal(crumbs[1].code, 'BKK');
+  assert.equal(crumbs[1].id, 'BKK');
+  assert.equal(crumbs[2].href, 'https://landometer.com/v3/citymeter/BKK/D/1007?d=shoppingCenter', 'the production deep link');
   assert.equal(crumbs[2].id, '1007');
   assert.equal(crumbs.at(-1).current, true);
   assert.equal(breadcrumbText(crumbs), 'ประเทศไทย › กรุงเทพมหานคร › เขตปทุมวัน');
@@ -52,7 +53,7 @@ test('breadcrumb venue level: four levels with the venue id; a venue without a p
   const pathumWan = {code: '1007', th: 'ปทุมวัน', province: 'BKK'};
   const paragon = {id: 'SC-001244', label: 'สยามพารากอน'};
   const four = buildBreadcrumb({district: pathumWan, venue: paragon});
-  assert.deepEqual(four.map(c => c.level), ['country', 'province', 'district', 'venue']);
+  assert.deepEqual(four.map(c => c.level), ['country', 'province', 'area', 'site']);
   assert.equal(breadcrumbText(four), 'ประเทศไทย › กรุงเทพมหานคร › เขตปทุมวัน › สยามพารากอน');
   assert.equal(four.at(-1).id, 'SC-001244');
   const unlocated = buildBreadcrumb({province: 'BKK', venue: {id: 'VN-x', label: 'Bangkok Mall'}});
@@ -60,7 +61,9 @@ test('breadcrumb venue level: four levels with the venue id; a venue without a p
   const html = renderBreadcrumb(four);
   assert.equal((html.match(/class="is-collapsible"/g) || []).length, 2);
   assert.ok(html.includes('crumb-ellipsis') && html.includes('data-action="crumb-expand"'));
-  assert.ok(!html.includes('data-action="crumb-venue"'), 'the current venue is a label, not a link');
+  assert.ok(!html.includes('data-action="crumb-site"'), 'the current venue is a label, not a link');
+  const brand = buildBreadcrumb({brand: {id: 'uniqlo', label: 'Uniqlo'}});
+  assert.deepEqual(brand.map(c => [c.level, c.label]), [['country', 'ประเทศไทย'], ['network', 'Uniqlo']], 'a brand page: the country, then the brand');
   assert.ok(!renderBreadcrumb(buildBreadcrumb({district: pathumWan})).includes('crumb-ellipsis'));
 });
 

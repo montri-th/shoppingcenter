@@ -37,7 +37,7 @@ Static HTML/CSS + ES modules ไม่มี build step ไม่มี framewor
 
 | โมดูล | จาก Luxury | สิ่งที่เปลี่ยน |
 |---|---|---|
-| `index.html`, `styles.css`, `navigation.css`, `assets/theme.css`, `js/launch.js`, `js/vendors.js` | คงโครงหน้าจอ, launch overlay, tokens, ฟอนต์ LDS, icons | ข้อความไทยใหม่ทั้งหมด; ช่องค้นหา; legend กลุ่มประเภท + สวิตช์ “รายการรอตรวจ”; public origin ใหม่ |
+| `index.html`, `styles.css`, `navigation.css`, `assets/theme.css`, `js/shell/launch.js`, `js/vendors.js` | คงโครงหน้าจอ, launch overlay, tokens, ฟอนต์ LDS, icons | ข้อความไทยใหม่ทั้งหมด; ช่องค้นหา; legend กลุ่มประเภท + สวิตช์ “รายการรอตรวจ”; public origin ใหม่ |
 | `js/model.js` | taxonomy, ตัวกรองร่วม, `PROVINCES` | กลุ่มประเภท 8 กลุ่ม (เพิ่มไฮเปอร์/ซูเปอร์มาร์เก็ตที่มีร้านเช่า), ระดับการผ่านนิยาม, สถานะ (อุปทาน / โครงการอนาคต / ปิดตามหลักฐาน), กลุ่มผู้บริหาร; `PROVINCES` ครบ 77 จังหวัดจาก production (`base/info/lv0` → `abbrEn`) |
 | `js/neighborhoods.js` → `js/areas.js` | point-in-polygon + membership | membership คำนวณล่วงหน้าใน pipeline (`provinceCode`, `districtCode` ต่อแถว) จากขอบเขตความละเอียดเต็ม; client ใช้เฉพาะสรุปต่อพื้นที่ |
 | `js/area-insight.js` | Aha 3 ย่าน | Aha 3 เขตตามแห่ง/ตร.กม. (สูตร §4); คืน `{province, districtIds, count, total, share, areaKm2, provinceAreaKm2, areaShare}` |
