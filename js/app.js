@@ -64,6 +64,7 @@ import {installTerrain, TERRAIN} from './terrain.js';
 import {guardRetainedTiles, guardElevationFreeze} from './maplibre-guard.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js';
 import {createCodec, createNavigator} from './shell/url.js';
+import {mapBudget, budgetPixelRatio, reloadOnContextLoss} from './shell/maplibre-guard.js';
 import {pageTitle} from './shell/title.js';
 import {loadDetail, cachedDetail} from './details.js';
 import {createTenantSelection, createTenantLoader, createDirectoryLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
@@ -1403,7 +1404,7 @@ function initMap() {
   if (!window.maplibregl) throw new Error('Map library is unavailable');
   try {
     state.mapTheme = theme();
-    state.map = new maplibregl.Map({container: 'map', center: BANGKOK_VIEW.center, zoom: BANGKOK_VIEW.zoom, pitch: 0, maxPitch: 85, attributionControl: {compact: false}, style: buildMapStyle(state.mapTheme)});
+    state.map = new maplibregl.Map({container: 'map', pixelRatio: budgetPixelRatio(mapBudget()), maxTileCacheZoomLevels: mapBudget().cacheZoomLevels, center: BANGKOK_VIEW.center, zoom: BANGKOK_VIEW.zoom, pitch: 0, maxPitch: 85, attributionControl: {compact: false}, style: buildMapStyle(state.mapTheme)});
     // Nothing on the map: the credit is a line under it and the live list is in the help dialog (js/map-credits.js).
     mirrorMapCredits(state.map, {list: $('map-credit-list')});
     state.map.addControl(new maplibregl.NavigationControl({showCompass: true, visualizePitch: true}), 'top-right');
@@ -1423,6 +1424,8 @@ function initMap() {
     state.map.on('click', routeClick);
     state.map.on('mousemove', routeHover);
     state.map.on('error', e => console.warn('Map resource', e.error?.message || e));
+    // A lost WebGL context (a phone under memory pressure): say so and reload once, lean (js/shell/maplibre-guard.js).
+    reloadOnContextLoss(state.map);
     fetch(TILEJSON_URL).then(r => r.json()).then(j => { state.tileTemplate = j.tiles?.[0] || ''; if (state.loaded) updateSpatialLayers(); }).catch(e => { partial('basemap'); console.warn('TileJSON', e); });
   } catch (e) {
     state.loaded = false; state.initialCameraDone = false;
