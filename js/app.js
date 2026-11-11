@@ -1423,7 +1423,7 @@ function initMap() {
     state.map.on('click', routeClick);
     state.map.on('mousemove', routeHover);
     state.map.on('error', e => console.warn('Map resource', e.error?.message || e));
-    fetch(TILEJSON_URL).then(r => r.json()).then(j => { state.tileTemplate = j.tiles?.[0] || ''; if (state.loaded) updateSpatialLayers(); }).catch(e => console.warn('TileJSON', e));
+    fetch(TILEJSON_URL).then(r => r.json()).then(j => { state.tileTemplate = j.tiles?.[0] || ''; if (state.loaded) updateSpatialLayers(); }).catch(e => { partial('basemap'); console.warn('TileJSON', e); });
   } catch (e) {
     state.loaded = false; state.initialCameraDone = false;
     for (const cleanup of [() => state.pins?.dispose(), () => state.districtLabels?.dispose(), () => state.provinceLabels?.dispose(), () => state.xray?.dispose(), () => state.pinBuildings?.dispose(), () => state.buildings?.dispose(), () => state.massing?.dispose(), () => state.map?.remove()]) { try { cleanup(); } catch (err) { console.warn('Map cleanup', err); } }
@@ -1700,6 +1700,26 @@ async function loadPending() {
   } catch (e) { console.warn('Pending records unavailable', e); $('pending-count').textContent = ''; }
 }
 
+/**
+ * A part of the data that did not load is said on the page (citymeter-shell 0.6.0, js/shell/launch.js
+ * `citymeter:partial`): what is missing and what that does to the result on screen, with a reload that keeps the
+ * address. The words live here, by file: [Thai name, Thai effect, English name, English effect].
+ */
+const PARTIAL = {
+  'data/provinces.geojson': ['กรอบจังหวัด', 'แผนที่ไม่แสดงขอบจังหวัด', 'Province outlines', 'The map shows no province outlines'],
+  'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
+  'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
+  'data/venue-logos.json': ['โลโก้สถานที่', 'แสดงชื่อแทนโลโก้', 'Venue logos', 'Names are shown instead of logos'],
+  'data/venue-buildings.geojson': ['อาคารของศูนย์การค้า', 'ศูนย์การค้าไม่แสดงเป็นอาคารบนแผนที่', 'Venue buildings', 'Venues are not drawn as buildings on the map'],
+  'data/districts.geojson': ['ขอบเขตเขต/อำเภอ', 'ผลไม่ได้แบ่งตามเขต/อำเภอ มุมมองเริ่มต้นจึงต่างจากปกติ', 'District outlines', 'Results are not divided by district, so the opening view differs'],
+  'data/stations.json': ['สถานีรถไฟฟ้า', 'ไม่แสดงสถานีใกล้เคียงและมุมมองตามสถานี', 'Rail stations', 'Nearby stations and the station view are not shown'],
+};
+function partial(key) {
+  const words = PARTIAL[key];
+  if (!words || typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('citymeter:partial', {detail: {id: key, label: words[0], effect: words[1], labelEn: words[2], effectEn: words[3]}}));
+}
+
 async function init() {
   try {
     const resources = ['data/venues.json', 'data/districts.geojson', 'data/provinces.geojson', 'data/venue-buildings.geojson', 'data/venue-logos.json', 'data/stations.json'];
@@ -1716,6 +1736,8 @@ async function init() {
         console.warn('Optional dataset unavailable', error);
       }
     }
+    // A file that did not load is said on the page (citymeter-shell 0.6.0).
+    resources.forEach((r, i) => { if (results[i].status === 'rejected') partial(r); });
     state.districtGeo = results[1].status === 'fulfilled' ? results[1].value : {type: 'FeatureCollection', features: []};
     state.districts = indexDistricts(state.districtGeo);
     state.districtDetail = createDistrictDetail({fetchJSON: url => fetchJSON(url)});
@@ -1723,7 +1745,7 @@ async function init() {
     // when the view needs them; one shared reader of CityMETER Building V4 tiles for the focus tier and the pins.
     state.cmLoad = createCmTileLoader();
     state.buildingUnits = createBuildingUnitStore({fetchJSON, onLoad: () => { if (state.loaded) updateSpatialLayers(); },
-      onError: (code, e) => { console.warn('Building units unavailable', code, e?.message || e); if (state.loaded) updateSpatialLayers(); }});
+      onError: (code, e) => { partial('units'); console.warn('Building units unavailable', code, e?.message || e); if (state.loaded) updateSpatialLayers(); }});
     state.buildingUnits.loadIndex();
     state.provinceGeo = results[2].status === 'fulfilled' ? results[2].value : {type: 'FeatureCollection', features: []};
     state.buildingData = results[3].status === 'fulfilled' ? results[3].value : {type: 'FeatureCollection', features: []};
