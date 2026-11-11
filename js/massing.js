@@ -628,6 +628,11 @@ export function tilesForRegions(regions, z = TILE_ZOOM, max = MAX_TILES, center 
   return {tiles: tiles.slice(0, max), truncated: tiles.length > max, total: tiles.length};
 }
 
+/** A turn for input and frames between tiles of one update (Phase 0, 2026-11-11): resolves in a new task. */
+const SLICE_MS = 12;
+const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+const breathe = () => new Promise(resolve => setTimeout(resolve, 0));
+
 /**
  * Install both tiers on a loaded style. `sourceId` is the basemap vector source
  * (OpenMapTiles schema). `tileUrl(tile)` returns the URL of one tile; the app
@@ -734,7 +739,7 @@ export function installMassing(map, {sourceId = 'openmaptiles', beforeId, colors
     const task = (async () => {
       const r = await fetchImpl(tileUrl(tile));
       if (!r.ok) throw new Error(`tile ${key} ${r.status}`);
-      const parsed = parseVectorTile(await r.arrayBuffer());
+      const parsed = parseVectorTile(await r.arrayBuffer(), {only: ['building']});
       return parsed.layers.building || {extent: 4096, features: []};
     })();
     cache.set(key, task);
@@ -814,14 +819,23 @@ export function installMassing(map, {sourceId = 'openmaptiles', beforeId, colors
     const podiums = podiumIndex(layers.map((layer, i) => (layer ? {tile: tiles[i], layer} : null)).filter(Boolean));
     const features = [], hidden = new Set(), context = [], partOutlines = [], taken = new Set(), rules = {};
     let kept = 0, dropped = 0, replaced = 0, osmFirst = 0, cmHeights = 0;
-    layers.forEach((layer, i) => {
-      if (!layer) return;
+    // One tile per task (Phase 0, 2026-11-11): shaping is main-thread work, so input and frames get a turn between
+    // tiles once a slice has run for SLICE_MS ms; a newer update still supersedes this one.
+    let sliceStart = now();
+    for (let i = 0; i < layers.length; i++) {
+      const layer = layers[i];
+      if (!layer) continue;
       const shaped = shapeTile(tiles[i], layer, {regions, hosts, pins, radiusM, offsetM, zones: zonesOfTile(tiles[i]), cm: cmIndex, podiums});
       features.push(...shaped.features); context.push(...shaped.context); partOutlines.push(...shaped.partOutlines);
       shaped.hiddenIds.forEach(id => hidden.add(id)); shaped.taken.forEach(k => taken.add(k));
       kept += shaped.kept; dropped += shaped.dropped; replaced += shaped.replaced; osmFirst += shaped.osmFirst; cmHeights += shaped.cmHeights;
       for (const [rule, n] of Object.entries(shaped.rules)) rules[rule] = (rules[rule] || 0) + n;
-    });
+      if (now() - sliceStart > SLICE_MS) {
+        await breathe();
+        if (my !== token || disposed) return {features: 0, tiles: 0, stale: true};
+        sliceStart = now();
+      }
+    }
     const cm = {requests: plan.requests.length, failed: cmLayers.filter(l => !l).length, truncated: plan.truncated, kept: 0, away: 0, shared: 0, inParts: 0, osmFirst: 0, dropped: 0};
     const seen = new Set();
     for (const {q, layer} of drawnCm) {
