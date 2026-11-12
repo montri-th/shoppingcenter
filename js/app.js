@@ -66,6 +66,9 @@ import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from './breadcrumb.js
 import {createCodec, createNavigator} from './shell/url.js';
 import {mapBudget, budgetPixelRatio, reloadOnContextLoss} from './shell/maplibre-guard.js';
 import {pageTitle} from './shell/title.js';
+import {createIndex} from './shell/fuzzy.js';
+import {installSearch} from './shell/search.js';
+import {SEARCH_KINDS, SEARCH_HEADS, SEARCH_HINT, searchEntries, pendingEntries, brandEntries, searchNote} from './find.js';
 import {loadDetail, cachedDetail} from './details.js';
 import {createTenantSelection, createTenantLoader, createDirectoryLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
@@ -112,6 +115,8 @@ const state = {
   models: null,
   // Operating rail stations of CityMETER · Transit (data/stations.json): list, index, meta, and the map layer.
   stationList: [], stationById: new Map(), stationMeta: null, stations: null,
+  // The list under the search box (js/shell/search.js): its index, and which late files its first reading took.
+  finder: null, findIndex: null, findLate: null,
 };
 // D41: a place's shop list also holds the listed shops of its sub-areas (each shop names the sub-area it is in).
 const tenantSelection = createTenantSelection({
@@ -293,6 +298,7 @@ function update({fit = false, camera = true} = {}) {
   drawChart();
   renderTable();
   saveURL();
+  state.finder?.sync();
   announce(`พบ ${num(s.venues)} แห่ง`);
 }
 
@@ -566,6 +572,7 @@ function ensureTenantIndex() {
   state.tenantIndexState = 'loading';
   loadTenantIndex().then(index => {
     state.tenantIndex = rollUpSubAreas(index, state.all, state.byId); state.tenantIndexState = 'ready';
+    indexLate();
     const role = shopListsChanged();
     const key = state.pendingBrand;
     state.pendingBrand = '';
@@ -1588,6 +1595,69 @@ function restoreFromHistory() {
   update({fit: true});
 }
 
+/**
+ * The search box (0.4.0; owner 2026-11-12 12:05, VERBATIM: “ศึกษาแนวคิดเรื่อง Fuzzy search แล้ว implement กับ demo web
+ * ให้ได้ user benefit สูงสุดตาม user intent ในขณะนั้น และตาม product statement”). A name typed is listed with what it is
+ * and where (js/shell/search.js, names from js/find.js) and opens what it names: a province or a เขต/อำเภอ its
+ * places, a rail station the places round it, a type or an operator its filter, a brand of the shop lists where it
+ * is listed, a place its page. Enter with nothing chosen keeps the search view this page always had (every place,
+ * brand and record whose name holds the words). The map and the panel no longer change while the reader is typing.
+ */
+function openFound(entry) {
+  // A filter chosen by name is shown for the whole page: the เขต/อำเภอ being looked at is left and the filters that
+  // would leave it no place are lifted first (js/shell/search.js#makeWay).
+  const choose = (field, id) => { state.finder.makeWay(field, id); $(field).value = id; $(field).dispatchEvent(new Event('change', {bubbles: true})); };
+  if (entry.kind === 'province') selectProvince(entry.id);
+  else if (entry.kind === 'district') selectDistrict(entry.id);
+  else if (entry.kind === 'station') selectStation(entry.id);
+  else if (entry.kind === 'group' || entry.kind === 'operator') choose(entry.kind, entry.id);
+  else if (entry.kind === 'brand') selectBrand(entry.id);
+  else if (entry.kind === 'venue' || entry.kind === 'part') selectVenue(entry.id);
+  else if (entry.kind === 'pending') selectPending(entry.index);
+}
+/**
+ * Names that arrive after the list was read join it: the records not confirmed yet (data/pending.json, loaded after
+ * the first paint) and the brands of the shop lists (loaded when the reader comes to the box).
+ */
+function indexLate() {
+  const late = state.findLate;
+  if (!late || !state.findIndex) return;
+  if (state.pending && !late.pending) { late.pending = true; state.findIndex.addAll(pendingEntries(state.pending, {districts: state.districts})); }
+  if (state.tenantIndex && !late.brands) { late.brands = true; state.findIndex.addAll(brandEntries(state.tenantIndex)); }
+}
+function installFinder() {
+  try {
+    state.findIndex = createIndex({kinds: SEARCH_KINDS, heads: SEARCH_HEADS});
+    state.finder = installSearch({
+      input: $('search'),
+      index: state.findIndex,
+      entries: function* () {
+        yield* searchEntries({rows: state.all, districts: state.districts, stations: state.stationList, operators: state.data?.meta?.operatorGroups || []});
+        // What is here now is read with the rest; what comes later joins by indexLate().
+        const late = state.findLate = {pending: Boolean(state.pending), brands: Boolean(state.tenantIndex)};
+        if (late.pending) yield* pendingEntries(state.pending, {districts: state.districts});
+        if (late.brands) yield* brandEntries(state.tenantIndex);
+      },
+      note: entry => searchNote(entry, {districts: state.districts, byId: state.byId}),
+      // What the reader is looking at comes first among equal names.
+      scope: () => ({province: readingProvince(), area: selectedDistrict()?.code || ''}),
+      // The words open the search view: every place, brand and record whose name holds them (its own count).
+      rows: text => {
+        const r = searchAll(text, {rows: state.all, pending: state.pending});
+        return {n: r.qualifiedTotal + r.components.length + r.pendingTotal + (state.tenantIndex ? searchBrands(state.tenantIndex, text).total : 0), unit: 'รายการ'};
+      },
+      hint: SEARCH_HINT,
+      pick: openFound,
+      // A filter or words chosen from the list: the เขต/อำเภอ being looked at is left; the filters that may be lifted
+      // for it are these — never the province (a province without it is a reading of that province) nor the status.
+      filters: {fields: ['group', 'operator', 'role'], values, count: v => filterVenues(state.all, v).length,
+        leave: () => { state.focusAreaIds = []; if (state.panel.mode !== 'overview') state.panel = overviewPanel(); }},
+      // The brands of the shop lists are read when the reader comes to the box.
+      onFocus: () => ensureTenantIndex(),
+    });
+  } catch (e) { state.finder = null; console.warn('Search list unavailable', e); }
+}
+
 function wireEvents() {
   // An unavailable logo keeps the shop name and the neutral shop symbol readable.
   $('panel-view').addEventListener('error', event => {
@@ -1603,7 +1673,8 @@ function wireEvents() {
       if (f !== 'search' || state.panel.mode !== 'district') state.panel = overviewPanel();
       if (f === 'province') state.autoFocus = true;
       update({fit: f !== 'search' || Boolean($('search').value)});
-    }, f === 'search' ? 220 : 0);
+      // With the list, the words arrive whole (Enter or the list's last row); without it the box filters as it is typed in.
+    }, f === 'search' && !state.finder ? 220 : 0);
   });
   $('filters').addEventListener('submit', e => e.preventDefault());
   $('filters').addEventListener('reset', () => setTimeout(() => resetToOverview(), 0));
@@ -1692,6 +1763,7 @@ function onModelsLoaded(id) {
 async function loadPending() {
   try {
     state.pending = indexPending(await fetchJSON('data/pending.json', {timeout: 30000}));
+    indexLate();
     const record = state.pendingRecord;
     if (record) {
       const i = state.pending.rows.findIndex(r => r[0] === record);
@@ -1770,6 +1842,7 @@ async function init() {
     try { $('theme').value = localStorage.getItem(THEME_KEY) || 'auto'; } catch {}
     applyTheme();
     wireEvents();
+    installFinder();
     update();
     window.dispatchEvent(new CustomEvent('citymeter:ready'));
     startMap();
@@ -1786,6 +1859,6 @@ async function init() {
 }
 
 // Developer hook for live tuning in a browser console (not an API; may change without notice).
-window.__citymeter = {state, get map() { return state.map; }, update, fitMap, updateSpatialLayers, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding, visibleBox, venueTargets: () => venueTargets(), buildMapStyle, formatDensity, cueSVG};
+window.__citymeter = {state, get map() { return state.map; }, get finder() { return state.finder; }, update, fitMap, updateSpatialLayers, applyPreset: (name, opts) => state.map && applyPreset(state.map, name, opts), fitPitched: (b, opts) => state.map && fitPitched(state.map, b, opts), cameraPadding, visibleBox, venueTargets: () => venueTargets(), buildMapStyle, formatDensity, cueSVG};
 
 init();
