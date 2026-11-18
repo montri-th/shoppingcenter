@@ -71,6 +71,23 @@ GLYPHS = {
     'ai': ('auto_awesome', 0xE65F),
     'maps': ('location_on', 0xF1DB),
     'streetview': ('streetview', 0xE56E),
+    # รอบศูนย์นี้ 0.6.0 (owner 2026-11-18 18:57: “ถ้าเน้นภาพ, charts, icon, symbol ก่อนแล้วค่อยอธิบายทีหลังได้มั้ยครับ”):
+    # the four groups, spending power from prices, the fit states of a format, and the families of the named places —
+    # each beside its text label; the fit marks also carry their words for screen readers
+    'residents': ('home', 0xE9B2),
+    'students': ('school', 0xE80C),
+    'workers': ('work', 0xE943),
+    'visitors': ('luggage', 0xF235),
+    'spend': ('payments', 0xEF63),
+    'fit': ('check_circle', 0xF0BE),
+    'notyet': ('radio_button_unchecked', 0xE836),
+    'hotel': ('bed', 0xEFDF),
+    'hospital': ('local_hospital', 0xE548),
+    'factory': ('factory', 0xEBBC),
+    'office': ('corporate_fare', 0xF1D0),
+    'gov': ('account_balance', 0xE84F),
+    'university': ('history_edu', 0xEA3E),
+    'land': ('real_estate_agent', 0xE73A),
 }
 AXES = {'FILL': 0, 'wght': 300, 'GRAD': 0, 'opsz': 24}
 ROOT = Path(__file__).resolve().parent.parent

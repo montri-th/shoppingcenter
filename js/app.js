@@ -36,6 +36,8 @@
  * and the centre facilities, loaded right after the core data (D22): until they arrive a shop figure reads “—”. Resilience: core data first; map, details, pending and
  * logos are independent and retryable.
  */
+import './lang.js';
+import {registerDataNames, noteDetail, noteRoster, noteBrands, notePending} from './lang.js';
 import {GROUPS, GROUP_SETS, DEFAULT_GROUP, STATUS_FILTERS, PROVINCES, provinceByCode, filterVenues, groupMatches, summarize, hasPoint, rowProvince, prepareRows, applyShopLists, operatorRanking, districtWord, groupById, groupLabel, contextState, BANGKOK} from './model.js';
 import {parseStations, attachNearestStations, nearRail, rowsNearStation, installStationLayer, STATION_RADIUS_M, STATION_LAYERS} from './stations.js';
 import {indexDistricts, summarizeDistricts, districtsInScope, districtLabel} from './areas.js';
@@ -55,7 +57,7 @@ import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBou
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {createDistrictDetail, provincesAtPoints, DETAIL_MIN_ZOOM} from './district-detail.js';
 import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendingCard, searchAll, indexPending} from './profile-model.js';
-import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderStation, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, meters, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand, mapCardStation} from './panel.js';
+import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderStation, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, meters, hoursShort, altName, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand, mapCardStation} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
 import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing, groundAt} from './camera.js';
@@ -72,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -120,7 +122,7 @@ const state = {
 };
 // D41: a place's shop list also holds the listed shops of its sub-areas (each shop names the sub-area it is in).
 const tenantSelection = createTenantSelection({
-  load: createTenantLoader(undefined, {directory: createDirectoryLoader(), parts: id => subAreasOf(state.byId.get(id), state.byId)}),
+  load: (load => id => load(id).then(noteRoster))(createTenantLoader(undefined, {directory: createDirectoryLoader(), parts: id => subAreasOf(state.byId.get(id), state.byId)})),
   changed: selection => { if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel(); },
 });
 
@@ -505,12 +507,14 @@ function openVenueDetail(id) {
   tenantSelection.select(id);
   ensureTenantIndex();
   ensureLocale(id);
-  state.detail = cachedDetail(id, state.data.meta?.detail?.shards);
+  // An English page keeps the address, operator and hours as the sources write them (js/lang.js noteDetail).
+  const noted = d => noteDetail(d, {hours: d?.hours ? [hoursShort(d.hours)] : []});
+  state.detail = noted(cachedDetail(id, state.data.meta?.detail?.shards));
   state.detailError = false;
   if (state.detail) return;
   loadDetail(id, {shards: state.data.meta?.detail?.shards || 32}).then(d => {
     if (state.panel.mode !== 'venue' || state.panel.id !== id) return;
-    state.detail = d; renderPanel();
+    state.detail = noted(d); renderPanel();
   }).catch(e => {
     console.warn('Venue detail', e);
     if (state.panel.mode === 'venue' && state.panel.id === id) { state.detailError = true; renderPanel(); }
@@ -531,7 +535,7 @@ function ensureLocale(id) {
   const cachedMeta = cachedLocaleMeta();
   if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards)) {
     L.metaState = 'ready'; L.factsState = 'ready';
-    if (localeOptions().open.priors) ensureLocalePriors(id);
+    ensureLocalePriors(id);
     return;
   }
   if (L.metaState !== 'ready') L.metaState = 'loading';
@@ -545,17 +549,31 @@ function ensureLocale(id) {
     partial('data/locale');
     if (L.metaState !== 'ready') L.metaState = 'error'; else if (L.factsId === id) L.factsState = 'error';
   }).finally(() => { if (localeOpen(id)) refreshLocale(); });
-  if (localeOptions().open.priors) ensureLocalePriors(id);
+  // the hypotheses are part of the section from 0.6.0 (owner 2026-11-18: visuals first): fetched beside the facts
+  ensureLocalePriors(id);
 }
 
-function ensureLocalePriors(id) {
+function ensureLocalePriors(id, {focus = ''} = {}) {
   const L = state.locale;
   if (L.priorsId !== id) { L.priorsId = id; L.priorsState = 'idle'; }
   if (L.priorsState === 'ready' || L.priorsState === 'loading') return;
   L.priorsState = 'loading';
   loadLocaleMeta().then(meta => loadLocalePriors(id, {shards: meta.shards})).then(() => { if (L.priorsId === id) L.priorsState = 'ready'; })
     .catch(e => { console.warn('Venue locale priors', e); partial('data/locale'); if (L.priorsId === id) L.priorsState = 'error'; })
-    .finally(() => { if (localeOpen(id)) refreshLocale({focus: '[data-locale-open="priors"] > summary'}); });
+    .finally(() => { if (localeOpen(id)) refreshLocalePriors({focus}); });
+}
+
+/**
+ * Replace only the prior zone when the hypotheses arrive (the chart and the rest of the section stay as they are). When
+ * the section is not drawn with its facts yet, it draws the zone itself once they arrive.
+ */
+function refreshLocalePriors({focus = ''} = {}) {
+  const v = currentVenue(), section = $('venue-locale'), el = $('locale-priors'), meta = cachedLocaleMeta();
+  if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
+  const shards = meta.shards || 64, L = state.locale;
+  registerLocaleSignalNames(cachedLocaleSignals(v.id, shards));
+  el.outerHTML = renderLocalePriors(v, {meta, facts: cachedLocaleFacts(v.id, shards), priors: cachedLocalePriors(v.id, shards), signals: cachedLocaleSignals(v.id, shards), priorsState: L.priorsId === v.id ? L.priorsState : 'idle'});
+  if (focus) $('locale-priors')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
 /** The section HTML for the venue panel ('' outside the 499-venue set). */
@@ -599,7 +617,6 @@ function onLocaleToggle(event) {
   const key = d.dataset.localeOpen;
   if (localeOptions().open[key] === d.open) return;
   setLocaleOption('open', {[key]: d.open});
-  if (key === 'priors' && d.open && state.panel.mode === 'venue') ensureLocalePriors(state.panel.id);
 }
 
 // Every way in (pin, building, dot, list, search, URL) takes the same path; fromMap is kept for callers.
@@ -657,7 +674,7 @@ function ensureTenantIndex() {
   if (state.tenantIndex || state.tenantIndexState === 'loading') return;
   state.tenantIndexState = 'loading';
   loadTenantIndex().then(index => {
-    state.tenantIndex = rollUpSubAreas(index, state.all, state.byId); state.tenantIndexState = 'ready';
+    state.tenantIndex = noteBrands(rollUpSubAreas(index, state.all, state.byId)); state.tenantIndexState = 'ready';
     const role = shopListsChanged();
     const key = state.pendingBrand;
     state.pendingBrand = '';
@@ -963,7 +980,7 @@ function onPanelAction(event) {
       break;
     }
     case 'locale-retry': if (state.panel.mode === 'venue') { state.locale.metaState = state.locale.metaState === 'error' ? 'idle' : state.locale.metaState; state.locale.factsState = 'idle'; ensureLocale(state.panel.id); refreshLocale(); } break;
-    case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id); } break;
+    case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id, {focus: '.who-tile, [data-action="locale-retry-priors"]'}); refreshLocalePriors(); } break;
     default: break;
   }
 }
@@ -1065,7 +1082,7 @@ function renderTable() {
   $('result-rows').innerHTML = rs.map(r => {
     const g = groupById(r.group);
     const d = r.districtCode ? state.districts.get(r.districtCode) : null;
-    return `<tr><td><button type="button" class="row-name venue-table-row" data-id="${esc(r.id)}">${venueLogoMarkup(r.id, {name: r.name, size: 'sm'}) || groupSwatch(g)}<span>${esc(r.name)}</span></button><small>${esc(r.nameEn && r.nameEn !== r.name ? r.nameEn : '')}</small></td>
+    return `<tr><td><button type="button" class="row-name venue-table-row" data-id="${esc(r.id)}">${venueLogoMarkup(r.id, {name: r.name, size: 'sm'}) || groupSwatch(g)}<span>${esc(r.name)}</span></button>${altName(r.name, r.nameEn, {tag: 'small', className: 'alt-name'}) || '<small></small>'}</td>
       <td>${groupSwatch(g)} ${esc(g.th)}</td>
       <td>${r.operatorLabel ? esc(r.operatorLabel) : '<span class="hint">ยังไม่มีข้อมูล</span>'}</td>
       <td>${d ? esc(districtLabel(d)) : `<span class="hint">${hasPoint(r) ? 'หมุดอยู่นอกเส้นเขต' : 'ยังไม่มีพิกัด'}</span>`}<small>${esc(provinceByCode(rowProvince(r))?.th || r.addrProvince || '')}</small></td>
@@ -1794,7 +1811,7 @@ function onModelsLoaded(id) {
 /** Pending records (D4) load after the first paint: context dots and search, never counts. */
 async function loadPending() {
   try {
-    state.pending = indexPending(await fetchJSON('data/pending.json', {timeout: 30000}));
+    state.pending = notePending(indexPending(await fetchJSON('data/pending.json', {timeout: 30000})));
     const record = state.pendingRecord;
     if (record) {
       const i = state.pending.rows.findIndex(r => r[0] === record);
@@ -1866,6 +1883,8 @@ async function init() {
       state.stationById = new Map(state.stationList.map(s => [s.id, s]));
       attachNearestStations(state.all, state.stationList);
     } else console.warn('Rail stations unavailable', results[5].reason);
+    // English names the data carries (an English page only): provinces, districts, venues, stations, operator groups.
+    registerDataNames({rows: state.all, provinces: PROVINCES, districts: state.districtGeo.features, stations: state.stationList || [], operators: state.data.meta?.operatorGroups || []});
 
     fillOptions();
     restoreFromURL();

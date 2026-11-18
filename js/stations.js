@@ -12,6 +12,7 @@
  */
 import {GEOJSON_MAXZOOM} from './map-layers.js';
 import {hasPoint} from './model.js';
+import {LANG} from './shell/i18n.js';
 
 export const STATION_RADIUS_M = 500;
 export const RAIL_REACH_M = 2000;
@@ -112,7 +113,7 @@ export function circleRing(lon, lat, metres, steps = 72) {
 /** Stations as GeoJSON points (reference point unchanged). */
 export function stationCollection(stations = []) {
   return {type: 'FeatureCollection', features: stations.filter(s => Number.isFinite(s.lat) && Number.isFinite(s.lon))
-    .map(s => ({type: 'Feature', geometry: {type: 'Point', coordinates: [s.lon, s.lat]}, properties: {id: s.id, name: s.name}}))};
+    .map(s => ({type: 'Feature', geometry: {type: 'Point', coordinates: [s.lon, s.lat]}, properties: {id: s.id, name: s.name, ...(s.nameEn && !/[ก-๙]/.test(s.nameEn) ? {nameEn: s.nameEn} : {})}}))};
 }
 
 export function installStationLayer(map, stations = []) {
@@ -128,7 +129,8 @@ export function installStationLayer(map, stations = []) {
       'circle-color': cssVar('--surface-card', '#FCFCFA'), 'circle-stroke-color': cssVar('--text-secondary', '#4E5B52'),
       'circle-stroke-width': ['interpolate', ['linear'], ['zoom'], STATION_MIN_ZOOM, 0.8, 14, 1.6]}});
   map.addLayer({id: STATION_LAYERS.label, type: 'symbol', source: SOURCE, minzoom: STATION_LABEL_ZOOM,
-    layout: {'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 0.9], 'text-optional': true, 'text-max-width': 8},
+    // An English page names the station in the English CityMETER Transit gives (else the Thai, as on a Thai page).
+    layout: {'text-field': LANG === 'en' ? ['coalesce', ['get', 'nameEn'], ['get', 'name']] : ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 0.9], 'text-optional': true, 'text-max-width': 8},
     paint: {'text-color': cssVar('--text-secondary', '#4E5B52'), 'text-halo-color': cssVar('--surface-card', '#FCFCFA'), 'text-halo-width': 1.4}});
   map.addLayer({id: STATION_LAYERS.selected, type: 'circle', source: SELECTED,
     paint: {'circle-radius': 10, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': cssVar('--map-selected-stroke', '#176B82'), 'circle-stroke-width': 2.5}});
