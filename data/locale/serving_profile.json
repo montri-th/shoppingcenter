@@ -1,6 +1,6 @@
 {
- "profile_id": "citymeter-demo-shoppingcenter-web-v1",
- "canonical_release_id": "venue-locale-shopping-20261118-v0.1.0-rc1",
+ "profile_id": "citymeter-demo-shoppingcenter-web-v2",
+ "canonical_release_id": "venue-locale-shopping-20261118-v0.2.0-rc1",
  "rights_registry_version": "citymeter-rights-snapshot-2026-11-18 (registry Sources tab rights_status as read; no new rights decision)",
  "contract_override_ids": [],
  "intended_uses": [
@@ -36,13 +36,38 @@
    "source_family": "generated_prior",
    "note": "separate priors/ files, loaded only when the reader opens the block"
   },
+  "context_signals_and_percentiles": {
+   "action": "allow_with_attribution",
+   "source_family": "citymeter_demo_and_research_aggregates",
+   "note": "signals/ files, loaded with the prior block; facts, not priors"
+  },
+  "record_examples_names_keys_distance": {
+   "action": "allow_with_attribution",
+   "source_family": "citymeter_demo_datasets",
+   "note": "names, published attributes and the key the record's own CityMETER demo opens; distance rounded to 100 m; company-named factory registrations only"
+  },
+  "published_tuition_recorded_prices_asking_rents": {
+   "action": "allow_with_attribution",
+   "source_family": "citymeter_demo_datasets",
+   "note": "as each demo publishes them, with its date and unit; hotel prices carry no period"
+  },
+  "surrounding_record_coordinates": {
+   "action": "drop_and_review",
+   "source_family": "mixed"
+  },
+  "production_tier_classification": {
+   "action": "deny",
+   "source_family": "citymeter_production",
+   "note": "method not published; inconsistent with venues"
+  },
+  "google_or_longdo_sourced_production_fields": {
+   "action": "deny",
+   "source_family": "commercial_places_provider",
+   "note": "opening hours and floors (google_place_api), nearby tenants (longdo_nearby_poi)"
+  },
   "restaurant_ratings_price_levels": {
    "action": "deny",
    "source_family": "commercial_places_provider"
-  },
-  "surrounding_record_names_coordinates": {
-   "action": "drop_and_review",
-   "source_family": "mixed"
   },
   "live_feed_values": {
    "action": "display_only",

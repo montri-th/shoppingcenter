@@ -11,7 +11,7 @@ import {
 import {shardOf} from '../js/details.js';
 import {COUNT_SCALE} from '../js/scales.js';
 import {translate} from '../js/shell/i18n.js';
-import {localeDictionary, registerLocaleDictionary, registerLocaleNames} from '../js/venue-locale-i18n.js';
+import {localeDictionary, registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from '../js/venue-locale-i18n.js';
 
 const ROOT = new URL('../', import.meta.url);
 const read = path => JSON.parse(readFileSync(new URL(path, ROOT), 'utf8'));
@@ -37,6 +37,8 @@ test('the release covers the 499 countable shopping centres, community malls and
 test('serving bundle: facts and priors in separate shard families, keyed like data/details, tied to the canonical release', () => {
   assert.equal(readdirSync(new URL('data/locale/facts/', ROOT)).length, meta.shards);
   assert.equal(readdirSync(new URL('data/locale/priors/', ROOT)).length, meta.shards);
+  assert.equal(readdirSync(new URL('data/locale/signals/', ROOT)).length, meta.shards);
+  assert.ok(!Object.values(meta.ringGroups).flatMap(g => g.datasets).includes('condo'), 'condominium points are never counted in a ring (the dataset’s spatial policy)');
   assert.equal(localeShardPath('facts', CENTRALWORLD, meta.shards), `data/locale/facts/${String(shardOf(CENTRALWORLD, meta.shards)).padStart(2, '0')}.json`);
   const manifest = read('data/locale/serving_bundle_manifest.json');
   assert.equal(manifest.bundle_type, 'venue_locale_serving_derivative');
@@ -57,8 +59,18 @@ test('serving bundle: facts and priors in separate shard families, keyed like da
       assert.equal(rec.n.length, 3);
       assert.ok(rec.n.every(Number.isInteger) && rec.n[0] <= rec.n[1] && rec.n[1] <= rec.n[2], 'counts grow with the radius');
     }
-    const pr = shard('priors', r.id);
-    assert.ok(pr && pr.dp.length === 10 && ['residents', 'visitors', 'workers_commuters'].every(k => pr.seg[k]), `priors for ${r.id}`);
+    const pr = shard('priors', r.id), sg = shard('signals', r.id);
+    assert.ok(pr && /^[0-5]{168}$/.test(pr.grid), `a 7 × 24 grid for ${r.id}`);
+    for (const k of ['residents', 'students', 'workers', 'visitors']) {
+      assert.ok(['high', 'medium', 'low', 'insufficient'].includes(pr.seg[k]?.[0]), `${r.id} ${k}`);
+      assert.ok(pr.spend[k] && meta.priors.mix[pr.mix[k]], `${r.id} ${k} spend and mix`);
+    }
+    assert.ok(!('claims' in pr), 'the claim ledger stays in the canonical release');
+    assert.ok(sg && sg.sig && sg.ex, `signals for ${r.id}`);
+    for (const list of Object.values(sg.ex)) for (const e of list) {
+      assert.ok(!('lat' in e) && !('lon' in e) && !('ll' in e), 'examples carry no coordinates');
+      if (e.d != null) assert.equal(e.d % 100, 0, 'distances rounded to 100 m');
+    }
   }
 });
 
@@ -122,13 +134,26 @@ test('section HTML: Aha first, every number with its data line, no blank or “u
   assert.ok(html.indexOf('locale-aha') < html.indexOf('locale-chart'), 'headlines before the chart');
   assert.match(html, /รอบศูนย์นี้ · ทะเบียนวิจัย CityMETER \d+ ชุด และ CityMETER production \d+ ชุด · ข้อมูล .+ · รัศมีเส้นตรงจากจุดของศูนย์/);
   assert.doesNotMatch(html, /undefined|NaN|\bnull\b/);
-  assert.doesNotMatch(html, /class="prior-list"/, 'priors are not drawn until the block is opened and loaded');
+  assert.doesNotMatch(html, /class="persona"/, 'priors are not drawn until the block is opened and loaded');
   setLocaleOption('open', {priors: true});
-  const open = renderLocale(row, {meta, facts, priors, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
+  const signals = shard('signals', CENTRALWORLD);
+  const open = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
   assert.match(open, /สมมติฐานจากกฎ/);
   assert.match(open, /<details class="locale-details locale-priors" data-locale-open="priors" open>/);
-  assert.equal((priorsHTML(meta, priors).match(/<td class="dp dp-/g) || []).length, 10, '10 pinned daypart blocks');
-  assert.doesNotMatch(priorsHTML(meta, priors), /#[0-9A-F]{6}/i, 'priors carry no data colour');
+  const ph = priorsHTML(meta, priors, signals, row, facts);
+  assert.equal((ph.match(/<td class="g[0-5]"/g) || []).length, 168, 'one cell per hour of the week');
+  assert.doesNotMatch(ph, /#[0-9A-F]{6}/i, 'priors carry no data colour');
+  assert.equal((ph.match(/class="persona"/g) || []).length, 4, 'four groups');
+  assert.match(ph, /\?e=hotel:HT-/, 'a stay opens in CityMETER Hotel');
+  assert.match(ph, /\?e=school:/, 'a school opens in CityMETER School');
+  assert.doesNotMatch(ph, /undefined|NaN|\bnull\b|สูงกว่า 100%|สูงกว่า 0%/);
+  // a median of fewer than 10 records at a level reads the next level up (7 house listings in the locale → the district)
+  assert.match(ph, /ราคาประกาศขายบ้านเดี่ยว \(ค่ากลาง\)<\/span>.*?ใน<\/span> <span>เขตปทุมวัน/s);
+  // a factory belt: the two strongest clusters set the workers' level, and office prices do not rate their spending
+  const mc = 'SC-012645', mcp = shard('priors', mc);
+  assert.equal(mcp.seg.workers[4], 'top2');
+  assert.equal(mcp.spend.workers[4], 'factory_led');
+  assert.match(priorsHTML(meta, mcp, shard('signals', mc), byId.get(mc), shard('facts', mc)), /ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน/);
   reset();
   // outside the set: nothing; without a point: one line, never zeros
   assert.equal(renderLocale(rows.find(r => !inLocaleSet(r)), {meta}), '');
@@ -153,13 +178,14 @@ test('English: every Thai text of the section has an English (names without an E
   const decode = s => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   const missing = new Set();
   for (const id of [CENTRALWORLD, 'SC-000034', set.find(r => r.located && r.provinceCode === 'CMI' && r.group === 'community')?.id].filter(Boolean)) {
-    const row = byId.get(id), facts = shard('facts', id), priors = shard('priors', id);
+    const row = byId.get(id), facts = shard('facts', id), priors = shard('priors', id), signals = shard('signals', id);
     registerLocaleNames(facts);
+    registerLocaleSignalNames(signals);
     for (const level of levelsOf(facts)) for (const bench of ['province', 'peer']) for (const universe of ['all', 'type']) for (const radius of RADII) {
       reset();
       setLocaleOption('level', level); setLocaleOption('bench', bench); setLocaleOption('universe', universe); setLocaleOption('radius', radius);
       setLocaleOption('open', {priors: true});
-      const html = renderLocale(row, {meta, facts, priors, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
+      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
       // text alone in an element with data-en carries its own English (the shell's [data-en] context)
       const withEn = html.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; });
       const texts = [...withEn.matchAll(/>([^<>]+)</g)].map(m => m[1]).concat([...withEn.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(m => m[1]));

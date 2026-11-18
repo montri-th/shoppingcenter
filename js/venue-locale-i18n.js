@@ -16,6 +16,9 @@ const LEVEL_EN = {
 };
 const LEVEL_RE = Object.keys(LEVEL_EN).map(w => w.replace(/[./]/g, m => `\\${m}`)).join('|');
 const DAY = {'วันธรรมดา': 'Weekday', 'วันหยุด': 'Weekend'};
+const WEEKDAY = {'จันทร์': 'Monday', 'อังคาร': 'Tuesday', 'พุธ': 'Wednesday', 'พฤหัสบดี': 'Thursday', 'ศุกร์': 'Friday', 'เสาร์': 'Saturday', 'อาทิตย์': 'Sunday'};
+const DAY_SHORT = {'จ.': 'Mon', 'อ.': 'Tue', 'พ.': 'Wed', 'พฤ.': 'Thu', 'ศ.': 'Fri', 'ส.': 'Sat', 'อา.': 'Sun'};
+const SHORT_RE = '(จ\\.|อ\\.|พฤ\\.|พ\\.|ศ\\.|ส\\.|อา\\.)';
 const BLOCK = {'เช้า': 'morning', 'กลางวัน': 'lunch', 'บ่าย': 'afternoon', 'เย็น': 'evening', 'ค่ำ': 'night'};
 const provinceEN = th => {
   const s = String(th || '').replace(/^จังหวัด/, '');
@@ -69,7 +72,13 @@ const EXACT = {
   'ศูนย์นี้ยังไม่มีจุดที่ผ่านเกณฑ์ จึงยังนับสิ่งที่อยู่รอบศูนย์ไม่ได้': 'This centre has no accepted point yet, so what is around it cannot be counted',
   'ในรัศมีนี้ยังไม่พบรายการจากชุดข้อมูลที่นับได้': 'No record of the counted datasets within this radius', 'ยังไม่มีข้อมูลของพื้นที่ระดับนี้': 'No data for this area level yet',
   'ไม่พบในรัศมีนี้': 'none within this radius', 'รูปแบบถนนที่พบมาก': 'Most common road pattern', 'กรุงเทพมหานคร': 'Bangkok', 'ชี้หรือแตะเพื่อดูตัวเลข': 'point or tap for the figures',
-  'กลาง': 'Medium',
+  'กลาง': 'Medium', 'คำอธิบายสัญลักษณ์': 'Legend',
+  'คอนโดนับตามแขวง/ตำบลของฐานราคาประเมินตามนโยบายของชุดข้อมูล ไม่นับจุดบนแผนที่ในรัศมี':
+    'Condominiums are counted by the subdistrict of the appraisal base, as the dataset’s policy says — map points are not counted in a radius',
+  'ตัวอย่างสถานที่รอบศูนย์มาจากเดโม CityMETER ของแต่ละชุด กดชื่อเพื่อเปิดในเดโมนั้น · ระยะปัดเป็น 100 ม.':
+    'Places named around the centre come from each dataset’s CityMETER demo — click a name to open it there · distances rounded to 100 m',
+  'ค่าเทอมคือค่าเล่าเรียนที่โรงเรียนประกาศ · ราคาที่พักคือราคาเริ่มต้นที่บันทึกในชุดข้อมูล ไม่ทราบช่วงเวลา · ค่าเช่าสำนักงานคือราคาที่ประกาศ':
+    'Tuition is what the school publishes · stay prices are the lowest price the dataset recorded, period unknown · office rents are asking rents',
 };
 
 /** Patterns: numbers and names pass through; parts are translated with the same dictionary. */
@@ -105,6 +114,10 @@ const PATTERNS = [
   [/^(วันธรรมดา|วันหยุด) (เช้า|กลางวัน|บ่าย|เย็น|ค่ำ) ([\d:–]+) น\.$/, (m) => `${DAY[m[1]]} ${BLOCK[m[2]]} ${m[3]}`],
   [/^เวลาวันหยุดเริ่ม ([\d:–]+) น\.$/, 'Weekend times: morning $1'],
   [/^(เช้า|กลางวัน|บ่าย|เย็น|ค่ำ) ([\d:–]+)$/, (m) => `${BLOCK[m[1]]} ${m[2]}`],
+  // the 7×24 grid: a cell's title, the opening hours read from the published text
+  [/^(จันทร์|อังคาร|พุธ|พฤหัสบดี|ศุกร์|เสาร์|อาทิตย์) (\d\d:\d\d–\d\d:\d\d) น\. · (.+)$/, (m, t) => or(`${WEEKDAY[m[1]]} ${m[2]} · `, t.part(m[3]))],
+  [/^ทุกวัน (\d\d:\d\d–\d\d:\d\d) น\.$/, 'daily $1'],
+  [new RegExp(`^${SHORT_RE}(?:–${SHORT_RE})? (\\d\\d:\\d\\d–\\d\\d:\\d\\d) น\\.$`), m => `${DAY_SHORT[m[1]]}${m[2] ? `–${DAY_SHORT[m[2]]}` : ''} ${m[3]}`],
   [/^ย่านการค้า(.+)$/, (m, t) => or(t.name(m[1]), ' commercial district')],
   [/^จังหวัด(.+)$/, (m) => { const p = provinceEN(m[1]); return p ? `${p} Province` : null; }],
   // A unit name after its level word: the English its source gives, else the Thai name stays (shell rule §5.8).
@@ -139,6 +152,16 @@ export function localeDictionary(meta) {
     for (const [th, en] of Object.values(P.targets || {})) put(th, en);
     for (const [th, en] of Object.values(P.signals || {})) put(th, en);
     for (const b of P.blocks || []) { put(b[1], b[2]); put(b[3], b[4]); }
+    for (const dict of [P.mix, P.wtp, P.pref, P.pmf, P.check, P.rules, P.hoursBasis, P.tenantDatasets]) {
+      for (const v of Object.values(dict || {})) put(v[0], v[1]);
+    }
+    for (const d of P.days || []) { put(d[0], d[1]); put(d[2], d[3]); }
+    for (const [th, en] of P.gridLevels || []) put(th, en);
+  }
+  const C = meta?.context;
+  if (C) {
+    for (const v of Object.values(C.labels || {})) { put(v[0], v[1]); put(v[2], v[3]); }
+    for (const g of Object.values(C.groups || {})) for (const [th, en] of Object.values(g || {})) put(th, en);
   }
   // Any text alone in an element that carries its English (data-en: units and names that read differently by dataset).
   return {exact, patterns: PATTERNS, contexts: [['[data-en]', {}, [[/^[\s\S]+$/, (m, t, el) => el.getAttribute('data-en') || null]]]]};
@@ -151,6 +174,38 @@ export function registerLocaleDictionary(meta) {
   registered = meta;
   registerDictionary(localeDictionary(meta));
   keepThai(Object.values(meta.neighbourhoods || {}));
+}
+
+const THAI_TEXT = /[ก-๛]/;
+const signalNamed = new WeakSet();
+/**
+ * Names in the observed context of one venue (signals/NN.json): a record's English name when its source gives one,
+ * else the Thai name stays (keepThai) — record names, host venues, rail lines, brands, the operator description and the
+ * published opening-hours text. Once per signals record.
+ */
+export function registerLocaleSignalNames(sg) {
+  if (!sg || signalNamed.has(sg)) return;
+  signalNamed.add(sg);
+  const pairs = [], thai = [];
+  const add = (th, en = '') => {
+    if (!th || !THAI_TEXT.test(th)) return;
+    if (en && en !== th && !THAI_TEXT.test(en)) pairs.push([th, en]); else thai.push(th);
+  };
+  for (const list of Object.values(sg.ex || {})) {
+    for (const e of list || []) {
+      add(e.n, e.e);
+      add(e.h);
+      add(e.un);
+      add(e.b);
+      (e.l || []).forEach((l, i) => add(l, e.le?.[i]));
+    }
+  }
+  const a = sg.attr || {};
+  if (a.label) add(a.label[0]);
+  if (a.hours?.text) add(a.hours.text);
+  for (const b of a.luxIn?.brands || []) add(b);
+  if (pairs.length) registerNames(pairs);
+  if (thai.length) keepThai(thai);
 }
 
 const named = new WeakSet();

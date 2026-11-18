@@ -1,5 +1,5 @@
 {
- "bundle": "venue-locale-shopping-20261118-v0.1.0-rc1/web",
+ "bundle": "venue-locale-shopping-20261118-v0.2.0-rc1/web",
  "notCounted": [
   {
    "id": "research.TH.apparel",
@@ -35,6 +35,13 @@
    "reason": "records list a branch/area but no accepted point for a straight-line ring",
    "th": "โรงภาพยนตร์และโรงละคร",
    "en": "Cinemas & theatres"
+  },
+  {
+   "id": "research.TH.condominium",
+   "treatment": "area_attribution_only_spatial_policy",
+   "reason": "The dataset counts appraisal record ids by the search area the source lists; its map points are display only (spatial gate pending), so 0.2 stops counting them in radii and lists the records of the venue's own subdistrict instead.",
+   "th": "คอนโดมิเนียม",
+   "en": "Condominiums"
   },
   {
    "id": "research.TH.furniture",

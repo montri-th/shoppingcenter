@@ -72,8 +72,8 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
-import {registerLocaleDictionary, registerLocaleNames} from './venue-locale-i18n.js';
+import {renderLocale, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
 const FIELDS = ['search', 'status', 'group', 'operator', 'province', 'role'];
@@ -527,7 +527,7 @@ function ensureLocale(id) {
   if (!inLocaleSet(row)) return;
   const L = state.locale;
   if (L.factsId !== id) { L.factsId = id; L.factsState = 'idle'; }
-  if (L.priorsId !== id) { L.priorsId = id; L.priorsState = cachedLocalePriors(id, localeShards()) ? 'ready' : 'idle'; }
+  if (L.priorsId !== id) { L.priorsId = id; L.priorsState = cachedLocalePriors(id, localeShards()) && cachedLocaleSignals(id, localeShards()) ? 'ready' : 'idle'; }
   const cachedMeta = cachedLocaleMeta();
   if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards)) {
     L.metaState = 'ready'; L.factsState = 'ready';
@@ -563,9 +563,9 @@ function localeHTML(v) {
   if (!inLocaleSet(v)) return '';
   const L = state.locale, meta = cachedLocaleMeta();
   const shards = meta?.shards || 64;
-  if (meta) { registerLocaleDictionary(meta); registerLocaleNames(cachedLocaleFacts(v.id, shards)); }
+  if (meta) { registerLocaleDictionary(meta); registerLocaleNames(cachedLocaleFacts(v.id, shards)); registerLocaleSignalNames(cachedLocaleSignals(v.id, shards)); }
   return renderLocale(v, {
-    meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null,
+    meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null, signals: meta ? cachedLocaleSignals(v.id, shards) : null,
     metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
   });
 }
