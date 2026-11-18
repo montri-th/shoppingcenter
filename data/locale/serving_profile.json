@@ -1,0 +1,58 @@
+{
+ "profile_id": "citymeter-demo-shoppingcenter-web-v1",
+ "canonical_release_id": "venue-locale-shopping-20261118-v0.1.0-rc1",
+ "rights_registry_version": "citymeter-rights-snapshot-2026-11-18 (registry Sources tab rights_status as read; no new rights decision)",
+ "contract_override_ids": [],
+ "intended_uses": [
+  "webapp_demo_display"
+ ],
+ "default_action": "drop_and_review",
+ "required_fields": [
+  "venue_id"
+ ],
+ "rules": {
+  "venue_id": {
+   "action": "allow",
+   "source_family": "canonical"
+  },
+  "area_unit_ids_and_names": {
+   "action": "allow_with_attribution",
+   "source_family": "citymeter_production"
+  },
+  "ring_counts_subgroups_measures_nearest": {
+   "action": "allow_with_attribution",
+   "source_family": "citymeter_demo_and_research_aggregates"
+  },
+  "area_values_listed_metrics": {
+   "action": "allow_with_attribution",
+   "source_family": "citymeter_production"
+  },
+  "benchmark_percentiles": {
+   "action": "allow",
+   "source_family": "derived"
+  },
+  "generated_priors": {
+   "action": "allow",
+   "source_family": "generated_prior",
+   "note": "separate priors/ files, loaded only when the reader opens the block"
+  },
+  "restaurant_ratings_price_levels": {
+   "action": "deny",
+   "source_family": "commercial_places_provider"
+  },
+  "surrounding_record_names_coordinates": {
+   "action": "drop_and_review",
+   "source_family": "mixed"
+  },
+  "live_feed_values": {
+   "action": "display_only",
+   "source_family": "citymeter_production",
+   "note": "links to the production view; no value stored"
+  },
+  "locale_insight_canonical_json": {
+   "action": "deny",
+   "source_family": "locale_insight",
+   "note": "reference by locale_id and link only"
+  }
+ }
+}
