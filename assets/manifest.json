@@ -37,19 +37,29 @@
       "bytes": 28124
     },
     {
+      "path": "assets/icons/material-controls-300.json",
+      "sha256": "610f29a602f69894624c155f0f05b5be897dced24aa5b69d2be37b05366b5aa6",
+      "bytes": 1411
+    },
+    {
+      "path": "assets/icons/material-controls-300.woff2",
+      "sha256": "a8d78ffa177e28282b416f071713a4ca1a115ce32bebb3e6ca8c5062499b527a",
+      "bytes": 968
+    },
+    {
       "path": "assets/icons/material-nav-300.woff2",
       "sha256": "d7e283106ed2898726b24504c4e0f5ad524292984a90a4d29553c7dcf53b9657",
       "bytes": 2500
     },
     {
       "path": "assets/icons/material-pictogram-300.json",
-      "sha256": "c5bd3bea9c814db3c656dcb2e2664d3945355adeec93eb796decb12052f96e2e",
-      "bytes": 4123
+      "sha256": "98c2f0408e4a6dd3f68d49fd9f162109d846590bde1397913cd6543760145fe9",
+      "bytes": 5238
     },
     {
       "path": "assets/icons/material-pictogram-300.woff2",
-      "sha256": "b37834408479d25a291186089c020d1b6e99ef98c55ae462580e601dd855df1c",
-      "bytes": 4888
+      "sha256": "c6b2596a6e7e3c5dc3a4cd1a19a486217ff9a7d980bcbff7e7747acc6c0d233a",
+      "bytes": 6352
     },
     {
       "path": "assets/icons/material-symbols-Apache-2.0.txt",

@@ -72,7 +72,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -531,7 +531,7 @@ function ensureLocale(id) {
   const cachedMeta = cachedLocaleMeta();
   if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards)) {
     L.metaState = 'ready'; L.factsState = 'ready';
-    if (localeOptions().open.priors) ensureLocalePriors(id);
+    ensureLocalePriors(id);
     return;
   }
   if (L.metaState !== 'ready') L.metaState = 'loading';
@@ -545,17 +545,31 @@ function ensureLocale(id) {
     partial('data/locale');
     if (L.metaState !== 'ready') L.metaState = 'error'; else if (L.factsId === id) L.factsState = 'error';
   }).finally(() => { if (localeOpen(id)) refreshLocale(); });
-  if (localeOptions().open.priors) ensureLocalePriors(id);
+  // the hypotheses are part of the section from 0.6.0 (owner 2026-11-18: visuals first): fetched beside the facts
+  ensureLocalePriors(id);
 }
 
-function ensureLocalePriors(id) {
+function ensureLocalePriors(id, {focus = ''} = {}) {
   const L = state.locale;
   if (L.priorsId !== id) { L.priorsId = id; L.priorsState = 'idle'; }
   if (L.priorsState === 'ready' || L.priorsState === 'loading') return;
   L.priorsState = 'loading';
   loadLocaleMeta().then(meta => loadLocalePriors(id, {shards: meta.shards})).then(() => { if (L.priorsId === id) L.priorsState = 'ready'; })
     .catch(e => { console.warn('Venue locale priors', e); partial('data/locale'); if (L.priorsId === id) L.priorsState = 'error'; })
-    .finally(() => { if (localeOpen(id)) refreshLocale({focus: '[data-locale-open="priors"] > summary'}); });
+    .finally(() => { if (localeOpen(id)) refreshLocalePriors({focus}); });
+}
+
+/**
+ * Replace only the prior zone when the hypotheses arrive (the chart and the rest of the section stay as they are). When
+ * the section is not drawn with its facts yet, it draws the zone itself once they arrive.
+ */
+function refreshLocalePriors({focus = ''} = {}) {
+  const v = currentVenue(), section = $('venue-locale'), el = $('locale-priors'), meta = cachedLocaleMeta();
+  if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
+  const shards = meta.shards || 64, L = state.locale;
+  registerLocaleSignalNames(cachedLocaleSignals(v.id, shards));
+  el.outerHTML = renderLocalePriors(v, {meta, facts: cachedLocaleFacts(v.id, shards), priors: cachedLocalePriors(v.id, shards), signals: cachedLocaleSignals(v.id, shards), priorsState: L.priorsId === v.id ? L.priorsState : 'idle'});
+  if (focus) $('locale-priors')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
 /** The section HTML for the venue panel ('' outside the 499-venue set). */
@@ -599,7 +613,6 @@ function onLocaleToggle(event) {
   const key = d.dataset.localeOpen;
   if (localeOptions().open[key] === d.open) return;
   setLocaleOption('open', {[key]: d.open});
-  if (key === 'priors' && d.open && state.panel.mode === 'venue') ensureLocalePriors(state.panel.id);
 }
 
 // Every way in (pin, building, dot, list, search, URL) takes the same path; fromMap is kept for callers.
@@ -963,7 +976,7 @@ function onPanelAction(event) {
       break;
     }
     case 'locale-retry': if (state.panel.mode === 'venue') { state.locale.metaState = state.locale.metaState === 'error' ? 'idle' : state.locale.metaState; state.locale.factsState = 'idle'; ensureLocale(state.panel.id); refreshLocale(); } break;
-    case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id); } break;
+    case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id, {focus: '.who-tile, [data-action="locale-retry-priors"]'}); refreshLocalePriors(); } break;
     default: break;
   }
 }

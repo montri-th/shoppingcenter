@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {readFileSync, readdirSync, existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {
-  inLocaleSet, ringRows, ahaRows, pctPhrase, rankWords, areaRows, areaPhrase, levelsOf, unplacedRows, liveLinks, renderLocale, priorsHTML,
+  inLocaleSet, ringRows, ahaRows, pctPhrase, rankWords, areaRows, areaPhrase, levelsOf, unplacedRows, liveLinks, renderLocale, renderLocalePriors, priorsHTML, fitRows, ringIcon,
   pctFill, universeOf, setLocaleOption, localeOptions, localeShardPath, RADII, localeDataLine,
 } from '../js/venue-locale.js';
 import {shardOf} from '../js/details.js';
@@ -21,7 +21,7 @@ const byId = new Map(rows.map(r => [r.id, r]));
 const shard = (kind, id) => read(localeShardPath(kind, id, meta.shards)).venues[id] || null;
 const set = rows.filter(inLocaleSet);
 const CENTRALWORLD = 'SC-001245';
-const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, priors: false, method: false}); };
+const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, method: false, dpwhy: false}); };
 const THAI = /[ก-ฺเ-๎]/;
 
 test('the release covers the 499 countable shopping centres, community malls and outlets listed as supply', () => {
@@ -125,27 +125,49 @@ test('live views link to the venue’s district in CityMETER production; unplace
   assert.ok(unplacedRows(meta, row).every(u => u.count > 0));
 });
 
-test('section HTML: Aha first, every number with its data line, no blank or “undefined”, priors only when opened', () => {
+test('section HTML: observed first (Aha, then the full comparison), hypotheses drawn with the section, explanations last', () => {
   reset();
   const row = byId.get(CENTRALWORLD);
-  const facts = shard('facts', CENTRALWORLD), priors = shard('priors', CENTRALWORLD);
-  const html = renderLocale(row, {meta, facts, priors: null, metaState: 'ready', factsState: 'ready'});
-  assert.match(html, /^<section class="panel-section locale-section" id="venue-locale"/);
-  assert.ok(html.indexOf('locale-aha') < html.indexOf('locale-chart'), 'headlines before the chart');
+  const facts = shard('facts', CENTRALWORLD), priors = shard('priors', CENTRALWORLD), signals = shard('signals', CENTRALWORLD);
+  // while the hypotheses load, the zone says so; when they fail, it offers a retry (the rest of the section is there)
+  const loading = renderLocale(row, {meta, facts, priors: null, metaState: 'ready', factsState: 'ready', priorsState: 'loading'});
+  assert.match(loading, /^<section class="panel-section locale-section" id="venue-locale"/);
+  assert.match(loading, /<div class="locale-priors" id="locale-priors"><p class="hint" role="status">/);
+  assert.doesNotMatch(loading, /class="persona"/);
+  assert.match(renderLocale(row, {meta, facts, priors: null, metaState: 'ready', factsState: 'ready', priorsState: 'error'}), /data-action="locale-retry-priors"/);
+  assert.match(localeDataLine(meta), /DATA_METHOD\.md#venue-locale-insight/);
+  const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
   assert.match(html, /รอบศูนย์นี้ · ทะเบียนวิจัย CityMETER \d+ ชุด และ CityMETER production \d+ ชุด · ข้อมูล .+ · รัศมีเส้นตรงจากจุดของศูนย์/);
   assert.doesNotMatch(html, /undefined|NaN|\bnull\b/);
-  assert.doesNotMatch(html, /class="persona"/, 'priors are not drawn until the block is opened and loaded');
-  setLocaleOption('open', {priors: true});
-  const signals = shard('signals', CENTRALWORLD);
-  const open = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
-  assert.match(open, /สมมติฐานจากกฎ/);
-  assert.match(open, /<details class="locale-details locale-priors" data-locale-open="priors" open>/);
+  // read the measured, then the benchmark, then the interpretation; the evidence and the method after
+  const at = k => { const i = html.indexOf(k); assert.ok(i >= 0, k); return i; };
+  const order = ['class="locale-aha"', 'id="locale-chart"', 'data-locale-open="table"', 'id="locale-priors"', 'class="who-grid"', 'class="locale-block busy-block"', 'class="locale-block fit-block"', 'locale-area-block', 'data-locale-open="method"', 'class="hint panel-foot"'];
+  order.reduce((prev, k) => { assert.ok(at(k) > prev, `${k} after the one before`); return at(k); }, -1);
+  // Aha cards: a symbol of the dataset, its count, a percentile track in the chart's LUT colour, the rank words
+  const aha = html.slice(at('class="locale-aha"'), at('id="locale-chart"'));
+  for (const r of ahaRows(ringRows(meta, facts, row))) {
+    assert.match(aha, new RegExp(`pic-${ringIcon(r)}`));
+    assert.ok(aha.includes(`left:${r.p}%;background:${pctFill(r.p)}`), `${r.id} track`);
+  }
+  // the hypotheses: a note first, four tiles (symbol, how many as dots and words, spending power as ฿ marks and words, the mix)
   const ph = priorsHTML(meta, priors, signals, row, facts);
-  assert.equal((ph.match(/<td class="g[0-5]"/g) || []).length, 168, 'one cell per hour of the week');
-  assert.doesNotMatch(ph, /#[0-9A-F]{6}/i, 'priors carry no data colour');
-  assert.equal((ph.match(/class="persona"/g) || []).length, 4, 'four groups');
-  assert.match(ph, /\?e=hotel:HT-/, 'a stay opens in CityMETER Hotel');
+  assert.match(ph, /^<p class="prior-note">/);
+  assert.equal((ph.match(/<details class="persona"/g) || []).length, 4, 'four groups');
+  assert.equal((ph.match(/<summary class="who-tile">/g) || []).length, 4);
+  for (const seg of ['residents', 'students', 'workers', 'visitors']) assert.match(ph, new RegExp(`<summary class="who-tile"><i class="pictogram pic-${seg}"`));
+  assert.equal((ph.match(/<span class="baht" aria-hidden="true">/g) || []).length, 4 + 1, 'a ฿ meter per tile, and one in the key');
+  assert.match(ph, /กำลังซื้อจากราคา (สูง|กลาง|ต่ำ|ยังไม่ประเมิน)/);
+  assert.doesNotMatch(ph, / open>/, 'every card starts closed');
+  // inside a card: what the data shows (symbol rows with rank tracks and places to open), then the reading
+  assert.ok(ph.indexOf('ข้อมูลที่เห็น') < ph.indexOf('อ่านว่า'));
+  assert.match(ph, /<li class="sig"><i class="pictogram pic-hotel"/);
+  assert.match(ph, /<span class="sig-track" aria-hidden="true"><i style="left:\d+(\.\d+)?%"><\/i><\/span>/);
+  assert.match(ph, /<li class="poi"><i class="pictogram pic-hotel"[^]*?\?e=hotel:HT-/, 'a stay opens in CityMETER Hotel');
   assert.match(ph, /\?e=school:/, 'a school opens in CityMETER School');
+  assert.equal((ph.match(/<td class="g[0-5]"/g) || []).length, 168, 'one cell per hour of the week');
+  assert.match(ph, /<p class="busy-peak">.*คึกที่สุดของสัปดาห์/);
+  assert.ok(ph.indexOf('class="dp-grid"') < ph.indexOf('class="dp-peaks"'), 'the grid before its reading');
+  assert.doesNotMatch(ph, /#[0-9A-F]{6}/i, 'priors carry no data colour');
   assert.doesNotMatch(ph, /undefined|NaN|\bnull\b|สูงกว่า 100%|สูงกว่า 0%/);
   // a median of fewer than 10 records at a level reads the next level up (7 house listings in the locale → the district)
   assert.match(ph, /ราคาประกาศขายบ้านเดี่ยว \(ค่ากลาง\)<\/span>.*?ใน<\/span> <span>เขตปทุมวัน/s);
@@ -153,14 +175,48 @@ test('section HTML: Aha first, every number with its data line, no blank or “u
   const mc = 'SC-012645', mcp = shard('priors', mc);
   assert.equal(mcp.seg.workers[4], 'top2');
   assert.equal(mcp.spend.workers[4], 'factory_led');
-  assert.match(priorsHTML(meta, mcp, shard('signals', mc), byId.get(mc), shard('facts', mc)), /ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน/);
+  const mch = priorsHTML(meta, mcp, shard('signals', mc), byId.get(mc), shard('facts', mc));
+  assert.match(mch, /ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน/);
+  assert.match(mch, /pic-workers"[^]*?<span class="spend-meter is-none">/, 'the workers tile shows spending power as not rated');
   reset();
   // outside the set: nothing; without a point: one line, never zeros
   assert.equal(renderLocale(rows.find(r => !inLocaleSet(r)), {meta}), '');
   const unlocated = set.find(r => !r.located);
   assert.match(renderLocale(unlocated, {meta, facts: shard('facts', unlocated.id), metaState: 'ready', factsState: 'ready'}), /ยังไม่มีจุดที่ผ่านเกณฑ์/);
+  assert.equal(renderLocalePriors(unlocated, {meta, facts: shard('facts', unlocated.id)}), '');
   assert.match(renderLocale(row, {metaState: 'error'}), /data-action="locale-retry"/);
-  assert.match(localeDataLine(meta), /DATA_METHOD\.md#venue-locale-insight/);
+  // the zone alone (drawn when the hypotheses arrive after the rest) is the same as inside the section
+  assert.ok(html.includes(renderLocalePriors(row, {meta, facts, priors, signals, priorsState: 'ready'})));
+});
+
+test('formats that would likely fit: hypotheses never carry a count; the checked shop list is read by its own categories', () => {
+  const formatNames = new Set(Object.values(meta.priors.pmf).map(x => x[0]));
+  let found = 0, check = 0;
+  for (const r of set.filter(x => x.located)) {
+    const pr = shard('priors', r.id), sg = shard('signals', r.id);
+    if (!pr) continue;
+    const f = fitRows(meta, pr, sg);
+    const shownSets = f.found.flatMap(row => row.sets.map(x => x[0]));
+    assert.equal(new Set(shownSets).size, shownSets.length, `${r.id}: a category is shown once`);
+    for (const row of f.found) {
+      assert.ok(row.sets.length && row.sets.every(([ds, n]) => meta.priors.tenantDatasets[ds] && n > 0 && sg.ten[ds] === n), r.id);
+      assert.ok(row.ids.every(id => meta.priors.pmf[id][2].some(ds => row.sets.some(x => x[0] === ds))), `${r.id} format under its category`);
+    }
+    // a format the list does not show is a thing to check on site, whether or not a category exists for it
+    for (const id of f.check) assert.ok(!(meta.priors.pmf[id][2] || []).some(ds => (sg.ten?.[ds] || 0) > 0), `${r.id} ${id}`);
+    found += f.found.length; check += f.check.length;
+  }
+  assert.ok(found > 0 && check > 0);
+  const row = byId.get(CENTRALWORLD);
+  const ph = priorsHTML(meta, shard('priors', CENTRALWORLD), shard('signals', CENTRALWORLD), row, shard('facts', CENTRALWORLD));
+  const fit = ph.slice(ph.indexOf('class="locale-block fit-block"'));
+  for (const m of fit.matchAll(/<span class="pmf"><span data-en="[^"]*">([^<]*)<\/span><\/span>/g)) {
+    assert.ok(formatNames.has(m[1]), m[1]);
+    assert.doesNotMatch(m[1], /\d/);
+  }
+  assert.match(fit, /<li class="fit-row"><i class="pictogram pic-fit"/);
+  assert.doesNotMatch(fit, /ไม่มีร้าน|ไม่พบ/, 'a format the list does not show never reads as absent');
+  assert.match(fit, /ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center ตรวจถึง .+ ไม่ใช่การสำรวจครบทุกร้าน.* · ขอบเขต: /);
 });
 
 test('ring colours: the LDS count LUT, 41 samples, sample of the rank', () => {
@@ -184,7 +240,6 @@ test('English: every Thai text of the section has an English (names without an E
     for (const level of levelsOf(facts)) for (const bench of ['province', 'peer']) for (const universe of ['all', 'type']) for (const radius of RADII) {
       reset();
       setLocaleOption('level', level); setLocaleOption('bench', bench); setLocaleOption('universe', universe); setLocaleOption('radius', radius);
-      setLocaleOption('open', {priors: true});
       const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready'});
       // text alone in an element with data-en carries its own English (the shell's [data-en] context)
       const withEn = html.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; });

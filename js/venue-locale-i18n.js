@@ -71,7 +71,7 @@ const EXACT = {
   'โหลดข้อมูลรอบศูนย์ไม่สำเร็จ': 'The area around the centre did not load', 'โหลดสมมติฐานไม่สำเร็จ': 'The hypotheses did not load', 'ลองอีกครั้ง': 'Try again',
   'ศูนย์นี้ยังไม่มีจุดที่ผ่านเกณฑ์ จึงยังนับสิ่งที่อยู่รอบศูนย์ไม่ได้': 'This centre has no accepted point yet, so what is around it cannot be counted',
   'ในรัศมีนี้ยังไม่พบรายการจากชุดข้อมูลที่นับได้': 'No record of the counted datasets within this radius', 'ยังไม่มีข้อมูลของพื้นที่ระดับนี้': 'No data for this area level yet',
-  'ไม่พบในรัศมีนี้': 'none within this radius', 'รูปแบบถนนที่พบมาก': 'Most common road pattern', 'กรุงเทพมหานคร': 'Bangkok', 'ชี้หรือแตะเพื่อดูตัวเลข': 'point or tap for the figures',
+  'ไม่พบในรัศมีนี้': 'none within this radius', 'รูปแบบถนนที่พบมาก': 'Most common road pattern', 'กรุงเทพมหานคร': 'Bangkok', 'ชี้หรือแตะเพื่อดูตัวเลข': 'point or tap for the figures', 'เส้นประคือค่ากลาง 50%': 'the dashed line is the median, 50%',
   'กลาง': 'Medium', 'คำอธิบายสัญลักษณ์': 'Legend',
   'คอนโดนับตามแขวง/ตำบลของฐานราคาประเมินตามนโยบายของชุดข้อมูล ไม่นับจุดบนแผนที่ในรัศมี':
     'Condominiums are counted by the subdistrict of the appraisal base, as the dataset’s policy says — map points are not counted in a radius',

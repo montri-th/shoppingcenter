@@ -155,9 +155,9 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 /* pictogram-glyphs:start (scripts/build-pictogram-font.py) */
 @font-face {
   font-family: "LDS Material Symbols Rounded Pictogram";
-  src: url("assets/icons/material-pictogram-300.woff2?v=b37834408479") format("woff2");
+  src: url("assets/icons/material-pictogram-300.woff2?v=c6b2596a6e7e") format("woff2");
   font-style: normal; font-weight: 300; font-display: block;
-  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913, U+E570, U+E65F, U+E56E;
+  unicode-range: U+EAD5, U+EA12, U+E54C, U+E55B, U+E7F1, U+F09A, U+EA49, U+E72C, U+E80B, U+EFC9, U+EA3B, U+E8FD, U+E88E, U+E26B, U+F20C, U+E9E6, U+E7EE, U+F101, U+EF7A, U+E429, U+E5C4, U+E5CF, U+E5CE, U+F0D4, U+EFD6, U+EBCC, U+F1DB, U+E55C, U+E614, U+EA40, U+F0C5, U+F238, U+F08F, U+E90F, U+E53B, U+E5CB, U+E5CC, U+E40A, U+EACD, U+E913, U+E570, U+E65F, U+E56E, U+E9B2, U+E80C, U+E943, U+F235, U+EF63, U+F0BE, U+E836, U+EFDF, U+E548, U+EBBC, U+F1D0, U+E84F, U+EA3E, U+E73A;
 }
 .pic-brand::before { content: "\EAD5"; }
 .pic-store::before { content: "\EA12"; }
@@ -203,6 +203,20 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .pic-ai::before { content: "\E65F"; }
 .pic-maps::before { content: "\F1DB"; }
 .pic-streetview::before { content: "\E56E"; }
+.pic-residents::before { content: "\E9B2"; }
+.pic-students::before { content: "\E80C"; }
+.pic-workers::before { content: "\E943"; }
+.pic-visitors::before { content: "\F235"; }
+.pic-spend::before { content: "\EF63"; }
+.pic-fit::before { content: "\F0BE"; }
+.pic-notyet::before { content: "\E836"; }
+.pic-hotel::before { content: "\EFDF"; }
+.pic-hospital::before { content: "\E548"; }
+.pic-factory::before { content: "\EBBC"; }
+.pic-office::before { content: "\F1D0"; }
+.pic-gov::before { content: "\E84F"; }
+.pic-university::before { content: "\EA3E"; }
+.pic-land::before { content: "\E73A"; }
 /* pictogram-glyphs:end */
 .pictogram { display: inline-block; width: 20px; height: 20px; font: 300 20px/1 "LDS Material Symbols Rounded Pictogram"; font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24; letter-spacing: normal; text-transform: none; font-synthesis: none; vertical-align: -4px; visibility: hidden; color: var(--text-secondary); }
 .pictograms-ready .pictogram { visibility: visible; }
@@ -765,9 +779,14 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .locale-controls { align-items: center; }
 .locale-lead { margin: 0; font-size: 12px; color: var(--text-metadata); }
 .locale-aha { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.locale-aha li { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-alt); }
+.locale-aha li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-alt); }
+.locale-aha li > .pictogram { width: 28px; height: 28px; font-size: 28px; color: var(--text-primary); }
+.locale-aha .aha-body { display: grid; gap: 4px; min-width: 0; }
 .locale-aha .aha-what { font-size: 14px; line-height: 1.45; font-weight: 600; }
 .locale-aha .aha-what .data-number { font-size: 18px; }
+.locale-aha .aha-track { margin: 2px 0; }
+.locale-aha .aha-track b { position: absolute; left: 0; top: 5px; height: 3px; border-radius: 2px; }
+.locale-aha .aha-track::before { content: ""; position: absolute; left: 50%; top: 0; bottom: -1px; border-left: 1px dashed var(--border-default); }
 .locale-aha .aha-how { font-size: 12px; color: var(--text-secondary); }
 .locale-chart { min-height: 40px; }
 .locale-dots { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
@@ -791,7 +810,7 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .locale-table thead th { background: transparent; border-bottom: 1px solid var(--border-default); white-space: nowrap; }
 .locale-table thead th:first-child { white-space: normal; }
 .locale-table tbody th { font-size: 12px; color: var(--text-primary); font-weight: 600; white-space: normal; background: transparent; border-bottom: 1px solid var(--border-hairline); }
-.locale-table tbody th small { display: block; font-weight: 400; color: var(--text-metadata); font-size: 11px; line-height: 1.45; margin-top: 2px; }
+.locale-table tbody th small { display: block; font-weight: 400; color: var(--text-metadata); font-size: 12px; line-height: 1.45; margin-top: 2px; }
 .locale-table td { text-align: right; white-space: nowrap; }
 .locale-block { display: grid; gap: 8px; padding-top: 6px; }
 .locale-sub { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; font-size: 14px; font-weight: 600; }
@@ -806,46 +825,74 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .area-value { font-size: 13px; }
 .area-value .data-number { font-size: 15px; }
 .area-unit { color: var(--text-metadata); font-size: 12px; }
-.area-pct { font-size: 11px; line-height: 1.45; color: var(--text-secondary); }
+.area-pct { font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
 .pct-track { position: relative; height: 6px; border-radius: 3px; background: var(--surface-soft); }
 .pct-track i { position: absolute; top: -2px; width: 3px; height: 10px; margin-left: -1px; border-radius: 1px; background: var(--text-secondary); }
 .locale-live { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; font-size: 13px; }
 .locale-live a { display: inline-flex; min-height: 32px; align-items: center; }
-.prior-badge { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--border-default); color: var(--text-secondary); white-space: nowrap; }
+.prior-badge { margin-left: 2px; font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--border-default); color: var(--text-secondary); white-space: nowrap; }
 .pips { display: inline-flex; gap: 3px; }
 .pips i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--text-secondary); }
 .pips i.on { background: var(--text-secondary); }
 .locale-mini { display: flex; align-items: center; gap: 6px; margin: 12px 0 6px; font-size: 13px; font-weight: 600; }
-/* Venue Locale Insight 0.2 — the prior block: observed context beside the four groups and the 7×24 grid.
-   Neutral foundation tones only: a generated prior never takes a data colour (AGENTS.md 0.4.0 rule; LDS: an estimate must
-   not look like a measured value). The grid's five levels are foundation tokens that keep their order on both themes. */
-.prior-facts { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.55; }
-.prior-facts li { margin: 3px 0; }
-.prior-facts .fact-rank { color: var(--text-metadata); }
-.prior-facts .poi-link { font-weight: 600; color: var(--text-primary); text-underline-offset: 3px; }
-.prior-positioning { padding-top: 0; }
-.persona-list { display: grid; gap: 6px; }
-.persona { border: 1px solid var(--border-hairline); border-radius: 10px; padding: 0 10px; background: var(--surface-card); }
-.persona > summary { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 44px; padding: 8px 0; cursor: pointer; font-size: 13px; }
-.persona > summary::-webkit-details-marker { display: none; }
-.persona > summary::after { content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 1.5px solid var(--text-metadata); border-bottom: 1.5px solid var(--text-metadata); transform: rotate(45deg); transition: transform .15s; }
-.persona[open] > summary::after { transform: rotate(-135deg); }
-@media (prefers-reduced-motion: reduce) { .persona > summary::after { transition: none; } }
-.persona > summary:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; border-radius: 6px; }
-.persona-name { font-weight: 600; flex: 1 1 150px; }
-.persona-level { display: inline-flex; align-items: center; gap: 6px; }
-.spend-chip { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--surface-soft); color: var(--text-secondary); white-space: nowrap; }
-.persona-body { padding: 0 0 10px; }
-.persona-mix { margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
-.persona-h { display: flex; align-items: center; gap: 6px; margin: 10px 0 2px; font-size: 12px; font-weight: 600; color: var(--text-metadata); }
-.persona-read { margin: 4px 0 0; display: grid; gap: 6px; }
-.persona-read > div { display: grid; grid-template-columns: minmax(0, 32%) minmax(0, 1fr); gap: 2px 10px; }
-.persona-read dt { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
-.persona-read dd { margin: 0; font-size: 12.5px; line-height: 1.5; }
-.persona-read dd .hint { margin: 4px 0 0; }
+/* Venue Locale Insight 0.6 — the prior zone, visual first (owner 2026-11-18: “ถ้าเน้นภาพ, charts, icon, symbol ก่อนแล้วค่อย
+   อธิบายทีหลังได้มั้ยครับ”): four group tiles that open into their cards, the 7×24 grid, formats against the checked
+   shop list. Neutral foundation tones only: a generated prior never takes a data colour (AGENTS.md 0.4.0 rule; LDS: an
+   estimate must not look like a measured value). Shapes and words carry every level beside the tone. */
+.prior-note { display: flex; align-items: flex-start; gap: 6px; margin: 10px 0 0; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px dashed var(--border-default); font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
+.prior-note .pictogram { width: 18px; height: 18px; font-size: 18px; flex: 0 0 18px; }
+.locale-priors { display: grid; gap: 12px; }
+/* Two tiles a row; while a card is open the tiles stack in one column, so what is read and the keyboard keep one order
+   (a browser without :has() spans the open card over the row instead). */
+.who-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.who-grid .persona[open] { grid-column: 1 / -1; }
+.who-grid:has(.persona[open]) { grid-template-columns: minmax(0, 1fr); }
+.who-grid:has(.persona[open]) .who-tile { grid-template-columns: 28px minmax(0, 1fr); column-gap: 10px; }
+.who-grid:has(.persona[open]) .who-tile > .pictogram { grid-row: 1 / span 4; }
+.who-grid:has(.persona[open]) .who-tile > :not(.pictogram) { grid-column: 2; }
+.persona { border: 1px solid var(--border-hairline); border-radius: 10px; background: var(--surface-card); min-width: 0; }
+.who-tile { list-style: none; position: relative; display: grid; gap: 4px; align-content: start; min-height: 44px; padding: 10px 28px 10px 10px; cursor: pointer; border-radius: 10px; }
+.who-tile::-webkit-details-marker { display: none; }
+.who-tile::after { content: ""; position: absolute; top: 16px; right: 12px; width: 7px; height: 7px; border-right: 1.5px solid var(--text-metadata); border-bottom: 1.5px solid var(--text-metadata); transform: rotate(45deg); transition: transform .15s; }
+.persona[open] > .who-tile::after { transform: rotate(-135deg); }
+@media (prefers-reduced-motion: reduce) { .who-tile::after { transition: none; } }
+.who-tile:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.who-tile > .pictogram { width: 28px; height: 28px; font-size: 28px; color: var(--text-primary); }
+.who-name { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.who-presence, .spend-meter { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+.baht { display: inline-flex; gap: 1px; font-size: 13px; font-weight: 700; line-height: 1; }
+.baht i { font-style: normal; color: var(--border-default); }
+.baht i.on { color: var(--text-primary); }
+.spend-meter.is-none .baht i { color: transparent; -webkit-text-stroke: 1px var(--border-default); }
+.who-mix { font-size: 12px; line-height: 1.45; color: var(--text-metadata); }
+.persona[open] > .who-tile { border-bottom: 1px solid var(--border-hairline); border-radius: 10px 10px 0 0; }
+.who-key, .fit-key { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.who-key li, .fit-key li { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 6px; }
+.who-key .pictogram, .fit-key .pictogram { width: 18px; height: 18px; font-size: 18px; }
+.fit-key .pmf { display: block; width: 30px; height: 14px; border-radius: 999px; border: 1px dashed var(--border-default); }
+.persona-body { padding: 4px 12px 12px; }
+.persona-title { margin: 6px 0 0; font-size: 13px; font-weight: 600; }
+.persona-h { display: flex; align-items: center; gap: 6px; margin: 12px 0 4px; font-size: 12px; font-weight: 600; color: var(--text-metadata); }
+.sig-list, .read-list, .fit-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.sig-list > li, .read, .fit-row { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 8px; align-items: start; font-size: 12.5px; line-height: 1.5; }
+.sig-list > li > .pictogram, .read > .pictogram, .fit-row > .pictogram { width: 20px; height: 20px; font-size: 20px; color: var(--text-secondary); }
+.sig-list > li.poi { margin-left: 28px; grid-template-columns: 16px minmax(0, 1fr); gap: 6px; }
+.sig-list > li.poi > .pictogram { width: 16px; height: 16px; font-size: 16px; margin-top: 2px; color: var(--text-metadata); }
+.sig-body, .read-body, .fit-body { display: grid; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.fact-rank { font-size: 12px; color: var(--text-metadata); }
+.sig-track { position: relative; max-width: 220px; height: 6px; margin: 3px 0 1px; border-radius: 3px; background: var(--surface-soft); }
+.sig-track i { position: absolute; top: -2px; width: 3px; height: 10px; margin-left: -1px; border-radius: 1px; background: var(--text-secondary); }
+.poi-link { font-weight: 600; color: var(--text-primary); text-underline-offset: 3px; }
+.poi-meta { font-size: 12px; color: var(--text-metadata); }
+.read-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .pmf-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 .pmf-chips .pmf { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--border-default); color: var(--text-primary); }
+.fit-row > .pictogram { color: var(--text-primary); }
+.fit-row.is-check > .pictogram { color: var(--text-metadata); }
+.fit-have { font-size: 13px; font-weight: 600; }
+.fit-row.is-check .fit-have { font-weight: 400; color: var(--text-secondary); }
 .persona-basis, .persona-data { margin: 8px 0 0; line-height: 1.5; }
+.busy-peak { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.45; }
 .dp-wrap { margin-top: 2px; }
 .dp-grid { width: 100%; min-width: 0; table-layout: fixed; border-collapse: separate; border-spacing: 1px; }
 .dp-grid th, .dp-grid td { position: static; background: transparent; border: 0; }
