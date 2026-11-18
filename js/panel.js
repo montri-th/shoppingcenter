@@ -24,6 +24,18 @@ import {cueSVG} from './cues.js';
 import {nameBasis, typeEvidence, operationReading, statusTone, coordinateReading, hoursScope, legacyBasis, storeDataset, hierarchyReading} from './evidence.js';
 import {buildingHeightLabel} from './buildings.js';
 import {rankTenants, tenantRole, tenantMix, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE, AMENITY_LABELS} from './tenants.js';
+import {LANG} from './shell/i18n.js';
+
+const THAI_TEXT = /[ก-ฺเ-๎]/;
+/**
+ * The name in the other script under a heading: the registry's English on a Thai page; on an English page the heading
+ * reads in English (js/lang.js registers the name), so the Thai goes under it, marked Thai (as CityMETER · Hotel).
+ */
+export function altName(name, nameEn, {tag = 'p', className = 'subtle'} = {}) {
+  const en = nameEn && nameEn !== name ? String(nameEn) : '';
+  if (LANG !== 'en') return en ? `<${tag} class="${className}">${esc(en)}</${tag}>` : '';
+  return en && !THAI_TEXT.test(en) && THAI_TEXT.test(name) ? `<${tag} class="${className}" lang="th" translate="no">${esc(name)}</${tag}>` : '';
+}
 
 const NUMBER = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0});
 const PCT = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 1});
@@ -255,7 +267,7 @@ export function renderSearch(results, {pending = null, districts = null, asOf = 
   // Brands of the shop lists: where each is listed (brand view). Shown first when a name is both a brand and a place.
   const brandSection = brandHits ? `<section class="panel-section" aria-labelledby="brand-hits"><div class="section-heading">${heading('brand', 'แบรนด์ในรายชื่อร้าน', 'brand-hits')}<span class="hint">${num(brandHits)}</span></div>
       <ul class="brand-list">${brands.brands.map(b => brandRow(b, `${TENANT_ROLE_LABELS[b.role] || ''} · พบใน ${num(b.venues.size)} สถานที่`)).join('')}</ul>${brandHits > brands.brands.length ? `<p class="hint">แสดง ${num(brands.brands.length)} แบรนด์แรก</p>` : ''}</section>` : '';
-  return `<section class="aha is-focused" aria-label="ผลค้นหา"><p class="eyebrow">${icon('search')}ผลค้นหา</p><h2>“${esc(results.query)}”</h2>
+  return `<section class="aha is-focused" aria-label="ผลค้นหา"><p class="eyebrow">${icon('search')}ผลค้นหา</p><h2 translate="no">“${esc(results.query)}”</h2>
       <p class="aha-copy">${total ? counts : 'ไม่พบชื่อ แบรนด์ หรือรหัสนี้'}</p>
       <div class="aha-actions"><button type="button" data-action="clear-filter" data-id="search" class="btn">ล้างคำค้น</button></div></section>
     ${brandSection}
@@ -525,7 +537,9 @@ export function renderStation(sp, {asOf = '', shops = null, transit = null, subj
     : `<p class="hint">ไม่พบ${esc(subject)}ที่มีพิกัดในระยะ ${esc(meters(sp.radius))} (0 แห่ง)</p>`;
   return `<section class="detail-head station">
       <p class="eyebrow">${icon('train')}สถานีรถไฟฟ้า${s.lines ? ` · ${esc(s.lines)}` : ''}</p>
-      <h2>สถานี${esc(s.name)}</h2>${s.nameEn || s.codes ? `<p class="subtle">${esc([s.nameEn, s.codes].filter(Boolean).join(' · '))}</p>` : ''}
+      <h2>สถานี${esc(s.name)}</h2>${LANG === 'en'
+        ? (s.nameEn && !THAI_TEXT.test(s.nameEn) ? `<p class="subtle"><span lang="th" translate="no">สถานี${esc(s.name)}</span>${s.codes ? ` · ${esc(s.codes)}` : ''}</p>` : s.codes ? `<p class="subtle">${esc(s.codes)}</p>` : '')
+        : s.nameEn || s.codes ? `<p class="subtle">${esc([s.nameEn, s.codes].filter(Boolean).join(' · '))}</p>` : ''}
       <div class="metrics compact">${metricTile(rows.length, `แห่งในระยะ ${meters(sp.radius)}`, 'venue')}${metricTile(sum.operators ?? 0, 'ผู้บริหาร', 'operator')}${metricTile(sum.stores ?? '—', 'ร้านข้างใน', 'store')}</div>
       ${rows.length ? `<div class="detail-actions"><button type="button" class="btn" data-action="open-table">${icon('table')}รายการ</button></div>` : ''}
     </section>
@@ -650,7 +664,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
         ${logo ? venueLogoMarkup(r.id, {name: r.name, size: 'lg', className: 'detail-venue-logo', decorative: false}) : `<span class="venue-hero-mark">${groupSwatch(g)}</span>`}
         <div class="venue-title">
           <p class="eyebrow">${logo ? `${groupSwatch(g)} ` : ''}${esc(g.th)}${area ? ` · ${area}` : ''}</p>
-          <h2>${esc(r.name)}</h2>${r.nameEn && r.nameEn !== r.name ? `<p class="subtle">${esc(r.nameEn)}</p>` : ''}
+          <h2>${esc(r.name)}</h2>${altName(r.name, r.nameEn)}
         </div>
       </div>
       <p class="store-status">${statusPill(r)}${hierarchy ? `<span class="status-pill tone-neutral">${esc(hierarchy)}</span>` : ''}${logo?.roleLabel ? `<span class="venue-logo-role">${esc(logo.roleLabel)}</span>` : ''}</p>
@@ -748,7 +762,7 @@ export function mapCardPending(c) {
 export function mapCardSearch(results, {brands = null} = {}) {
   if (!results) return '';
   const line = [results.qualifiedTotal ? `${num(results.qualifiedTotal)} แห่ง` : '', brands?.total ? `แบรนด์ ${num(brands.total)}` : ''].filter(Boolean).join(' · ');
-  return card({crumb: 'ผลค้นหา', title: `“${esc(results.query)}”`, line: line || 'ไม่พบชื่อหรือรหัสนี้', actions: `<button type="button" class="btn quiet" data-action="clear-filter" data-id="search">ล้างคำค้น</button>${cardOpen('ดูรายการ')}`});
+  return card({crumb: 'ผลค้นหา', title: `<span translate="no">“${esc(results.query)}”</span>`, line: line || 'ไม่พบชื่อหรือรหัสนี้', actions: `<button type="button" class="btn quiet" data-action="clear-filter" data-id="search">ล้างคำค้น</button>${cardOpen('ดูรายการ')}`});
 }
 
 /* ---------- Active filter chips ---------- */

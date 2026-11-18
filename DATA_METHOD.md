@@ -655,6 +655,21 @@ The regression fixture reproduces the duplicated main footprint before the corre
 
 **สิ่งที่ส่วนนี้พิสูจน์ไม่ได้:** คนเดินหรือจำนวนลูกค้า ยอดขาย ค่าเช่า อัตราว่าง ส่วนแบ่งตลาด ว่าใครมาศูนย์นี้จริง ระยะเดินหรือเวลาเดินทาง ว่าพื้นที่ที่ไม่พบรายการไม่มีสิ่งนั้นจริง (ชุดที่พิกัดไม่ครบ) ว่าอันดับสูงแปลว่าทำเลดีกว่า รายได้หรือความเต็มใจจ่ายของคนรอบศูนย์ และจำนวนคนรายชั่วโมง (ตาราง 7 × 24 เป็นสมมติฐานเทียบกับชั่วโมงที่คึกที่สุดของศูนย์เอง)
 
+## 16. ชื่อบนหน้าภาษาอังกฤษ (0.7.0, 18 พ.ย. 2569 · D48)
+
+หน้าภาษาอังกฤษ (`?lang=en`) แปลเฉพาะคำของหน้า ไม่แปลข้อมูล ชื่อทุกชื่ออ่านตามที่แหล่งให้ (`js/lang.js`):
+
+| ชื่อ | ภาษาอังกฤษจาก | ไม่มีภาษาอังกฤษ |
+|---|---|---|
+| สถานที่ | `nameEn` ของทะเบียน (6,234 จาก 6,265 แถว) · หลักฐานรายช่องบอกที่มา เช่น ราว 2,800 ชื่อเป็นการถอดเสียงที่เจ้าของอนุญาต ไม่ใช่ชื่อทางการ | คงเป็นไทย (31 แถว) |
+| จังหวัด · เขต/อำเภอ | `PROVINCES` ใน `js/model.js` · `en` ของ `data/districts.geojson` | — |
+| สถานี · สาย | `nameEn` ของ CityMETER Transit · ชื่อสายตามผู้ให้บริการ (`LINE_EN`) | คงเป็นไทย |
+| ผู้บริหาร | ชื่อกลุ่มของทะเบียน (เช่น Central Pattana) · บริษัทที่ทะเบียนเขียน “บริษัท … จำกัด / … Co., Ltd.” ใช้ข้างภาษาอังกฤษ (2 ชื่อ) | คงเป็นไทย (119 ชื่อ: นิติบุคคล บุคคล คณะกรรมการ) |
+| ร้าน · แบรนด์ · สาขา · ที่อยู่ · เวลาเปิด | — | คงตามที่แหล่งเขียน · ชั้น ยูนิต ห้อง และเวลาเปิดรูปแบบทั่วไปอ่านเป็นภาษาอังกฤษ (`ชั้น GF · ยูนิต G52` → `Floor GF · Unit G52`) |
+| รายการที่ยังยืนยันไม่ได้ | — | คงเป็นไทย (4,688 จาก 4,848 ชื่อ) |
+
+วันที่อ่านเป็นปีคริสต์ศักราช (2569 → 2026) · ตัวเลข หน่วย และกติกาการนับเหมือนหน้าไทยทุกตัว · ตรวจด้วย `tests/english.test.js` และหน้าจริงใน Chrome (README 0.7.0)
+
 ## Additional dated MLA membership evidence — 26 October 2026
 
 The PARC MLA crosswalk covers the project and15 competitors. Original venue/store source populations remain separate from this additional dated evidence. New venue identities are exact named project matches, never a nearest retailer or market. Current selected points win over older MLA alternatives; the newly selected Bangkok Mall point is a project-site reference, not an entrance or footprint. Dadfa’s leased-retail project supports historical definition with current operation unconfirmed. JAS has primary corporate portfolio and exact component-address evidence; approximately19,850sqm is reported leasable area, not surveyed area. PADDIO remains a future project: construction year, Zone1/2 area and floors do not become an actual opening date or whole-site GFA.

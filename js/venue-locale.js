@@ -1,7 +1,7 @@
 /**
  * Venue Locale Insight — “รอบศูนย์นี้” in the venue panel (owner 2026-11-18: build Venue Locale Insight for the 499
- * shopping centres, community malls and outlets to add detail to this demo; the research registry is the main source,
- * counted in straight-line rings of 1, 3 and 5 km; production values of the area the centre sits in; priors from rules;
+ * shopping centers, community malls and outlets to add detail to this demo; the research registry is the main source,
+ * counted in straight-line rings of 1, 3 and 5 km; production values of the area the center sits in; priors from rules;
  * amCharts where it helps the people of Product Statement §2.1 — ผู้เช่าและทีมขยายสาขา, ทีม leasing, นักลงทุน).
  *
  * Data: data/locale/ — the serving derivative of canonical release venue-locale-shopping-20261118-v0.2.0-rc1, built
@@ -18,7 +18,7 @@
  * points is never shown as 0. Percentiles are mid-rank among the 488 located venues (or the same type); area counts are
  * ranked per km² of their unit. Priors are hypotheses to test, drawn in neutral tones (no data colour), with what to check:
  * four groups with a spending-power signal read from observed prices (never income or willingness to pay), hypothesis
- * phrases, and a 7×24 grid relative to the centre's own busiest hour (never footfall).
+ * phrases, and a 7×24 grid relative to the center's own busiest hour (never footfall).
  * Colours: the LDS `count` 41-sample LUT (scales.js) for the ring percentiles only — the map's own method (a value's
  * mid-rank percentile → LUT sample), identical on both themes, with an outline so light samples stay visible.
  *
@@ -30,6 +30,7 @@ import {provinceByCode, BANGKOK, districtWord} from './model.js';
 import {loadAmCharts, makeChartRoot, chartTokens} from './charts.js';
 import {LANG, translate} from './shell/i18n.js';
 import {DEMOS, DEMO_ORIGIN, demoUrl} from './shell/datasets.js';
+import {usSpelling} from './venue-locale-i18n.js';
 
 /** Canvas text cannot be translated in the DOM: the chart writes English itself on an English page. */
 const T = s => (LANG === 'en' ? translate(s) ?? s : s);
@@ -41,7 +42,7 @@ const num = n => NUMBER.format(n);
 const icon = role => `<i class="pictogram pic-${esc(role)}" aria-hidden="true"></i>`;
 const safeURL = value => { try { const u = new URL(value); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; } };
 /** Thai text with its English beside it (the shell's [data-en] context reads it on an English page). */
-const enAttr = en => (en ? ` data-en="${esc(en)}"` : '');
+const enAttr = en => (en ? ` data-en="${esc(usSpelling(en))}"` : '');
 const say = (th, en) => (en ? `<span${enAttr(en)}>${esc(th)}</span>` : esc(th));
 const extLink = (url, label, cls = 'source-link', en = '') => {
   const u = safeURL(url);
@@ -56,7 +57,7 @@ export function thaiDay(iso) {
 }
 
 export const LOCALE_PATH = 'data/locale';
-/** The release covers the 499 countable shopping centres, community malls and outlets that the registry lists as supply. */
+/** The release covers the 499 countable shopping centers, community malls and outlets that the registry lists as supply. */
 export const LOCALE_GROUPS = Object.freeze(['mall', 'community', 'outlet']);
 export const inLocaleSet = row => Boolean(row?.countable) && row?.status === 'supply' && LOCALE_GROUPS.includes(row?.group);
 export const RADII = Object.freeze([1000, 3000, 5000]);
@@ -369,7 +370,7 @@ function ctxRank(meta, sg, key, opts) {
   const p = sg?.pct?.[key];
   if (!p) return null;
   const known = meta?.context?.ranked?.[key] === 'known';
-  const w = rankPair(p[0], known ? `ศูนย์ที่มีค่านี้ ${num(p[1])} แห่ง` : ` ${num(p[1])} ศูนย์`, known ? `${num(p[1])} centres with this value` : `${num(p[1])} centres`, opts);
+  const w = rankPair(p[0], known ? `ศูนย์ที่มีค่านี้ ${num(p[1])} แห่ง` : ` ${num(p[1])} ศูนย์`, known ? `${num(p[1])} centers with this value` : `${num(p[1])} centers`, opts);
   return w ? [...w, p[0]] : null;
 }
 
@@ -408,7 +409,7 @@ const poiLine = (meta, family, key, name, nameEn, parts, tail = '') => {
 const range = (a, b) => (a && b && a !== b ? `${num(a)}–${num(b)}` : num(a || b));
 const groupOf = (meta, kind, id) => meta?.context?.groups?.[kind]?.[id] || null;
 
-/** The finest unit that has one production metric: {level, r} (areaRows, ranked among units that hold centres). */
+/** The finest unit that has one production metric: {level, r} (areaRows, ranked among units that hold centers). */
 /** A median read from fewer records than this at one level is too thin to stand for the place; the next level up is read. */
 export const MIN_MEDIAN_N = 10;
 function areaValue(meta, facts, row, ds, metric) {
@@ -546,7 +547,7 @@ function cardDataLine(meta, seg) {
     const d = C.dates?.[fam];
     return d ? [`${th} ตรวจ ${thaiDay(d)}`, `${en} checked ${d}`] : [th, en];
   });
-  const boundary = seg === 'residents' ? ['หน่วยพื้นที่ที่ศูนย์ตั้งอยู่', 'the units the centre sits in'] : ['รัศมีเส้นตรงจากจุดของศูนย์', 'straight-line radius from the centre’s point'];
+  const boundary = seg === 'residents' ? ['หน่วยพื้นที่ที่ศูนย์ตั้งอยู่', 'the units the center sits in'] : ['รัศมีเส้นตรงจากจุดของศูนย์', 'straight-line radius from the center’s point'];
   const [th, en] = pairText([...parts, boundary]);
   return `<p class="hint persona-data">${say(`ข้อมูล: ${th}`, `Data: ${en}`)}</p>`;
 }
@@ -585,7 +586,7 @@ function personaHTML(meta, pr, sg, facts, row, seg) {
   const basis = sigs => (sigs || []).filter(x => x[1] != null).map(([sid, p]) => {
     const l = P.signals[sid] || [sid, sid];
     const area = sid.startsWith('area:');
-    const w = rankPair(p, area ? 'พื้นที่ที่มีศูนย์' : 'ศูนย์', area ? 'areas with centres' : 'centres');
+    const w = rankPair(p, area ? 'พื้นที่ที่มีศูนย์' : 'ศูนย์', area ? 'areas with centers' : 'centers');
     return [`${l[0]} ${w[0]}`, `${l[1]} ${w[1]}`];
   });
   const bPresence = basis(s[3]), bSpend = sp && sp[0] !== 'insufficient' ? basis(sp[3]) : [];
@@ -624,25 +625,25 @@ function whoBlock(meta, pr, sg, facts, row) {
   </div>`;
 }
 
-/** The centre itself (observed): luxury points of sale in it, its checked shops, its official description, Wikipedia. */
+/** The center itself (observed): luxury points of sale in it, its checked shops, its official description, Wikipedia. */
 function centreLines(meta, sg, shown = new Set()) {
   const a = sg?.attr || {}, P = meta.priors, lines = [];
   const sig = (ic, body) => `<li class="sig">${icon(ic)}<span class="sig-body">${body}</span></li>`;
   if (a.luxIn?.n) {
     const url = demoRecordURL(meta, 'luxuryVenue', a.luxIn.center);
-    lines.push(sig('brand', `<span class="sig-text">${say(`จุดขายแบรนด์หรูในศูนย์นี้ ${num(a.luxIn.n)} จุด`, `${num(a.luxIn.n)} luxury points of sale in this centre`)}</span><span class="poi-meta">${esc(a.luxIn.brands.join(' · '))}${url ? ` ${extLink(url, 'ดูใน CityMETER Luxury Brands', 'source-link', 'See in CityMETER Luxury Brands')}` : ''}</span>`));
+    lines.push(sig('brand', `<span class="sig-text">${say(`จุดขายแบรนด์หรูในศูนย์นี้ ${num(a.luxIn.n)} จุด`, `${num(a.luxIn.n)} luxury points of sale in this center`)}</span><span class="poi-meta">${esc(a.luxIn.brands.join(' · '))}${url ? ` ${extLink(url, 'ดูใน CityMETER Luxury Brands', 'source-link', 'See in CityMETER Luxury Brands')}` : ''}</span>`));
   }
   const ten = Object.entries(sg?.ten || {}).filter(([ds, n]) => n > 0 && P.tenantDatasets?.[ds] && !shown.has(ds)).sort((x, y) => y[1] - x[1]).slice(0, 6);
-  const tenWords = shown.size ? ['หมวดอื่นในรายชื่อร้านที่ตรวจแล้ว', 'Other categories in the checked shop list'] : ['ร้านที่ตรวจแล้วในศูนย์', 'Checked shops in the centre'];
+  const tenWords = shown.size ? ['หมวดอื่นในรายชื่อร้านที่ตรวจแล้ว', 'Other categories in the checked shop list'] : ['ร้านที่ตรวจแล้วในศูนย์', 'Checked shops in the center'];
   if (ten.length) lines.push(sig('store', `<span class="sig-text">${say(`${tenWords[0]}: ${ten.map(([ds, n]) => `${P.tenantDatasets[ds][0]} ${num(n)}`).join(' · ')}`, `${tenWords[1]}: ${ten.map(([ds, n]) => `${P.tenantDatasets[ds][1]} ${num(n)}`).join(' · ')}`)}</span>`));
-  if (a.label) lines.push(sig('info', `<span class="sig-text">${say('จากหน้าทางการของศูนย์', 'From the centre’s official page')}: “<span>${esc(a.label[0])}</span>”${a.label[1] ? ` ${extLink(a.label[1], 'ที่มา', 'source-link', 'source')}` : ''}</span>`));
+  if (a.label) lines.push(sig('info', `<span class="sig-text">${say('จากหน้าทางการของศูนย์', 'From the center’s official page')}: “<span>${esc(a.label[0])}</span>”${a.label[1] ? ` ${extLink(a.label[1], 'ที่มา', 'source-link', 'source')}` : ''}</span>`));
   const w = wikiURL(a.wiki);
-  if (w) lines.push(sig('info', `<span class="sig-text">${extLink(w, 'บทความวิกิพีเดียของศูนย์นี้', 'source-link', 'Wikipedia article on this centre')}</span>`));
+  if (w) lines.push(sig('info', `<span class="sig-text">${extLink(w, 'บทความวิกิพีเดียของศูนย์นี้', 'source-link', 'Wikipedia article on this center')}</span>`));
   return lines;
 }
 
 /**
- * Formats that would likely fit the groups likely many or some (priors), each under the shop categories of the centre's
+ * Formats that would likely fit the groups likely many or some (priors), each under the shop categories of the center's
  * checked shop list that it maps to and that the list has (observed, by category, never by format). A format the list
  * does not show is something to check on site — the list is not a census of every shop, so it never reads as absent.
  */
@@ -669,8 +670,8 @@ export function fitRows(meta, pr, sg) {
 function fitBlock(meta, pr, sg) {
   const P = meta.priors, C = meta.context || {};
   const {found, check} = fitRows(meta, pr, sg);
-  const centre = centreLines(meta, sg, new Set(found.flatMap(f => f.sets.map(x => x[0]))));
-  if (!found.length && !check.length && !centre.length) return '';
+  const center = centreLines(meta, sg, new Set(found.flatMap(f => f.sets.map(x => x[0]))));
+  if (!found.length && !check.length && !center.length) return '';
   const catText = sets => [sets.map(([ds, n]) => `${P.tenantDatasets[ds][0]} ${num(n)}`).join(' · '), sets.map(([ds, n]) => `${P.tenantDatasets[ds][1]} ${num(n)}`).join(' · ')];
   const rowHTML = f => {
     const [th, en] = catText(f.sets);
@@ -679,14 +680,14 @@ function fitBlock(meta, pr, sg) {
   const roster = C.dates?.tenant_roster, lux = sg?.attr?.luxIn?.n ? C.dates?.luxury : null;
   return `<div class="locale-block fit-block"><h4 class="locale-sub">${icon('store')}${say('ร้านแบบไหนน่าจะเข้ากับคนรอบศูนย์', 'Which formats would likely fit')}<span class="prior-badge">${say('สมมติฐาน', 'Hypothesis')}</span></h4>
     ${found.length || check.length ? `<ul class="fit-list">${found.map(rowHTML).join('')}${check.length ? `<li class="fit-row is-check">${icon('notyet')}<span class="fit-body"><span class="fit-have">${say('ยังไม่เห็นในรายชื่อร้านที่ตรวจแล้ว ควรตรวจหน้างาน', 'Not seen in the checked shop list yet: check on site')}</span><span class="pmf-chips">${formatChips(P, check)}</span></span></li>` : ''}</ul>
-    <ul class="hint fit-key"><li>${icon('fit')}${say('หมวดร้านและจำนวนในรายชื่อร้านที่ตรวจแล้วของศูนย์ นับทั้งหมวด ไม่แยกระดับราคา', 'Shop category and count in the centre’s checked shop list, the whole category, not split by price')}</li><li><span class="pmf" aria-hidden="true"></span>${say('ป้ายเส้นประคือหมวดที่น่าจะเข้ากับคนรอบศูนย์ (สมมติฐาน)', 'Dashed chips are formats that would likely fit (hypotheses)')}</li></ul>` : ''}
-    ${centre.length ? `<h5 class="locale-mini">${icon('venue')}${say('ศูนย์นี้มีอะไรแล้ว', 'What the centre already has')}</h5><ul class="sig-list">${centre.join('')}</ul>` : ''}
-    <p class="hint persona-data">${say(`ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center${roster ? ` ตรวจถึง ${thaiDay(roster)}` : ''} ไม่ใช่การสำรวจครบทุกร้าน${lux ? ` · CityMETER Luxury Brands ตรวจ ${thaiDay(lux)}` : ''} · ขอบเขต: ร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้ · หมวดที่น่าจะเข้ากันเป็นสมมติฐานจากกฎ`, `Data: CityMETER Shopping Center shop lists of the centre${roster ? `, checked to ${roster}` : ''}, not a census of every shop${lux ? ` · CityMETER Luxury Brands checked ${lux}` : ''} · Boundary: shops a source places in this centre · Formats that would likely fit are rule-based hypotheses`)}</p>
+    <ul class="hint fit-key"><li>${icon('fit')}${say('หมวดร้านและจำนวนในรายชื่อร้านที่ตรวจแล้วของศูนย์ นับทั้งหมวด ไม่แยกระดับราคา', 'Shop category and count in the center’s checked shop list, the whole category, not split by price')}</li><li><span class="pmf" aria-hidden="true"></span>${say('ป้ายเส้นประคือหมวดที่น่าจะเข้ากับคนรอบศูนย์ (สมมติฐาน)', 'Dashed chips are formats that would likely fit (hypotheses)')}</li></ul>` : ''}
+    ${center.length ? `<h5 class="locale-mini">${icon('venue')}${say('ศูนย์นี้มีอะไรแล้ว', 'What the center already has')}</h5><ul class="sig-list">${center.join('')}</ul>` : ''}
+    <p class="hint persona-data">${say(`ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center${roster ? ` ตรวจถึง ${thaiDay(roster)}` : ''} ไม่ใช่การสำรวจครบทุกร้าน${lux ? ` · CityMETER Luxury Brands ตรวจ ${thaiDay(lux)}` : ''} · ขอบเขต: ร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้ · หมวดที่น่าจะเข้ากันเป็นสมมติฐานจากกฎ`, `Data: CityMETER Shopping Center shop lists of the center${roster ? `, checked to ${roster}` : ''}, not a census of every shop${lux ? ` · CityMETER Luxury Brands checked ${lux}` : ''} · Boundary: shops a source places in this center · Formats that would likely fit are rule-based hypotheses`)}</p>
   </div>`;
 }
 
 /**
- * Days of a 168-character grid (Monday 00–23 … Sunday 00–23; 0 closed, 1–5 relative to the centre's busiest hour) in
+ * Days of a 168-character grid (Monday 00–23 … Sunday 00–23; 0 closed, 1–5 relative to the center's busiest hour) in
  * runs of consecutive days with the same row: {days, top, ranges: [[from, to)], open: [first, last + 1] | null}.
  */
 export function daypartGroups(grid) {
@@ -769,7 +770,7 @@ function busyBlock(meta, pr, sg) {
     ${best.length ? `<p class="busy-peak">${say(`คึกที่สุดของสัปดาห์ ${bestTh}`, `Busiest of the week: ${bestEn}`)}</p>` : ''}
     <div class="dp-wrap"><table class="dp-grid" aria-hidden="true"><thead>${head}</thead><tbody>${body}</tbody></table></div>
     ${legend}
-    <p class="hint">${say('เทียบกับชั่วโมงที่คึกที่สุดของศูนย์นี้เอง ไม่ใช่จำนวนคน', 'Relative to this centre’s own busiest hour — not people counts')}</p>
+    <p class="hint">${say('เทียบกับชั่วโมงที่คึกที่สุดของศูนย์นี้เอง ไม่ใช่จำนวนคน', 'Relative to this center’s own busiest hour — not people counts')}</p>
     <details class="locale-details dp-why" data-locale-open="dpwhy"${openAttr('dpwhy')}><summary>${say('อ่านทีละวัน เวลาเปิด และทำไมตารางเป็นแบบนี้', 'Day by day, opening hours and why the grid looks like this')}</summary>
       <ul class="dp-peaks">${peaks}</ul>
       ${hoursLine}
@@ -851,7 +852,7 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
   return shell(`${radiusChips}
     <p class="locale-lead">ใน ${esc(km(options.radius))} รอบศูนย์</p>
     ${ahaHTML}
-    <h4 class="locale-sub">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centres, every dataset')}</h4>
+    <h4 class="locale-sub">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centers, every dataset')}</h4>
     ${uniChips}
     <div class="locale-chart" id="locale-chart" data-radius="${options.radius}" data-universe="${esc(uni.key)}">${ringListHTML(rows, uni, options.radius)}</div>
     ${unplacedHTML}
@@ -902,7 +903,7 @@ export function mountLocaleChart(element, {meta, facts, row} = {}) {
         r.sub.length ? r.sub.slice(0, 4).map(s => `${s.th} ${num(s.count)}`).join(' · ') : '', r.partial ? `มีพิกัด ${num(r.located)} จาก ${num(r.eligible)} รายการ` : ''].filter(Boolean).join('\n');
       const en = LANG === 'en';
       const lines = [en ? `${num(r.count)} ${T(r.unit)} within ${km(options.radius).replace(' กม.', ' km')}` : `${num(r.count)} ${r.unit} ใน ${km(options.radius)}`, T(pctPhrase(r, uni)), ...extra.split('\n').filter(Boolean).map(T)];
-      return {cat: `${en ? r.labelEn : r.label}${r.partial ? '*' : ''}`, x, shown: num(r.count), tip: `[bold]${T(r.name)}[/]\n${lines.join('\n')}`,
+      return {cat: `${en ? usSpelling(r.labelEn) : r.label}${r.partial ? '*' : ''}`, x, shown: num(r.count), tip: `[bold]${T(r.name)}[/]\n${lines.join('\n')}`,
         aria: `${T(r.name)}: ${lines.slice(0, 2).join(' ')}`, columnSettings: {fill: am5.color(fill)}, dotSettings: {fill: am5.color(fill), stroke: am5.color(r.count === 0 ? COUNT_SCALE.zeroOutline : t.text)}};
     });
     const series = chart.series.push(am5xy.ColumnSeries.new(root, {xAxis, yAxis, valueXField: 'x', categoryYField: 'cat', sequencedInterpolation: false, maskBullets: false}));

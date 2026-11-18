@@ -170,6 +170,17 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.7.0 - หน้าเว็บอ่านได้ทั้งไทยและอังกฤษ (`20261118-r6`)
+
+เจ้าของ 18 พ.ย. 2569 19:29 (VERBATIM): “ทำ demo web Shopping center ให้เป็น TH/EN ด้วย เหมือน dataset อื่นๆ” · รุ่นนี้รวม 0.6.0 ที่ยังไม่ขึ้น live ด้วย
+
+- **ภาษา:** หน้าประกาศ `<meta name="citymeter:languages" content="th en">` เปิดภาษาอังกฤษด้วย `?lang=en` (ลิงก์ภาษาที่หัวหน้าและในรายการเดโมแบบเดียวกับเดโมอื่น) · ภาษาไทยยังเป็นต้นฉบับ หน้าภาษาไทยไม่เปลี่ยน
+- **คำของหน้า:** `js/lang-en.js` (คำและประโยค 496 รายการ รูปแบบที่มีตัวเลข 169 รูปแบบ และคำตามตำแหน่ง 9 กลุ่ม เช่น “1 venue” ใต้ตัวเลข) ผ่าน citymeter-shell `js/shell/i18n.js` · `js/lang.js` โหลดก่อนทุกโมดูล · ส่วน “รอบศูนย์นี้” ใช้คำของตัวเองใน `js/venue-locale-i18n.js` แต่คำที่หน้ามีอยู่แล้วใช้ของหน้า (ศูนย์การค้า = “Shopping centers” ตามที่เจ้าของตั้ง 25 ต.ค. 2569 และสะกด center ทั้งหน้า)
+- **ชื่อ:** ไม่แปลชื่อ — สถานที่อ่านตาม `nameEn` ในทะเบียน (บางแห่งเป็นการถอดเสียงที่เจ้าของอนุญาต) จังหวัดและเขตตามขอบเขต สถานีตาม CityMETER Transit บริษัทที่เขียนชื่อ “บริษัท … จำกัด / … Co., Ltd.” ใช้ชื่ออังกฤษของบริษัท · ชื่อที่ไม่มีภาษาอังกฤษในข้อมูลคงเป็นไทย: ร้าน แบรนด์ ผู้บริหารตามชื่อนิติบุคคล ที่อยู่ เวลาเปิดที่เขียนเป็นข้อความ และรายการที่ยังยืนยันไม่ได้ · คำค้นของผู้ใช้ไม่แปล · หัวข้อสถานที่เป็นชื่ออังกฤษ ใต้หัวข้อเป็นชื่อไทย (`lang="th"`)
+- **บนกราฟ:** amCharts วาดลงผืนภาพ หน้าแปลไม่ได้ จึงเขียนชื่อพื้นที่ ผู้บริหาร ประเภท หน่วย และกล่องตัวเลขเป็นภาษาอังกฤษจากโค้ด (`js/charts.js`) · ชื่อสถานีบนแผนที่ใช้ชื่ออังกฤษของ Transit
+- **ตรวจ:** `tests/english.test.js` (9) อ่านทุกข้อความไทยของหน้า ผลค้นหา แบรนด์ สถานี รายการรอตรวจ และแผงสถานที่ 19 แห่งพร้อมรายชื่อร้าน · ตรวจนอกชุดทดสอบครบ 6,186 แห่ง (ทุกสถานที่ที่นับได้และทุกสถานที่ที่มีรายชื่อร้าน) ไม่เหลือข้อความไทยที่ไม่มีคำแปล · หน้าจริงใน Chrome (ในเครื่องทดสอบ) 39 มุมมอง ที่ 1440 และ 390 px ไม่เหลือข้อความไทยนอกชื่อที่คงไว้ · `npm test` 312 ผ่าน
+- **ร่าง:** ภาษาอังกฤษเป็นร่างแปลจากไทย หน้าวิธีใช้บอกไว้ · product statement และวิธีจัดทำข้อมูลยังเป็นภาษาไทย
+
 ## 0.6.0 - รอบศูนย์นี้อ่านด้วยภาพก่อน แล้วค่อยคำอธิบาย (`20261118-r5`)
 
 เจ้าของ 18 พ.ย. 2569 18:57 (VERBATIM): “ดีแล้วนะ แต่ยังอ่านยากนิดนึง ถ้าเน้นภาพ, charts, icon, symbol ก่อนแล้วค่อยอธิบายทีหลังได้มั้ยครับ / ถอยออกมาดูภาพรวม แล้วลองย้อนเทียบกับ product brief, product statement แล้วปรับให้ส่งเสริม user benefit สูงสุดอีกที”

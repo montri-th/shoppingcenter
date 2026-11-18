@@ -5,10 +5,10 @@
  * This demo still declares Thai only (AGENTS.md); the section is covered ahead so it reads in English once the rest of
  * the page is. tests/venue-locale.test.js renders sample venues and checks that every Thai text has an English.
  */
-import {registerDictionary, registerNames, keepThai} from './shell/i18n.js';
+import {registerDictionary, registerNames, keepThai, translate} from './shell/i18n.js';
 import {PROVINCES} from './model.js';
 
-const TYPE_EN = {'ศูนย์การค้า': 'shopping malls', 'คอมมูนิตี้มอลล์': 'community malls', 'เอาท์เล็ต': 'outlets'};
+const TYPE_EN = {'ศูนย์การค้า': 'shopping centers', 'คอมมูนิตี้มอลล์': 'community malls', 'เอาท์เล็ต': 'outlets'};
 const LEVEL_EN = {
   'ย่าน': ['neighbourhood', 'neighbourhoods'], 'แขวง': ['subdistrict', 'subdistricts'], 'ตำบล': ['subdistrict', 'subdistricts'],
   'เขต': ['district', 'districts'], 'อำเภอ': ['district', 'districts'], 'เทศบาล/อปท.': ['local government area', 'local government areas'],
@@ -25,11 +25,11 @@ const provinceEN = th => {
   if (s === 'กรุงเทพฯ' || s === 'กรุงเทพมหานคร') return 'Bangkok';
   return PROVINCES.find(p => p.th === s)?.en || null;
 };
-/** “ย่านในกรุงเทพฯ” → “neighbourhoods in Bangkok”; “แขวงที่มีศูนย์ในชุดนี้” → “subdistricts with centres of this set”. */
+/** “ย่านในกรุงเทพฯ” → “neighbourhoods in Bangkok”; “แขวงที่มีศูนย์ในชุดนี้” → “subdistricts with centers of this set”. */
 function groupEN(text) {
   const s = String(text || '').trim();
   let m = new RegExp(`^(${LEVEL_RE})ที่มีศูนย์ในชุดนี้$`).exec(s);
-  if (m) return `${LEVEL_EN[m[1]][1]} with centres of this set`;
+  if (m) return `${LEVEL_EN[m[1]][1]} with centers of this set`;
   m = new RegExp(`^(${LEVEL_RE})ใน(.+)$`).exec(s);
   if (m) { const p = provinceEN(m[2]); return p ? `${LEVEL_EN[m[1]][1]} in ${p}` : null; }
   return null;
@@ -38,20 +38,22 @@ function groupEN(text) {
 function universeEN(text) {
   const s = String(text || '').trim();
   let m = /^([\d,]+) ศูนย์$/.exec(s);
-  if (m) return `${m[1]} centres`;
+  if (m) return `${m[1]} centers`;
   m = /^(.+) ([\d,]+) แห่ง$/.exec(s);
   if (m && TYPE_EN[m[1]]) return `${m[2]} ${TYPE_EN[m[1]]}`;
   m = /^(.+)ที่มีพิกัด$/.exec(s);
-  if (m && (m[1] === 'ศูนย์ในชุดนี้' || TYPE_EN[m[1]])) return m[1] === 'ศูนย์ในชุดนี้' ? 'located centres of this set' : `located ${TYPE_EN[m[1]]}`;
+  if (m && (m[1] === 'ศูนย์ในชุดนี้' || TYPE_EN[m[1]])) return m[1] === 'ศูนย์ในชุดนี้' ? 'located centers of this set' : `located ${TYPE_EN[m[1]]}`;
   return null;
 }
 const or = (...parts) => (parts.some(p => p == null) ? null : parts.join(''));
+/** The page spells “center” as its title does (“Shopping centers”, owner 2026-10-25); the release's labels write “centre”. */
+export const usSpelling = text => String(text ?? '').replace(/\b([Cc])entre(s?)\b/g, '$1enter$2');
 
 /** The static words of the section. */
 const EXACT = {
-  'รอบศูนย์นี้': 'Around this centre', 'รัศมีเส้นตรง': 'Straight-line radius', 'รัศมี': 'Radius', 'เทียบกับ': 'Compare with',
-  '(เปิดแท็บใหม่)': '(opens a new tab)', 'ระดับพื้นที่': 'Area level', 'พื้นที่ที่ศูนย์ตั้งอยู่': 'The area the centre sits in',
-  'ที่มีศูนย์ทั่วประเทศ': 'Areas with centres nationwide', 'ตัวเลขทุกรัศมี': 'Figures for every radius', 'ชุดข้อมูล': 'Dataset',
+  'รอบศูนย์นี้': 'Around this center', 'รัศมีเส้นตรง': 'Straight-line radius', 'รัศมี': 'Radius', 'เทียบกับ': 'Compare with',
+  '(เปิดแท็บใหม่)': '(opens a new tab)', 'ระดับพื้นที่': 'Area level', 'พื้นที่ที่ศูนย์ตั้งอยู่': 'The area the center sits in',
+  'ที่มีศูนย์ทั่วประเทศ': 'Areas with centers nationwide', 'ตัวเลขทุกรัศมี': 'Figures for every radius', 'ชุดข้อมูล': 'Dataset',
   'อันดับ 3 กม.': 'Rank at 3 km', 'จำนวนในรัศมี 1, 3 และ 5 กม. และอันดับที่ 3 กม.': 'Counts within 1, 3 and 5 km and the rank at 3 km',
   '* นับได้เฉพาะรายการที่มีพิกัด': '* only records with a point are counted',
   'ข้อมูลที่เปลี่ยนรายวันใน CityMETER': 'Data that changes daily in CityMETER', 'Locale Insights ของย่านนี้': 'Locale Insights of this neighbourhood',
@@ -60,30 +62,30 @@ const EXACT = {
   'ช่วงไหนน่าจะคึกกว่าปกติ': 'When it is likely busier than usual', 'ช่วงเวลาที่คาดว่าคึกหรือเงียบกว่าปกติ (สมมติฐาน)': 'Times expected to be busier or quieter than usual (hypothesis)',
   'ตรวจได้ด้วย': 'Check it with', 'ที่มาและวิธีของส่วนนี้': 'Sources and method of this section', 'ที่มาและวิธี': 'Sources and method',
   'นับรายการที่แหล่งระบุในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ และไม่ใช่จำนวนคนเดิน':
-    'Counts the records a source lists within straight-line radii of 1 · 3 · 5 km of the centre’s point — not walking or driving distance, and not footfall',
+    'Counts the records a source lists within straight-line radii of 1 · 3 · 5 km of the center’s point — not walking or driving distance, and not footfall',
   '0 คือไม่พบรายการในรัศมี ไม่ใช่ไม่มีข้อมูล': '0 means no record within the radius, not missing data',
   'ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย':
-    'Area values come from CityMETER production for the units the centre’s point sits in; counts are compared per km² of the unit',
+    'Area values come from CityMETER production for the units the center’s point sits in; counts are compared per km² of the unit',
   'ชุดที่ยังมีพิกัดไม่ครบนับเฉพาะรายการที่มีพิกัด และติดดาวไว้ในตาราง': 'Datasets with incomplete points count only the records with a point and carry a star in the table',
-  'จุดของศูนย์ยังเป็นจุดอ้างอิง ไม่ใช่ขอบเขตหรือทางเข้าที่ผู้บริหารยืนยัน': 'The centre’s point is a reference point, not an outline or entrance confirmed by the operator',
-  'รัศมีเส้นตรงจากจุดของศูนย์ และขอบเขตพื้นที่ตาม CityMETER production': 'straight-line radii from the centre’s point; area boundaries from CityMETER production',
-  'ทะเบียนวิจัย CityMETER': 'CityMETER research registry', 'กำลังโหลดข้อมูลรอบศูนย์…': 'Loading the area around the centre…', 'กำลังโหลด…': 'Loading…',
-  'โหลดข้อมูลรอบศูนย์ไม่สำเร็จ': 'The area around the centre did not load', 'โหลดสมมติฐานไม่สำเร็จ': 'The hypotheses did not load', 'ลองอีกครั้ง': 'Try again',
-  'ศูนย์นี้ยังไม่มีจุดที่ผ่านเกณฑ์ จึงยังนับสิ่งที่อยู่รอบศูนย์ไม่ได้': 'This centre has no accepted point yet, so what is around it cannot be counted',
+  'จุดของศูนย์ยังเป็นจุดอ้างอิง ไม่ใช่ขอบเขตหรือทางเข้าที่ผู้บริหารยืนยัน': 'The center’s point is a reference point, not an outline or entrance confirmed by the operator',
+  'รัศมีเส้นตรงจากจุดของศูนย์ และขอบเขตพื้นที่ตาม CityMETER production': 'straight-line radii from the center’s point; area boundaries from CityMETER production',
+  'ทะเบียนวิจัย CityMETER': 'CityMETER research registry', 'กำลังโหลดข้อมูลรอบศูนย์…': 'Loading the area around the center…', 'กำลังโหลด…': 'Loading…',
+  'โหลดข้อมูลรอบศูนย์ไม่สำเร็จ': 'The area around the center did not load', 'โหลดสมมติฐานไม่สำเร็จ': 'The hypotheses did not load', 'ลองอีกครั้ง': 'Try again',
+  'ศูนย์นี้ยังไม่มีจุดที่ผ่านเกณฑ์ จึงยังนับสิ่งที่อยู่รอบศูนย์ไม่ได้': 'This center has no accepted point yet, so what is around it cannot be counted',
   'ในรัศมีนี้ยังไม่พบรายการจากชุดข้อมูลที่นับได้': 'No record of the counted datasets within this radius', 'ยังไม่มีข้อมูลของพื้นที่ระดับนี้': 'No data for this area level yet',
   'ไม่พบในรัศมีนี้': 'none within this radius', 'รูปแบบถนนที่พบมาก': 'Most common road pattern', 'กรุงเทพมหานคร': 'Bangkok', 'ชี้หรือแตะเพื่อดูตัวเลข': 'point or tap for the figures', 'เส้นประคือค่ากลาง 50%': 'the dashed line is the median, 50%',
   'กลาง': 'Medium', 'คำอธิบายสัญลักษณ์': 'Legend',
   'คอนโดนับตามแขวง/ตำบลของฐานราคาประเมินตามนโยบายของชุดข้อมูล ไม่นับจุดบนแผนที่ในรัศมี':
     'Condominiums are counted by the subdistrict of the appraisal base, as the dataset’s policy says — map points are not counted in a radius',
   'ตัวอย่างสถานที่รอบศูนย์มาจากเดโม CityMETER ของแต่ละชุด กดชื่อเพื่อเปิดในเดโมนั้น · ระยะปัดเป็น 100 ม.':
-    'Places named around the centre come from each dataset’s CityMETER demo — click a name to open it there · distances rounded to 100 m',
+    'Places named around the center come from each dataset’s CityMETER demo — click a name to open it there · distances rounded to 100 m',
   'ค่าเทอมคือค่าเล่าเรียนที่โรงเรียนประกาศ · ราคาที่พักคือราคาเริ่มต้นที่บันทึกในชุดข้อมูล ไม่ทราบช่วงเวลา · ค่าเช่าสำนักงานคือราคาที่ประกาศ':
     'Tuition is what the school publishes · stay prices are the lowest price the dataset recorded, period unknown · office rents are asking rents',
 };
 
 /** Patterns: numbers and names pass through; parts are translated with the same dictionary. */
 const PATTERNS = [
-  [/^ใน ([\d,]+) กม\. รอบศูนย์$/, 'Within $1 km of the centre'],
+  [/^ใน ([\d,]+) กม\. รอบศูนย์$/, 'Within $1 km of the center'],
   [/^มากกว่า ([\d,]+)% ของ(.+)$/, (m) => or(`above ${m[1]}% of `, universeEN(m[2]) ?? groupEN(m[2]))],
   [/^สูงกว่า ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`higher than ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
   [/^มากกว่า ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`above ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
@@ -91,7 +93,7 @@ const PATTERNS = [
   [/^ไม่พบ เหมือน ([\d,]+)% ของ(.+)$/, (m) => or(`none found, like ${m[1]}% of `, universeEN(m[2]))],
   [/^ไม่มีในข้อมูล เหมือน ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`none in the data, like ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
   [/^ต่อ ตร\.กม\. (.+)$/, (m, t) => or('per km²: ', t.part(m[1]))],
-  [/^ทุกศูนย์ ([\d,]+) แห่ง$/, 'All $1 centres'],
+  [/^ทุกศูนย์ ([\d,]+) แห่ง$/, 'All $1 centers'],
   [/^(ศูนย์การค้า|คอมมูนิตี้มอลล์|เอาท์เล็ต) ([\d,]+) แห่ง$/, (m) => `${m[2]} ${TYPE_EN[m[1]]}`],
   [/^ใน(.+)$/, (m) => { const p = provinceEN(m[1]); return p ? `In ${p}` : null; }],
   [/^ดูอีก ([\d,]+) รายการ$/, 'Show $1 more'],
@@ -110,7 +112,7 @@ const PATTERNS = [
   [/^จำนวนในรัศมี ([\d,]+) กม\. เทียบกับ(.+)$/, (m) => or(`Counts within ${m[1]} km against `, universeEN(m[2]))],
   [/^อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ(.+) ([\d,]+) แห่ง ค่าที่เท่ากันนับครึ่ง$/, (m) => or(`Ranks are mid-rank percentiles against ${m[2]} `, universeEN(m[1]), '; equal values count half')],
   [/^อิงจาก (.+)$/, (m, t) => or('Based on ', t.part(m[1]))],
-  [/^(.+) สูงกว่า ([\d,]+)% ของ(ศูนย์|พื้นที่ที่มีศูนย์)$/, (m, t) => or(t.part(m[1]), ` above ${m[2]}% of ${m[3] === 'ศูนย์' ? 'centres' : 'areas with centres'}`)],
+  [/^(.+) สูงกว่า ([\d,]+)% ของ(ศูนย์|พื้นที่ที่มีศูนย์)$/, (m, t) => or(t.part(m[1]), ` above ${m[2]}% of ${m[3] === 'ศูนย์' ? 'centers' : 'areas with centers'}`)],
   [/^(วันธรรมดา|วันหยุด) (เช้า|กลางวัน|บ่าย|เย็น|ค่ำ) ([\d:–]+) น\.$/, (m) => `${DAY[m[1]]} ${BLOCK[m[2]]} ${m[3]}`],
   [/^เวลาวันหยุดเริ่ม ([\d:–]+) น\.$/, 'Weekend times: morning $1'],
   [/^(เช้า|กลางวัน|บ่าย|เย็น|ค่ำ) ([\d:–]+)$/, (m) => `${BLOCK[m[1]]} ${m[2]}`],
@@ -127,7 +129,7 @@ const PATTERNS = [
 /** All the pairs a meta.json carries: datasets, metrics, units, subgroups, levels, live views, priors. */
 export function localeDictionary(meta) {
   const exact = {...EXACT};
-  const put = (th, en) => { if (th && en && th !== en) exact[th] = en; };
+  const put = (th, en) => { if (th && en && th !== en) exact[th] = usSpelling(en); };
   for (const [th, [one]] of Object.entries(LEVEL_EN)) put(th, one[0].toUpperCase() + one.slice(1));
   for (const m of Object.values(meta?.ring || {})) {
     put(m.th, m.en); put(m.short?.[0], m.short?.[1]); put(m.unit?.[0], m.unit?.[1]); put(m.source?.[0], m.source?.[1]);
@@ -172,7 +174,11 @@ let registered = null;
 export function registerLocaleDictionary(meta) {
   if (!meta || registered === meta) return;
   registered = meta;
-  registerDictionary(localeDictionary(meta));
+  const dict = localeDictionary(meta);
+  // The page's own words win (js/lang-en.js: the title “Shopping centers”, the shop roles), so a Thai word reads one way
+  // across the page; the section adds only the words the page does not have.
+  for (const th of Object.keys(dict.exact)) if (translate(th) != null) delete dict.exact[th];
+  registerDictionary(dict);
   keepThai(Object.values(meta.neighbourhoods || {}));
 }
 

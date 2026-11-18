@@ -22,6 +22,7 @@ import {rankAreas, groupMatrix} from './chart-model.js';
 import {buildRamp, classify, formatDensity, rampLegendHTML} from './scales.js';
 import {GROUPS, groupById} from './model.js';
 import {cueSVG} from './cues.js';
+import {LANG, translate, englishName} from './shell/i18n.js';
 
 export const AMCHARTS = Object.freeze({
   version: '5.20.8', module: 'vendor/amcharts5/amcharts5-5.20.8.mjs', license: 'vendor/amcharts5/LICENSE',
@@ -32,6 +33,13 @@ const NUMBER = new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0});
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const num = n => NUMBER.format(n);
 const pct = (a, b) => (b ? `${new Intl.NumberFormat('th-TH', {maximumFractionDigits: a / b < 0.1 ? 1 : 0}).format((a / b) * 100)}%` : '');
+
+/* ---------- words drawn on the chart canvas (the shell translates the page, never a canvas) ---------- */
+const EN = LANG === 'en';
+/** A place or an operator in the English its data gives (or as written); a fixed label through the page dictionary. */
+const nameOut = th => (EN ? englishName(th) : th);
+const wordOut = th => (EN ? translate(th) ?? englishName(th) : th);
+const venuesWord = n => (EN ? `${num(n)} ${n === 1 ? 'venue' : 'venues'}` : `${num(n)} แห่ง`);
 
 /* ---------- view options the user switches (kept for the session) ---------- */
 const options = {rankBy: 'density', mixAs: 'share', hiddenGroups: new Set()};
@@ -193,25 +201,43 @@ function barChart(lib, root, t, {rows, valueField = 'value', ariaLabel, onPick, 
 
 function drawRank(lib, root, t, {areas, kind, unitWord, select, selectedId}) {
   const by = kind === 'district' ? options.rankBy : 'count';
-  const rows = rankModel(areas, {kind, by}).map(r => ({
-    ...r, shown: kind === 'district' && by === 'density' ? formatDensity(r.density) : num(r.count),
-    tip: kind === 'district'
-      ? `[bold]${r.name}[/]\n${formatDensity(r.density)} แห่ง/ตร.กม. · ${num(r.count)} แห่ง\nพื้นที่ ${formatDensity(r.areaKm2)} ตร.กม. · อันดับ ${r.rank}`
-      : `[bold]${r.name}[/]\n${num(r.count)} แห่ง · อันดับ ${r.rank}`,
-    aria: `อันดับ ${r.rank} ${r.label}: ${r.valueText}`, pick: {type: 'area', id: r.id},
-  }));
-  barChart(lib, root, t, {rows, ariaLabel: kind === 'district' ? `${unitWord}เรียงตาม${by === 'density' ? 'แห่งต่อตารางกิโลเมตร' : 'จำนวนสถานที่'}` : 'จังหวัดเรียงตามจำนวนสถานที่', onPick: select, selectedId});
+  const byCount = kind !== 'district' || by === 'count';
+  const rows = rankModel(areas, {kind, by}).map(r => {
+    const name = nameOut(r.name);
+    const value = EN ? (byCount ? venuesWord(r.count) : `${formatDensity(r.density)} venues/km²`) : r.valueText;
+    return {
+      ...r, name, shown: kind === 'district' && by === 'density' ? formatDensity(r.density) : num(r.count),
+      tip: EN
+        ? (kind === 'district'
+          ? `[bold]${name}[/]\n${formatDensity(r.density)} venues/km² · ${venuesWord(r.count)}\nArea ${formatDensity(r.areaKm2)} km² · rank ${r.rank}`
+          : `[bold]${name}[/]\n${venuesWord(r.count)} · rank ${r.rank}`)
+        : (kind === 'district'
+          ? `[bold]${r.name}[/]\n${formatDensity(r.density)} แห่ง/ตร.กม. · ${num(r.count)} แห่ง\nพื้นที่ ${formatDensity(r.areaKm2)} ตร.กม. · อันดับ ${r.rank}`
+          : `[bold]${r.name}[/]\n${num(r.count)} แห่ง · อันดับ ${r.rank}`),
+      aria: EN ? `Rank ${r.rank} ${nameOut(r.label)}: ${value}` : `อันดับ ${r.rank} ${r.label}: ${r.valueText}`, pick: {type: 'area', id: r.id},
+    };
+  });
+  const ariaLabel = EN
+    ? (kind === 'district' ? `Districts ranked by ${by === 'density' ? 'venues per km²' : 'number of venues'}` : 'Provinces ranked by number of venues')
+    : (kind === 'district' ? `${unitWord}เรียงตาม${by === 'density' ? 'แห่งต่อตารางกิโลเมตร' : 'จำนวนสถานที่'}` : 'จังหวัดเรียงตามจำนวนสถานที่');
+  barChart(lib, root, t, {rows, ariaLabel, onPick: select, selectedId});
   return rows.length;
 }
 
 function drawOperators(lib, root, t, {operatorRows, total, select, selectedOperator}) {
   // Named operators only: the long tail and the unknown are counted in the caption, so they never squash the bars.
-  const rows = operatorModel(operatorRows, total).filter(r => !r.quiet).map(r => ({
-    ...r, name: r.label, value: r.count, fill: r.quiet ? t.quiet : t.operator, shown: `${num(r.count)} · ${pct(r.count, total)}`,
-    tip: `[bold]${r.label}[/]\n${num(r.count)} แห่ง · ${pct(r.count, total)} ของสถานที่ในตัวกรอง${r.id && r.id !== '__none__' ? '\nกดเพื่อดูเฉพาะผู้บริหารนี้' : ''}`,
-    aria: `${r.label}: ${num(r.count)} แห่ง ${pct(r.count, total)}`, pick: r.id ? {type: 'operator', id: r.id} : null,
-  }));
-  barChart(lib, root, t, {rows, ariaLabel: 'สัดส่วนจำนวนสถานที่ตามผู้บริหาร', onPick: select, selectedId: selectedOperator});
+  const rows = operatorModel(operatorRows, total).filter(r => !r.quiet).map(r => {
+    const name = wordOut(r.label);
+    return {
+      ...r, name, value: r.count, fill: r.quiet ? t.quiet : t.operator, shown: `${num(r.count)} · ${pct(r.count, total)}`,
+      tip: EN
+        ? `[bold]${name}[/]\n${venuesWord(r.count)} · ${pct(r.count, total)} of the venues in the filters${r.id && r.id !== '__none__' ? '\nPress to see only this operator' : ''}`
+        : `[bold]${r.label}[/]\n${num(r.count)} แห่ง · ${pct(r.count, total)} ของสถานที่ในตัวกรอง${r.id && r.id !== '__none__' ? '\nกดเพื่อดูเฉพาะผู้บริหารนี้' : ''}`,
+      aria: EN ? `${name}: ${venuesWord(r.count)} ${pct(r.count, total)}` : `${r.label}: ${num(r.count)} แห่ง ${pct(r.count, total)}`,
+      pick: r.id ? {type: 'operator', id: r.id} : null,
+    };
+  });
+  barChart(lib, root, t, {rows, ariaLabel: EN ? 'Share of venues by operator' : 'สัดส่วนจำนวนสถานที่ตามผู้บริหาร', onPick: select, selectedId: selectedOperator});
   return rows.length;
 }
 
@@ -219,7 +245,8 @@ function drawMix(lib, root, t, {areas, kind, select, selectedId}) {
   const {am5, am5xy} = lib;
   const m = mixModel(areas, {kind});
   const share = options.mixAs === 'share';
-  const chart = root.container.children.push(am5xy.XYChart.new(root, {panX: false, panY: false, wheelX: 'none', wheelY: 'none', layout: root.verticalLayout, paddingLeft: 0, paddingRight: 8, paddingTop: 4, paddingBottom: 4, ariaLabel: 'ประเภทในแต่ละพื้นที่'}));
+  const chart = root.container.children.push(am5xy.XYChart.new(root, {panX: false, panY: false, wheelX: 'none', wheelY: 'none', layout: root.verticalLayout, paddingLeft: 0, paddingRight: 8, paddingTop: 4, paddingBottom: 4, ariaLabel: EN ? 'Types in each area' : 'ประเภทในแต่ละพื้นที่'}));
+  const rowsOut = m.rows.map(r => ({...r, name: nameOut(r.name)}));
   const yRenderer = am5xy.AxisRendererY.new(root, {inversed: true, minGridDistance: 4, cellStartLocation: 0.12, cellEndLocation: 0.88});
   yRenderer.labels.template.setAll({fontSize: 12, maxWidth: 170, oversizedBehavior: 'truncate', paddingRight: 6, cursorOverStyle: 'pointer'});
   yRenderer.grid.template.set('forceHidden', true);
@@ -228,20 +255,21 @@ function drawMix(lib, root, t, {areas, kind, select, selectedId}) {
   xRenderer.labels.template.setAll({fontSize: 11, fill: am5.color(t.muted)});
   const xAxis = chart.xAxes.push(am5xy.ValueAxis.new(root, share ? {min: 0, max: 100, strictMinMax: true, calculateTotals: true, numberFormat: "#'%'", renderer: xRenderer} : {min: 0, calculateTotals: true, renderer: xRenderer, numberFormat: '#,###'}));
   for (const g of m.groups) {
+    const label = wordOut(g.th), unit = EN ? 'venues' : 'แห่ง';
     const series = chart.series.push(am5xy.ColumnSeries.new(root, {
-      name: g.th, xAxis, yAxis, stacked: true, valueXField: g.id, categoryYField: 'name',
+      name: label, xAxis, yAxis, stacked: true, valueXField: g.id, categoryYField: 'name',
       valueXShow: share ? 'valueXTotalPercent' : 'valueX', fill: am5.color(t.series(g.series)), stroke: am5.color(t.surface),
     }));
     series.columns.template.setAll({
       height: am5.percent(100), strokeWidth: 1, cursorOverStyle: 'pointer', focusable: true, focusableGroup: 'mix', hoverOnFocus: true, role: 'button',
-      tooltipText: `[bold]{categoryY}[/]\n${g.th}: {valueX} แห่ง ({valueXTotalPercent.formatNumber('#.#')}%)`,
-      ariaLabel: `{categoryY} ${g.th} {valueX} แห่ง`,
+      tooltipText: `[bold]{categoryY}[/]\n${label}: {valueX} ${unit} ({valueXTotalPercent.formatNumber('#.#')}%)`,
+      ariaLabel: `{categoryY} ${label} {valueX} ${unit}`,
     });
     series.columns.template.events.on('click', ev => { const d = ev.target.dataItem?.dataContext; if (d?.id) select({type: 'area', id: d.id}); });
-    series.data.setAll(m.rows);
+    series.data.setAll(rowsOut);
     if (options.hiddenGroups.has(g.id)) series.hide(0);
   }
-  yAxis.data.setAll(m.rows.map(r => ({...r, name: r.name})));
+  yAxis.data.setAll(rowsOut);
   return m;
 }
 
