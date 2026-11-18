@@ -19,6 +19,10 @@ import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch
   mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand, mapCardStation, altName} from '../js/panel.js';
 import {lookLinks} from '../js/look-around.js';
 import {rampLegendHTML} from '../js/scales.js';
+import {buildBreadcrumb} from '../js/breadcrumb.js';
+import {buildingHeightLabel} from '../js/buildings.js';
+import {PRODUCT_TITLE, SUBJECT} from '../js/panel.js';
+import {groupLabel, GROUP_SETS} from '../js/model.js';
 
 const ROOT = new URL('../', import.meta.url);
 const read = p => JSON.parse(readFileSync(new URL(p, ROOT), 'utf8'));
@@ -243,6 +247,58 @@ test('English: a count reads singular or plural, and a unit keeps its number', (
   assert.equal(translate('เกิน 2 กม.'), 'over 2 km');
   // A pattern never puts Thai inside English: unknown words leave the text for the report.
   assert.equal(translate('ของอะไรสักอย่างในกรุงเทพฯ อยู่ใน 3 เขตนี้'), null);
+});
+
+test('English: map labels, tab titles and announcements name every province and district in English', () => {
+  // 0.7.1 (live check 18 Nov 2026): the map's area labels, the tab title and the screen-reader announcements are text
+  // the panel never renders, so the views above did not reach them.
+  const english = (s, why) => { const v = translate(s); assert.ok(v != null && !THAI.test(v), `${why}: ${s} → ${v}`); return v; };
+  const subjects = new Set([PRODUCT_TITLE, SUBJECT, ...GROUPS.map(g => groupLabel(g.id)), ...Object.keys(GROUP_SETS).map(groupLabel)]);
+  const last = crumbs => crumbs[crumbs.length - 1].label;
+  const places = [last(buildBreadcrumb({}))];
+  for (const p of PROVINCES) {
+    places.push(last(buildBreadcrumb({province: p.code})));
+    english(`จังหวัด${p.th}: 3 แห่ง กดเพื่อดูจังหวัด`, 'province label');
+  }
+  for (const f of districtGeo.features) {
+    const d = f.properties;
+    const crumbs = buildBreadcrumb({district: {code: d.code, th: d.th, province: d.province}});
+    places.push(last(crumbs));
+    english(`${last(crumbs)}: 1 แห่ง กดเพื่อสำรวจ`, 'district label');
+    english(`${last(crumbs)} 12 แห่ง`, 'district announcement');
+  }
+  for (const place of places) for (const subject of subjects) english(`${subject} ${place}`, 'tab title');
+  assert.equal(translate('ศูนย์การค้า กรุงเทพมหานคร'), 'Shopping centers in Bangkok');
+  assert.equal(translate('สถานที่ค้าปลีก ประเทศไทย'), 'Retail venues in Thailand');
+  assert.equal(translate('เขตปทุมวัน: 24 แห่ง กดเพื่อสำรวจ'), 'Pathum Wan: 24 venues, press to explore');
+  assert.equal(translate('จังหวัดเชียงใหม่: 1 แห่ง กดเพื่อดูจังหวัด'), 'Chiang Mai: 1 venue, press to see the province');
+  for (const s of ['พบ 499 แห่ง', 'แสดงร้าน 60 จาก 412 ร้าน', 'รัศมี 3 กม.', 'แสดงรายการที่ยังยืนยันไม่ได้', 'ซ่อนรายการที่ยังยืนยันไม่ได้']) english(s, 'announcement');
+  const r = rows.find(x => THAI.test(x.name) && x.nameEn) || rows[0];
+  english(`เลือก ${r.name}`, 'announcement');
+  const p = pending.rows.find(x => THAI.test(x[1]))[1];
+  for (const state of ['ยังยืนยันไม่ได้', 'รอตรวจ']) english(`${state} ${p.replace(/[ก-๙]/g, '').trim() || 'Lotus'}`, 'announcement');
+  assert.match(translate(`ยังยืนยันไม่ได้ ${p}`), /^Unconfirmed: /);
+  const st = stations.find(s => s.nameEn && THAI.test(s.name));
+  english(`สถานี${st.name} 12 แห่งในระยะ 500 ม.`, 'announcement');
+  english(`จังหวัด${PROVINCES[1].th}`, 'announcement');
+  // Never Thai inside English: a place the data does not name stays Thai for the report.
+  assert.equal(translate('ศูนย์การค้า เขตที่ไม่มีอยู่จริง'), null);
+  assert.equal(translate('เขตที่ไม่มีอยู่จริง 3 แห่ง'), null);
+});
+
+test('English: building counts and every building height label', () => {
+  assert.equal(translate('ทั้งโครงการ 38 อาคาร'), 'The whole project: 38 buildings');
+  assert.equal(translate('ทั้งโครงการ 1 อาคาร'), 'The whole project: 1 building');
+  const labels = [{height_status: 'owner_model_design', base_m: 0, height_m: 40}, {height_status: 'owner_model_design'},
+    {height_status: 'basemap_render_height'}, {height_status: 'model_height_review'},
+    {height_status: 'unknown_display_fallback', render_as: 'outline'}, {height_status: 'unknown_display_fallback'}, {},
+    {geometry_role: 'host_building_part_not_shop_unit', base_m: 180, height_m: 194.5},
+    {height_status: 'citymeter_model_estimate', height_m: 38}, {height_m: 1234.56}].map(buildingHeightLabel);
+  for (const s of labels) {
+    const v = translate(s);
+    assert.ok(v != null && !THAI.test(v), `${s} → ${v}`);
+  }
+  assert.equal(translate('ส่วนอาคาร 180–194.5 ม. ตาม CityMETER'), 'Building part 180–194.5 m per CityMETER');
 });
 
 test('English: the page declares both languages and the shell lists it with English', () => {

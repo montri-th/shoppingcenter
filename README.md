@@ -170,6 +170,16 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.7.1 - ภาษาอังกฤษนอกแผง: ป้ายบนแผนที่ ชื่อแท็บ เสียงประกาศ และอาคาร (`20261118-r7`)
+
+หลัง 0.7.0 ขึ้น production (18 พ.ย. 2569) ตรวจหน้า `?lang=en` ใน Chrome ของเจ้าของแล้วพบข้อความไทยที่การตรวจในเครื่องไม่เห็น เพราะไม่ได้อยู่ในแผง แต่อยู่บนแผนที่ ในแท็บเบราว์เซอร์ และในเสียงที่โปรแกรมอ่านหน้าจออ่าน
+
+- **ป้ายพื้นที่บนแผนที่:** ชื่อที่โปรแกรมอ่านหน้าจออ่าน “เขตพระนคร: 6 แห่ง กดเพื่อสำรวจ” (หน้าแรกพบ 46 ป้าย) และป้ายจังหวัด → “Phra Nakhon: 6 venues, press to explore” / “…, press to see the province”
+- **ชื่อแท็บ:** “ศูนย์การค้า กรุงเทพมหานคร” → “Shopping centers in Bangkok” ครบทุกประเภท ทุกจังหวัด และทุกเขต/อำเภอ 928 แห่ง
+- **อาคาร:** “ทั้งโครงการ 38 อาคาร” → “The whole project: 38 buildings” และป้ายความสูงของส่วนอาคารทุกแบบ (“ส่วนอาคาร 0–38 ม. ตาม CityMETER” → “Building part 0–38 m per CityMETER”)
+- **เสียงประกาศ:** จำนวนในเขต/อำเภอที่เลือก จำนวนร้านที่แสดงอยู่ และชื่อรายการที่ยังยืนยันไม่ได้
+- **ตรวจ:** `tests/english.test.js` เพิ่ม 2 ข้อ (รวม 11): ป้ายแผนที่ ชื่อแท็บ และเสียงประกาศของทุกจังหวัดและทุกเขต/อำเภอ กับป้ายความสูงอาคารทุกแบบ · ข้อมูลไม่เปลี่ยน
+
 ## 0.7.0 - หน้าเว็บอ่านได้ทั้งไทยและอังกฤษ (`20261118-r6`)
 
 เจ้าของ 18 พ.ย. 2569 19:29 (VERBATIM): “ทำ demo web Shopping center ให้เป็น TH/EN ด้วย เหมือน dataset อื่นๆ” · รุ่นนี้รวม 0.6.0 ที่ยังไม่ขึ้น live ด้วย

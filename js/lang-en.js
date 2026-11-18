@@ -136,6 +136,9 @@ function groupList(th) {
   if (!items.length || items.some(x => x == null)) return null;
   return items.length > 1 ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}` : items[0];
 }
+/** The subjects a tab title starts with (js/app.js titleSubject: a group, the dataset's title, every type), longest first. */
+const TITLE_SUBJECTS = ['ศูนย์การค้า คอมมูนิตี้มอลล์ และเอาท์เล็ต', 'ไฮเปอร์มาร์เก็ตและซูเปอร์มาร์เก็ตที่มีร้านเช่า', 'สถานีบริการน้ำมันและจุดพักรถ',
+  'พื้นที่ค้าปลีกในโครงการ', 'คอมมูนิตี้มอลล์', 'สถานที่ค้าปลีก', 'ศูนย์การค้า', 'เอาท์เล็ต', 'อื่น ๆ', 'ตลาด'].join('|');
 /** เขต / อำเภอ / เขต/อำเภอ / จังหวัด as a counted noun. */
 const areaWord = (w, n) => (w === 'จังหวัด' ? (one(n) ? 'province' : 'provinces') : (one(n) ? 'district' : 'districts'));
 /** A place in a sentence: its registered English, Thailand, or null (the pattern then leaves the text for the report). */
@@ -663,6 +666,10 @@ export default {
     [re(`อันดับ ${N} ([^·]+?) ${P} แห่งต่อตารางกิโลเมตร ${N} แห่ง`), (m, t) => `Rank ${m[1]} ${t.name(m[2])}: ${m[3]} venues per km², ${venues(m[4])}`],
     [re(`อันดับ ${N} ([^·]+?): ${P} แห่ง/ตร\\.กม\\.`), (m, t) => `Rank ${m[1]} ${t.name(m[2])}: ${m[3]} venues/km²`],
     [re(`อันดับ ${N} ([^·]+?): ${N} แห่ง`), (m, t) => `Rank ${m[1]} ${t.name(m[2])}: ${venues(m[3])}`],
+    // ---- Map labels (js/map-layers.js installAreaLabels): “เขตปทุมวัน: 24 แห่ง กดเพื่อสำรวจ”
+    [re(`([^·:]+?): ${N} แห่ง (กดเพื่อสำรวจ|กดเพื่อดูจังหวัด)`), (m, t) => `${t.name(m[1])}: ${venues(m[2])}, ${m[3] === 'กดเพื่อสำรวจ' ? 'press to explore' : 'press to see the province'}`],
+    // ---- Tab title (js/app.js renderCrumbs): “ศูนย์การค้า กรุงเทพมหานคร” — what the view shows and where
+    [new RegExp(`^(${TITLE_SUBJECTS}) (.+)$`), (m, t) => { const p = place(t, m[2]); return p ? `${cap(SUBJECT_EN[m[1]])} in ${p}` : null; }],
     // ---- Search and filter chips
     [re('ค้นหา “(.+)”'), 'Search “$1”'],
     [re('ล้างตัวกรอง (.+)'), (m, t) => { const v = t.text(m[1]); return v == null ? null : `Clear filter ${v}`; }],
@@ -773,6 +780,9 @@ export default {
     [re('รูปทรงอาคารจาก (.+)'), (m, t) => { const v = t.text(m[1]); return v == null ? null : `Building shapes from ${v}`; }],
     [re('จังหวัด(.+)'), (m, t) => t.known(m[1])],
     // ---- Buildings (js/buildings.js, js/panel.js buildingReading)
+    [re(`ทั้งโครงการ ${N} อาคาร`), m => `The whole project: ${m[1]} ${one(m[1]) ? 'building' : 'buildings'}`],
+    [re(`ส่วนอาคาร ${P}–${P} ม\\.(?: ตาม CityMETER)?`), m => `Building part ${m[1]}–${m[2]} m${/ตาม CityMETER$/.test(m[0]) ? ' per CityMETER' : ''}`],
+    [re(`มวลอาคารตามแบบ ${P}–${P} ม\\.`), 'Mass from the design, $1–$2 m'],
     [re(`ทั้งโครงการ ${N} อาคาร · สีน้ำเงินบนแผนที่ 3 มิติ`), m => `The whole project: ${m[1]} ${one(m[1]) ? 'building' : 'buildings'} · blue on the 3D map`],
     [re(`มวลอาคารอย่างง่าย ${N} ส่วน จากไฟล์แบบที่เจ้าของข้อมูลส่งให้(?: \\(ไฟล์ลงวันที่ (.+)\\))?`), (m, t) => `${m[1]} simple masses from the design file the data owner sent${m[2] ? ` (file dated ${t.date(m[2])})` : ''}`],
     [re(`สูงสุดราว ${N} ม\\. ตามแบบ`), 'at most about $1 m by the design'],
@@ -794,6 +804,10 @@ export default {
     [re('ทุกวัน (\\d{1,2})[-–](\\d{1,2}) น\\.'), 'Daily $1:00–$2:00'],
     [re('ทุกวัน (\\d{1,2}[:.]\\d{2})–(\\d{1,2}[:.]\\d{2}) \\(ตามข้อมูล (.+?) บน (.+)\\)'), 'Daily $1–$2 (per $3 on $4)'],
     [re('ทุกวัน (\\d{1,2}[:.]\\d{2})–(\\d{1,2}[:.]\\d{2}) \\(ตามข้อมูล ([^ก-๙]+)\\)'), 'Daily $1–$2 (per $3)'],
+    // ---- What the page announces to screen readers (js/app.js announce, the live region #announcement)
+    [re(`((?:เขต|อำเภอ)[^·:\\d]+?) ${N} แห่ง`), (m, t) => { const p = t.known(m[1]); return p ? `${p}: ${venues(m[2])}` : null; }],
+    [re(`แสดงร้าน ${N} จาก ${N} ร้าน`), m => `Showing ${m[1]} of ${shops(m[2])}`],
+    [re('(ยังยืนยันไม่ได้|รอตรวจ) (.+)'), (m, t) => { const v = t.part(m[2]); return v == null ? null : `${m[1] === 'รอตรวจ' ? 'Awaiting review' : 'Unconfirmed'}: ${v}`; }],
     // ---- Last: a registered name with a shop count (“สยามสเคป 2 ร้าน”)
     [re(`([^·]+?) ${N} ร้าน`), (m, t) => { const v = t.part(m[1]); return v == null ? null : `${v} ${shops(m[2])}`; }],
   ],
