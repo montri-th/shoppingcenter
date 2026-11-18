@@ -466,6 +466,10 @@ export default {
     'กำลังโหลดรายละเอียด…': 'Loading the details…',
     'กำลังโหลดรายชื่อร้าน…': 'Loading the shop list…',
     'กำลังโหลดข้อมูลรอบศูนย์…': 'Loading what is around the center…',
+    // the section's heading and its error, before js/venue-locale-i18n.js registers (it needs the release's meta)
+    'รอบศูนย์นี้': 'Around this center',
+    'รัศมีเส้นตรง': 'Straight-line radius',
+    'โหลดข้อมูลรอบศูนย์ไม่สำเร็จ': 'The area around the center did not load',
     'โหลดรายชื่อร้านไม่สำเร็จ': 'The shop list did not load',
     'ลองอีกครั้ง': 'Try again',
     'ยังไม่มีรายชื่อร้านในข้อมูลที่เชื่อมไว้': 'No shop list in the linked data yet',

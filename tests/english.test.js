@@ -301,6 +301,15 @@ test('English: building counts and every building height label', () => {
   assert.equal(translate('ส่วนอาคาร 180–194.5 ม. ตาม CityMETER'), 'Building part 180–194.5 m per CityMETER');
 });
 
+test('English: the section around a center reads in English before its release meta arrives', () => {
+  // js/venue-locale.js renderLocale draws its heading while loading and on error; js/venue-locale-i18n.js registers
+  // only once the meta has loaded, so these words are the page's own.
+  for (const s of ['รอบศูนย์นี้', 'รัศมีเส้นตรง', 'กำลังโหลดข้อมูลรอบศูนย์…', 'โหลดข้อมูลรอบศูนย์ไม่สำเร็จ', 'ลองอีกครั้ง']) {
+    const v = translate(s);
+    assert.ok(v != null && !THAI.test(v), `${s} → ${v}`);
+  }
+});
+
 test('English: the page declares both languages and the shell lists it with English', () => {
   const page = readFileSync(new URL('index.html', ROOT), 'utf8');
   assert.match(page, /<meta name="citymeter:languages" content="th en">/);
