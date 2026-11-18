@@ -335,3 +335,5 @@ export function renderInsightChart({elementId, view = 'rank', areas = [], kind =
 }
 
 export {GROUPS, groupById, libraryError};
+/** The LDS root and page tokens, shared with the venue locale chart (js/venue-locale.js). */
+export {makeRoot as makeChartRoot, tokens as chartTokens};

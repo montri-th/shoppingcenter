@@ -72,6 +72,8 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
+import {renderLocale, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {registerLocaleDictionary, registerLocaleNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
 const FIELDS = ['search', 'status', 'group', 'operator', 'province', 'role'];
@@ -103,6 +105,9 @@ const state = {
   amenities: new Map(), pendingRole: '',
   // D37: the Street View view of the open venue (js/look-around.js), keyed by its drawn buildings; one tile reader.
   look: {id: '', key: '', view: null}, lookReader: null,
+  // Venue Locale Insight (owner 2026-11-18, js/venue-locale.js): data/locale meta once, the facts shard of the open
+  // venue, the priors shard only when the reader opens that block; one amCharts dot plot at a time.
+  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: ''}, localeChart: null,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
@@ -251,7 +256,7 @@ function applyTheme() {
     state.mapTheme = next;
     state.map.setStyle(buildMapStyle(next), {diff: false});
   }
-  if (state.data) { drawChart(); renderLegend(); }
+  if (state.data) { drawChart(); renderLegend(); if (state.panel.mode === 'venue') mountLocale(); }
 }
 
 /* ---------- selection ---------- */
@@ -383,7 +388,7 @@ function renderPanel() {
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
     html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null, transit: state.stationMeta,
-      look: lookLinks(profile, state.look.id === v?.id ? state.look.view : null)});
+      look: lookLinks(profile, state.look.id === v?.id ? state.look.view : null), locale: localeHTML(v)});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -416,9 +421,10 @@ function renderPanel() {
       others: otherTypes(f, f.province || (focusMode() === 'none' ? '' : readCode))});
     cardHtml = mapCardAha(insight, {mode: focusMode(), subject: subjectWord()});
   }
+  disposeLocaleChart();
   view.innerHTML = html;
   view.dataset.mode = mode;
-  if (mode === 'venue') refineLook(currentVenue());
+  if (mode === 'venue') { refineLook(currentVenue()); mountLocale(); }
   // Detail views (district, venue, record) put their heading first: the dataset title, search and
   // filters step aside, and the back button joins the breadcrumb row.
   const detail = mode !== 'overview';
@@ -498,6 +504,7 @@ function selectDistrict(code, {fromMap = false} = {}) {
 function openVenueDetail(id) {
   tenantSelection.select(id);
   ensureTenantIndex();
+  ensureLocale(id);
   state.detail = cachedDetail(id, state.data.meta?.detail?.shards);
   state.detailError = false;
   if (state.detail) return;
@@ -508,6 +515,91 @@ function openVenueDetail(id) {
     console.warn('Venue detail', e);
     if (state.panel.mode === 'venue' && state.panel.id === id) { state.detailError = true; renderPanel(); }
   });
+}
+
+/* ---------- Venue Locale Insight (“รอบศูนย์นี้”, js/venue-locale.js) ---------- */
+const localeShards = () => cachedLocaleMeta()?.shards || 64;
+const localeOpen = id => state.panel.mode === 'venue' && state.panel.id === id;
+
+/** Load meta (once) and the facts shard of a venue of the 499-venue set; re-draw the section when they arrive. */
+function ensureLocale(id) {
+  const row = state.byId.get(id);
+  if (!inLocaleSet(row)) return;
+  const L = state.locale;
+  if (L.factsId !== id) { L.factsId = id; L.factsState = 'idle'; }
+  if (L.priorsId !== id) { L.priorsId = id; L.priorsState = cachedLocalePriors(id, localeShards()) ? 'ready' : 'idle'; }
+  const cachedMeta = cachedLocaleMeta();
+  if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards)) {
+    L.metaState = 'ready'; L.factsState = 'ready';
+    if (localeOptions().open.priors) ensureLocalePriors(id);
+    return;
+  }
+  if (L.metaState !== 'ready') L.metaState = 'loading';
+  loadLocaleMeta().then(meta => {
+    L.metaState = 'ready';
+    if (cachedLocaleFacts(id, meta.shards)) { L.factsState = 'ready'; return null; }
+    L.factsState = 'loading';
+    return loadLocaleFacts(id, {shards: meta.shards}).then(f => { if (L.factsId === id) L.factsState = f ? 'ready' : 'empty'; });
+  }).catch(e => {
+    console.warn('Venue locale', e);
+    partial('data/locale');
+    if (L.metaState !== 'ready') L.metaState = 'error'; else if (L.factsId === id) L.factsState = 'error';
+  }).finally(() => { if (localeOpen(id)) refreshLocale(); });
+  if (localeOptions().open.priors) ensureLocalePriors(id);
+}
+
+function ensureLocalePriors(id) {
+  const L = state.locale;
+  if (L.priorsId !== id) { L.priorsId = id; L.priorsState = 'idle'; }
+  if (L.priorsState === 'ready' || L.priorsState === 'loading') return;
+  L.priorsState = 'loading';
+  loadLocaleMeta().then(meta => loadLocalePriors(id, {shards: meta.shards})).then(() => { if (L.priorsId === id) L.priorsState = 'ready'; })
+    .catch(e => { console.warn('Venue locale priors', e); partial('data/locale'); if (L.priorsId === id) L.priorsState = 'error'; })
+    .finally(() => { if (localeOpen(id)) refreshLocale({focus: '[data-locale-open="priors"] > summary'}); });
+}
+
+/** The section HTML for the venue panel ('' outside the 499-venue set). */
+function localeHTML(v) {
+  if (!inLocaleSet(v)) return '';
+  const L = state.locale, meta = cachedLocaleMeta();
+  const shards = meta?.shards || 64;
+  if (meta) { registerLocaleDictionary(meta); registerLocaleNames(cachedLocaleFacts(v.id, shards)); }
+  return renderLocale(v, {
+    meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null,
+    metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
+  });
+}
+
+function disposeLocaleChart() { try { state.localeChart?.(); } catch {} state.localeChart = null; }
+
+/** Draw the amCharts dot plot into the section once its facts are there. */
+function mountLocale() {
+  disposeLocaleChart();
+  const v = currentVenue(), meta = cachedLocaleMeta();
+  const el = $('locale-chart');
+  if (!v || !meta || !el) return;
+  const facts = cachedLocaleFacts(v.id, meta.shards);
+  if (facts?.ring) state.localeChart = mountLocaleChart(el, {meta, facts, row: v});
+}
+
+/** Replace only the section (the rest of the panel keeps its open details and scroll); focus a control again. */
+function refreshLocale({focus = ''} = {}) {
+  const v = currentVenue();
+  const el = $('venue-locale');
+  if (!v || !el || el.dataset.venue !== v.id) { if (v && state.panel.mode === 'venue' && inLocaleSet(v)) renderPanel(); return; }
+  disposeLocaleChart();
+  el.outerHTML = localeHTML(v);
+  mountLocale();
+  if (focus) $('venue-locale')?.querySelector(focus)?.focus({preventScroll: true});
+}
+
+function onLocaleToggle(event) {
+  const d = event.target;
+  if (!(d instanceof HTMLDetailsElement) || !d.dataset.localeOpen) return;
+  const key = d.dataset.localeOpen;
+  if (localeOptions().open[key] === d.open) return;
+  setLocaleOption('open', {[key]: d.open});
+  if (key === 'priors' && d.open && state.panel.mode === 'venue') ensureLocalePriors(state.panel.id);
 }
 
 // Every way in (pin, building, dot, list, search, URL) takes the same path; fromMap is kept for callers.
@@ -862,6 +954,16 @@ function onPanelAction(event) {
     case 'crumb-site': selectVenue(id); break;
     case 'crumb-expand': { const ol = target.closest('.crumbs'); ol.classList.add('is-expanded'); target.setAttribute('aria-expanded', 'true'); ol.querySelector('.crumb:not(.crumb-more)')?.focus({preventScroll: true}); break; }
     case 'toggle-pending': togglePending(); break;
+    case 'locale-radius': case 'locale-universe': case 'locale-level': case 'locale-bench': {
+      const key = action.slice(7), value = target.dataset[key];
+      if (setLocaleOption(key, key === 'radius' ? Number(value) : value)) {
+        refreshLocale({focus: `[data-action="${action}"][data-${key}="${CSS.escape(value)}"]`});
+        if (key === 'radius') announce(`รัศมี ${km(Number(value))}`);
+      }
+      break;
+    }
+    case 'locale-retry': if (state.panel.mode === 'venue') { state.locale.metaState = state.locale.metaState === 'error' ? 'idle' : state.locale.metaState; state.locale.factsState = 'idle'; ensureLocale(state.panel.id); refreshLocale(); } break;
+    case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id); } break;
     default: break;
   }
 }
@@ -1608,6 +1710,7 @@ function wireEvents() {
   $('filters').addEventListener('submit', e => e.preventDefault());
   $('filters').addEventListener('reset', () => setTimeout(() => resetToOverview(), 0));
   for (const id of ['panel-view', 'filter-chips', 'map-aha', 'crumbs', 'map-legend']) $(id).addEventListener('click', onPanelAction);
+  $('panel-view').addEventListener('toggle', onLocaleToggle, true);
 
   const tabs = [...document.querySelectorAll('[data-view]')];
   tabs.forEach((b, i) => {
@@ -1716,6 +1819,7 @@ const PARTIAL = {
   'data/venue-buildings.geojson': ['อาคารของศูนย์การค้า', 'ศูนย์การค้าไม่แสดงเป็นอาคารบนแผนที่', 'Venue buildings', 'Venues are not drawn as buildings on the map'],
   'data/districts.geojson': ['ขอบเขตเขต/อำเภอ', 'ผลไม่ได้แบ่งตามเขต/อำเภอ มุมมองเริ่มต้นจึงต่างจากปกติ', 'District outlines', 'Results are not divided by district, so the opening view differs'],
   'data/stations.json': ['สถานีรถไฟฟ้า', 'ไม่แสดงสถานีใกล้เคียงและมุมมองตามสถานี', 'Rail stations', 'Nearby stations and the station view are not shown'],
+  'data/locale': ['ข้อมูลรอบศูนย์', 'แผงสถานที่ไม่แสดงสิ่งที่อยู่รอบศูนย์และพื้นที่ที่ศูนย์ตั้งอยู่', 'Around the centre', 'The venue panel does not show what is around the centre or the area it sits in'],
 };
 function partial(key) {
   const words = PARTIAL[key];

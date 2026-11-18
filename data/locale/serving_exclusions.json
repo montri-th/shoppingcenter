@@ -1,0 +1,215 @@
+{
+ "bundle": "venue-locale-shopping-20261118-v0.1.0-rc1/web",
+ "notCounted": [
+  {
+   "id": "research.TH.apparel",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนยังรวมหน้าร้าน เคาน์เตอร์ และจุดรับสินค้า ทีมกำลังแยกบทบาทและทวนรหัสจุดขายที่เผยแพร่ได้",
+   "th": "ร้านเสื้อผ้า",
+   "en": "Apparel stores"
+  },
+  {
+   "id": "research.TH.arts_edutainment",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนยังมีสถานที่ซ้ำ ที่อยู่ขัดกัน และแหล่งที่จำกัดการใช้ ต้องคัดรายชื่อที่เผยแพร่ได้ก่อนเปิดนับ",
+   "th": "ศิลปะและแหล่งเรียนรู้",
+   "en": "Arts & edutainment"
+  },
+  {
+   "id": "research.TH.bank",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนรอบนี้รวมสาขา จุดบริการ และตู้หลายงวด ชุดสาขาที่แยกหน่วยและตรวจงวดแล้วกำลังรอเผยแพร่",
+   "th": "ธนาคาร",
+   "en": "Banks"
+  },
+  {
+   "id": "research.TH.beauty_clinic",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "คลินิกความงาม",
+   "en": "Beauty clinics"
+  },
+  {
+   "id": "research.TH.cinema_theatre",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "โรงภาพยนตร์และโรงละคร",
+   "en": "Cinemas & theatres"
+  },
+  {
+   "id": "research.TH.furniture",
+   "treatment": "not_countable_catalog_only",
+   "reason": "รายชื่อร้านและโชว์รูมอยู่ในชุดวิจัย ต้องคัดรายการที่นับได้และทวนสาขาที่มีชื่อซ้ำก่อนเผยแพร่",
+   "th": "เฟอร์นิเจอร์ อุปกรณ์ตกแต่งและเครื่องครัว",
+   "en": "Furniture, DIY & kitchenware"
+  },
+  {
+   "id": "research.TH.massage_spa",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ข้อมูลรอบนี้ใช้สำหรับวิจัย ต้องทวนสาขาที่เปิดได้ตามต้นทาง แยกสาขาในแผนและประวัติออกก่อนเผยแพร่",
+   "th": "ร้านนวด สปา และออนเซ็น",
+   "en": "Massage, spas & onsen"
+  },
+  {
+   "id": "research.TH.miscellaneous",
+   "treatment": "not_used_single_brand_two_records",
+   "reason": "The counted unit is Apple Store only (2 records); not a general retail context layer.",
+   "th": "กิจการอื่น ๆ",
+   "en": "Miscellaneous businesses"
+  },
+  {
+   "id": "research.TH.park",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนวิจัยยังรวมสวนและส่วนประกอบของสวน ต้องทวนรหัสสวนหลักและการเข้าถึงก่อนเปิดนับ",
+   "th": "สวนสาธารณะ",
+   "en": "Public parks"
+  },
+  {
+   "id": "research.TH.playground",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "สนามเด็กเล่นและศูนย์กิจกรรมครอบครัว",
+   "en": "Playgrounds & family entertainment"
+  },
+  {
+   "id": "research.TH.road",
+   "treatment": "not_used_line_network_district_grain",
+   "reason": "DRR rural road links are lines listed by district; not a point set for rings. Road pattern near the centre comes from production Road DNA instead.",
+   "th": "ถนนสาธารณะ",
+   "en": "Public roads"
+  },
+  {
+   "id": "research.TH.salon_barber",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "ร้านทำผมและบาร์เบอร์",
+   "en": "Hair salons & barbers"
+  },
+  {
+   "id": "research.TH.sport",
+   "treatment": "not_countable_catalog_only",
+   "reason": "รายชื่อร้านกีฬาอยู่ในชุดวิจัย ต้องแยกป้ายร้านจากแบรนด์สินค้าที่วางขายและทวนจุดขายที่ซ้ำกัน",
+   "th": "ร้านอุปกรณ์กีฬา",
+   "en": "Sporting goods stores"
+  },
+  {
+   "id": "research.TH.temple",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ต้องยืนยันเงื่อนไขการนำทะเบียนวัดมาเผยแพร่ และแยกรหัสในทะเบียนตามงวดออกจากสถานะการเปิดในปัจจุบัน",
+   "th": "ศาสนสถาน",
+   "en": "Places of worship"
+  },
+  {
+   "id": "production.cars",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=source_dataset; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "รถยนต์จดทะเบียน",
+   "en": "Registered Cars"
+  },
+  {
+   "id": "production.fire",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "การติดตามสถานการณ์ไฟ",
+   "en": "Fire Monitoring"
+  },
+  {
+   "id": "production.flash-flood-risk",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=forecast; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "น้ำท่วมฉับพลัน: ความเสี่ยง 24 ชั่วโมงโดย Google",
+   "en": "Flood: Flash Flood: 24-hour Risk by Google"
+  },
+  {
+   "id": "production.flood-forecast-depth",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=forecast; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "คาดการณ์ความลึกน้ำท่วมโดยกรมทรัพยากรน้ำ",
+   "en": "Flood: Forecast Depth by DWR"
+  },
+  {
+   "id": "production.floodrecent",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=event_archive; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "พื้นที่น้ำท่วมที่ตรวจพบตามวันที่ภาพ",
+   "en": "Dated Observed Inundation"
+  },
+  {
+   "id": "production.industrialEstate",
+   "treatment": "covered_elsewhere_or_not_used",
+   "reason": "research-only in production; counted in rings from the CityMETER Industrial Estate demo",
+   "th": "นิคม สวน และเขตอุตสาหกรรม",
+   "en": "Industrial Estates, Parks & Zones"
+  },
+  {
+   "id": "production.localeInsights",
+   "treatment": "parent_locale_reference_only",
+   "reason": "Bangkok Master locale id is referenced through locale_id and a link; canonical Locale Insight JSON is never copied",
+   "th": "Locale Insights: บริบทย่าน",
+   "en": "Locale Insights"
+  },
+  {
+   "id": "production.mb",
+   "treatment": "excluded_legacy_view",
+   "reason": "Legacy view pending resolution; the registry routes it to cars",
+   "th": "mb / Mercides Benz legacy view",
+   "en": "Mercides Benz"
+  },
+  {
+   "id": "production.quake",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "RUGON: ค่าการสั่นที่สถานีรายงาน",
+   "en": "RUGON: Station-reported Shaking"
+  },
+  {
+   "id": "production.road",
+   "treatment": "covered_elsewhere_or_not_used",
+   "reason": "research-only line network; see research.TH.road",
+   "th": "ทางสาธารณะทุกประเภท",
+   "en": "Public Roads Thailand"
+  },
+  {
+   "id": "production.terrain",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=derived_module; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "ภูมิประเทศและระดับความสูง",
+   "en": "Terrain & Elevation"
+  },
+  {
+   "id": "production.tourism",
+   "treatment": "province_context_only",
+   "reason": "Province-level visitors 2025; kept as context, not used in any score",
+   "th": "ความต้องการท่องเที่ยว: จำนวนนักท่องเที่ยวและค่าใช้จ่าย",
+   "en": "Tourism Demand: Visitors & Spending"
+  },
+  {
+   "id": "production.traffic",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "การจราจร: ความติดขัดและความเร็ว",
+   "en": "Traffic: Congestion & Speed"
+  },
+  {
+   "id": "production.trafficIncident",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "เหตุการณ์และประกาศในพื้นที่",
+   "en": "City Events & Notices"
+  },
+  {
+   "id": "production.transit",
+   "treatment": "covered_elsewhere_or_not_used",
+   "reason": "research-only in production; counted in rings from the CityMETER Transit demo",
+   "th": "จุดบริการขนส่งผู้โดยสาร",
+   "en": "Transit"
+  }
+ ],
+ "fieldsDropped": [
+  "production restaurant ratings and price levels",
+  "review text, photos, phone numbers of surrounding records",
+  "record-level coordinates of surrounding datasets",
+  "raw production payloads",
+  "Locale Insight canonical JSON (referenced by locale_id only)"
+ ]
+}

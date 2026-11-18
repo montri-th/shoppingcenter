@@ -1,0 +1,3701 @@
+{
+ "schema": "citymeter-venue-locale-serving/1",
+ "bundleId": "venue-locale-shopping-20261118-v0.1.0-rc1-web",
+ "createdAt": "2026-11-18T08:39:35Z",
+ "asOf": "2026-11-18",
+ "release": {
+  "id": "venue-locale-shopping-20261118-v0.1.0-rc1",
+  "status": "release_candidate",
+  "manifestSha256": "136b6e1f44ca67d271d812d776585435903b0a1ad549174e8cbeae1921a6cdcd",
+  "schema": "venue_locale_schema_v1",
+  "blockingIssues": 16
+ },
+ "shards": 64,
+ "hash": "FNV-1a 32-bit of the UTF-8 venue id modulo shards, two digits (same function as data/details)",
+ "radii": [
+  1000,
+  3000,
+  5000
+ ],
+ "defaultRadius": 3000,
+ "venues": 499,
+ "located": 488,
+ "universes": {
+  "all": {
+   "n": 488,
+   "th": "ศูนย์ในชุดนี้ที่มีพิกัด",
+   "en": "located centres of this set"
+  },
+  "outlet": {
+   "n": 13,
+   "th": "เอาท์เล็ตที่มีพิกัด",
+   "en": "located outlets"
+  },
+  "mall": {
+   "n": 288,
+   "th": "ศูนย์การค้าที่มีพิกัด",
+   "en": "located shopping malls"
+  },
+  "community": {
+   "n": 187,
+   "th": "คอมมูนิตี้มอลล์ที่มีพิกัด",
+   "en": "located community malls"
+  }
+ },
+ "ringGroups": [
+  {
+   "id": "live",
+   "th": "ที่อยู่อาศัยและครอบครัว",
+   "en": "Homes and families",
+   "datasets": [
+    "condominium",
+    "school"
+   ]
+  },
+  {
+   "id": "visit",
+   "th": "ที่พักและผู้มาเยือน",
+   "en": "Stays and visitors",
+   "datasets": [
+    "hotel"
+   ]
+  },
+  {
+   "id": "work",
+   "th": "ที่ทำงาน การเรียน และการเดินทาง",
+   "en": "Work, study and transport",
+   "datasets": [
+    "office",
+    "government_office",
+    "factory",
+    "industrial_estates",
+    "university",
+    "hospital",
+    "transit"
+   ]
+  },
+  {
+   "id": "retail",
+   "th": "ค้าปลีกและบริการรอบศูนย์",
+   "en": "Retail and services around",
+   "datasets": [
+    "shopping",
+    "grocery",
+    "restaurants",
+    "pharmacy",
+    "fitness",
+    "beauty",
+    "optical",
+    "gold",
+    "camera",
+    "luxury",
+    "car_service",
+    "hobby",
+    "pet",
+    "nail"
+   ]
+  }
+ ],
+ "ring": {
+  "beauty": {
+   "th": "จุดขายความงาม",
+   "en": "Beauty stores",
+   "short": [
+    "ร้านความงาม",
+    "Beauty"
+   ],
+   "unit": [
+    "จุดขาย",
+    "points of sale"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.beauty:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-03",
+   "scope": [
+    "นับ canonical_outlet_id ไม่ซ้ำ เฉพาะ count_source_pos_candidate ในขอบเขตแบรนด์ที่รับแล้ว ซึ่งสถานะ source_listed มีแหล่งรายชื่อสาขาของแบรนด์และระบุจังหวัด",
+    ""
+   ],
+   "brands": null,
+   "eligible": 2060,
+   "located": 785,
+   "unlocatedByProvince": {
+    "ACR": 2,
+    "ATG": 2,
+    "AYA": 14,
+    "BKK": 468,
+    "BKN": 2,
+    "BRM": 11,
+    "CBI": 49,
+    "CCO": 7,
+    "CMI": 39,
+    "CNT": 3,
+    "CPM": 6,
+    "CPN": 4,
+    "CRI": 17,
+    "CTI": 5,
+    "KBI": 9,
+    "KKN": 27,
+    "KPT": 3,
+    "KRI": 7,
+    "KSN": 6,
+    "LEI": 4,
+    "LPG": 6,
+    "LPN": 3,
+    "LRI": 6,
+    "MDH": 4,
+    "MKM": 10,
+    "NAN": 2,
+    "NBI": 61,
+    "NBP": 2,
+    "NKI": 5,
+    "NMA": 34,
+    "NPM": 4,
+    "NPT": 18,
+    "NSN": 12,
+    "NST": 12,
+    "NWT": 2,
+    "NYK": 2,
+    "PBI": 9,
+    "PCT": 4,
+    "PKN": 12,
+    "PKT": 46,
+    "PLG": 3,
+    "PLK": 9,
+    "PNA": 3,
+    "PNB": 6,
+    "PRE": 4,
+    "PRI": 9,
+    "PTE": 49,
+    "PTN": 2,
+    "PYO": 4,
+    "RBR": 8,
+    "RET": 9,
+    "RNG": 3,
+    "RYG": 16,
+    "SBR": 3,
+    "SKA": 29,
+    "SKM": 2,
+    "SKN": 12,
+    "SKW": 4,
+    "SNI": 18,
+    "SNK": 6,
+    "SPB": 8,
+    "SPK": 40,
+    "SRI": 8,
+    "SRN": 7,
+    "SSK": 8,
+    "STI": 2,
+    "STN": 3,
+    "TAK": 5,
+    "TRG": 4,
+    "TRT": 2,
+    "UBN": 16,
+    "UDN": 21,
+    "UTI": 2,
+    "UTT": 4,
+    "YLA": 4,
+    "YST": 3
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "beauty_canonical_pos",
+    "total": 1979
+   },
+   "placed": true
+  },
+  "beauty_clinic": {
+   "th": "นิติพลคลินิก",
+   "en": "Nitipon Clinic",
+   "short": [
+    "นิติพล คลินิก",
+    "Nitipon Clinic"
+   ],
+   "unit": [
+    "สาขา",
+    "branches"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.beauty_clinic:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-14",
+   "scope": [
+    "นับชื่อสาขาที่นิติพลคลินิกเผยแพร่และระบุจังหวัดได้จากชื่อสาขาหรือชื่อศูนย์การค้าที่ตรงกัน",
+    ""
+   ],
+   "brands": "Nitipon Clinic",
+   "eligible": 76,
+   "located": 0,
+   "unlocatedByProvince": {
+    "_unknown_province": 76
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "nitipon_area_matched_branches",
+    "total": 59
+   },
+   "placed": false
+  },
+  "camera": {
+   "th": "ร้านกล้อง",
+   "en": "Camera Shops",
+   "short": [
+    "ร้านกล้อง",
+    "Camera shops"
+   ],
+   "unit": [
+    "สาขา",
+    "outlets"
+   ],
+   "source": [
+    "CityMETER Camera Shops",
+    "CityMETER Camera Shops"
+   ],
+   "sourceRef": "montri-th/camera@a7d211f1b29e4cbd116e1787bd28f7a9aecf5e52:data/camera.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/camera/",
+   "date": "2026-10-23",
+   "scope": [
+    "สาขาขายปลีกตามค่าเริ่มต้นของเดโม",
+    "retail outlet listings, the demo default"
+   ],
+   "brands": null,
+   "eligible": 252,
+   "located": 236,
+   "unlocatedByProvince": {
+    "_unknown_province": 16
+   },
+   "subgroups": [
+    [
+     "multibrand_camera",
+     "ร้านกล้องหลายแบรนด์",
+     "Multi-brand camera shop"
+    ],
+    [
+     "used_film_specialist",
+     "ร้านกล้องมือสองและฟิล์ม",
+     "Used and film specialist"
+    ],
+    [
+     "manufacturer_brand_store",
+     "ร้านของแบรนด์ผู้ผลิต",
+     "Manufacturer brand store"
+    ],
+    [
+     "imaging_equipment_specialist",
+     "ร้านอุปกรณ์ถ่ายภาพเฉพาะทาง",
+     "Imaging equipment specialist"
+    ],
+    [
+     "adjacent_retail_channel",
+     "ร้านค้าปลีกที่ขายกล้องด้วย",
+     "Adjacent retail channel"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "listed_camera_outlets",
+    "total": 252
+   },
+   "placed": true
+  },
+  "car_service": {
+   "th": "ศูนย์บริการรถ B-Quik",
+   "en": "B-Quik car service centres",
+   "short": [
+    "B-Quik",
+    "B-Quik"
+   ],
+   "unit": [
+    "สาขา",
+    "branches"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.car_service:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-04",
+   "scope": [
+    "นับรหัสศูนย์บริการไม่ซ้ำบนหน้าสาขาของ B-Quik ตามจังหวัดท้ายที่อยู่ที่แบรนด์ระบุ",
+    ""
+   ],
+   "brands": "B-Quik",
+   "eligible": 241,
+   "located": 240,
+   "unlocatedByProvince": {
+    "_unknown_province": 1
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "bquik_listed_branches",
+    "total": 240
+   },
+   "placed": true
+  },
+  "cinema_theatre": {
+   "th": "โรงภาพยนตร์ Major และ SF",
+   "en": "Major and SF cinemas",
+   "short": [
+    "โรงภาพยนตร์",
+    "Cinemas"
+   ],
+   "unit": [
+    "แห่ง",
+    "sites"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.cinema_theatre:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-13",
+   "scope": [
+    "นับสถานที่ฉายภาพยนตร์ที่มีรอบฉายบนหน้า Major หรืออยู่ในรายชื่อสาขาของ SF และระบุจังหวัดได้",
+    ""
+   ],
+   "brands": "Major, SF",
+   "eligible": 252,
+   "located": 0,
+   "unlocatedByProvince": {
+    "ACR": 1,
+    "ATG": 1,
+    "AYA": 3,
+    "BKK": 28,
+    "BRM": 3,
+    "CBI": 8,
+    "CCO": 2,
+    "CMI": 4,
+    "CNT": 1,
+    "CPM": 2,
+    "CPN": 2,
+    "CRI": 2,
+    "CTI": 3,
+    "KBI": 3,
+    "KKN": 7,
+    "KPT": 2,
+    "KRI": 2,
+    "LPG": 2,
+    "LPN": 2,
+    "LRI": 3,
+    "MDH": 1,
+    "MKM": 2,
+    "NAN": 1,
+    "NBI": 7,
+    "NBP": 1,
+    "NKI": 1,
+    "NMA": 6,
+    "NPM": 1,
+    "NPT": 6,
+    "NSN": 6,
+    "NST": 5,
+    "NYK": 1,
+    "PBI": 2,
+    "PCT": 2,
+    "PKN": 3,
+    "PKT": 3,
+    "PLG": 1,
+    "PLK": 3,
+    "PNA": 1,
+    "PNB": 2,
+    "PRE": 1,
+    "PRI": 2,
+    "PTE": 6,
+    "PTN": 1,
+    "PYO": 3,
+    "RBR": 4,
+    "RET": 3,
+    "RNG": 1,
+    "RYG": 5,
+    "SBR": 1,
+    "SKA": 5,
+    "SKM": 1,
+    "SKN": 2,
+    "SKW": 1,
+    "SNI": 6,
+    "SNK": 3,
+    "SPB": 4,
+    "SPK": 7,
+    "SRI": 4,
+    "SRN": 2,
+    "SSK": 1,
+    "STI": 1,
+    "STN": 1,
+    "TAK": 1,
+    "TRG": 1,
+    "UBN": 5,
+    "UDN": 6,
+    "UTT": 2,
+    "YLA": 2,
+    "YST": 1,
+    "_unknown_province": 33
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "major_sf_source_listed_sites",
+    "total": 235
+   },
+   "placed": false
+  },
+  "condominium": {
+   "th": "คอนโดมิเนียม (จุดในฐานราคาประเมิน)",
+   "en": "Condominiums (appraisal map points)",
+   "short": [
+    "คอนโด",
+    "Condos"
+   ],
+   "unit": [
+    "รายการ",
+    "records"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.condominium:07_PRODUCTION",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-05",
+   "scope": [
+    "นับรหัสรายการไม่ซ้ำตามพื้นที่ที่ CityMETER ใช้แสดงข้อมูลราคาประเมินอาคารชุด โดยคัดรายการที่พบข้อขัดแย้งด้านพื้นที่ออก",
+    ""
+   ],
+   "brands": null,
+   "eligible": 7887,
+   "located": 7887,
+   "unlocatedByProvince": {},
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "condo_appraisal_record_ids",
+    "total": 8060
+   },
+   "placed": true
+  },
+  "factory": {
+   "th": "โรงงาน",
+   "en": "Factory",
+   "short": [
+    "โรงงาน",
+    "Factories"
+   ],
+   "unit": [
+    "ทะเบียน",
+    "registrations"
+   ],
+   "source": [
+    "CityMETER Factory",
+    "CityMETER Factory"
+   ],
+   "sourceRef": "montri-th/factory@2c206d1410b3199d9dffade4a64117c545a83a52:data/factories.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/factory/",
+   "date": "2026-11-16",
+   "scope": [
+    "ทะเบียนโรงงานทุกขนาด วางได้เฉพาะทะเบียนที่มีพิกัด",
+    "factory registrations of every size; only those with a point can be placed"
+   ],
+   "brands": null,
+   "eligible": 74047,
+   "located": 15654,
+   "unlocatedByProvince": {
+    "_unknown_province": 58393
+   },
+   "subgroups": [
+    [
+     "0",
+     "อาหารและเครื่องดื่ม",
+     "Food & beverages"
+    ],
+    [
+     "1",
+     "เครื่องใช้ไฟฟ้าและอุปกรณ์",
+     "Electrical appliances & equipment"
+    ],
+    [
+     "2",
+     "ยานพาหนะและเครื่องจักร",
+     "Vehicles & machinery"
+    ],
+    [
+     "3",
+     "สิ่งทอ เครื่องแต่งกาย หนัง",
+     "Textiles, apparel & leather"
+    ],
+    [
+     "4",
+     "โลหะ",
+     "Metals"
+    ],
+    [
+     "5",
+     "พลาสติก ยาง เคมี",
+     "Plastics, rubber & chemicals"
+    ],
+    [
+     "6",
+     "ไม้ กระดาษ การพิมพ์",
+     "Wood, paper & printing"
+    ],
+    [
+     "7",
+     "ผลิตภัณฑ์อโลหะ",
+     "Non-metallic mineral products"
+    ],
+    [
+     "8",
+     "ผลิตภัณฑ์จากพืช",
+     "Plant products"
+    ],
+    [
+     "9",
+     "การผลิตอื่น ๆ",
+     "Other manufacturing"
+    ],
+    [
+     "10",
+     "ไม่ระบุกลุ่มอุตสาหกรรม",
+     "Industry group not stated"
+    ]
+   ],
+   "measure": [
+    "workers",
+    "คนงาน",
+    "workers",
+    "คนงานตามทะเบียน กรอ. ไม่ใช่การจ้างงานปัจจุบัน",
+    "workers the DIW register reports, not current employment"
+   ],
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "factory_registration_ids",
+    "total": 74047
+   },
+   "placed": true
+  },
+  "fitness": {
+   "th": "ฟิตเนส",
+   "en": "Fitness",
+   "short": [
+    "ฟิตเนส",
+    "Fitness"
+   ],
+   "unit": [
+    "สาขา",
+    "branches"
+   ],
+   "source": [
+    "CityMETER Fitness",
+    "CityMETER Fitness"
+   ],
+   "sourceRef": "montri-th/fitness@8e74768d0c448f9d7c914c62685aa150854c48fd:data/fitness.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/fitness/",
+   "date": "2026-10-26",
+   "scope": [
+    "สาขาที่แหล่งยังระบุ ณ วันตรวจ ใช้จุดของสาขา หรือจุดของอาคารที่ตั้ง",
+    "branches the source still lists on the check date, at the branch point or its host building point"
+   ],
+   "brands": null,
+   "eligible": 358,
+   "located": 149,
+   "unlocatedByProvince": {
+    "_unknown_province": 209
+   },
+   "subgroups": [
+    [
+     "gym",
+     "ยิม/ฟิตเนสคลับ",
+     "Gym & fitness club"
+    ],
+    [
+     "ems",
+     "ฟิตเนส EMS",
+     "EMS fitness"
+    ],
+    [
+     "training",
+     "เทรนนิ่ง/PT",
+     "Strength, functional & PT"
+    ],
+    [
+     "pilates",
+     "พิลาทิส/บาร์เร่",
+     "Pilates, barre & Lagree"
+    ],
+    [
+     "boutique",
+     "คลาสบูทีค/เต้น",
+     "Boutique classes & dance"
+    ],
+    [
+     "yoga",
+     "โยคะ/แอเรียล",
+     "Yoga, aerial & pole"
+    ],
+    [
+     "combat",
+     "มวย/ต่อสู้",
+     "Combat fitness"
+    ],
+    [
+     "climb",
+     "ปีนผา/มูฟเมนต์",
+     "Climbing & movement"
+    ],
+    [
+     "special",
+     "บริการเฉพาะ",
+     "Kids, retreat & studio rental"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "fitness_source_listed",
+    "total": 358
+   },
+   "placed": true
+  },
+  "gold": {
+   "th": "ร้านทอง",
+   "en": "Gold shops",
+   "short": [
+    "ร้านทอง",
+    "Gold shops"
+   ],
+   "unit": [
+    "สาขา",
+    "branches"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.gold:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-08",
+   "scope": [
+    "นับ outlet_id ไม่ซ้ำใน business-eligible locator cohort โดยเก็บรายการที่ยังจับคู่จังหวัดไม่ได้แยกไว้ ไม่ตัดหายจากทะเบียนเพราะขาดพื้นที่",
+    ""
+   ],
+   "brands": null,
+   "eligible": 871,
+   "located": 604,
+   "unlocatedByProvince": {
+    "ACR": 1,
+    "AYA": 1,
+    "BKK": 30,
+    "BKN": 1,
+    "BRM": 3,
+    "CBI": 14,
+    "CCO": 2,
+    "CMI": 15,
+    "CNT": 1,
+    "CPM": 2,
+    "CPN": 1,
+    "CRI": 18,
+    "CTI": 2,
+    "KBI": 2,
+    "KKN": 9,
+    "KPT": 4,
+    "KRI": 1,
+    "KSN": 1,
+    "LPG": 1,
+    "LRI": 4,
+    "MDH": 2,
+    "MKM": 3,
+    "NAN": 1,
+    "NBI": 11,
+    "NBP": 1,
+    "NMA": 11,
+    "NPM": 3,
+    "NPT": 5,
+    "NSN": 2,
+    "NST": 1,
+    "PBI": 3,
+    "PCT": 1,
+    "PKN": 4,
+    "PKT": 5,
+    "PLG": 1,
+    "PLK": 4,
+    "PNA": 1,
+    "PNB": 4,
+    "PRI": 1,
+    "PTE": 5,
+    "PYO": 3,
+    "RBR": 3,
+    "RET": 3,
+    "RNG": 2,
+    "RYG": 4,
+    "SBR": 2,
+    "SKA": 1,
+    "SKM": 2,
+    "SKN": 6,
+    "SKW": 2,
+    "SNI": 1,
+    "SNK": 1,
+    "SPB": 3,
+    "SPK": 11,
+    "SRN": 2,
+    "SSK": 5,
+    "STI": 1,
+    "STN": 1,
+    "TAK": 5,
+    "TRG": 4,
+    "UBN": 10,
+    "UDN": 3,
+    "UTT": 2,
+    "YLA": 1,
+    "YST": 2,
+    "_unknown_province": 5
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "gold_locator_source_branches",
+    "total": 864
+   },
+   "placed": true
+  },
+  "government_office": {
+   "th": "หน่วยงานรัฐ",
+   "en": "Government Office",
+   "short": [
+    "หน่วยงานรัฐ",
+    "Gov. offices"
+   ],
+   "unit": [
+    "แห่ง",
+    "places"
+   ],
+   "source": [
+    "CityMETER Government Office",
+    "CityMETER Government Office"
+   ],
+   "sourceRef": "montri-th/governmentoffice@102839bb8f4e33064d5b9609d2c7b2827158a2af:data/offices.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/governmentoffice/",
+   "date": "2026-11-06",
+   "scope": [
+    "ทุกจุดของชุดข้อมูลหน่วยงานรัฐ ทุกหมวด ค่าเริ่มต้นของเดโม",
+    "every point of the government-office dataset, all groups, the demo default"
+   ],
+   "brands": null,
+   "eligible": 20568,
+   "located": 20568,
+   "unlocatedByProvince": {},
+   "subgroups": [
+    [
+     "admin",
+     "ปกครองและท้องถิ่น",
+     "Administration and local government"
+    ],
+    [
+     "police",
+     "ตำรวจ",
+     "Police"
+    ],
+    [
+     "fire",
+     "ดับเพลิง",
+     "Fire and rescue"
+    ],
+    [
+     "justice",
+     "ศาลและยุติธรรม",
+     "Courts and justice"
+    ],
+    [
+     "military",
+     "ทหาร",
+     "Military"
+    ],
+    [
+     "unclassified",
+     "ยังไม่ระบุหมวด",
+     "Category not yet assigned"
+    ],
+    [
+     "education",
+     "การศึกษาและแหล่งเรียนรู้",
+     "Education and learning"
+    ],
+    [
+     "religion",
+     "ศาสนาและโบราณสถาน",
+     "Religion and heritage"
+    ],
+    [
+     "community",
+     "ชุมชนและสมาคม",
+     "Community and associations"
+    ]
+   ],
+   "measure": [
+    "staff",
+    "บุคลากรที่บันทึก",
+    "recorded staff",
+    "เฉพาะประเภทที่บันทึกบุคลากรรายแห่ง",
+    "only types that record staff per office"
+   ],
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "civil_admin_directory_points",
+    "total": 8704
+   },
+   "placed": true
+  },
+  "grocery": {
+   "th": "ร้านค้าปลีกของใช้",
+   "en": "Grocery",
+   "short": [
+    "ร้านของชำ",
+    "Grocery"
+   ],
+   "unit": [
+    "ร้าน",
+    "stores"
+   ],
+   "source": [
+    "CityMETER Grocery",
+    "CityMETER Grocery"
+   ],
+   "sourceRef": "montri-th/grocery@14294f30d0aabf8b399e43df9f0a2467bd35e53b:data/grocery.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/grocery/",
+   "date": "2026-10-22",
+   "scope": [
+    "จุดร้านของ 17 แบรนด์ ตำแหน่งจาก vector tile ไม่ใช่การสำรวจ",
+    "store points of 17 banners, positions decoded from vector tiles, not surveyed"
+   ],
+   "brands": null,
+   "eligible": 27607,
+   "located": 27607,
+   "unlocatedByProvince": {},
+   "subgroups": [
+    [
+     "C_STORE",
+     "ร้านสะดวกซื้อ",
+     "Convenience store"
+    ],
+    [
+     "SUPERMARKET",
+     "ซูเปอร์มาร์เก็ต",
+     "Supermarket"
+    ],
+    [
+     "HYPERMARKET",
+     "ไฮเปอร์มาร์เก็ต",
+     "Hypermarket"
+    ],
+    [
+     "WHOLESALE",
+     "ค้าส่ง",
+     "Wholesale"
+    ],
+    [
+     "PHARMACY",
+     "ร้านขายยา",
+     "Pharmacy"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "located_grocery_source_records",
+    "total": 24979
+   },
+   "placed": true
+  },
+  "hobby": {
+   "th": "ร้าน B2S",
+   "en": "B2S stores",
+   "short": [
+    "B2S",
+    "B2S"
+   ],
+   "unit": [
+    "สาขา",
+    "stores"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.hobby:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-05",
+   "scope": [
+    "นับรหัสร้านไม่ซ้ำในรายชื่อสาขาสถานะ Active ที่ B2S เผยแพร่ จัดพื้นที่ตามที่อยู่ของร้าน",
+    ""
+   ],
+   "brands": "B2S",
+   "eligible": 126,
+   "located": 126,
+   "unlocatedByProvince": {},
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "b2s_active_locator_ids",
+    "total": 126
+   },
+   "placed": true
+  },
+  "hospital": {
+   "th": "สถานพยาบาล",
+   "en": "Hospital",
+   "short": [
+    "สถานพยาบาล",
+    "Health facilities"
+   ],
+   "unit": [
+    "แห่ง",
+    "facilities"
+   ],
+   "source": [
+    "CityMETER Hospital",
+    "CityMETER Hospital"
+   ],
+   "sourceRef": "montri-th/hospital@c6ff70665a4379de6fbdf004baf04bf4e4678b2c:data/hospitals.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/hospital/",
+   "date": "2026-11-01",
+   "scope": [
+    "สถานพยาบาลทุกประเภทในชุดข้อมูล วางได้เฉพาะที่มีจุด",
+    "health facilities of every type in the dataset; only those with a point can be placed"
+   ],
+   "brands": null,
+   "eligible": 41828,
+   "located": 12516,
+   "unlocatedByProvince": {
+    "_unknown_province": 29312
+   },
+   "subgroups": [
+    [
+     "regional",
+     "โรงพยาบาลศูนย์และทั่วไป",
+     "Regional & general hospital"
+    ],
+    [
+     "private",
+     "โรงพยาบาลเอกชน",
+     "Private hospital"
+    ],
+    [
+     "community",
+     "โรงพยาบาลชุมชน",
+     "Community hospital"
+    ],
+    [
+     "public_other",
+     "โรงพยาบาลรัฐนอกสังกัดสาธารณสุข",
+     "Other public hospital"
+    ],
+    [
+     "subdistrict",
+     "โรงพยาบาลส่งเสริมสุขภาพตำบล",
+     "Sub-district health-promoting hospital"
+    ],
+    [
+     "center",
+     "ศูนย์บริการสาธารณสุขและหน่วยปฐมภูมิ",
+     "Health centre & primary-care unit"
+    ],
+    [
+     "clinic",
+     "คลินิกเอกชน",
+     "Private clinic"
+    ],
+    [
+     "other",
+     "ไม่ระบุประเภท",
+     "Type not recorded"
+    ]
+   ],
+   "measure": [
+    "beds",
+    "เตียง",
+    "beds",
+    "เตียงที่ทะเบียน HCODE รายงาน ไม่ใช่เตียงว่าง",
+    "beds the HCODE register reports, not available beds"
+   ],
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "listed_hospital_records",
+    "total": 1606
+   },
+   "placed": true
+  },
+  "hotel": {
+   "th": "ที่พัก",
+   "en": "Hotel",
+   "short": [
+    "ที่พัก",
+    "Accommodation"
+   ],
+   "unit": [
+    "แห่ง",
+    "places"
+   ],
+   "source": [
+    "CityMETER Hotel",
+    "CityMETER Hotel"
+   ],
+   "sourceRef": "montri-th/hotel@7fde3525f836b31e5757fc5515407028e2521c9a:data/hotels.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/hotel/",
+   "date": "2026-11-08",
+   "scope": [
+    "ทุกรายการที่พักในชุดข้อมูล",
+    "every accommodation record of the dataset"
+   ],
+   "brands": null,
+   "eligible": 30729,
+   "located": 29149,
+   "unlocatedByProvince": {
+    "_unknown_province": 1580
+   },
+   "subgroups": [
+    [
+     "hotel",
+     "โรงแรม",
+     "Hotel"
+    ],
+    [
+     "resort",
+     "รีสอร์ท",
+     "Resort"
+    ],
+    [
+     "apartment",
+     "อพาร์ตเมนต์และเซอร์วิสอพาร์ตเมนต์",
+     "Apartment & serviced apartment"
+    ],
+    [
+     "guesthouse",
+     "เกสต์เฮาส์และโฮสเทล",
+     "Guesthouse & youth lodging"
+    ],
+    [
+     "bungalow",
+     "บังกะโล",
+     "Bungalow"
+    ],
+    [
+     "homestay",
+     "โฮมสเตย์",
+     "Homestay"
+    ],
+    [
+     "other",
+     "ที่พักอื่น",
+     "Other lodging"
+    ]
+   ],
+   "measure": [
+    "rooms",
+    "ห้อง",
+    "rooms",
+    "ห้องที่แหล่งบันทึก ไม่ใช่ห้องว่างต่อคืน",
+    "rooms the source records, not rooms available per night"
+   ],
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "accommodation_source_records",
+    "total": 30729
+   },
+   "placed": true
+  },
+  "industrial_estates": {
+   "th": "นิคมอุตสาหกรรม",
+   "en": "Industrial Estate",
+   "short": [
+    "นิคมอุตสาหกรรม",
+    "Industrial estates"
+   ],
+   "unit": [
+    "แห่ง",
+    "estates"
+   ],
+   "source": [
+    "CityMETER Industrial Estate",
+    "CityMETER Industrial Estate"
+   ],
+   "sourceRef": "montri-th/factory@2c206d1410b3199d9dffade4a64117c545a83a52:industrialestate/data/estates.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/industrialestate/",
+   "date": "2026-11-17",
+   "scope": [
+    "นิคม สวน และเขตอุตสาหกรรมที่มีขอบในเดโม ใช้จุดภายในขอบ",
+    "industrial estates, parks and zones with an outline in the demo, placed by a point inside the outline"
+   ],
+   "brands": null,
+   "eligible": 106,
+   "located": 69,
+   "unlocatedByProvince": {
+    "_unknown_province": 37
+   },
+   "subgroups": [
+    [
+     "estate",
+     "นิคมอุตสาหกรรม",
+     "Industrial estate"
+    ],
+    [
+     "park",
+     "สวนอุตสาหกรรม",
+     "Industrial park"
+    ],
+    [
+     "zone",
+     "เขตอุตสาหกรรม",
+     "Industrial zone"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "ieat_directory_records",
+    "total": 84
+   },
+   "placed": true
+  },
+  "luxury": {
+   "th": "แบรนด์หรู",
+   "en": "Luxury Brands",
+   "short": [
+    "แบรนด์หรู",
+    "Luxury"
+   ],
+   "unit": [
+    "จุดขาย",
+    "points of sale"
+   ],
+   "source": [
+    "CityMETER Luxury Brands",
+    "CityMETER Luxury Brands"
+   ],
+   "sourceRef": "montri-th/luxurybrands@378e58a0ec0c86b1365c452d5f201b049fb23a79:data/luxury.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/luxurybrands/",
+   "date": "2026-10-21",
+   "scope": [
+    "จุดขายจากรอบ refresh ที่แหล่งยังระบุ ค่าเริ่มต้นของเดโม",
+    "points of sale of the refresh round that the source still lists, the demo default"
+   ],
+   "brands": null,
+   "eligible": 345,
+   "located": 345,
+   "unlocatedByProvince": {},
+   "subgroups": [
+    [
+     "watches",
+     "นาฬิกา",
+     "Watches"
+    ],
+    [
+     "upscale_streetwear",
+     "สตรีทแวร์ระดับบน",
+     "Upscale streetwear"
+    ],
+    [
+     "beauty_fragrance",
+     "ความงามและน้ำหอม",
+     "Beauty and fragrance"
+    ],
+    [
+     "luxury_designer",
+     "แฟชั่นแบรนด์หรู",
+     "Luxury designer"
+    ],
+    [
+     "premium_extension",
+     "แบรนด์พรีเมียม",
+     "Premium extension"
+    ],
+    [
+     "fine_jewelry",
+     "เครื่องประดับ",
+     "Fine jewellery"
+    ],
+    [
+     "thai_designer",
+     "ดีไซเนอร์ไทย",
+     "Thai designer"
+    ],
+    [
+     "curated_retailer",
+     "ร้านคัดสรรหลายแบรนด์",
+     "Curated retailer"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "primary_luxury_pos",
+    "total": 342
+   },
+   "placed": true
+  },
+  "nail": {
+   "th": "ร้าน CHABA Nails & Spa",
+   "en": "CHABA Nails & Spa",
+   "short": [
+    "CHABA",
+    "CHABA"
+   ],
+   "unit": [
+    "สาขา",
+    "branches"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.nail:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-14",
+   "scope": [
+    "นับ 7 สาขาที่ CHABA ระบุชื่อศูนย์การค้าและจับคู่กับพื้นที่ของศูนย์ได้",
+    ""
+   ],
+   "brands": "CHABA",
+   "eligible": 8,
+   "located": 6,
+   "unlocatedByProvince": {
+    "BKK": 2
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "chaba_listed_branches",
+    "total": 7
+   },
+   "placed": true
+  },
+  "office": {
+   "th": "สำนักงาน",
+   "en": "Office",
+   "short": [
+    "สำนักงาน",
+    "Offices"
+   ],
+   "unit": [
+    "รายการ",
+    "records"
+   ],
+   "source": [
+    "CityMETER Office",
+    "CityMETER Office"
+   ],
+   "sourceRef": "montri-th/office@d3bcf6b6a6d82656ff2c435d14d10560b4139273:data/offices.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/office/",
+   "date": "2026-11-02",
+   "scope": [
+    "ทุกรายการสำนักงาน หนึ่งรายการอาจเป็นบางชั้นของอาคาร",
+    "every office record; a record can be a few floors of a building"
+   ],
+   "brands": null,
+   "eligible": 608,
+   "located": 427,
+   "unlocatedByProvince": {
+    "_unknown_province": 181
+   },
+   "subgroups": [
+    [
+     "rental",
+     "สำนักงานให้เช่า",
+     "Rental office"
+    ],
+    [
+     "workspace",
+     "พื้นที่ทำงานแบบบริการ",
+     "Managed workspace"
+    ],
+    [
+     "organization",
+     "สำนักงานขององค์กร",
+     "Organisation's own office"
+    ],
+    [
+     "hybrid",
+     "ใช้เองและให้เช่า",
+     "Own use and rental"
+    ],
+    [
+     "unresolved",
+     "ยังไม่ระบุรูปแบบ",
+     "Not yet classified"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "confirmed_offices",
+    "total": 293
+   },
+   "placed": true
+  },
+  "optical": {
+   "th": "ร้านแว่น",
+   "en": "Optical shops",
+   "short": [
+    "ร้านแว่น",
+    "Optical"
+   ],
+   "unit": [
+    "จุดขาย",
+    "points of sale"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.optical:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-08",
+   "scope": [
+    "นับ outlet_id แบบไม่ซ้ำที่ยังอยู่ในรายชื่อแหล่งหลักของผู้ค้าปลีก มีสถานะ source_listing_retained และระบุจังหวัดได้",
+    ""
+   ],
+   "brands": null,
+   "eligible": 2676,
+   "located": 2215,
+   "unlocatedByProvince": {
+    "ACR": 1,
+    "ATG": 2,
+    "AYA": 10,
+    "BKK": 112,
+    "BKN": 2,
+    "BRM": 7,
+    "CBI": 27,
+    "CCO": 3,
+    "CMI": 22,
+    "CNT": 2,
+    "CPM": 4,
+    "CPN": 3,
+    "CRI": 6,
+    "CTI": 5,
+    "KBI": 3,
+    "KKN": 5,
+    "KPT": 2,
+    "KRI": 5,
+    "KSN": 5,
+    "LEI": 2,
+    "LPG": 4,
+    "LPN": 1,
+    "LRI": 3,
+    "MDH": 2,
+    "MKM": 8,
+    "MSN": 1,
+    "NAN": 1,
+    "NBI": 15,
+    "NBP": 2,
+    "NKI": 3,
+    "NMA": 11,
+    "NPM": 1,
+    "NPT": 4,
+    "NSN": 9,
+    "NST": 7,
+    "NWT": 3,
+    "NYK": 1,
+    "PBI": 4,
+    "PCT": 1,
+    "PKN": 3,
+    "PKT": 12,
+    "PLG": 1,
+    "PLK": 4,
+    "PNA": 2,
+    "PNB": 6,
+    "PRE": 1,
+    "PRI": 3,
+    "PTE": 14,
+    "PTN": 1,
+    "PYO": 1,
+    "RBR": 5,
+    "RET": 5,
+    "RYG": 8,
+    "SBR": 1,
+    "SKA": 10,
+    "SKM": 2,
+    "SKN": 4,
+    "SKW": 2,
+    "SNI": 7,
+    "SNK": 3,
+    "SPB": 7,
+    "SPK": 14,
+    "SRI": 4,
+    "SRN": 1,
+    "SSK": 3,
+    "STI": 4,
+    "STN": 1,
+    "TAK": 2,
+    "TRG": 2,
+    "TRT": 1,
+    "UBN": 4,
+    "UDN": 5,
+    "UTI": 2,
+    "UTT": 1,
+    "YLA": 2,
+    "YST": 3,
+    "_unknown_province": 1
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "optical_retailer_listings",
+    "total": 2644
+   },
+   "placed": true
+  },
+  "pet": {
+   "th": "ร้าน PETClub",
+   "en": "PETClub stores",
+   "short": [
+    "PETClub",
+    "PETClub"
+   ],
+   "unit": [
+    "สาขา",
+    "stores"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.pet:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-14",
+   "scope": [
+    "นับสาขาที่ปรากฏบนหน้าสาขาของ PETClub และระบุจังหวัดได้จากชื่อสาขาหรือศูนย์การค้าที่ตรงกัน",
+    ""
+   ],
+   "brands": "PETClub",
+   "eligible": 32,
+   "located": 23,
+   "unlocatedByProvince": {
+    "CTI": 1,
+    "_unknown_province": 8
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "petclub_area_matched_branches",
+    "total": 21
+   },
+   "placed": true
+  },
+  "pharmacy": {
+   "th": "ร้านยา",
+   "en": "Pharmacy",
+   "short": [
+    "ร้านยา",
+    "Pharmacies"
+   ],
+   "unit": [
+    "ร้าน",
+    "pharmacies"
+   ],
+   "source": [
+    "CityMETER Pharmacy",
+    "CityMETER Pharmacy"
+   ],
+   "sourceRef": "montri-th/pharmacy@44da829713df6392dfcee939c53a708696ba2c36:data/pharmacies.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/pharmacy/",
+   "date": "2026-10-22",
+   "scope": [
+    "ร้านที่มีใบอนุญาต ขย1 ค่าเริ่มต้นของเดโม วางได้เฉพาะร้านที่มีจุด",
+    "pharmacies holding a type-1 (Khor Yor 1) licence, the demo default; only those with a point can be placed"
+   ],
+   "brands": null,
+   "eligible": 18136,
+   "located": 2573,
+   "unlocatedByProvince": {
+    "_unknown_province": 15563
+   },
+   "subgroups": [
+    [
+     "chain",
+     "เครือร้านยา",
+     "Pharmacy chain"
+    ],
+    [
+     "health_beauty",
+     "ร้านสุขภาพและความงาม",
+     "Health & beauty drugstore"
+    ],
+    [
+     "regional",
+     "เครือภูมิภาค/ท้องถิ่น",
+     "Regional or local chain"
+    ],
+    [
+     "public",
+     "ร้านยาของรัฐและสถาบัน",
+     "Public or institutional pharmacy"
+    ],
+    [
+     "independent",
+     "ร้านยาท้องถิ่น/ยังไม่ยืนยันเครือ",
+     "Local or unresolved"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "pharmacy_licensed_premises",
+    "total": 18136
+   },
+   "placed": true
+  },
+  "playground": {
+   "th": "Joyliday",
+   "en": "Joyliday",
+   "short": [
+    "Joyliday",
+    "Joyliday"
+   ],
+   "unit": [
+    "สาขา",
+    "branches"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.playground:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-03",
+   "scope": [
+    "นับรหัสสาขาของ Joyliday จากหน้ารายชื่อสาขา 3 หน้า โดยใช้จังหวัดที่ระบุในชื่อสาขาหรือพื้นที่ของศูนย์การค้าที่ตรงกัน",
+    ""
+   ],
+   "brands": "Joyliday",
+   "eligible": 32,
+   "located": 0,
+   "unlocatedByProvince": {
+    "NBI": 1,
+    "SPK": 1,
+    "_unknown_province": 30
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "joyliday_area_matched_branches",
+    "total": 28
+   },
+   "placed": false
+  },
+  "restaurants": {
+   "th": "ร้านอาหาร",
+   "en": "Restaurants",
+   "short": [
+    "ร้านอาหาร",
+    "Restaurants"
+   ],
+   "unit": [
+    "ร้าน",
+    "restaurants"
+   ],
+   "source": [
+    "CityMETER Restaurants",
+    "CityMETER Restaurants"
+   ],
+   "sourceRef": "montri-th/restaurant@ca24f2fb545318479fbfa05ad67be1902cdcf80a:data/restaurants.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/restaurant/",
+   "date": "2026-10-22",
+   "scope": [
+    "ทุกร้านในชุดข้อมูล ตำแหน่งแสดงผลจาก tile ไม่ใช่พิกัดสำรวจ",
+    "every restaurant row of the dataset; display positions from tiles, not surveyed points"
+   ],
+   "brands": null,
+   "eligible": 70214,
+   "located": 70214,
+   "unlocatedByProvince": {},
+   "subgroups": [
+    [
+     "general",
+     "ร้านอาหารทั่วไป",
+     "General restaurant"
+    ],
+    [
+     "thai",
+     "อาหารไทย",
+     "Thai"
+    ],
+    [
+     "fastfood",
+     "ฟาสต์ฟู้ด",
+     "Fast food"
+    ],
+    [
+     "japanese",
+     "ญี่ปุ่น",
+     "Japanese"
+    ],
+    [
+     "cafe",
+     "คาเฟ่และของหวาน",
+     "Café & dessert"
+    ],
+    [
+     "asian",
+     "จีนและเอเชีย",
+     "Chinese & Asian"
+    ],
+    [
+     "grill",
+     "ปิ้งย่าง บุฟเฟต์ ซีฟู้ด",
+     "Grill, buffet & seafood"
+    ],
+    [
+     "western",
+     "ตะวันตกและนานาชาติ",
+     "Western & international"
+    ],
+    [
+     "other",
+     "อื่น ๆ",
+     "Other source types"
+    ],
+    [
+     "unspecified",
+     "ไม่ระบุประเภท",
+     "No source type"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "listed_primary_outlets",
+    "total": 20942
+   },
+   "placed": true
+  },
+  "salon_barber": {
+   "th": "NEVERSAYCUTZ",
+   "en": "NEVERSAYCUTZ",
+   "short": [
+    "NEVERSAYCUTZ",
+    "NEVERSAYCUTZ"
+   ],
+   "unit": [
+    "จุดบริการ",
+    "service points"
+   ],
+   "source": [
+    "ทะเบียนวิจัย CityMETER",
+    "CityMETER research registry"
+   ],
+   "sourceRef": "research.TH.salon_barber:02_STORES",
+   "sourceKind": "research_master",
+   "link": null,
+   "date": "2026-11-07",
+   "scope": [
+    "นับหนึ่งครั้งต่อจุดบริการที่มีชื่อในหน้าสาขาของ NEVERSAYCUTZ และทวนพื้นที่จากที่อยู่รายสาขาได้ รวมร้านปกติ รถตัดผมที่ระบุจุดจอด และร้านคอนเทนเนอร์",
+    ""
+   ],
+   "brands": "NEVERSAYCUTZ",
+   "eligible": 34,
+   "located": 0,
+   "unlocatedByProvince": {
+    "BKK": 25,
+    "NBI": 1,
+    "NMA": 1,
+    "SPK": 1,
+    "_unknown_province": 6
+   },
+   "subgroups": [],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "neversaycutz_listed_branches",
+    "total": 33
+   },
+   "placed": false
+  },
+  "school": {
+   "th": "สถานศึกษา",
+   "en": "School",
+   "short": [
+    "โรงเรียน",
+    "Schools"
+   ],
+   "unit": [
+    "แห่ง",
+    "schools"
+   ],
+   "source": [
+    "CityMETER School",
+    "CityMETER School"
+   ],
+   "sourceRef": "montri-th/school@f253f56457a4f9f0b50975cc1d0b10e3a7c57b71:data/schools.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/school/",
+   "date": "2026-10-31",
+   "scope": [
+    "สถานศึกษาทุกสังกัดในฐานปี 2569 วางได้เฉพาะที่มีจุด",
+    "schools of every affiliation in the 2026 baseline; only those with a point can be placed"
+   ],
+   "brands": null,
+   "eligible": 40827,
+   "located": 33077,
+   "unlocatedByProvince": {
+    "_unknown_province": 7750
+   },
+   "subgroups": [
+    [
+     "public",
+     "โรงเรียนรัฐ สพฐ.",
+     "Public school (OBEC)"
+    ],
+    [
+     "local",
+     "โรงเรียนท้องถิ่นและกรุงเทพฯ",
+     "Local-government school"
+    ],
+    [
+     "private",
+     "โรงเรียนเอกชน",
+     "Private school"
+    ],
+    [
+     "international",
+     "โรงเรียนนานาชาติ",
+     "International school"
+    ],
+    [
+     "vocational",
+     "อาชีวศึกษา",
+     "Vocational college"
+    ],
+    [
+     "nonformal",
+     "ส่งเสริมการเรียนรู้ (สกร.)",
+     "Learning promotion centre"
+    ],
+    [
+     "childcare",
+     "ศูนย์พัฒนาเด็กเล็ก",
+     "Child development centre"
+    ],
+    [
+     "other",
+     "สถานศึกษารัฐอื่น",
+     "Other public institution"
+    ]
+   ],
+   "measure": [
+    "students",
+    "นักเรียน",
+    "students",
+    "นักเรียนที่บันทึกปี 2569 ไม่ใช่ที่นั่งที่รับได้",
+    "students recorded for 2026, not seats"
+   ],
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "listed_education_records",
+    "total": 35251
+   },
+   "placed": true
+  },
+  "shopping": {
+   "th": "ศูนย์การค้าและตลาด",
+   "en": "Shopping Center",
+   "short": [
+    "ศูนย์และตลาดอื่น",
+    "Other retail venues"
+   ],
+   "unit": [
+    "แห่ง",
+    "places"
+   ],
+   "source": [
+    "CityMETER Shopping Center",
+    "CityMETER Shopping Center"
+   ],
+   "sourceRef": "montri-th/shoppingcenter@3711e6e621aae2895525ea90f459ebc8ffbf0b14:data/venues.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/shoppingcenter/",
+   "date": "2026-11-07",
+   "scope": [
+    "สถานที่ค้าปลีกที่นับได้และแหล่งยังระบุว่าเปิด (ศูนย์การค้า ตลาด ห้าง และสถานีบริการที่มีร้านค้า)",
+    "countable retail places the source still lists as operating (malls, markets, stores and fuel stations with shops)"
+   ],
+   "brands": null,
+   "eligible": 6153,
+   "located": 6141,
+   "unlocatedByProvince": {
+    "_unknown_province": 12
+   },
+   "subgroups": [
+    [
+     "mall",
+     "ศูนย์การค้า",
+     "Shopping mall"
+    ],
+    [
+     "community",
+     "คอมมูนิตี้มอลล์",
+     "Community mall"
+    ],
+    [
+     "market",
+     "ตลาด",
+     "Market"
+    ],
+    [
+     "hoststore",
+     "ห้างที่มีร้านเช่า",
+     "Host store with tenants"
+    ],
+    [
+     "outlet",
+     "เอาท์เล็ท",
+     "Outlet"
+    ],
+    [
+     "fuel",
+     "สถานีบริการที่มีร้านค้า",
+     "Fuel station with shops"
+    ],
+    [
+     "other",
+     "พื้นที่ค้าปลีกอื่น",
+     "Other retail place"
+    ],
+    [
+     "component",
+     "พื้นที่ค้าปลีกในโครงการ",
+     "Retail component"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "retail_venues",
+    "total": 488
+   },
+   "placed": true
+  },
+  "transit": {
+   "th": "สถานีราง",
+   "en": "Transit",
+   "short": [
+    "สถานีราง",
+    "Rail stations"
+   ],
+   "unit": [
+    "สถานี–สาย",
+    "station-line records"
+   ],
+   "source": [
+    "CityMETER Transit",
+    "CityMETER Transit"
+   ],
+   "sourceRef": "montri-th/transit@25711bc652dde7455723af0949b06354cf7cbaa2:data/transit.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/transit/",
+   "date": "2026-10-31",
+   "scope": [
+    "สถานีราง หนึ่งรายการต่อหนึ่งสาย สถานีเปลี่ยนสายนับตามจำนวนสาย ไม่รวมสถานีที่ยังยืนยันไม่ได้",
+    "rail stations, one record per line (an interchange counts once per line); unverified stations left out"
+   ],
+   "brands": null,
+   "eligible": 301,
+   "located": 301,
+   "unlocatedByProvince": {},
+   "subgroups": [
+    [
+     "operating",
+     "เปิดให้บริการ",
+     "Operating"
+    ],
+    [
+     "construction",
+     "กำลังก่อสร้าง",
+     "Under construction"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "operating_station_line_records",
+    "total": 195
+   },
+   "placed": true
+  },
+  "university": {
+   "th": "มหาวิทยาลัย",
+   "en": "University",
+   "short": [
+    "มหาวิทยาลัย",
+    "Universities"
+   ],
+   "unit": [
+    "แห่ง",
+    "sites"
+   ],
+   "source": [
+    "CityMETER University",
+    "CityMETER University"
+   ],
+   "sourceRef": "montri-th/university@f610edb61a3311ce9ff35c91ab5f193ba4b74283:data/universities.json",
+   "sourceKind": "demo",
+   "link": "https://citymeter.pages.dev/university/",
+   "date": "2026-11-10",
+   "scope": [
+    "วิทยาเขตและพื้นที่ของมหาวิทยาลัยที่ทีมวิจัยตรวจ นับเป็นแห่ง ไม่แบ่งนักศึกษาตามจุด",
+    "university campuses and sites the research team checked, counted as places; students are not split by point"
+   ],
+   "brands": null,
+   "eligible": 190,
+   "located": 188,
+   "unlocatedByProvince": {
+    "_unknown_province": 2
+   },
+   "subgroups": [
+    [
+     "autonomous",
+     "มหาวิทยาลัยในกำกับ",
+     "Autonomous university"
+    ],
+    [
+     "public",
+     "มหาวิทยาลัยรัฐ",
+     "Public university"
+    ],
+    [
+     "rajabhat",
+     "มหาวิทยาลัยราชภัฏ",
+     "Rajabhat university"
+    ],
+    [
+     "rmut",
+     "มหาวิทยาลัยเทคโนโลยีราชมงคล",
+     "Rajamangala University of Technology"
+    ],
+    [
+     "private",
+     "มหาวิทยาลัยเอกชน",
+     "Private university"
+    ],
+    [
+     "private_other",
+     "สถาบันเอกชนอื่น",
+     "Other private institution"
+    ],
+    [
+     "open",
+     "มหาวิทยาลัยเปิด",
+     "Open university"
+    ],
+    [
+     "outside",
+     "สถาบันนอกสังกัด อว.",
+     "Institution outside MHESI"
+    ]
+   ],
+   "measure": null,
+   "yolk": {
+    "release": "yolk-20261116-v5",
+    "metric": "explicit_campus_references",
+    "total": 22
+   },
+   "placed": true
+  }
+ },
+ "unplaced": [
+  "beauty_clinic",
+  "cinema_theatre",
+  "playground",
+  "salon_barber"
+ ],
+ "levels": [
+  [
+   "locale",
+   "ย่าน",
+   "Neighbourhood"
+  ],
+  [
+   "subdistrict",
+   "แขวง/ตำบล",
+   "Subdistrict"
+  ],
+  [
+   "municipality",
+   "เทศบาล/อปท.",
+   "Local government area"
+  ],
+  [
+   "district",
+   "เขต/อำเภอ",
+   "District"
+  ],
+  [
+   "province",
+   "จังหวัด",
+   "Province"
+  ]
+ ],
+ "area": {
+  "apartment": {
+   "th": "ค่าเช่าอะพาร์ตเมนต์",
+   "en": "Apartment Rent",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "apartmentCount",
+     "th": "อะพาร์ตเมนต์ที่ประกาศ",
+     "en": "Apartment listings",
+     "unit": [
+      "รายการ",
+      "listings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medianPrice",
+     "th": "ค่าเช่าที่ประกาศ (ค่ากลาง)",
+     "en": "Asking rent (median)",
+     "unit": [
+      "บาท/เดือน",
+      "THB/month"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "ยังไม่ยืนยันแหล่งต้นทางสาธารณะ",
+   "review": "publisher_unresolved",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=apartment"
+  },
+  "building": {
+   "th": "อาคาร: ขอบเขต พื้นที่อาคารรวม และความสูง",
+   "en": "Buildings: Footprint, GFA & Height",
+   "pillar": "land",
+   "class": "derived_module",
+   "metrics": [
+    {
+     "id": "count",
+     "th": "อาคาร",
+     "en": "Buildings",
+     "unit": [
+      "หลัง",
+      "buildings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "avgFloor",
+     "th": "ชั้นเฉลี่ย",
+     "en": "Average floors",
+     "unit": [
+      "ชั้น",
+      "floors"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2023-05; V4 2024-12",
+   "publisher": "Google Research — Open Buildings",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=building"
+  },
+  "businessDynamics": {
+   "th": "Business Dynamics: สำนักงานใหญ่ สาขา และสาขาจดทะเบียนใหม่",
+   "en": "Business Dynamics: Headquarters, Branches & New Activity",
+   "pillar": "location",
+   "class": "derived_module",
+   "metrics": [
+    {
+     "id": "hqCount",
+     "th": "สำนักงานใหญ่",
+     "en": "Head offices",
+     "unit": [
+      "แห่ง",
+      "offices"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "branchCount",
+     "th": "สาขา",
+     "en": "Branches",
+     "unit": [
+      "แห่ง",
+      "branches"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "new-business registration cohort2565–2569",
+   "publisher": "กรมสรรพากร",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=businessDynamics"
+  },
+  "company": {
+   "th": "บริษัทจดทะเบียน: สถานะและทุน",
+   "en": "Registered Companies: Status & Capital",
+   "pillar": "location",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalActive",
+     "th": "บริษัทที่ยังดำเนินกิจการ",
+     "en": "Active companies",
+     "unit": [
+      "ราย",
+      "companies"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "totalNew",
+     "th": "บริษัทจดใหม่ในเดือนล่าสุด",
+     "en": "New registrations, latest month",
+     "unit": [
+      "ราย",
+      "companies"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": "2025-04",
+   "registryPeriod": "2024–2025 selector; default2025-04",
+   "publisher": "กรมพัฒนาธุรกิจการค้า",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=company"
+  },
+  "condo": {
+   "th": "ราคาประเมินคอนโดมิเนียม",
+   "en": "Condo Appraisal Prices",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "condoCount",
+     "th": "อาคารชุดในฐานราคาประเมิน",
+     "en": "Condominiums in the appraisal base",
+     "unit": [
+      "รายการ",
+      "records"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medianPrice",
+     "th": "ราคาประเมินห้องชุด (ค่ากลาง)",
+     "en": "Unit appraisal (median)",
+     "unit": [
+      "บาท/ตร.ม.",
+      "THB/m²"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2024-01",
+   "publisher": "กรมธนารักษ์",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=condo"
+  },
+  "condoOffer": {
+   "th": "ราคาประกาศขายคอนโดมิเนียม",
+   "en": "Condo Listing Prices",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "condoCount",
+     "th": "คอนโดที่ประกาศขาย",
+     "en": "Condominium listings",
+     "unit": [
+      "รายการ",
+      "listings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "y2025MedianOffer",
+     "th": "ราคาประกาศขาย 2568 (ค่ากลาง)",
+     "en": "Asking price 2025 (median)",
+     "unit": [
+      "บาท/ตร.ม.",
+      "THB/m²"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2024-01",
+   "publisher": "ราคาเสนอขายเอกชน + candidate benchmark จากกรมธนารักษ์",
+   "review": "listing_publisher_unresolved_benchmark_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=condoOffer"
+  },
+  "deed": {
+   "th": "ราคาประเมินที่ดินและโฉนด",
+   "en": "Land Appraisal & Title Deeds",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "deedCount",
+     "th": "แปลงที่ดินในฐาน",
+     "en": "Parcels in the base",
+     "unit": [
+      "แปลง",
+      "parcels"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medianPrice",
+     "th": "ราคาประเมินที่ดิน (ค่ากลาง)",
+     "en": "Land appraisal (median)",
+     "unit": [
+      "บาท/ตร.ว.",
+      "THB/sq wa"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "กรมที่ดิน / กรมธนารักษ์",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=deed"
+  },
+  "detachedhouse": {
+   "th": "ราคาประกาศขายบ้านเดี่ยว",
+   "en": "Detached Listing Prices",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "count",
+     "th": "บ้านเดี่ยวที่ประกาศขาย",
+     "en": "Detached-house listings",
+     "unit": [
+      "รายการ",
+      "listings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medPrice",
+     "th": "ราคาประกาศขาย (ค่ากลาง)",
+     "en": "Asking price (median)",
+     "unit": [
+      "บาท",
+      "THB"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3.1 2025-06; V3.0 2025-05",
+   "publisher": "แหล่งประกาศเอกชน — ยังไม่พบ public lineage ที่ยืนยันได้",
+   "review": "candidate_only",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=detachedhouse"
+  },
+  "disaster": {
+   "th": "ผลกระทบจากสาธารณภัยในอดีต",
+   "en": "Disaster: Historical Impacts",
+   "pillar": "living",
+   "class": "event_archive",
+   "metrics": [
+    {
+     "id": "affectedHouseholds",
+     "th": "ครัวเรือนที่ได้รับผลกระทบ (2567)",
+     "en": "Households affected (2024)",
+     "unit": [
+      "ครัวเรือน",
+      "households"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": "2024",
+   "registryPeriod": "2014–2024; cumulative2557–2567",
+   "publisher": "กรมป้องกันและบรรเทาสาธารณภัย",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=disaster"
+  },
+  "eiaReport": {
+   "th": "โครงการและรายงาน EIA",
+   "en": "EIA Projects & Reports",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "projectCount",
+     "th": "โครงการที่มีรายงาน EIA/IEE",
+     "en": "Projects with EIA/IEE reports",
+     "unit": [
+      "โครงการ",
+      "projects"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "สผ. / ONEP",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=eiaReport"
+  },
+  "estate": {
+   "th": "โครงการจัดสรรที่ดินจดทะเบียน",
+   "en": "Registered Housing Estates",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "projectCount",
+     "th": "โครงการจัดสรรที่ดิน",
+     "en": "Housing-estate projects",
+     "unit": [
+      "โครงการ",
+      "projects"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "totalPlots",
+     "th": "แปลงในโครงการจัดสรร",
+     "en": "Plots in the projects",
+     "unit": [
+      "แปลง",
+      "plots"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "กรมที่ดิน",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=estate"
+  },
+  "factory": {
+   "th": "โรงงาน แรงงาน และการลงทุน",
+   "en": "Factories, Workers & Investment",
+   "pillar": "location",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalFactory",
+     "th": "โรงงานที่ประกอบกิจการ",
+     "en": "Operating factories",
+     "unit": [
+      "แห่ง",
+      "factories"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "totalWorker",
+     "th": "คนงานตามทะเบียน",
+     "en": "Registered workers",
+     "unit": [
+      "คน",
+      "workers"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": "2025-04",
+   "registryPeriod": "2023–2025 selector; default2025-04",
+   "publisher": "สำนักงานปลัดกระทรวงอุตสาหกรรม; ข้อมูลจากผู้ประกอบการหรือสำนักงานอุตสาหกรรมจังหวัด",
+   "review": "reviewed_source_identity_exact_ingestion_not_attested",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=factory"
+  },
+  "floodimpact": {
+   "th": "น้ำท่วมซ้ำซาก",
+   "en": "Flood: Recurrent",
+   "pillar": "living",
+   "class": "event_archive",
+   "metrics": [
+    {
+     "id": "floodYears",
+     "th": "ปีที่ตรวจพบน้ำท่วมในพื้นที่",
+     "en": "Years with flooding detected",
+     "unit": [
+      "ปี",
+      "years"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "2011–2024,14years",
+   "publisher": "สำนักงานพัฒนาเทคโนโลยีอวกาศและภูมิสารสนเทศ (GISTDA)",
+   "review": "owner_confirmed_source_service_exact_annual_assets_not_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=floodimpact"
+  },
+  "gasStation": {
+   "th": "ปั๊มน้ำมัน: จำนวน ความหนาแน่น และแบรนด์",
+   "en": "Petrol Stations: Counts, Density & Brands",
+   "pillar": "location",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalCount",
+     "th": "ปั๊มน้ำมัน",
+     "en": "Fuel stations",
+     "unit": [
+      "แห่ง",
+      "stations"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "ยังไม่พบ official package ที่ตรงกับ fuel mix",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=gasStation"
+  },
+  "governmentOfficer": {
+   "th": "หน่วยงานรัฐและบุคลากร",
+   "en": "Government Agencies & Workforce",
+   "pillar": "living",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "governmentAgencyCount",
+     "th": "หน่วยงานรัฐ",
+     "en": "Government agencies",
+     "unit": [
+      "แห่ง",
+      "agencies"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "สำนักงาน ก.พ. — กำลังคน; สำนักงาน ก.พ.ร. และกรมการปกครอง — หน่วยงาน/สถานที่; กรุงเทพมหานคร — ชุดสถานที่ใน กทม.",
+   "review": "reviewed_source_identity_exact_ingestion_not_attested",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=governmentOfficer"
+  },
+  "govspending": {
+   "th": "งบประมาณและการเบิกจ่ายภาครัฐ",
+   "en": "Government Spending",
+   "pillar": "living",
+   "class": "derived_module",
+   "metrics": [
+    {
+     "id": "disbursedMillion",
+     "th": "งบภาครัฐที่เบิกจ่าย (ปีล่าสุด)",
+     "en": "Government disbursement (latest year)",
+     "unit": [
+      "ล้านบาท",
+      "THB million"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": "2568",
+   "registryPeriod": "2558–2568 selector; default2558",
+   "publisher": "ต้นทางระบบ GFMIS; ชุดข้อมูลที่เผยแพร่ผ่าน PBO / Thaith",
+   "review": "reviewed_source_identity_exact_ingestion_not_attested",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=govspending"
+  },
+  "grocery": {
+   "th": "ร้านค้าปลีกและค้าส่ง",
+   "en": "Retail & Wholesale Networks",
+   "pillar": "location",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalCount",
+     "th": "ร้านค้าปลีกและค้าส่ง",
+     "en": "Retail and wholesale stores",
+     "unit": [
+      "ร้าน",
+      "stores"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "อ่าน native master 25 ต.ค.2569; source vintages ต่างกัน; Foodplace follow-up 25 ต.ค.; baseline summaries คงรุ่นเดิม",
+   "publisher": "CityMETER compiler; upstream sources ตาม Source Catalog",
+   "review": "source_backed_statement_draft",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=grocery"
+  },
+  "hatyaiflood": {
+   "th": "รายงานน้ำท่วมหาดใหญ่ 24–27 พ.ย. 2568",
+   "en": "Hat Yai Flood Reports — 24–27 Nov 2025",
+   "pillar": "living",
+   "class": "event_archive",
+   "metrics": [
+    {
+     "id": "caseCount",
+     "th": "รายงานเหตุน้ำท่วมหาดใหญ่ พ.ย. 2568",
+     "en": "Hat Yai flood reports, Nov 2025",
+     "unit": [
+      "รายการ",
+      "reports"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "Reports2025-11-24 to27",
+   "publisher": "Thai PBS / ThaiHelp case reports",
+   "review": "declared_provider_unresolved",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=hatyaiflood"
+  },
+  "hospital": {
+   "th": "โรงพยาบาลและหน่วยบริการสุขภาพ",
+   "en": "Hospital",
+   "pillar": "living",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalCount",
+     "th": "หน่วยบริการสุขภาพ",
+     "en": "Health facilities",
+     "unit": [
+      "แห่ง",
+      "facilities"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "sumBeds",
+     "th": "เตียงที่รายงาน",
+     "en": "Reported beds",
+     "unit": [
+      "เตียง",
+      "beds"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": null,
+   "publisher": null,
+   "review": null,
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=hospital"
+  },
+  "hotel": {
+   "th": "โรงแรม: จำนวนห้องพัก ราคา และฤดูกาล",
+   "en": "Hotel Supply, Rates & Seasonality",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "hotelCount",
+     "th": "ที่พัก",
+     "en": "Accommodation",
+     "unit": [
+      "แห่ง",
+      "places"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "roomCount",
+     "th": "ห้องพักที่บันทึก",
+     "en": "Recorded rooms",
+     "unit": [
+      "ห้อง",
+      "rooms"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "การท่องเที่ยวแห่งประเทศไทย; กรุงเทพมหานคร — กองยุทธศาสตร์ดิจิทัลเป็นผู้เผยแพร่ชุดโรงแรม",
+   "review": "reviewed_source_identity_exact_ingestion_not_attested",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=hotel"
+  },
+  "landoffer": {
+   "th": "ราคาประกาศขายที่ดิน",
+   "en": "Land Listing Prices",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "landOfferCount",
+     "th": "ที่ดินที่ประกาศขาย",
+     "en": "Land listings",
+     "unit": [
+      "รายการ",
+      "listings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medianPricePerSqw",
+     "th": "ราคาประกาศขาย (ค่ากลาง)",
+     "en": "Asking price (median)",
+     "unit": [
+      "บาท/ตร.ว.",
+      "THB/sq wa"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2024-01",
+   "publisher": "แหล่งประกาศเอกชน — ยังไม่พบ public lineage ที่ยืนยันได้",
+   "review": "publisher_unresolved",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=landoffer"
+  },
+  "muenRai": {
+   "th": "เกษตรกรรม: พื้นที่เพาะปลูกและผลผลิต (หมื่นไร่)",
+   "en": "Agriculture: Crop Area & Output (10,000 Rai)",
+   "pillar": "land",
+   "class": "derived_module",
+   "metrics": [],
+   "period": null,
+   "registryPeriod": "2025–2026 selector; default2026-09",
+   "publisher": "กลุ่มทะเบียนการผลิตพืช — กรมส่งเสริมการเกษตร (candidate)",
+   "review": "candidate_only",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=muenRai"
+  },
+  "municipality": {
+   "th": "รายได้องค์กรปกครองส่วนท้องถิ่น",
+   "en": "Municipal Revenue",
+   "pillar": "living",
+   "class": "derived_module",
+   "metrics": [
+    {
+     "id": "total",
+     "th": "รายได้ อปท. (ปีล่าสุด)",
+     "en": "Local revenue (latest year)",
+     "unit": [
+      "ล้านบาท",
+      "THB million"
+     ],
+     "basis": "value"
+    },
+    {
+     "id": "medianPerCapita",
+     "th": "รายได้ต่อหัว (ค่ากลาง)",
+     "en": "Revenue per head (median)",
+     "unit": [
+      "บาท/คน",
+      "THB/person"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": "2024",
+   "registryPeriod": "2017–2024; default2024",
+   "publisher": "กรมส่งเสริมการปกครองท้องถิ่น",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=municipality"
+  },
+  "nonBank": {
+   "th": "เครือข่ายสาขาและสำนักงาน Non-bank",
+   "en": "Non-bank Branch & Office Networks",
+   "pillar": "location",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "officeCount",
+     "th": "สำนักงานสินเชื่อ Non-bank",
+     "en": "Non-bank offices",
+     "unit": [
+      "แห่ง",
+      "offices"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": null,
+   "publisher": null,
+   "review": null,
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=nonBank"
+  },
+  "office": {
+   "th": "อาคารสำนักงานและค่าเช่า",
+   "en": "Office Buildings & Rent",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "officeCount",
+     "th": "อาคารสำนักงาน",
+     "en": "Office buildings",
+     "unit": [
+      "อาคาร",
+      "buildings"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2025-05",
+   "publisher": "commercial inventory — ยังไม่พบ public lineage ที่ยืนยันได้",
+   "review": "publisher_unresolved",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=office"
+  },
+  "placeOfWorship": {
+   "th": "ศาสนสถานในพื้นที่",
+   "en": "Places of Worship",
+   "pillar": "living",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalCount",
+     "th": "ศาสนสถาน",
+     "en": "Places of worship",
+     "unit": [
+      "แห่ง",
+      "places"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "touristAttractionCount",
+     "th": "ที่เป็นแหล่งท่องเที่ยว",
+     "en": "Listed as attractions",
+     "unit": [
+      "แห่ง",
+      "places"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": null,
+   "publisher": null,
+   "review": null,
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=placeOfWorship"
+  },
+  "population": {
+   "th": "ประชากรตามอายุและเพศ",
+   "en": "Population by Age & Sex",
+   "pillar": "living",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "population",
+     "th": "ประชากรตามทะเบียนบ้าน",
+     "en": "Registered population",
+     "unit": [
+      "คน",
+      "people"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "age0_14",
+     "th": "อายุ 0–14 ปี",
+     "en": "Aged 0–14",
+     "unit": [
+      "คน",
+      "people"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "age60p",
+     "th": "อายุ 60 ปีขึ้นไป",
+     "en": "Aged 60+",
+     "unit": [
+      "คน",
+      "people"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": "2026-10",
+   "registryPeriod": "2013–2026 selector; default2026-08",
+   "publisher": "สำนักบริหารการทะเบียน กรมการปกครอง",
+   "review": "upstream_attribution_checked_exact_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=population"
+  },
+  "quakeSafe": {
+   "th": "QuakeSafe: สถานะการตรวจสอบอาคาร",
+   "en": "QuakeSafe: Building Inspection Status",
+   "pillar": "living",
+   "class": "event_archive",
+   "metrics": [
+    {
+     "id": "totalBuildingCount",
+     "th": "อาคารในแดชบอร์ดตรวจอาคาร",
+     "en": "Buildings in the inspection dashboard",
+     "unit": [
+      "อาคาร",
+      "buildings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "unsafeCount",
+     "th": "ที่ระบุว่าไม่ปลอดภัย",
+     "en": "Marked unsafe",
+     "unit": [
+      "อาคาร",
+      "buildings"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "Archive; record date not shown",
+   "publisher": "BMA Building Inspection Dashboard — exact record lineage ยังไม่ยืนยัน",
+   "review": "source_attribution_recovered",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=quakeSafe"
+  },
+  "rentWise": {
+   "th": "ค่าเช่าและผลตอบแทนคอนโดมิเนียม (RentWise)",
+   "en": "Condo Rent & Yield (RentWise)",
+   "pillar": "land",
+   "class": "derived_module",
+   "metrics": [
+    {
+     "id": "condoRentalCount",
+     "th": "คอนโดที่ประกาศให้เช่า",
+     "en": "Condominium rental listings",
+     "unit": [
+      "รายการ",
+      "listings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medianYield",
+     "th": "ผลตอบแทนค่าเช่าจากราคาประกาศ (ค่ากลาง)",
+     "en": "Yield from listed prices (median)",
+     "unit": [
+      "%",
+      "%"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2024-01",
+   "publisher": "LivingInsider / ข้อมูลประกาศเอกชน",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=rentWise"
+  },
+  "restaurant": {
+   "th": "ร้านอาหาร: ความหนาแน่น คะแนนรีวิว และระดับราคา",
+   "en": "Restaurants: Density, Ratings & Price",
+   "pillar": "location",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalCount",
+     "th": "ร้านอาหาร",
+     "en": "Restaurants",
+     "unit": [
+      "ร้าน",
+      "restaurants"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "แหล่งร้าน/รีวิวเอกชน — ยังไม่ยืนยัน public lineage",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=restaurant"
+  },
+  "roadDna": {
+   "th": "รูปแบบโครงข่ายถนน",
+   "en": "Road Network Archetypes",
+   "pillar": "location",
+   "class": "derived_module",
+   "metrics": [
+    {
+     "id": "topShare",
+     "th": "รูปแบบถนนที่พบมากที่สุด",
+     "en": "Most common road pattern",
+     "unit": [
+      "สัดส่วน",
+      "share"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "ยังไม่ยืนยัน",
+   "publisher": "CityMETER derived model",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=roadDna"
+  },
+  "school": {
+   "th": "โรงเรียน นักเรียน และครู",
+   "en": "Schools, Students & Teachers",
+   "pillar": "living",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "schoolCount",
+     "th": "โรงเรียน",
+     "en": "Schools",
+     "unit": [
+      "แห่ง",
+      "schools"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "totalStudent",
+     "th": "นักเรียน",
+     "en": "Students",
+     "unit": [
+      "คน",
+      "students"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": "2026",
+   "registryPeriod": "V3 2025-05; insKru2025-07;2024 versions",
+   "publisher": "กระทรวงศึกษาธิการ (candidate)",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=school"
+  },
+  "shoppingCenter": {
+   "th": "ศูนย์การค้า: จำนวน พื้นที่เช่า และกลุ่มตลาด",
+   "en": "Shopping Centers: Supply, GLA & Market Segment",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "totalCount",
+     "th": "ศูนย์การค้าและตลาด (production)",
+     "en": "Shopping centres and markets (production)",
+     "unit": [
+      "แห่ง",
+      "places"
+     ],
+     "basis": "per_sqkm"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "Sources2026-05-28 to2026-07-20; processed2026-07-20",
+   "publisher": "commercial inventory — ยังไม่พบ government package ที่ตรง",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=shoppingCenter"
+  },
+  "townhouse": {
+   "th": "ราคาประกาศขายทาวน์เฮาส์",
+   "en": "Townhouse Listing Prices",
+   "pillar": "land",
+   "class": "source_dataset",
+   "metrics": [
+    {
+     "id": "townhouseCount",
+     "th": "ทาวน์เฮาส์ที่ประกาศขาย",
+     "en": "Townhouse listings",
+     "unit": [
+      "รายการ",
+      "listings"
+     ],
+     "basis": "per_sqkm"
+    },
+    {
+     "id": "medianPrice",
+     "th": "ราคาประกาศขาย (ค่ากลาง)",
+     "en": "Asking price (median)",
+     "unit": [
+      "บาท",
+      "THB"
+     ],
+     "basis": "value"
+    }
+   ],
+   "period": null,
+   "registryPeriod": "V3 2024-01",
+   "publisher": "แหล่งประกาศเอกชน — ยังไม่พบ public lineage ที่ยืนยันได้",
+   "review": "reviewed_source_identity_ingestion_not_fully_verified",
+   "link": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=townhouse"
+  }
+ },
+ "roadArchetypes": {
+  "SOI_MAZE": [
+   "ซอยซับซ้อน",
+   "Soi maze"
+  ],
+  "COLLECTOR_SPINE": [
+   "ถนนรวบรวมสายหลัก",
+   "Collector spine"
+  ],
+  "CUL_DE_SAC_ENCLAVE": [
+   "ซอยตันเป็นกลุ่ม",
+   "Cul-de-sac enclave"
+  ],
+  "MIXED": [
+   "ผสม",
+   "Mixed"
+  ],
+  "LINEAR_VILLAGE_ROAD": [
+   "ถนนหมู่บ้านแนวยาว",
+   "Linear village road"
+  ],
+  "ARTERIAL_EDGE": [
+   "ริมถนนสายหลัก",
+   "Arterial edge"
+  ],
+  "BARRIER_CORRIDOR": [
+   "แนวกั้นขวาง",
+   "Barrier corridor"
+  ],
+  "URBAN_GRID": [
+   "ตารางเมือง",
+   "Urban grid"
+  ],
+  "LOW_CONFIDENCE": [
+   "ความเชื่อมั่นต่ำ",
+   "Low confidence"
+  ]
+ },
+ "live": [
+  {
+   "id": "fire",
+   "th": "จุดความร้อนและไฟ",
+   "en": "Fire monitoring",
+   "kind": "monitoring_feed",
+   "state": "rendered_no_data",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=fire"
+  },
+  {
+   "id": "flash-flood-risk",
+   "th": "ความเสี่ยงน้ำท่วมฉับพลัน 24 ชม.",
+   "en": "Flash-flood risk, 24 h",
+   "kind": "forecast",
+   "state": "page_rendered",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=flash-flood-risk"
+  },
+  {
+   "id": "flood-forecast-depth",
+   "th": "คาดการณ์ความลึกน้ำท่วม",
+   "en": "Flood depth forecast",
+   "kind": "forecast",
+   "state": "page_rendered_time_label_ambiguous",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=flood-forecast-depth"
+  },
+  {
+   "id": "floodrecent",
+   "th": "น้ำท่วมที่ตรวจพบล่าสุด",
+   "en": "Latest observed flooding",
+   "kind": "event_archive",
+   "state": "rendered_stale_observation",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=floodrecent"
+  },
+  {
+   "id": "quake",
+   "th": "แรงสั่นที่สถานีรายงาน",
+   "en": "Station-reported shaking",
+   "kind": "monitoring_feed",
+   "state": "rendered_stale_sensor",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=quake"
+  },
+  {
+   "id": "traffic",
+   "th": "สภาพจราจร",
+   "en": "Traffic",
+   "kind": "monitoring_feed",
+   "state": "rendered_no_data",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=traffic"
+  },
+  {
+   "id": "trafficIncident",
+   "th": "เหตุการณ์และประกาศ",
+   "en": "Events and notices",
+   "kind": "monitoring_feed",
+   "state": "page_rendered",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=trafficIncident"
+  },
+  {
+   "id": "terrain",
+   "th": "ภูมิประเทศและระดับความสูง",
+   "en": "Terrain and elevation",
+   "kind": "derived_module",
+   "state": "page_rendered",
+   "href": "https://landometer.com/v3/citymeter/{province}/D/{district}?d=terrain"
+  },
+  {
+   "id": "cars",
+   "th": "รถยนต์จดทะเบียนใหม่",
+   "en": "New car registrations",
+   "kind": "source_dataset",
+   "state": "page_rendered",
+   "href": "https://landometer.com/v3/citymeter/{province}?d=cars"
+  }
+ ],
+ "localeLink": "https://landometer.com/v3/citymeter/BKK/L/{locale}?d=localeInsights",
+ "notCounted": [
+  {
+   "id": "research.TH.apparel",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนยังรวมหน้าร้าน เคาน์เตอร์ และจุดรับสินค้า ทีมกำลังแยกบทบาทและทวนรหัสจุดขายที่เผยแพร่ได้",
+   "th": "ร้านเสื้อผ้า",
+   "en": "Apparel stores"
+  },
+  {
+   "id": "research.TH.arts_edutainment",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนยังมีสถานที่ซ้ำ ที่อยู่ขัดกัน และแหล่งที่จำกัดการใช้ ต้องคัดรายชื่อที่เผยแพร่ได้ก่อนเปิดนับ",
+   "th": "ศิลปะและแหล่งเรียนรู้",
+   "en": "Arts & edutainment"
+  },
+  {
+   "id": "research.TH.bank",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนรอบนี้รวมสาขา จุดบริการ และตู้หลายงวด ชุดสาขาที่แยกหน่วยและตรวจงวดแล้วกำลังรอเผยแพร่",
+   "th": "ธนาคาร",
+   "en": "Banks"
+  },
+  {
+   "id": "research.TH.beauty_clinic",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "คลินิกความงาม",
+   "en": "Beauty clinics"
+  },
+  {
+   "id": "research.TH.cinema_theatre",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "โรงภาพยนตร์และโรงละคร",
+   "en": "Cinemas & theatres"
+  },
+  {
+   "id": "research.TH.furniture",
+   "treatment": "not_countable_catalog_only",
+   "reason": "รายชื่อร้านและโชว์รูมอยู่ในชุดวิจัย ต้องคัดรายการที่นับได้และทวนสาขาที่มีชื่อซ้ำก่อนเผยแพร่",
+   "th": "เฟอร์นิเจอร์ อุปกรณ์ตกแต่งและเครื่องครัว",
+   "en": "Furniture, DIY & kitchenware"
+  },
+  {
+   "id": "research.TH.massage_spa",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ข้อมูลรอบนี้ใช้สำหรับวิจัย ต้องทวนสาขาที่เปิดได้ตามต้นทาง แยกสาขาในแผนและประวัติออกก่อนเผยแพร่",
+   "th": "ร้านนวด สปา และออนเซ็น",
+   "en": "Massage, spas & onsen"
+  },
+  {
+   "id": "research.TH.miscellaneous",
+   "treatment": "not_used_single_brand_two_records",
+   "reason": "The counted unit is Apple Store only (2 records); not a general retail context layer.",
+   "th": "กิจการอื่น ๆ",
+   "en": "Miscellaneous businesses"
+  },
+  {
+   "id": "research.TH.park",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ทะเบียนวิจัยยังรวมสวนและส่วนประกอบของสวน ต้องทวนรหัสสวนหลักและการเข้าถึงก่อนเปิดนับ",
+   "th": "สวนสาธารณะ",
+   "en": "Public parks"
+  },
+  {
+   "id": "research.TH.playground",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "สนามเด็กเล่นและศูนย์กิจกรรมครอบครัว",
+   "en": "Playgrounds & family entertainment"
+  },
+  {
+   "id": "research.TH.road",
+   "treatment": "not_used_line_network_district_grain",
+   "reason": "DRR rural road links are lines listed by district; not a point set for rings. Road pattern near the centre comes from production Road DNA instead.",
+   "th": "ถนนสาธารณะ",
+   "en": "Public roads"
+  },
+  {
+   "id": "research.TH.salon_barber",
+   "treatment": "eligible_but_no_coordinates",
+   "reason": "records list a branch/area but no accepted point for a straight-line ring",
+   "th": "ร้านทำผมและบาร์เบอร์",
+   "en": "Hair salons & barbers"
+  },
+  {
+   "id": "research.TH.sport",
+   "treatment": "not_countable_catalog_only",
+   "reason": "รายชื่อร้านกีฬาอยู่ในชุดวิจัย ต้องแยกป้ายร้านจากแบรนด์สินค้าที่วางขายและทวนจุดขายที่ซ้ำกัน",
+   "th": "ร้านอุปกรณ์กีฬา",
+   "en": "Sporting goods stores"
+  },
+  {
+   "id": "research.TH.temple",
+   "treatment": "not_countable_catalog_only",
+   "reason": "ต้องยืนยันเงื่อนไขการนำทะเบียนวัดมาเผยแพร่ และแยกรหัสในทะเบียนตามงวดออกจากสถานะการเปิดในปัจจุบัน",
+   "th": "ศาสนสถาน",
+   "en": "Places of worship"
+  },
+  {
+   "id": "production.cars",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=source_dataset; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "รถยนต์จดทะเบียน",
+   "en": "Registered Cars"
+  },
+  {
+   "id": "production.fire",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "การติดตามสถานการณ์ไฟ",
+   "en": "Fire Monitoring"
+  },
+  {
+   "id": "production.flash-flood-risk",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=forecast; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "น้ำท่วมฉับพลัน: ความเสี่ยง 24 ชั่วโมงโดย Google",
+   "en": "Flood: Flash Flood: 24-hour Risk by Google"
+  },
+  {
+   "id": "production.flood-forecast-depth",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=forecast; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "คาดการณ์ความลึกน้ำท่วมโดยกรมทรัพยากรน้ำ",
+   "en": "Flood: Forecast Depth by DWR"
+  },
+  {
+   "id": "production.floodrecent",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=event_archive; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "พื้นที่น้ำท่วมที่ตรวจพบตามวันที่ภาพ",
+   "en": "Dated Observed Inundation"
+  },
+  {
+   "id": "production.industrialEstate",
+   "treatment": "covered_elsewhere_or_not_used",
+   "reason": "research-only in production; counted in rings from the CityMETER Industrial Estate demo",
+   "th": "นิคม สวน และเขตอุตสาหกรรม",
+   "en": "Industrial Estates, Parks & Zones"
+  },
+  {
+   "id": "production.localeInsights",
+   "treatment": "parent_locale_reference_only",
+   "reason": "Bangkok Master locale id is referenced through locale_id and a link; canonical Locale Insight JSON is never copied",
+   "th": "Locale Insights: บริบทย่าน",
+   "en": "Locale Insights"
+  },
+  {
+   "id": "production.mb",
+   "treatment": "excluded_legacy_view",
+   "reason": "Legacy view pending resolution; the registry routes it to cars",
+   "th": "mb / Mercides Benz legacy view",
+   "en": "Mercides Benz"
+  },
+  {
+   "id": "production.quake",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "RUGON: ค่าการสั่นที่สถานีรายงาน",
+   "en": "RUGON: Station-reported Shaking"
+  },
+  {
+   "id": "production.road",
+   "treatment": "covered_elsewhere_or_not_used",
+   "reason": "research-only line network; see research.TH.road",
+   "th": "ทางสาธารณะทุกประเภท",
+   "en": "Public Roads Thailand"
+  },
+  {
+   "id": "production.terrain",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=derived_module; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "ภูมิประเทศและระดับความสูง",
+   "en": "Terrain & Elevation"
+  },
+  {
+   "id": "production.tourism",
+   "treatment": "province_context_only",
+   "reason": "Province-level visitors 2025; kept as context, not used in any score",
+   "th": "ความต้องการท่องเที่ยว: จำนวนนักท่องเที่ยวและค่าใช้จ่าย",
+   "en": "Tourism Demand: Visitors & Spending"
+  },
+  {
+   "id": "production.traffic",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "การจราจร: ความติดขัดและความเร็ว",
+   "en": "Traffic: Congestion & Speed"
+  },
+  {
+   "id": "production.trafficIncident",
+   "treatment": "deep_link_only_live_or_forecast",
+   "reason": "resource_class=monitoring_feed; values change daily or by request, so the demo links to the production view instead of copying a value",
+   "th": "เหตุการณ์และประกาศในพื้นที่",
+   "en": "City Events & Notices"
+  },
+  {
+   "id": "production.transit",
+   "treatment": "covered_elsewhere_or_not_used",
+   "reason": "research-only in production; counted in rings from the CityMETER Transit demo",
+   "th": "จุดบริการขนส่งผู้โดยสาร",
+   "en": "Transit"
+  }
+ ],
+ "priors": {
+  "adapter": "venue-context-adapter/0.1-demo",
+  "state": "generated_prior",
+  "blocks": [
+   [
+    "wd_morning",
+    "วันธรรมดา",
+    "Weekday",
+    "เช้า",
+    "Morning",
+    "06–10"
+   ],
+   [
+    "wd_lunch",
+    "วันธรรมดา",
+    "Weekday",
+    "กลางวัน",
+    "Lunch",
+    "11–13:30"
+   ],
+   [
+    "wd_afternoon",
+    "วันธรรมดา",
+    "Weekday",
+    "บ่าย",
+    "Afternoon",
+    "13:30–17"
+   ],
+   [
+    "wd_evening",
+    "วันธรรมดา",
+    "Weekday",
+    "เย็น",
+    "Evening",
+    "17–20"
+   ],
+   [
+    "wd_night",
+    "วันธรรมดา",
+    "Weekday",
+    "ค่ำ",
+    "Night",
+    "20–23"
+   ],
+   [
+    "we_morning",
+    "วันหยุด",
+    "Weekend",
+    "เช้า",
+    "Morning",
+    "07–11"
+   ],
+   [
+    "we_lunch",
+    "วันหยุด",
+    "Weekend",
+    "กลางวัน",
+    "Lunch",
+    "11–14"
+   ],
+   [
+    "we_afternoon",
+    "วันหยุด",
+    "Weekend",
+    "บ่าย",
+    "Afternoon",
+    "14–17"
+   ],
+   [
+    "we_evening",
+    "วันหยุด",
+    "Weekend",
+    "เย็น",
+    "Evening",
+    "17–20"
+   ],
+   [
+    "we_night",
+    "วันหยุด",
+    "Weekend",
+    "ค่ำ",
+    "Night",
+    "20–23"
+   ]
+  ],
+  "levels": {
+   "high": [
+    "สูง",
+    "High"
+   ],
+   "medium": [
+    "กลาง",
+    "Medium"
+   ],
+   "low": [
+    "ต่ำ",
+    "Low"
+   ],
+   "insufficient": [
+    "ข้อมูลไม่พอ",
+    "Not enough data"
+   ]
+  },
+  "daypart": [
+   [
+    "เงียบกว่า",
+    "Quieter"
+   ],
+   [
+    "ปกติ",
+    "Typical"
+   ],
+   [
+    "คึกกว่า",
+    "Busier"
+   ]
+  ],
+  "why": {
+   "baseline": [
+    "รูปแบบพื้นฐานของศูนย์ค้าปลีก",
+    "retail baseline"
+   ],
+   "workers": [
+    "คนทำงานรอบศูนย์สูง",
+    "many workers around"
+   ],
+   "residents": [
+    "ผู้อยู่อาศัยรอบศูนย์สูง",
+    "many residents around"
+   ],
+   "visitors": [
+    "ผู้มาเยือนสูง",
+    "many visitors"
+   ],
+   "type:community": [
+    "คอมมูนิตี้มอลล์",
+    "community mall"
+   ],
+   "type:outlet": [
+    "เอาท์เล็ต",
+    "outlet"
+   ]
+  },
+  "targets": {
+   "count_weekday_vs_weekend": [
+    "นับคนเข้าศูนย์ วันธรรมดาเทียบวันหยุด",
+    "Count entries on weekdays and weekends"
+   ],
+   "weekday_lunch_parking": [
+    "ดูที่จอดรถช่วงกลางวันวันธรรมดา",
+    "Check weekday lunchtime parking"
+   ],
+   "evening_repeat_visits": [
+    "ดูการกลับมาซ้ำช่วงเย็นจากสมาชิกหรือแอป",
+    "Check evening repeat visits from members or the app"
+   ],
+   "visitor_share_survey": [
+    "สำรวจสัดส่วนผู้มาจากนอกพื้นที่",
+    "Survey the share of visitors from outside the area"
+   ],
+   "tenant_sales_by_hour": [
+    "ดูยอดขายรวมของผู้เช่ารายชั่วโมง",
+    "Check aggregated tenant sales by hour"
+   ]
+  },
+  "signals": {
+   "ring:condominium:r3": [
+    "คอนโดใน 3 กม.",
+    "Condos within 3 km"
+   ],
+   "ring:school:students3": [
+    "นักเรียนใน 3 กม.",
+    "Students within 3 km"
+   ],
+   "area:population:population": [
+    "ประชากรในพื้นที่",
+    "Population in the area"
+   ],
+   "ring:hotel:r3": [
+    "ที่พักใน 3 กม.",
+    "Accommodation within 3 km"
+   ],
+   "ring:hotel:rooms3": [
+    "ห้องพักใน 3 กม.",
+    "Rooms within 3 km"
+   ],
+   "area:placeOfWorship:touristAttractionCount": [
+    "ศาสนสถานที่เป็นแหล่งท่องเที่ยวในพื้นที่",
+    "Places of worship listed as attractions in the area"
+   ],
+   "ring:office:r3": [
+    "สำนักงานใน 3 กม.",
+    "Offices within 3 km"
+   ],
+   "ring:government_office:r3": [
+    "หน่วยงานรัฐใน 3 กม.",
+    "Government offices within 3 km"
+   ],
+   "ring:factory:workers5": [
+    "คนงานโรงงานใน 5 กม.",
+    "Factory workers within 5 km"
+   ],
+   "ring:transit:r1": [
+    "สถานีรางใน 1 กม.",
+    "Rail stations within 1 km"
+   ],
+   "ring:university:r3": [
+    "มหาวิทยาลัยใน 3 กม.",
+    "Universities within 3 km"
+   ],
+   "ring:hospital:r3": [
+    "สถานพยาบาลใน 3 กม.",
+    "Health facilities within 3 km"
+   ],
+   "area:estate:totalPlots": [
+    "แปลงบ้านจัดสรรในพื้นที่",
+    "Housing-estate plots in the area"
+   ]
+  },
+  "segments": [
+   [
+    "residents",
+    "ผู้อยู่อาศัย",
+    "Residents"
+   ],
+   [
+    "visitors",
+    "ผู้มาเยือน",
+    "Visitors"
+   ],
+   [
+    "workers_commuters",
+    "คนทำงานและผู้เดินทาง",
+    "Workers and commuters"
+   ]
+  ]
+ },
+ "method": "DATA_METHOD.md#venue-locale-insight",
+ "neighbourhoods": {
+  "CMN-TH-0001": "สยาม",
+  "CMN-TH-X19C4E42927": "ราชประสงค์–ชิดลม",
+  "CMN-TH-C43F5FEC3F": "ประตูน้ำ",
+  "CMN-TH-5D15048A5A": "เยาวราช–วัดมังกร",
+  "CMN-TH-C3D32F50C8": "พาหุรัด",
+  "CMN-TH-0003": "ท่าเตียน–ปากคลองตลาด",
+  "CMN-TH-6E540B7FA3": "วังหลัง–ศิริราช",
+  "CMN-TH-C6B571726A": "จตุจักร–กำแพงเพชร",
+  "CMN-TH-209513EEDA": "ศรีจันทร์–รื่นรมย์",
+  "CMN-TH-77A4C00E9D": "กิมหยง–ลีการ์เดนส์",
+  "CMN-TH-D8434E6568": "ตลาดศาลเจ้า–ตีเหล็ก–วัดไทร",
+  "CMN-TH-8F14652A76": "ท่าวัง–ท่ามอญ",
+  "CMN-TH-0002": "สีลม–ศาลาแดง",
+  "CMN-TH-0011": "สาทร–ช่องนนทรี",
+  "CMN-TH-0009": "อโศก–สุขุมวิท",
+  "CMN-TH-0010": "เพลินจิต–วิทยุ",
+  "CMN-TH-52101DF8BB": "พระราม 9–รัชดา",
+  "CMN-TH-0007": "พร้อมพงษ์",
+  "CMN-TH-0006": "ห้าแยกลาดพร้าว–พหลโยธิน",
+  "CMN-TH-0008": "สามย่าน–พระราม 4",
+  "CMN-TH-B70406FDAA": "ศูนย์ฯ สิริกิติ์–พระราม 4",
+  "CMN-TH-4EE2B378F4": "ตลาดน้อย–สี่พระยา",
+  "CMN-TH-4B23AD624F": "บางรัก–สะพานตากสิน",
+  "CMN-TH-97C4FC0AAD": "คลองสาน–ไอคอนสยาม",
+  "CMN-TH-9A7FFAE8DA": "อนุสาวรีย์ชัยสมรภูมิ",
+  "CMN-TH-BC066B11B8": "รัชโยธิน",
+  "CMN-TH-8C742810E9": "รัชดา–ศูนย์วัฒนธรรม",
+  "CMN-TH-98677087A9": "นานา",
+  "CMN-TH-X6FC536C3BF": "ทองหล่อ",
+  "CMN-TH-X4384BBFA39": "เอกมัย",
+  "CMN-TH-C781039A3D": "อ่อนนุช",
+  "CMN-TH-AA988C4C7A": "บางนา–ไบเทค",
+  "CMN-TH-A54875ACCE": "บรรทัดทอง–สวนหลวง",
+  "CMN-TH-5AD35C781B": "พระโขนง",
+  "CMN-TH-X7CF5E9C928": "เมืองทองธานี–อิมแพ็ค",
+  "CMN-TH-X49A508B773": "แคราย–รัตนาธิเบศร์",
+  "CMN-TH-XE4EE678023": "รังสิต–ฟิวเจอร์พาร์ค",
+  "CMN-TH-F8387EC485": "ธรรมศาสตร์รังสิต–TU DOME",
+  "CMN-TH-91BC3C3F2B": "พัทยาเหนือ–วงเวียนปลาโลมา",
+  "CMN-TH-94F11619C5": "ศรีราชา–เกาะลอย",
+  "CMN-TH-22C5D916FC": "โรบินสันบ่อวิน–เพลินการ์เด้น",
+  "CMN-TH-66B926E2F5": "ช้างคลาน–ไนท์บาซาร์",
+  "CMN-TH-FB55C19EF1": "นิมมาน–เมญ่า",
+  "CMN-TH-X5F307800E7": "เดอะมอลล์–มิตรภาพ",
+  "CMN-TH-X182DA97D1E": "คลองสวนพลู–อยุธยาซิตี้พาร์ค",
+  "CMN-TH-AC4758F0BC": "ป่าตอง",
+  "CMN-TH-BC3151BDE8": "บางเทา–ลากูน่า",
+  "CMN-TH-D44B9CBAD4": "ไม้ขาว–เทอร์เทิลวิลเลจ",
+  "CMN-TH-C708E7E7B9": "เมืองกระบี่–เจ้าฟ้า",
+  "CMN-TH-5838F0E55F": "เฉวง",
+  "CMN-TH-3FD68758F6": "วัดประดู่–เซ็นทรัลสุราษฎร์",
+  "CMN-TH-38B4A49D02": "ตลาดโต้รุ่ง–หอนาฬิกามหาสารคาม",
+  "CMN-TH-7B4EFE326A": "ตลาดเมืองศรีสะเกษ–สถานีรถไฟ",
+  "CMN-TH-4F95C50D66": "ชุมชนย่านการค้าฉะเชิงเทรา",
+  "CMN-TH-X75DE24017E": "ย่านบางกะปิ (แกนการค้าลาดพร้าว)",
+  "CMN-TH-A3281E21FB": "บริเวณถนนเพชรเกษม–สนามจันทร์",
+  "CMN-TH-C5B3F403B9": "บริเวณถนนพระราม 2–ท่าทราย",
+  "CMN-TH-9459923C2B": "แพรกษา",
+  "CMN-TH-3CA81202CE": "ชยางกูรช่วงโลตัส–สุนีย์ทาวเวอร์",
+  "CMN-TH-5AAF561750": "สี่แยกโรบินสันแม่สอด–สายเอเชีย",
+  "CMN-TH-4FEF5E332F": "ราชดำริ–หลังสวน",
+  "CMN-TH-38224BAB24": "ลุมพินี",
+  "CMN-TH-8C2A968942": "อุดมสุข",
+  "CMN-TH-7797A8CFCD": "อารีย์",
+  "CMN-TH-A80D6353DE": "ลาดพร้าว",
+  "CMN-TH-43484BC23C": "ตลาดพลู",
+  "CMN-TH-CC7B57671F": "หลักสอง",
+  "CMN-TH-623DE3BEE5": "สวนหลวง ร.9",
+  "CMN-TH-1FFC590650": "ศรีเอี่ยม",
+  "CMN-TH-FC9F0B73B3": "ปุณณวิถี",
+  "CMN-TH-6496E9EC1C": "แจ้งวัฒนะ 14",
+  "CMN-TH-FBBE98C253": "บางเขน–งามวงศ์วาน",
+  "CMN-TH-636BC89A7A": "วงแหวนรามอินทรา",
+  "CMN-TH-137B582CAD": "มักกะสัน–เพชรบุรี",
+  "CMN-TH-ADC2D98A52": "หลักสี่",
+  "CMN-TH-620C52F2B1": "ศรีแบริ่ง",
+  "CMN-TH-8ED685373B": "แจ้งวัฒนะ-ปากเกร็ด 28",
+  "CMN-TH-43DD441D85": "ลาดพร้าว 83",
+  "CMN-TH-1A0FC5A931": "คู้บอน",
+  "CMN-TH-52826C9E49": "ภาษีเจริญ"
+ },
+ "neighbourhoodLink": "https://citymeter.pages.dev/commercialdistrict/?f.neighborhood={id}",
+ "neighbourhoodSource": "montri-th/commercialdistrict@77d85ec data/neighborhoods.json (draft names pending local validation)"
+}
