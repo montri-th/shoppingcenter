@@ -460,14 +460,16 @@ function factLines(meta, sg, facts, row, seg) {
   } else if (seg === 'workers') {
     if (s['office.n3'] != null) {
       const rent = s['office.rent3.med'];
-      out.push(factLine(`สำนักงาน ${num(s['office.n3'])} รายการใน 3 กม.${rent ? ` · ค่าเช่าที่ประกาศ (ค่ากลาง) ${num(rent)} บาท/ตร.ม./เดือน` : ''}`,
+      if (s['office.n3'] === 0) out.push(factLine('ไม่พบสำนักงานในชุดข้อมูลใน 3 กม.', 'No office record within 3 km'));
+      else out.push(factLine(`สำนักงาน ${num(s['office.n3'])} รายการใน 3 กม.${rent ? ` · ค่าเช่าที่ประกาศ (ค่ากลาง) ${num(rent)} บาท/ตร.ม./เดือน` : ''}`,
         `${num(s['office.n3'])} office records within 3 km${rent ? ` · median asking rent THB ${num(rent)}/m²/month` : ''}`, rent ? ctxRank(meta, sg, 'office.rent3.med') : null));
     }
     for (const e of ex.office || []) {
       const parts = [e.a ? [`${num(e.a)} ตร.ม.`, `${num(e.a)} m²`] : null, e.rr ? [`ค่าเช่าที่ประกาศ ${range(e.rr[0], e.rr[1])} บาท/ตร.ม./เดือน${e.ro ? ` (${thaiDay(e.ro)})` : ''}`, `asking rent THB ${range(e.rr[0], e.rr[1])}/m²/month${e.ro ? ` (${e.ro})` : ''}`] : null, distanceWords(e.d)].filter(Boolean);
       out.push(poiLine(meta, 'office', e.k, e.n, e.e, parts));
     }
-    if (s['hospital.private3'] != null) {
+    if (s['hospital.private3'] === 0) out.push(factLine('ไม่พบโรงพยาบาลเอกชนใน 3 กม.', 'No private hospital within 3 km'));
+    else if (s['hospital.private3'] != null) {
       out.push(factLine(`โรงพยาบาลเอกชน ${num(s['hospital.private3'])} แห่ง ${num(s['hospital.privateBeds3'] || 0)} เตียงใน 3 กม.`, `${num(s['hospital.private3'])} private hospitals with ${num(s['hospital.privateBeds3'] || 0)} beds within 3 km`,
         ctxRank(meta, sg, 'hospital.privateBeds3', {count: true})));
     }
@@ -489,7 +491,7 @@ function factLines(meta, sg, facts, row, seg) {
     for (const e of ex.transit || []) {
       out.push(poiLine(meta, 'transit', e.k, e.n, e.e, [...(e.l || []), distanceWords(e.d)]));
     }
-    if (s['gov.n3'] != null) out.push(factLine(`หน่วยงานรัฐ ${num(s['gov.n3'])} แห่งใน 3 กม.`, `${num(s['gov.n3'])} government offices within 3 km`));
+    if (s['gov.n3'] != null) out.push(s['gov.n3'] > 0 ? factLine(`หน่วยงานรัฐ ${num(s['gov.n3'])} แห่งใน 3 กม.`, `${num(s['gov.n3'])} government offices within 3 km`) : factLine('ไม่พบหน่วยงานรัฐใน 3 กม.', 'No government office within 3 km'));
   } else if (seg === 'visitors') {
     if (s['hotel.priced3']) {
       out.push(factLine(`ที่พักรายคืนที่มีราคาบันทึก ${num(s['hotel.priced3'])} แห่งใน 3 กม. · ราคาเริ่มต้นที่บันทึก (ค่ากลาง) ${num(s['hotel.med3'])} บาท`,
