@@ -450,3 +450,15 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - `npm test`: 302 tests, 300 pass, 2 fail — the same 2 fail on a clean checkout of `e011b66` (main before this release) (`named-host gate…`, `host review…`), so not from this release. New: `tests/venue-locale.test.js` (10 tests: the 499-venue set, bundle and shards, zero and partial rules, rank words, area rows, links, section HTML, LUT colours, English of every Thai text on sample venues).
 - Headless Chrome (container; MapLibre blocked by the container proxy, so the map shows its failure card and the panel works as designed): `?venue=SC-001245` (เซ็นทรัลเวิลด์) at 1440 px and 390 px, light and dark — headlines, the amCharts dot plot with counts beside the dots, table, area rows, live links, priors after opening (one extra request `data/locale/priors/NN.json`), method and data line; radius 1 km and same-type comparison re-rank and keep focus on the pressed chip; open details stay open across a re-render; `?venue=SC-000034` (Outlet Village Krabi): subdistrict, local government area, district and province levels, unplaced cinemas in Krabi. English with the language meta injected and the shell's translation started: no Thai left in the section except the commercial-district name that has no English source.
 - Not proof of the live release: see the observed-release block below once pushed.
+
+## 0.4.0 — Observed release `eb74559` (r2, 18 Nov 2026 ICT)
+
+- Preview first: citymeter-pages-deploy run 44270234056 (preview, override `shoppingcenter` = `c7b9fdc`) passed every step including the byte comparison; Chrome on preview.citymeter.pages.dev: CentralWorld at 1720 px (dark theme, the map drawn) and Outlet Village Krabi in a 390 × 844 frame on the same origin (no horizontal overflow) showed the section, the chart, the units and the unplaced cinemas.
+- Pull request #12 merged (`eb74559`); GitHub Pages run 44270663407 succeeded. `npm run handoff:manifest`: 1,450 files; `npm run verify:live`: 1,351 ok, 3 failed — 2 answered 503 and matched on a second fetch; `assets/manifest.json` differs because the handoff script regenerates it with the two `material-controls-300` files of 0.3.0 that the committed manifest lacks (stale since 0.3.0, not from this release; left as it is). All 137 files of `data/locale/` and the two new modules match.
+- citymeter.pages.dev: run 44271105996 (publish) succeeded; `/release.json` names `montri-th/shoppingcenter` `eb74559`, cache tag `20261118-r2`, shell 0.6.3. Chrome on `/shoppingcenter/?d=shoppingCenter&e=venue:SC-001245`: radius 1 km re-ranks (headlines: luxury 139 points of sale, top 1% · rail 7 station-line records · accommodation 83), focus stays on the pressed chip, the priors block requests `priors/22.json` only when opened and shows 3 segments and 10 blocks; `meta.json`, `facts/22.json`, `priors/22.json` answer 200.
+- Seen on the live page: the empty corner cell of the daypart table drew a box → 0.4.1.
+
+## 0.4.1 — daypart table corner (`20261118-r3`) — local verification
+
+- `styles.css`: `.daypart thead td` has no border or fill (the corner above the day labels). Nothing else changes.
+
