@@ -1,12 +1,12 @@
 {
  "schema": "citymeter-venue-locale-serving/1",
- "bundleId": "venue-locale-shopping-20261118-v0.1.0-rc1-web",
- "createdAt": "2026-11-18T08:39:35Z",
+ "bundleId": "venue-locale-shopping-20261118-v0.2.0-rc1-web",
+ "createdAt": "2026-11-18T11:17:45Z",
  "asOf": "2026-11-18",
  "release": {
-  "id": "venue-locale-shopping-20261118-v0.1.0-rc1",
+  "id": "venue-locale-shopping-20261118-v0.2.0-rc1",
   "status": "release_candidate",
-  "manifestSha256": "136b6e1f44ca67d271d812d776585435903b0a1ad549174e8cbeae1921a6cdcd",
+  "manifestSha256": "5f152eb96de2f9c6e0aeed32a33edbea543c3b7eabcc7d54d2aa1566b85d1051",
   "schema": "venue_locale_schema_v1",
   "blockingIssues": 16
  },
@@ -48,7 +48,6 @@
    "th": "ที่อยู่อาศัยและครอบครัว",
    "en": "Homes and families",
    "datasets": [
-    "condominium",
     "school"
    ]
   },
@@ -457,42 +456,6 @@
     "total": 235
    },
    "placed": false
-  },
-  "condominium": {
-   "th": "คอนโดมิเนียม (จุดในฐานราคาประเมิน)",
-   "en": "Condominiums (appraisal map points)",
-   "short": [
-    "คอนโด",
-    "Condos"
-   ],
-   "unit": [
-    "รายการ",
-    "records"
-   ],
-   "source": [
-    "ทะเบียนวิจัย CityMETER",
-    "CityMETER research registry"
-   ],
-   "sourceRef": "research.TH.condominium:07_PRODUCTION",
-   "sourceKind": "research_master",
-   "link": null,
-   "date": "2026-11-05",
-   "scope": [
-    "นับรหัสรายการไม่ซ้ำตามพื้นที่ที่ CityMETER ใช้แสดงข้อมูลราคาประเมินอาคารชุด โดยคัดรายการที่พบข้อขัดแย้งด้านพื้นที่ออก",
-    ""
-   ],
-   "brands": null,
-   "eligible": 7887,
-   "located": 7887,
-   "unlocatedByProvince": {},
-   "subgroups": [],
-   "measure": null,
-   "yolk": {
-    "release": "yolk-20261116-v5",
-    "metric": "condo_appraisal_record_ids",
-    "total": 8060
-   },
-   "placed": true
   },
   "factory": {
    "th": "โรงงาน",
@@ -3208,6 +3171,13 @@
    "en": "Cinemas & theatres"
   },
   {
+   "id": "research.TH.condominium",
+   "treatment": "area_attribution_only_spatial_policy",
+   "reason": "The dataset counts appraisal record ids by the search area the source lists; its map points are display only (spatial gate pending), so 0.2 stops counting them in radii and lists the records of the venue's own subdistrict instead.",
+   "th": "คอนโดมิเนียม",
+   "en": "Condominiums"
+  },
+  {
    "id": "research.TH.furniture",
    "treatment": "not_countable_catalog_only",
    "reason": "รายชื่อร้านและโชว์รูมอยู่ในชุดวิจัย ต้องคัดรายการที่นับได้และทวนสาขาที่มีชื่อซ้ำก่อนเผยแพร่",
@@ -3376,89 +3346,488 @@
    "en": "Transit"
   }
  ],
+ "context": {
+  "labels": {
+   "school.intlpriv3": [
+    "โรงเรียนเอกชนและนานาชาติใน 3 กม.",
+    "Private and international schools within 3 km",
+    "แห่ง",
+    "schools"
+   ],
+   "school.intl3": [
+    "โรงเรียนนานาชาติใน 3 กม.",
+    "International schools within 3 km",
+    "แห่ง",
+    "schools"
+   ],
+   "school.priv3": [
+    "โรงเรียนเอกชนใน 3 กม.",
+    "Private schools within 3 km",
+    "แห่ง",
+    "schools"
+   ],
+   "school.n3": [
+    "สถานศึกษาใน 3 กม.",
+    "Schools within 3 km",
+    "แห่ง",
+    "schools"
+   ],
+   "school.fee5.n": [
+    "โรงเรียนที่ประกาศค่าเทอมใน 5 กม.",
+    "Schools with published tuition within 5 km",
+    "แห่ง",
+    "schools"
+   ],
+   "school.fee5.max": [
+    "ค่าเทอมสูงสุดที่โรงเรียนประกาศใน 5 กม.",
+    "Highest published tuition within 5 km",
+    "บาท/ปี",
+    "THB/year"
+   ],
+   "uni.sites5": [
+    "พื้นที่มหาวิทยาลัยใน 5 กม.",
+    "University sites within 5 km",
+    "แห่ง",
+    "sites"
+   ],
+   "uni.private5": [
+    "มหาวิทยาลัยเอกชนใน 5 กม.",
+    "Private university sites within 5 km",
+    "แห่ง",
+    "sites"
+   ],
+   "hotel.priced3": [
+    "ที่พักรายคืนที่มีราคาบันทึกใน 3 กม.",
+    "Nightly stays with a recorded price within 3 km",
+    "แห่ง",
+    "places"
+   ],
+   "hotel.med3": [
+    "ราคาเริ่มต้นที่บันทึกของที่พักใน 3 กม. (ค่ากลาง)",
+    "Lowest recorded price of stays within 3 km (median)",
+    "บาท",
+    "THB"
+   ],
+   "hotel.upperRooms3": [
+    "ห้องในที่พักราคาบันทึกกลุ่มบน",
+    "Rooms in upper-priced stays",
+    "%",
+    "%"
+   ],
+   "hotel.budgetRooms3": [
+    "ห้องในที่พักราคาบันทึกกลุ่มล่าง",
+    "Rooms in budget-priced stays",
+    "%",
+    "%"
+   ],
+   "hotel.branded3": [
+    "ที่พักที่มีแบรนด์เครือใน 3 กม.",
+    "Chain-branded stays within 3 km",
+    "แห่ง",
+    "places"
+   ],
+   "lux.in": [
+    "จุดขายแบรนด์หรูในศูนย์นี้",
+    "Luxury points of sale in this centre",
+    "จุด",
+    "points of sale"
+   ],
+   "lux.r1": [
+    "จุดขายแบรนด์หรูใน 1 กม.",
+    "Luxury points of sale within 1 km",
+    "จุด",
+    "points of sale"
+   ],
+   "lux.r3": [
+    "จุดขายแบรนด์หรูใน 3 กม.",
+    "Luxury points of sale within 3 km",
+    "จุด",
+    "points of sale"
+   ],
+   "office.rent3.med": [
+    "ค่าเช่าสำนักงานที่ประกาศใน 3 กม. (ค่ากลาง)",
+    "Office asking rent within 3 km (median)",
+    "บาท/ตร.ม./เดือน",
+    "THB/m²/month"
+   ],
+   "office.rent3.n": [
+    "สำนักงานที่ประกาศค่าเช่าใน 3 กม.",
+    "Offices with an asking rent within 3 km",
+    "รายการ",
+    "records"
+   ],
+   "office.area3": [
+    "พื้นที่สำนักงานที่แหล่งระบุใน 3 กม.",
+    "Office floor area the sources list within 3 km",
+    "ตร.ม.",
+    "m²"
+   ],
+   "office.rental3": [
+    "สำนักงานให้เช่าใน 3 กม.",
+    "Rental offices within 3 km",
+    "รายการ",
+    "records"
+   ],
+   "gov.n3": [
+    "หน่วยงานรัฐใน 3 กม.",
+    "Government offices within 3 km",
+    "แห่ง",
+    "places"
+   ],
+   "factory.workers5": [
+    "คนงานโรงงานตามทะเบียนใน 5 กม.",
+    "Registered factory workers within 5 km",
+    "คน",
+    "workers"
+   ],
+   "hospital.private3": [
+    "โรงพยาบาลเอกชนใน 3 กม.",
+    "Private hospitals within 3 km",
+    "แห่ง",
+    "hospitals"
+   ],
+   "hospital.privateBeds3": [
+    "เตียงโรงพยาบาลเอกชนใน 3 กม.",
+    "Private-hospital beds within 3 km",
+    "เตียง",
+    "beds"
+   ],
+   "transit.nearM": [
+    "สถานีรางที่ใกล้ที่สุด",
+    "Nearest rail station",
+    "ม.",
+    "m"
+   ],
+   "condo.sub.n": [
+    "คอนโดในฐานราคาประเมินของแขวง/ตำบลนี้",
+    "Condominiums in the appraisal base of this subdistrict",
+    "รายการ",
+    "records"
+   ],
+   "condo.sub.p50med": [
+    "ราคาประเมินห้องชุดในแขวง/ตำบลนี้ (ค่ากลาง)",
+    "Unit appraisal in this subdistrict (median)",
+    "บาท/ตร.ม.",
+    "THB/m²"
+   ]
+  },
+  "demoLink": {
+   "school": [
+    "school",
+    "school"
+   ],
+   "university": [
+    "university",
+    "site"
+   ],
+   "hotel": [
+    "hotel",
+    "hotel"
+   ],
+   "luxury": [
+    "luxurybrands",
+    "store"
+   ],
+   "luxuryVenue": [
+    "luxurybrands",
+    "venue"
+   ],
+   "office": [
+    "office",
+    "office"
+   ],
+   "factory": [
+    "factory",
+    "factory"
+   ],
+   "hospital": [
+    "hospital",
+    "facility"
+   ],
+   "transit": [
+    "transit",
+    "station"
+   ]
+  },
+  "ranked": {
+   "school.intlpriv3": "all",
+   "school.fee5.max": "known",
+   "hotel.med3": "known",
+   "hotel.upperRooms3": "known",
+   "hotel.branded3": "all",
+   "lux.r3": "all",
+   "office.rent3.med": "known",
+   "office.area3": "all",
+   "gov.staff3": "all",
+   "factory.workers5": "all",
+   "hospital.privateBeds3": "all",
+   "condo.sub.p50med": "known",
+   "uni.private5": "all"
+  },
+  "hotel": {
+   "p20": 380,
+   "p80": 1200,
+   "p99": 5900,
+   "records": 26478,
+   "date": "2026-11-08"
+  },
+  "dates": {
+   "school": "2026-10-31",
+   "university": "2026-11-10",
+   "hotel": "2026-11-08",
+   "luxury": "2026-10-21",
+   "office": "2026-11-02",
+   "government_office": "2026-11-06",
+   "factory": "2026-11-16",
+   "hospital": "2026-11-01",
+   "transit": "2026-10-31",
+   "production_shopping_center": "2026-11-18",
+   "tenant_roster": "2026-11-07",
+   "operator_description": "2026-10-25"
+  },
+  "condoPeriod": [
+   "ชุดราคาประเมินตามหน้า production (ม.ค. 2567) · ตรวจรายพื้นที่ 5 พ.ย. 2569",
+   "Appraisal set named by the production page (Jan 2024) · area records checked 5 Nov 2026"
+  ],
+  "feeSchools": 86,
+  "groups": {
+   "school": {
+    "public": [
+     "โรงเรียนรัฐ สพฐ.",
+     "Public school (OBEC)"
+    ],
+    "local": [
+     "โรงเรียนท้องถิ่นและกรุงเทพฯ",
+     "Local-government school"
+    ],
+    "private": [
+     "โรงเรียนเอกชน",
+     "Private school"
+    ],
+    "international": [
+     "โรงเรียนนานาชาติ",
+     "International school"
+    ],
+    "vocational": [
+     "อาชีวศึกษา",
+     "Vocational college"
+    ],
+    "nonformal": [
+     "ส่งเสริมการเรียนรู้ (สกร.)",
+     "Learning promotion centre"
+    ],
+    "childcare": [
+     "ศูนย์พัฒนาเด็กเล็ก",
+     "Child development centre"
+    ],
+    "other": [
+     "สถานศึกษารัฐอื่น",
+     "Other public institution"
+    ]
+   },
+   "university": {
+    "autonomous": [
+     "มหาวิทยาลัยในกำกับ",
+     "Autonomous university"
+    ],
+    "public": [
+     "มหาวิทยาลัยรัฐ",
+     "Public university"
+    ],
+    "rajabhat": [
+     "มหาวิทยาลัยราชภัฏ",
+     "Rajabhat university"
+    ],
+    "rmut": [
+     "มหาวิทยาลัยเทคโนโลยีราชมงคล",
+     "Rajamangala University of Technology"
+    ],
+    "private": [
+     "มหาวิทยาลัยเอกชน",
+     "Private university"
+    ],
+    "private_other": [
+     "สถาบันเอกชนอื่น",
+     "Other private institution"
+    ],
+    "open": [
+     "มหาวิทยาลัยเปิด",
+     "Open university"
+    ],
+    "outside": [
+     "สถาบันนอกสังกัด อว.",
+     "Institution outside MHESI"
+    ]
+   },
+   "hotel": {
+    "hotel": [
+     "โรงแรม",
+     "Hotel"
+    ],
+    "resort": [
+     "รีสอร์ท",
+     "Resort"
+    ],
+    "apartment": [
+     "อพาร์ตเมนต์และเซอร์วิสอพาร์ตเมนต์",
+     "Apartment & serviced apartment"
+    ],
+    "guesthouse": [
+     "เกสต์เฮาส์และโฮสเทล",
+     "Guesthouse & youth lodging"
+    ],
+    "bungalow": [
+     "บังกะโล",
+     "Bungalow"
+    ],
+    "homestay": [
+     "โฮมสเตย์",
+     "Homestay"
+    ],
+    "other": [
+     "ที่พักอื่น",
+     "Other lodging"
+    ]
+   },
+   "hospital": {
+    "regional": [
+     "โรงพยาบาลศูนย์และทั่วไป",
+     "Regional & general hospital"
+    ],
+    "private": [
+     "โรงพยาบาลเอกชน",
+     "Private hospital"
+    ],
+    "community": [
+     "โรงพยาบาลชุมชน",
+     "Community hospital"
+    ],
+    "public_other": [
+     "โรงพยาบาลรัฐนอกสังกัดสาธารณสุข",
+     "Other public hospital"
+    ],
+    "subdistrict": [
+     "โรงพยาบาลส่งเสริมสุขภาพตำบล",
+     "Sub-district health-promoting hospital"
+    ],
+    "center": [
+     "ศูนย์บริการสาธารณสุขและหน่วยปฐมภูมิ",
+     "Health centre & primary-care unit"
+    ],
+    "clinic": [
+     "คลินิกเอกชน",
+     "Private clinic"
+    ],
+    "other": [
+     "ไม่ระบุประเภท",
+     "Type not recorded"
+    ]
+   },
+   "factory": {
+    "food": [
+     "อาหารและเครื่องดื่ม",
+     "Food & beverages"
+    ],
+    "electrical": [
+     "เครื่องใช้ไฟฟ้าและอุปกรณ์",
+     "Electrical appliances & equipment"
+    ],
+    "vehicle": [
+     "ยานพาหนะและเครื่องจักร",
+     "Vehicles & machinery"
+    ],
+    "textile": [
+     "สิ่งทอ เครื่องแต่งกาย หนัง",
+     "Textiles, apparel & leather"
+    ],
+    "metal": [
+     "โลหะ",
+     "Metals"
+    ],
+    "polymer": [
+     "พลาสติก ยาง เคมี",
+     "Plastics, rubber & chemicals"
+    ],
+    "wood": [
+     "ไม้ กระดาษ การพิมพ์",
+     "Wood, paper & printing"
+    ],
+    "mineral": [
+     "ผลิตภัณฑ์อโลหะ",
+     "Non-metallic mineral products"
+    ],
+    "plant": [
+     "ผลิตภัณฑ์จากพืช",
+     "Plant products"
+    ],
+    "other": [
+     "การผลิตอื่น ๆ",
+     "Other manufacturing"
+    ],
+    "unstated": [
+     "ไม่ระบุกลุ่มอุตสาหกรรม",
+     "Industry group not stated"
+    ]
+   },
+   "luxury": {
+    "luxury_designer": [
+     "แฟชั่นแบรนด์หรู",
+     "Luxury designer"
+    ],
+    "beauty_fragrance": [
+     "ความงามและน้ำหอม",
+     "Beauty and fragrance"
+    ],
+    "watches": [
+     "นาฬิกา",
+     "Watches"
+    ],
+    "fine_jewelry": [
+     "เครื่องประดับ",
+     "Fine jewellery"
+    ],
+    "premium_extension": [
+     "แบรนด์พรีเมียม",
+     "Premium extension"
+    ],
+    "upscale_streetwear": [
+     "สตรีทแวร์ระดับบน",
+     "Upscale streetwear"
+    ],
+    "thai_designer": [
+     "ดีไซเนอร์ไทย",
+     "Thai designer"
+    ],
+    "curated_retailer": [
+     "ร้านคัดสรรหลายแบรนด์",
+     "Curated retailer"
+    ]
+   }
+  }
+ },
  "priors": {
-  "adapter": "venue-context-adapter/0.1-demo",
+  "adapter": "venue-context-adapter/0.2-demo",
   "state": "generated_prior",
-  "blocks": [
+  "segments": [
    [
-    "wd_morning",
-    "วันธรรมดา",
-    "Weekday",
-    "เช้า",
-    "Morning",
-    "06–10"
+    "residents",
+    "ผู้อยู่อาศัยรอบศูนย์",
+    "Residents around the centre"
    ],
    [
-    "wd_lunch",
-    "วันธรรมดา",
-    "Weekday",
-    "กลางวัน",
-    "Lunch",
-    "11–13:30"
+    "students",
+    "นักเรียน นักศึกษา และครอบครัว",
+    "Students and families"
    ],
    [
-    "wd_afternoon",
-    "วันธรรมดา",
-    "Weekday",
-    "บ่าย",
-    "Afternoon",
-    "13:30–17"
+    "workers",
+    "คนทำงานและผู้เดินทาง",
+    "Workers and commuters"
    ],
    [
-    "wd_evening",
-    "วันธรรมดา",
-    "Weekday",
-    "เย็น",
-    "Evening",
-    "17–20"
-   ],
-   [
-    "wd_night",
-    "วันธรรมดา",
-    "Weekday",
-    "ค่ำ",
-    "Night",
-    "20–23"
-   ],
-   [
-    "we_morning",
-    "วันหยุด",
-    "Weekend",
-    "เช้า",
-    "Morning",
-    "07–11"
-   ],
-   [
-    "we_lunch",
-    "วันหยุด",
-    "Weekend",
-    "กลางวัน",
-    "Lunch",
-    "11–14"
-   ],
-   [
-    "we_afternoon",
-    "วันหยุด",
-    "Weekend",
-    "บ่าย",
-    "Afternoon",
-    "14–17"
-   ],
-   [
-    "we_evening",
-    "วันหยุด",
-    "Weekend",
-    "เย็น",
-    "Evening",
-    "17–20"
-   ],
-   [
-    "we_night",
-    "วันหยุด",
-    "Weekend",
-    "ค่ำ",
-    "Night",
-    "20–23"
+    "visitors",
+    "ผู้มาเยือนและนักท่องเที่ยว",
+    "Visitors and tourists"
    ]
   ],
   "levels": {
@@ -3479,80 +3848,751 @@
     "Not enough data"
    ]
   },
-  "daypart": [
-   [
-    "เงียบกว่า",
-    "Quieter"
+  "mix": {
+   "res_high": [
+    "ย่านที่ราคาที่อยู่อาศัยสูง",
+    "An area where homes are priced high"
    ],
-   [
-    "ปกติ",
-    "Typical"
+   "res_medium": [
+    "ย่านที่ราคาที่อยู่อาศัยปานกลาง",
+    "An area where homes are priced mid-range"
    ],
-   [
-    "คึกกว่า",
-    "Busier"
-   ]
-  ],
-  "why": {
-   "baseline": [
-    "รูปแบบพื้นฐานของศูนย์ค้าปลีก",
-    "retail baseline"
+   "res_low": [
+    "ย่านที่ราคาที่อยู่อาศัยต่ำกว่าศูนย์อื่น",
+    "An area where homes are priced below other centres"
    ],
-   "workers": [
-    "คนทำงานรอบศูนย์สูง",
-    "many workers around"
+   "res_unknown": [
+    "ยังมีราคาที่อยู่อาศัยไม่พอให้เทียบ",
+    "Not enough home prices to compare"
    ],
-   "residents": [
-    "ผู้อยู่อาศัยรอบศูนย์สูง",
-    "many residents around"
+   "stu_premium": [
+    "มีโรงเรียนเอกชนและนานาชาติหนาแน่น",
+    "Dense private and international schooling"
    ],
-   "visitors": [
-    "ผู้มาเยือนสูง",
-    "many visitors"
+   "stu_university": [
+    "ใกล้มหาวิทยาลัย",
+    "Near universities"
    ],
-   "type:community": [
-    "คอมมูนิตี้มอลล์",
-    "community mall"
+   "stu_local": [
+    "โรงเรียนในพื้นที่เป็นหลัก",
+    "Mostly local schools"
    ],
-   "type:outlet": [
-    "เอาท์เล็ต",
-    "outlet"
+   "wrk_office": [
+    "งานออฟฟิศเด่น",
+    "Office work leads"
+   ],
+   "wrk_public": [
+    "หน่วยงานรัฐเด่น",
+    "Government offices lead"
+   ],
+   "wrk_industrial": [
+    "งานโรงงานเด่น",
+    "Factory work leads"
+   ],
+   "wrk_healthcare": [
+    "โรงพยาบาลเอกชนเด่น",
+    "Private hospitals lead"
+   ],
+   "wrk_mixed": [
+    "งานหลายแบบปนกัน",
+    "A mix of workplaces"
+   ],
+   "vis_upscale": [
+    "ที่พักราคาสูงและแบรนด์หรูใกล้ศูนย์",
+    "Higher-priced stays and luxury brands nearby"
+   ],
+   "vis_pricier_stays": [
+    "ที่พักราคาบันทึกสูงกว่ารอบศูนย์อื่น",
+    "Stays recorded at higher prices than around other centres"
+   ],
+   "vis_budget": [
+    "ที่พักราคาประหยัดเป็นหลัก",
+    "Mostly budget stays"
+   ],
+   "vis_general": [
+    "ที่พักหลายระดับราคา",
+    "Stays across price levels"
    ]
   },
-  "targets": {
-   "count_weekday_vs_weekend": [
-    "นับคนเข้าศูนย์ วันธรรมดาเทียบวันหยุด",
-    "Count entries on weekdays and weekends"
+  "wtp": {
+   "res_quality": [
+    "ของสดและของคุณภาพ โดยไม่ต้องขับไปไกล",
+    "Fresh and quality food without a long drive"
    ],
-   "weekday_lunch_parking": [
-    "ดูที่จอดรถช่วงกลางวันวันธรรมดา",
-    "Check weekday lunchtime parking"
+   "res_time": [
+    "บริการที่ช่วยประหยัดเวลา เช่น ซักรีด ซ่อม รับฝากของ",
+    "Services that save time: laundry, repairs, parcel pick-up"
    ],
-   "evening_repeat_visits": [
-    "ดูการกลับมาซ้ำช่วงเย็นจากสมาชิกหรือแอป",
-    "Check evening repeat visits from members or the app"
+   "res_wellness": [
+    "สุขภาพ ความงาม และกิจกรรมของลูก",
+    "Health, beauty and children’s activities"
    ],
-   "visitor_share_survey": [
-    "สำรวจสัดส่วนผู้มาจากนอกพื้นที่",
-    "Survey the share of visitors from outside the area"
+   "res_convenience": [
+    "ความสะดวกใกล้บ้าน จอดง่าย ใช้เวลาน้อย",
+    "Convenience near home: easy parking, quick trips"
    ],
-   "tenant_sales_by_hour": [
+   "res_family_value": [
+    "มื้อครอบครัวที่คุ้มค่า",
+    "Good-value family meals"
+   ],
+   "res_value": [
+    "ราคาและโปรโมชัน ของใช้จำนวนมาก",
+    "Price, promotions and buying essentials in bulk"
+   ],
+   "stu_enrichment": [
+    "เรียนเสริม ภาษา ดนตรี กีฬา ให้ลูก",
+    "Enrichment for children: languages, music, sport"
+   ],
+   "stu_premium_kids": [
+    "ของและประสบการณ์คุณภาพสำหรับเด็ก",
+    "Quality products and experiences for children"
+   ],
+   "stu_value_trend": [
+    "ของตามกระแสในราคาที่นักศึกษาจ่ายไหว",
+    "On-trend items at prices students can afford"
+   ],
+   "stu_space": [
+    "ที่นั่งทำงาน อ่านหนังสือ และ Wi-Fi",
+    "Seats to study and work, with Wi-Fi"
+   ],
+   "stu_value_snacks": [
+    "ของกินเล่นและอุปกรณ์การเรียนราคาย่อมเยา",
+    "Affordable snacks and school supplies"
+   ],
+   "wrk_speed": [
+    "ความเร็วช่วงพักกลางวัน",
+    "Speed at lunchtime"
+   ],
+   "wrk_coffee": [
+    "กาแฟและของว่างระหว่างวัน",
+    "Coffee and snacks during the day"
+   ],
+   "wrk_after_work": [
+    "มื้อเย็นและกิจกรรมหลังเลิกงาน",
+    "Dinner and activities after work"
+   ],
+   "wrk_value": [
+    "ความคุ้มค่า โดยเฉพาะช่วงเงินเดือนออก",
+    "Value for money, especially around payday"
+   ],
+   "wrk_care": [
+    "ของเยี่ยมไข้ และความสะดวกระหว่างรอ",
+    "Gifts for patients and comfort while waiting"
+   ],
+   "vis_experience": [
+    "ประสบการณ์และแบรนด์ที่หาที่บ้านไม่ได้",
+    "Experiences and brands they cannot get at home"
+   ],
+   "vis_taxfree": [
+    "สินค้าที่ขอคืนภาษีได้",
+    "Tax-refundable purchases"
+   ],
+   "vis_value_souvenir": [
+    "ของฝากราคาคุ้ม",
+    "Good-value souvenirs"
+   ],
+   "vis_local": [
+    "อาหารและสินค้าท้องถิ่น",
+    "Local food and products"
+   ]
+  },
+  "pref": {
+   "res_evening": [
+    "แวะช่วงเย็นวันธรรมดาหลังเลิกงาน",
+    "Weekday evening stops after work"
+   ],
+   "res_weekend_family": [
+    "ใช้วันหยุดกับครอบครัว",
+    "Weekend time with the family"
+   ],
+   "res_quick_trip": [
+    "เข้าออกเร็ว ซื้อของจำเป็นแล้วกลับ",
+    "Quick trips for essentials"
+   ],
+   "stu_after_school": [
+    "ช่วงรับส่งลูกหลังเลิกเรียน",
+    "School pick-up time"
+   ],
+   "stu_weekend_classes": [
+    "วันหยุดที่มีเรียนพิเศษ",
+    "Weekends with extra classes"
+   ],
+   "stu_afternoon_evening": [
+    "บ่ายถึงค่ำวันธรรมดา มากันเป็นกลุ่ม",
+    "Weekday afternoons to evenings, in groups"
+   ],
+   "wrk_lunch": [
+    "พักกลางวัน 12:00–13:00 น.",
+    "The 12:00–13:00 lunch break"
+   ],
+   "wrk_after_work": [
+    "หลังเลิกงาน 17:00–19:00 น.",
+    "After work, 17:00–19:00"
+   ],
+   "wrk_shift": [
+    "หลังเปลี่ยนกะช่วงเย็น และวันหยุดของโรงงาน",
+    "After the evening shift change, and factory days off"
+   ],
+   "wrk_daytime": [
+    "กลางวันวันธรรมดา",
+    "Weekday daytime"
+   ],
+   "com_grab": [
+    "ซื้อติดมือระหว่างทางกลับบ้าน",
+    "Picking something up on the way home"
+   ],
+   "vis_afternoon_evening": [
+    "บ่ายถึงค่ำทุกวัน ไม่ต่างกันมากระหว่างวันธรรมดากับวันหยุด",
+    "Afternoons to evenings every day, with little weekday–weekend gap"
+   ],
+   "vis_night": [
+    "ช้อปปิ้งช่วงค่ำหลังเที่ยว",
+    "Evening shopping after sightseeing"
+   ]
+  },
+  "pmf": {
+   "premium_grocery": [
+    "ซูเปอร์มาร์เก็ตพรีเมียม",
+    "Premium supermarket",
+    [
+     "research.TH.grocery"
+    ]
+   ],
+   "supermarket": [
+    "ซูเปอร์มาร์เก็ต",
+    "Supermarket",
+    [
+     "research.TH.grocery"
+    ]
+   ],
+   "hypermarket_value": [
+    "ไฮเปอร์มาร์เก็ตและร้านราคาประหยัด",
+    "Hypermarket and value stores",
+    [
+     "research.TH.grocery"
+    ]
+   ],
+   "fresh_market": [
+    "ของสดและตลาด",
+    "Fresh food and market stalls",
+    []
+   ],
+   "family_dining": [
+    "ร้านอาหารสำหรับครอบครัว",
+    "Family dining",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "casual_dining": [
+    "ร้านอาหารทั่วไป",
+    "Casual dining",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "fine_dining": [
+    "ร้านอาหารระดับบน",
+    "Upscale dining",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "thai_food": [
+    "อาหารไทยและอาหารท้องถิ่น",
+    "Thai and local food",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "quick_lunch": [
+    "อาหารจานด่วนมื้อกลางวัน",
+    "Quick lunch",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "affordable_fnb": [
+    "อาหารและเครื่องดื่มราคาเข้าถึงง่าย",
+    "Affordable food and drinks",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "value_food": [
+    "อาหารราคาประหยัด",
+    "Value food",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "food_court": [
+    "ศูนย์อาหาร",
+    "Food court",
+    []
+   ],
+   "coffee": [
+    "ร้านกาแฟ",
+    "Coffee",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "cafe_study": [
+    "คาเฟ่ที่นั่งทำงานได้",
+    "Cafés to work in",
+    [
+     "research.TH.restaurants"
+    ]
+   ],
+   "grab_and_go": [
+    "ของซื้อกลับบ้านระหว่างทาง",
+    "Grab-and-go",
+    []
+   ],
+   "clinic_wellness": [
+    "คลินิก ความงาม และสุขภาพ",
+    "Clinics, beauty and wellness",
+    [
+     "research.TH.beauty_clinic",
+     "research.TH.beauty",
+     "research.TH.massage_spa"
+    ]
+   ],
+   "pharmacy_health": [
+    "ร้านยาและสุขภาพ",
+    "Pharmacy and health",
+    [
+     "research.TH.pharmacy"
+    ]
+   ],
+   "kids_enrichment": [
+    "เรียนเสริมและกิจกรรมเด็ก",
+    "Enrichment classes for children",
+    []
+   ],
+   "kids_play": [
+    "ที่เล่นเด็กและกิจกรรมครอบครัว",
+    "Children’s play and family activities",
+    [
+     "research.TH.playground"
+    ]
+   ],
+   "tutoring": [
+    "โรงเรียนกวดวิชา",
+    "Tutoring schools",
+    []
+   ],
+   "tutoring_language": [
+    "กวดวิชาและสอนภาษา",
+    "Tutoring and language schools",
+    []
+   ],
+   "books_stationery": [
+    "หนังสือและเครื่องเขียน",
+    "Books and stationery",
+    [
+     "research.TH.hobby"
+    ]
+   ],
+   "services_bank": [
+    "ธนาคารและบริการ",
+    "Banks and services",
+    [
+     "research.TH.bank"
+    ]
+   ],
+   "fitness": [
+    "ฟิตเนส",
+    "Fitness",
+    [
+     "research.TH.fitness"
+    ]
+   ],
+   "mobile_it": [
+    "มือถือและไอที",
+    "Phones and IT",
+    []
+   ],
+   "fashion_value": [
+    "แฟชั่นราคาเข้าถึงง่าย",
+    "Affordable fashion",
+    [
+     "research.TH.apparel"
+    ]
+   ],
+   "sport": [
+    "กีฬาและเอาต์ดอร์",
+    "Sport and outdoor",
+    [
+     "research.TH.sport"
+    ]
+   ],
+   "luxury_fashion": [
+    "แฟชั่นและแบรนด์หรู",
+    "Luxury fashion and brands",
+    [
+     "research.TH.luxury"
+    ]
+   ],
+   "thai_design": [
+    "แบรนด์ไทยและงานดีไซน์",
+    "Thai brands and design",
+    []
+   ],
+   "spa_massage": [
+    "สปาและนวด",
+    "Spa and massage",
+    [
+     "research.TH.massage_spa"
+    ]
+   ],
+   "souvenir": [
+    "ของฝาก",
+    "Souvenirs",
+    []
+   ],
+   "currency_exchange": [
+    "แลกเงิน",
+    "Currency exchange",
+    [
+     "research.TH.bank"
+    ]
+   ],
+   "gifts_flowers": [
+    "ของเยี่ยมไข้และดอกไม้",
+    "Gifts for patients and flowers",
+    []
+   ],
+   "gold": [
+    "ร้านทอง",
+    "Gold shops",
+    [
+     "research.TH.gold"
+    ]
+   ],
+   "optical": [
+    "ร้านแว่น",
+    "Optical shops",
+    [
+     "research.TH.optical"
+    ]
+   ]
+  },
+  "check": {
+   "res_postcode": [
+    "สำรวจเขตที่อยู่หรือรหัสไปรษณีย์ของลูกค้า",
+    "Survey customers’ home district or postcode"
+   ],
+   "res_member_basket": [
+    "ดูยอดต่อบิลของสมาชิกที่อยู่ใกล้ศูนย์",
+    "Check the basket size of members who live nearby"
+   ],
+   "stu_after_school_sales": [
+    "ดูยอดขายช่วงหลังเลิกเรียนและวันหยุด",
+    "Check sales after school hours and on weekends"
+   ],
+   "stu_tuition_check": [
+    "ตรวจค่าเทอมล่าสุดบนเว็บของโรงเรียน",
+    "Check the latest tuition on the school’s website"
+   ],
+   "wrk_lunch_queue": [
+    "ดูที่จอดรถและคิวร้านอาหารช่วง 12:00–13:00 น.",
+    "Check parking and restaurant queues at 12:00–13:00"
+   ],
+   "wrk_office_occupancy": [
+    "ตรวจอัตราการเช่าสำนักงานรอบศูนย์",
+    "Check office occupancy around the centre"
+   ],
+   "wrk_shift_times": [
+    "ตรวจเวลาเข้าออกกะของโรงงานใหญ่ใกล้ศูนย์",
+    "Check shift times of the large factories nearby"
+   ],
+   "vis_share_survey": [
+    "สำรวจสัดส่วนผู้มาจากนอกพื้นที่และชาวต่างชาติ",
+    "Survey the share of out-of-area and foreign visitors"
+   ],
+   "vis_tax_refund": [
+    "ดูยอดขายที่ขอคืนภาษีนักท่องเที่ยว",
+    "Check sales with tourist VAT refunds"
+   ],
+   "dp_door_count": [
+    "นับคนเข้าประตูรายชั่วโมง",
+    "Count door entries by hour"
+   ],
+   "dp_tenant_sales": [
     "ดูยอดขายรวมของผู้เช่ารายชั่วโมง",
     "Check aggregated tenant sales by hour"
+   ],
+   "dp_parking": [
+    "ดูรถเข้าลานจอดรายชั่วโมง",
+    "Check car-park entries by hour"
+   ]
+  },
+  "days": [
+   [
+    "จ.",
+    "Mon",
+    "จันทร์",
+    "Monday"
+   ],
+   [
+    "อ.",
+    "Tue",
+    "อังคาร",
+    "Tuesday"
+   ],
+   [
+    "พ.",
+    "Wed",
+    "พุธ",
+    "Wednesday"
+   ],
+   [
+    "พฤ.",
+    "Thu",
+    "พฤหัสบดี",
+    "Thursday"
+   ],
+   [
+    "ศ.",
+    "Fri",
+    "ศุกร์",
+    "Friday"
+   ],
+   [
+    "ส.",
+    "Sat",
+    "เสาร์",
+    "Saturday"
+   ],
+   [
+    "อา.",
+    "Sun",
+    "อาทิตย์",
+    "Sunday"
+   ]
+  ],
+  "gridLevels": [
+   [
+    "ปิด",
+    "Closed"
+   ],
+   [
+    "เงียบ",
+    "Quiet"
+   ],
+   [
+    "ค่อนข้างเงียบ",
+    "Fairly quiet"
+   ],
+   [
+    "ปานกลาง",
+    "Moderate"
+   ],
+   [
+    "คึก",
+    "Busy"
+   ],
+   [
+    "คึกที่สุดของสัปดาห์",
+    "Busiest of the week"
+   ]
+  ],
+  "rules": {
+   "base_mall": [
+    "รูปแบบพื้นฐานของศูนย์การค้า: วันหยุดคึกกว่าวันธรรมดา",
+    "Shopping-mall baseline: weekends busier than weekdays"
+   ],
+   "base_community": [
+    "รูปแบบพื้นฐานของคอมมูนิตี้มอลล์: เย็นวันธรรมดาและเช้าวันหยุด",
+    "Community-mall baseline: weekday evenings and weekend mornings"
+   ],
+   "base_outlet": [
+    "รูปแบบพื้นฐานของเอาท์เล็ต: กลางวันวันหยุดเป็นหลัก",
+    "Outlet baseline: weekend daytime first"
+   ],
+   "friday_evening": [
+    "เย็นวันศุกร์คึกกว่าวันธรรมดาอื่น",
+    "Friday evening busier than other weekdays"
+   ],
+   "sunday_early": [
+    "ค่ำวันอาทิตย์ซาเร็วกว่าวันเสาร์",
+    "Sunday nights quieten earlier than Saturdays"
+   ],
+   "workers_lunch": [
+    "พักกลางวันของคนทำงานรอบศูนย์",
+    "Lunch break of the people working around"
+   ],
+   "workers_after": [
+    "หลังเลิกงานของคนทำงานรอบศูนย์",
+    "After work for the people working around"
+   ],
+   "workers_weekend_dip": [
+    "วันหยุดคนทำงานออฟฟิศน้อยลง",
+    "Fewer office workers on weekends"
+   ],
+   "factory_shift": [
+    "หลังเลิกกะของคนงานโรงงานรอบศูนย์ และวันอาทิตย์",
+    "After factory shifts, and on Sundays"
+   ],
+   "residents_evening": [
+    "ผู้อยู่อาศัยแวะหลังเลิกงาน",
+    "Residents stop by after work"
+   ],
+   "residents_weekend": [
+    "ผู้อยู่อาศัยมาเป็นครอบครัววันหยุด",
+    "Residents come as families on weekends"
+   ],
+   "students_after_school": [
+    "ช่วงเลิกเรียนของโรงเรียนรอบศูนย์",
+    "School finishing time around the centre"
+   ],
+   "students_weekend": [
+    "เรียนพิเศษและกิจกรรมเด็กวันหยุด",
+    "Weekend classes and children’s activities"
+   ],
+   "university_afternoon": [
+    "นักศึกษาช่วงบ่ายถึงค่ำวันธรรมดา",
+    "University students on weekday afternoons to evenings"
+   ],
+   "visitors_daily": [
+    "นักท่องเที่ยวมาทุกวัน ทำให้วันธรรมดากับวันหยุดต่างกันน้อยลง",
+    "Tourists come every day, narrowing the weekday–weekend gap"
+   ],
+   "visitors_night": [
+    "ช้อปปิ้งช่วงค่ำของนักท่องเที่ยว",
+    "Tourists’ evening shopping"
+   ],
+   "commuters_evening": [
+    "คนเดินทางแวะระหว่างทางกลับบ้าน",
+    "Commuters stop on the way home"
+   ]
+  },
+  "hoursBasis": {
+   "official_text": [
+    "เวลาเปิดตามที่ศูนย์หรือแหล่งที่ระบุชื่อเผยแพร่",
+    "Opening hours as published by the centre or a named source"
+   ],
+   "official_text_partial": [
+    "เวลาเปิดตามที่เผยแพร่ บางวันใช้เวลาของวันอื่น",
+    "Opening hours as published; some days take another day’s hours"
+   ],
+   "type_default": [
+    "ยังไม่มีเวลาเปิดจากแหล่งที่ใช้ได้ จึงใช้เวลาทั่วไปของศูนย์ประเภทนี้",
+    "No usable published hours, so the usual hours of this type of centre are used"
+   ],
+   "provider_reported_not_used>type_default": [
+    "เวลาที่มีมาจากผู้ให้บริการแผนที่ซึ่งยังใช้ไม่ได้ จึงใช้เวลาทั่วไปของศูนย์ประเภทนี้",
+    "The only hours come from a map provider we cannot use, so the usual hours of this type of centre are used"
+   ]
+  },
+  "tenantDatasets": {
+   "research.TH.restaurants": [
+    "ร้านอาหาร",
+    "restaurants"
+   ],
+   "research.TH.grocery": [
+    "ร้านของชำและซูเปอร์มาร์เก็ต",
+    "grocery stores"
+   ],
+   "research.TH.bank": [
+    "ธนาคาร",
+    "banks"
+   ],
+   "research.TH.fitness": [
+    "ฟิตเนส",
+    "fitness"
+   ],
+   "research.TH.pharmacy": [
+    "ร้านยา",
+    "pharmacies"
+   ],
+   "research.TH.beauty_clinic": [
+    "คลินิกความงาม",
+    "beauty clinics"
+   ],
+   "research.TH.beauty": [
+    "ร้านความงาม",
+    "beauty stores"
+   ],
+   "research.TH.massage_spa": [
+    "สปาและนวด",
+    "spas and massage"
+   ],
+   "research.TH.playground": [
+    "ที่เล่นเด็ก",
+    "play areas"
+   ],
+   "research.TH.hobby": [
+    "ร้านหนังสือและเครื่องเขียน",
+    "book and stationery stores"
+   ],
+   "research.TH.apparel": [
+    "ร้านเสื้อผ้า",
+    "apparel stores"
+   ],
+   "research.TH.sport": [
+    "ร้านกีฬา",
+    "sport stores"
+   ],
+   "research.TH.luxury": [
+    "แบรนด์หรู",
+    "luxury brands"
+   ],
+   "research.TH.gold": [
+    "ร้านทอง",
+    "gold shops"
+   ],
+   "research.TH.optical": [
+    "ร้านแว่น",
+    "optical shops"
    ]
   },
   "signals": {
-   "ring:condominium:r3": [
-    "คอนโดใน 3 กม.",
-    "Condos within 3 km"
+   "area:population:population": [
+    "ประชากรตามทะเบียนบ้านในพื้นที่",
+    "Registered population in the area"
+   ],
+   "area:estate:totalPlots": [
+    "แปลงบ้านจัดสรรในพื้นที่",
+    "Housing-estate plots in the area"
+   ],
+   "area:condo:condoCount": [
+    "คอนโดในฐานราคาประเมินในพื้นที่",
+    "Condominiums in the appraisal base in the area"
    ],
    "ring:school:students3": [
     "นักเรียนใน 3 กม.",
     "Students within 3 km"
    ],
-   "area:population:population": [
-    "ประชากรในพื้นที่",
-    "Population in the area"
+   "ring:university:r3": [
+    "มหาวิทยาลัยใน 3 กม.",
+    "Universities within 3 km"
+   ],
+   "ring:office:r3": [
+    "สำนักงานใน 3 กม.",
+    "Offices within 3 km"
+   ],
+   "ring:government_office:r3": [
+    "หน่วยงานรัฐใน 3 กม.",
+    "Gov. offices within 3 km"
+   ],
+   "ring:factory:workers5": [
+    "คนงานโรงงานใน 5 กม.",
+    "Factory workers within 5 km"
+   ],
+   "ring:hospital:r3": [
+    "สถานพยาบาลใน 3 กม.",
+    "Health facilities within 3 km"
+   ],
+   "area:businessDynamics:hqCount": [
+    "สำนักงานใหญ่ในพื้นที่",
+    "Head offices in the area"
+   ],
+   "ring:transit:r1": [
+    "สถานีรางใน 1 กม.",
+    "Rail stations within 1 km"
    ],
    "ring:hotel:r3": [
     "ที่พักใน 3 กม.",
@@ -3566,52 +4606,67 @@
     "ศาสนสถานที่เป็นแหล่งท่องเที่ยวในพื้นที่",
     "Places of worship listed as attractions in the area"
    ],
-   "ring:office:r3": [
-    "สำนักงานใน 3 กม.",
-    "Offices within 3 km"
+   "area:deed:medianPrice": [
+    "ราคาประเมินที่ดิน (ค่ากลาง)",
+    "Land appraisal (median)"
    ],
-   "ring:government_office:r3": [
-    "หน่วยงานรัฐใน 3 กม.",
-    "Government offices within 3 km"
+   "area:condo:medianPrice": [
+    "ราคาประเมินห้องชุด (ค่ากลาง)",
+    "Unit appraisal (median)"
    ],
-   "ring:factory:workers5": [
-    "คนงานโรงงานใน 5 กม.",
-    "Factory workers within 5 km"
+   "area:condoOffer:y2025MedianOffer": [
+    "ราคาประกาศขายคอนโด 2568 (ค่ากลาง)",
+    "Condominium asking price 2025 (median)"
    ],
-   "ring:transit:r1": [
-    "สถานีรางใน 1 กม.",
-    "Rail stations within 1 km"
+   "area:detachedhouse:medPrice": [
+    "ราคาประกาศขายบ้านเดี่ยว (ค่ากลาง)",
+    "Detached-house asking price (median)"
    ],
-   "ring:university:r3": [
-    "มหาวิทยาลัยใน 3 กม.",
-    "Universities within 3 km"
+   "area:townhouse:medianPrice": [
+    "ราคาประกาศขายทาวน์เฮาส์ (ค่ากลาง)",
+    "Townhouse asking price (median)"
    ],
-   "ring:hospital:r3": [
-    "สถานพยาบาลใน 3 กม.",
-    "Health facilities within 3 km"
+   "area:apartment:medianPrice": [
+    "ค่าเช่าอะพาร์ตเมนต์ที่ประกาศ (ค่ากลาง)",
+    "Apartment asking rent (median)"
    ],
-   "area:estate:totalPlots": [
-    "แปลงบ้านจัดสรรในพื้นที่",
-    "Housing-estate plots in the area"
+   "sig:condo.sub.p50med": [
+    "ราคาประเมินห้องชุดในแขวง/ตำบลนี้ (ค่ากลาง)",
+    "Unit appraisal in this subdistrict (median)"
+   ],
+   "sig:school.intlpriv3": [
+    "โรงเรียนเอกชนและนานาชาติใน 3 กม.",
+    "Private and international schools within 3 km"
+   ],
+   "sig:school.fee5.max": [
+    "ค่าเทอมสูงสุดที่โรงเรียนประกาศใน 5 กม.",
+    "Highest published tuition within 5 km"
+   ],
+   "sig:uni.private5": [
+    "มหาวิทยาลัยเอกชนใน 5 กม.",
+    "Private university sites within 5 km"
+   ],
+   "sig:office.rent3.med": [
+    "ค่าเช่าสำนักงานที่ประกาศใน 3 กม. (ค่ากลาง)",
+    "Office asking rent within 3 km (median)"
+   ],
+   "sig:office.area3": [
+    "พื้นที่สำนักงานที่แหล่งระบุใน 3 กม.",
+    "Office floor area the sources list within 3 km"
+   ],
+   "sig:hotel.med3": [
+    "ราคาเริ่มต้นที่บันทึกของที่พักใน 3 กม. (ค่ากลาง)",
+    "Lowest recorded price of stays within 3 km (median)"
+   ],
+   "sig:hotel.upperRooms3": [
+    "ห้องในที่พักราคาบันทึกกลุ่มบน",
+    "Rooms in upper-priced stays"
+   ],
+   "ring:luxury:r3": [
+    "แบรนด์หรูใน 3 กม.",
+    "Luxury within 3 km"
    ]
-  },
-  "segments": [
-   [
-    "residents",
-    "ผู้อยู่อาศัย",
-    "Residents"
-   ],
-   [
-    "visitors",
-    "ผู้มาเยือน",
-    "Visitors"
-   ],
-   [
-    "workers_commuters",
-    "คนทำงานและผู้เดินทาง",
-    "Workers and commuters"
-   ]
-  ]
+  }
  },
  "method": "DATA_METHOD.md#venue-locale-insight",
  "neighbourhoods": {

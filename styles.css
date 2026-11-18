@@ -812,24 +812,59 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .locale-live { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; font-size: 13px; }
 .locale-live a { display: inline-flex; min-height: 32px; align-items: center; }
 .prior-badge { font-size: 11px; font-weight: 600; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--border-default); color: var(--text-secondary); white-space: nowrap; }
-.prior-list { margin: 6px 0 0; display: grid; gap: 0; }
-.prior-row { display: grid; grid-template-columns: minmax(0, 34%) minmax(0, 1fr); gap: 4px 10px; padding: 8px 0; border-bottom: 1px solid var(--border-hairline); }
-.prior-row dt { font-size: 13px; font-weight: 600; }
-.prior-row dd { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; }
-.prior-row small { flex-basis: 100%; font-size: 11px; line-height: 1.5; color: var(--text-metadata); }
 .pips { display: inline-flex; gap: 3px; }
 .pips i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--text-secondary); }
 .pips i.on { background: var(--text-secondary); }
 .locale-mini { display: flex; align-items: center; gap: 6px; margin: 12px 0 6px; font-size: 13px; font-weight: 600; }
-.daypart { min-width: 0; width: 100%; table-layout: fixed; font-size: 11px; border-collapse: separate; border-spacing: 3px; }
-.daypart th { position: static; background: transparent; padding: 2px; font-size: 11px; color: var(--text-metadata); white-space: normal; text-align: center; font-weight: 600; }
-.daypart thead th small { display: block; font-weight: 400; font-size: 10px; }
-.daypart tbody th { text-align: left; width: 22%; }
-.daypart thead td { border: 0; background: transparent; }
-.daypart td { padding: 6px 2px; text-align: center; border-radius: 6px; border: 1px solid var(--border-hairline); line-height: 1.3; }
-.daypart td.dp-0 { border-style: dashed; color: var(--text-metadata); }
-.daypart td.dp-1 { background: var(--surface-soft); color: var(--text-secondary); }
-.daypart td.dp-2 { background: var(--surface-alt); color: var(--text-primary); font-weight: 600; border-color: var(--border-default); }
+/* Venue Locale Insight 0.2 — the prior block: observed context beside the four groups and the 7×24 grid.
+   Neutral foundation tones only: a generated prior never takes a data colour (AGENTS.md 0.4.0 rule; LDS: an estimate must
+   not look like a measured value). The grid's five levels are foundation tokens that keep their order on both themes. */
+.prior-facts { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.55; }
+.prior-facts li { margin: 3px 0; }
+.prior-facts .fact-rank { color: var(--text-metadata); }
+.prior-facts .poi-link { font-weight: 600; color: var(--text-primary); text-underline-offset: 3px; }
+.prior-positioning { padding-top: 0; }
+.persona-list { display: grid; gap: 6px; }
+.persona { border: 1px solid var(--border-hairline); border-radius: 10px; padding: 0 10px; background: var(--surface-card); }
+.persona > summary { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; min-height: 44px; padding: 8px 0; cursor: pointer; font-size: 13px; }
+.persona > summary::-webkit-details-marker { display: none; }
+.persona > summary::after { content: ""; margin-left: auto; width: 7px; height: 7px; border-right: 1.5px solid var(--text-metadata); border-bottom: 1.5px solid var(--text-metadata); transform: rotate(45deg); transition: transform .15s; }
+.persona[open] > summary::after { transform: rotate(-135deg); }
+@media (prefers-reduced-motion: reduce) { .persona > summary::after { transition: none; } }
+.persona > summary:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; border-radius: 6px; }
+.persona-name { font-weight: 600; flex: 1 1 150px; }
+.persona-level { display: inline-flex; align-items: center; gap: 6px; }
+.spend-chip { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--surface-soft); color: var(--text-secondary); white-space: nowrap; }
+.persona-body { padding: 0 0 10px; }
+.persona-mix { margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.persona-h { display: flex; align-items: center; gap: 6px; margin: 10px 0 2px; font-size: 12px; font-weight: 600; color: var(--text-metadata); }
+.persona-read { margin: 4px 0 0; display: grid; gap: 6px; }
+.persona-read > div { display: grid; grid-template-columns: minmax(0, 32%) minmax(0, 1fr); gap: 2px 10px; }
+.persona-read dt { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.persona-read dd { margin: 0; font-size: 12.5px; line-height: 1.5; }
+.persona-read dd .hint { margin: 4px 0 0; }
+.pmf-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.pmf-chips .pmf { font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px dashed var(--border-default); color: var(--text-primary); }
+.persona-basis, .persona-data { margin: 8px 0 0; line-height: 1.5; }
+.dp-wrap { margin-top: 2px; }
+.dp-grid { width: 100%; min-width: 0; table-layout: fixed; border-collapse: separate; border-spacing: 1px; }
+.dp-grid th, .dp-grid td { position: static; background: transparent; border: 0; }
+.dp-grid th { padding: 0 3px 0 0; font-size: 12px; font-weight: 600; color: var(--text-metadata); text-align: left; white-space: nowrap; overflow: visible; }
+.dp-grid thead th { font-weight: 400; font-variant-numeric: tabular-nums; }
+.dp-grid tbody th { width: 30px; }
+.dp-grid thead td { width: 30px; }
+.dp-grid td { height: 14px; padding: 0; border-radius: 2px; }
+.dp-grid td.g0, .dp-legend i.g0 { background: transparent; box-shadow: inset 0 0 0 1px var(--border-hairline); }
+.dp-grid td.g1, .dp-legend i.g1 { background: var(--surface-soft); }
+.dp-grid td.g2, .dp-legend i.g2 { background: var(--border-default); }
+.dp-grid td.g3, .dp-legend i.g3 { background: var(--text-muted); }
+.dp-grid td.g4, .dp-legend i.g4 { background: var(--text-metadata); }
+.dp-grid td.g5, .dp-legend i.g5 { background: var(--text-primary); }
+.dp-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0 0; padding: 0; list-style: none; font-size: 12px; color: var(--text-secondary); }
+.dp-legend li { display: inline-flex; align-items: center; gap: 4px; }
+.dp-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; }
+.dp-peaks { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; line-height: 1.6; }
+.dp-why { margin-top: 4px; }
 .prior-targets { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.6; }
 .locale-method { margin: 0 0 8px; padding-left: 18px; font-size: 12px; line-height: 1.6; color: var(--text-secondary); }
 @media (max-width: 420px) {

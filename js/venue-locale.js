@@ -4,16 +4,21 @@
  * counted in straight-line rings of 1, 3 and 5 km; production values of the area the centre sits in; priors from rules;
  * amCharts where it helps the people of Product Statement §2.1 — ผู้เช่าและทีมขยายสาขา, ทีม leasing, นักลงทุน).
  *
- * Data: data/locale/ — the serving derivative of canonical release venue-locale-shopping-20261118-v0.1.0-rc1, built
+ * Data: data/locale/ — the serving derivative of canonical release venue-locale-shopping-20261118-v0.2.0-rc1, built
  * outside this repository by the Venue Locale pipeline (DATA_METHOD.md §Venue Locale Insight).
- *   meta.json        catalogue, labels, universes, live links, prior labels — loaded once
- *   facts/NN.json    ring counts, area values and benchmark percentiles — per venue, FNV-1a (details.js shardOf)
- *   priors/NN.json   generated priors only — loaded when the reader opens that block, never mixed into facts
+ *   meta.json         catalogue, labels, universes, live links, context and prior labels — loaded once
+ *   facts/NN.json     ring counts, area values and benchmark percentiles — per venue, FNV-1a (details.js shardOf)
+ *   signals/NN.json   observed context: quality signals of nearby records (published tuition, recorded starting prices
+ *                     of stays, office asking rents, beds, workers, luxury points of sale), named examples with the key
+ *                     their own demo opens, venue attributes — loaded with the prior block (0.2, owner 2026-11-18)
+ *   priors/NN.json    generated priors only — loaded when the reader opens that block, never mixed into facts
  *
  * Reading rules: a ring count is the number of records a source lists within the straight-line radius of the venue's
  * reference point (not walking or driving distance, not footfall). 0 is a measured zero; a dataset without accepted
  * points is never shown as 0. Percentiles are mid-rank among the 488 located venues (or the same type); area counts are
- * ranked per km² of their unit. Priors are hypotheses to test, drawn in neutral tones (no data colour), with what to check.
+ * ranked per km² of their unit. Priors are hypotheses to test, drawn in neutral tones (no data colour), with what to check:
+ * four groups with a spending-power signal read from observed prices (never income or willingness to pay), hypothesis
+ * phrases, and a 7×24 grid relative to the centre's own busiest hour (never footfall).
  * Colours: the LDS `count` 41-sample LUT (scales.js) for the ring percentiles only — the map's own method (a value's
  * mid-rank percentile → LUT sample), identical on both themes, with an outline so light samples stay visible.
  *
@@ -24,6 +29,7 @@ import {shardOf} from './details.js';
 import {provinceByCode, BANGKOK, districtWord} from './model.js';
 import {loadAmCharts, makeChartRoot, chartTokens} from './charts.js';
 import {LANG, translate} from './shell/i18n.js';
+import {DEMOS, DEMO_ORIGIN, demoUrl} from './shell/datasets.js';
 
 /** Canvas text cannot be translated in the DOM: the chart writes English itself on an English page. */
 const T = s => (LANG === 'en' ? translate(s) ?? s : s);
@@ -83,12 +89,16 @@ export async function loadLocaleFacts(id, {shards = 64, fetchImpl = (...a) => fe
 }
 export const cachedLocaleFacts = (id, shards = 64) => resolved.get(localeShardPath('facts', id, shards))?.venues?.[id] || null;
 
-/** The generated priors of one venue — only when the reader opens that block. */
+/**
+ * The generated priors of one venue — only when the reader opens that block — together with the observed context of
+ * the same venue (signals/NN.json, facts), which the block reads beside the priors. Resolves to the priors record.
+ */
 export async function loadLocalePriors(id, {shards = 64, fetchImpl = (...a) => fetch(...a)} = {}) {
-  const shard = await fetchJSON(localeShardPath('priors', id, shards), fetchImpl);
+  const [shard] = await Promise.all([fetchJSON(localeShardPath('priors', id, shards), fetchImpl), fetchJSON(localeShardPath('signals', id, shards), fetchImpl)]);
   return shard?.venues?.[id] || null;
 }
 export const cachedLocalePriors = (id, shards = 64) => resolved.get(localeShardPath('priors', id, shards))?.venues?.[id] || null;
+export const cachedLocaleSignals = (id, shards = 64) => resolved.get(localeShardPath('signals', id, shards))?.venues?.[id] || null;
 
 /* ---------- reader options (kept for the session, like charts.js) ---------- */
 
@@ -334,37 +344,358 @@ function liveBlock(meta, row, facts) {
     <ul class="locale-live">${links.map(l => `<li>${extLink(l.href, l.th, 'area-link', l.en)}</li>`).join('')}${localeLink}</ul></details>`;
 }
 
-/** Generated priors (opt-in): segment levels, 10 pinned daypart blocks, what to check. Neutral tones only. */
-export function priorsHTML(meta, pr) {
-  const P = meta.priors;
-  const pips = level => { const n = {low: 1, medium: 2, high: 3}[level] || 0; return `<span class="pips" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`; };
-  const segs = P.segments.map(([id, th]) => {
-    const s = pr.seg[id];
-    if (!s) return '';
-    const [level, , , signals] = s;
-    const basis = signals.map(([sid, p]) => `${P.signals[sid]?.[0] || sid}${p != null ? ` สูงกว่า ${num(p)}% ของ${sid.startsWith('area:') ? 'พื้นที่ที่มีศูนย์' : 'ศูนย์'}` : ''}`).join(' · ');
-    return `<div class="prior-row"><dt>${esc(th)}</dt><dd>${pips(level)}<b>${esc(P.levels[level]?.[0] || level)}</b><small>อิงจาก ${esc(basis)}</small></dd></div>`;
-  }).join('');
-  const blocks = P.blocks;
-  const cell = i => {
-    const v = pr.dp[i];
-    const label = P.daypart[v]?.[0] || '';
-    const why = (pr.why?.[i] || []).filter(w => w !== 'baseline').map(w => P.why[w]?.[0] || w).join(' · ');
-    return `<td class="dp dp-${v}" title="${esc(`${blocks[i][1]} ${blocks[i][3]} ${blocks[i][5]} น.${why ? ` · ${why}` : ''}`)}"><span aria-hidden="true">${['▽', '·', '▲'][v] || ''}</span> ${esc(label)}</td>`;
-  };
-  const grid = `<table class="daypart"><caption class="sr-only">ช่วงเวลาที่คาดว่าคึกหรือเงียบกว่าปกติ (สมมติฐาน)</caption>
-    <thead><tr><td></td>${blocks.slice(0, 5).map(b => `<th scope="col">${esc(b[3])}<small>${esc(b[5])}</small></th>`).join('')}</tr></thead>
-    <tbody><tr><th scope="row">วันธรรมดา</th>${[0, 1, 2, 3, 4].map(cell).join('')}</tr><tr><th scope="row">วันหยุด</th>${[5, 6, 7, 8, 9].map(i => cell(i)).join('')}</tr></tbody></table>
-    <p class="hint">เวลาวันหยุดเริ่ม ${esc(blocks[5][5])} น. · ${esc(blocks.slice(6).map(b => `${b[3]} ${b[5]}`).join(' · '))}</p>`;
-  const targets = (pr.targets || []).map(t => `<li>${esc(P.targets[t]?.[0] || t)}</li>`).join('');
-  return `<p class="hint">ใช้เลือกสิ่งที่จะไปตรวจ ไม่ใช่จำนวนคน ยอดขาย หรือส่วนแบ่งลูกค้า</p>
-    <dl class="prior-list">${segs}</dl>
-    <h5 class="locale-mini">${icon('hours')}ช่วงไหนน่าจะคึกกว่าปกติ</h5>${grid}
-    ${targets ? `<h5 class="locale-mini">${icon('checked')}ตรวจได้ด้วย</h5><ul class="prior-targets">${targets}</ul>` : ''}`;
+/* ---------- the prior block: observed context beside generated priors (0.2, owner 2026-11-18) ---------- */
+
+/** [th, en] of a distance already rounded to 100 m: “800 ม.” / “2.3 กม.”. */
+export function distanceWords(m) {
+  if (m == null) return ['', ''];
+  return m < 1000 ? [`${num(m)} ม.`, `${num(m)} m`] : [`${DECIMAL.format(m / 1000)} กม.`, `${DECIMAL.format(m / 1000)} km`];
 }
 
-function priorsBlock(meta, row, priors, priorsState) {
-  const body = priors ? priorsHTML(meta, priors)
+/** [th, en] rank words of a mid-rank percentile; values read “สูงกว่า”, counts “มากกว่า”; top and bottom 1% as such. */
+export function rankPair(p, groupTh, groupEn, {count = false} = {}) {
+  if (p == null) return null;
+  if (p >= 99.5) return [`อยู่ในกลุ่มสูงสุด 1% ของ${groupTh}`, `in the top 1% of ${groupEn}`];
+  if (p < 0.5) return [`อยู่ในกลุ่มต่ำสุด 1% ของ${groupTh}`, `in the bottom 1% of ${groupEn}`];
+  const w = count ? ['มากกว่า', 'more than'] : ['สูงกว่า', 'higher than'];
+  return [`${w[0]} ${num(Math.round(p))}% ของ${groupTh}`, `${w[1]} ${num(Math.round(p))}% of ${groupEn}`];
+}
+/** Rank of an observed context signal among the located venues (or those that have the value). */
+function ctxRank(meta, sg, key, opts) {
+  const p = sg?.pct?.[key];
+  if (!p) return null;
+  const known = meta?.context?.ranked?.[key] === 'known';
+  return rankPair(p[0], known ? `ศูนย์ที่มีค่านี้ ${num(p[1])} แห่ง` : ` ${num(p[1])} ศูนย์`, known ? `${num(p[1])} centres with this value` : `${num(p[1])} centres`, opts);
+}
+
+/** Address of a record in its own CityMETER demo (`?e=<kind>:<key>`) on this site; an English page asks for English when that demo has it. */
+export function demoRecordURL(meta, family, key) {
+  const d = meta?.context?.demoLink?.[family];
+  if (!d || key == null || key === '') return '';
+  const demo = DEMOS.find(x => x.path === d[0]);
+  const base = demo ? demoUrl(demo) : `${DEMO_ORIGIN}/${d[0]}/`;
+  return `${base}?e=${d[1]}:${encodeURIComponent(key)}${LANG === 'en' && demo?.en ? '&lang=en' : ''}`;
+}
+/** A Wikipedia title as production records it (“th:เซ็นทรัลพลาซา พระราม 3”) → its article address. */
+export function wikiURL(ref) {
+  const m = /^([a-z]{2,3}):(.+)$/.exec(String(ref || ''));
+  return m ? `https://${m[1]}.wikipedia.org/wiki/${encodeURIComponent(m[2].trim().replace(/ /g, '_'))}` : '';
+}
+
+const THAI_RE = /[ก-๛]/;
+const pairText = parts => [parts.map(p => p[0]).filter(Boolean).join(' · '), parts.map(p => p[1]).filter(Boolean).join(' · ')];
+/** A name as published: its English beside it when the source gives one, else a plain span (the section's English
+ * registers it as a name that stays Thai — venue-locale-i18n.js#registerLocaleSignalNames). */
+const nameSpan = (name, en = '') => (en && en !== name && !THAI_RE.test(en) ? say(name, en) : `<span>${esc(name)}</span>`);
+const factLine = (th, en, rank = null) => `<li>${say(th, en)}${rank ? ` <span class="fact-rank">${say(rank[0], rank[1])}</span>` : ''}</li>`;
+/** One named record: its name opens it in its own demo; parts are [th, en] pairs or names (plain strings). */
+const poiLine = (meta, family, key, name, nameEn, parts, tail = '') => {
+  const url = demoRecordURL(meta, family, key);
+  const en = nameEn && nameEn !== name && !THAI_RE.test(nameEn) ? nameEn : '';
+  const bits = parts.filter(Boolean).map(p => (typeof p === 'string' ? `<span>${esc(p)}</span>` : say(p[0], p[1])));
+  return `<li class="poi">${url ? extLink(url, name, 'poi-link', en) : nameSpan(name, en)}${bits.length ? ` · ${bits.join(' · ')}` : ''}${tail}</li>`;
+};
+const range = (a, b) => (a && b && a !== b ? `${num(a)}–${num(b)}` : num(a || b));
+const groupOf = (meta, kind, id) => meta?.context?.groups?.[kind]?.[id] || null;
+
+/** The finest unit that has one production metric: {level, r} (areaRows, ranked among units that hold centres). */
+/** A median read from fewer records than this at one level is too thin to stand for the place; the next level up is read. */
+export const MIN_MEDIAN_N = 10;
+function areaValue(meta, facts, row, ds, metric) {
+  const defs = meta.area?.[ds]?.metrics || [];
+  const countId = defs.find(x => x.id === metric)?.basis === 'value' ? defs.find(x => x.basis === 'per_sqkm')?.id : null;
+  for (const level of levelsOf(facts)) {
+    const n = countId ? facts.area?.[ds]?.[level]?.[countId]?.[0] : null;
+    if (countId && (n == null || n < MIN_MEDIAN_N)) continue;
+    const r = areaRows(meta, facts, row, {level, bench: 'peer'}).find(x => x.ds === ds && x.metric === metric);
+    if (r) return {level, r};
+  }
+  return null;
+}
+function areaLine(meta, facts, row, ds, metric) {
+  const a = areaValue(meta, facts, row, ds, metric);
+  if (!a) return '';
+  const {level, r} = a, code = row?.provinceCode;
+  const u = facts.units?.[level];
+  const unitName = u ? (level === 'province' ? (code === BANGKOK ? 'กรุงเทพมหานคร' : `จังหวัด${u[2]}`) : level === 'municipality' ? u[2] : `${levelWord(level, code)}${u[2]}`) : '';
+  const link = r.m.link.replace('{province}', encodeURIComponent(code || '')).replace('{district}', encodeURIComponent(row?.districtCode || ''));
+  const phrase = areaPhrase(r, {level, bench: 'peer', provinceCode: code});
+  const named = meta.priors?.signals?.[`area:${ds}:${metric}`] || [r.label, r.labelEn];
+  const label = [named[0].replace(/ในพื้นที่$/, ''), String(named[1] || '').replace(/ in the area$/, '')];
+  return `<li>${extLink(link, label[0], 'area-link', label[1])} <b class="data-number">${esc(r.text)}</b> <span${enAttr(r.unitEn)}>${esc(r.unit)}</span>${unitName ? ` ${say('ใน', 'in')} <span>${esc(unitName)}</span>` : ''}${phrase ? ` · <span class="fact-rank">${esc(phrase)}</span>` : ''}</li>`;
+}
+
+/** Observed lines of one group: values with their rank, and named records that open in their own demo. */
+function factLines(meta, sg, facts, row, seg) {
+  const s = sg?.sig || {}, ex = sg?.ex || {}, out = [];
+  const C = meta.context || {};
+  if (seg === 'residents') {
+    for (const [ds, metric] of [['deed', 'medianPrice'], ['condoOffer', 'y2025MedianOffer'], ['detachedhouse', 'medPrice'], ['apartment', 'medianPrice'], ['condo', 'medianPrice'], ['townhouse', 'medianPrice']]) {
+      const line = areaLine(meta, facts, row, ds, metric);
+      if (line && out.length < 4) out.push(line);
+    }
+    if (ex.condo?.length) {
+      const link = meta.area?.condo?.link?.replace('{province}', encodeURIComponent(row?.provinceCode || '')).replace('{district}', encodeURIComponent(row?.districtCode || ''));
+      out.push(`<li>${say('คอนโดในแขวง/ตำบลนี้ที่ราคาประเมินห้องชุดสูงสุด (บาท/ตร.ม.):', 'Condominiums of this subdistrict with the highest unit appraisal (THB/m²):')} ${ex.condo.map(c => `<span>${esc(c.n)}</span> <b class="data-number">${num(c.p)}</b>`).join(' · ')}${link ? ` ${extLink(link, 'ดูใน CityMETER', 'source-link', 'See in CityMETER')}` : ''}</li>`);
+    }
+  } else if (seg === 'students') {
+    if (s['school.n3'] != null) {
+      out.push(factLine(`โรงเรียนเอกชน ${num(s['school.priv3'] || 0)} และนานาชาติ ${num(s['school.intl3'] || 0)} แห่ง จากสถานศึกษา ${num(s['school.n3'])} แห่งใน 3 กม.`,
+        `${num(s['school.priv3'] || 0)} private and ${num(s['school.intl3'] || 0)} international of ${num(s['school.n3'])} schools within 3 km`, ctxRank(meta, sg, 'school.intlpriv3', {count: true})));
+    }
+    if (s['school.fee5.n']) {
+      out.push(factLine(`ค่าเทอมสูงสุดที่โรงเรียนประกาศใน 5 กม. ${num(s['school.fee5.max'])} บาท/ปี`, `Highest published tuition within 5 km: THB ${num(s['school.fee5.max'])} a year`, ctxRank(meta, sg, 'school.fee5.max')));
+    } else {
+      out.push(factLine(`ยังไม่มีโรงเรียนใน 5 กม. ที่ประกาศค่าเทอมในชุดข้อมูล (ทั้งประเทศมี ${num(C.feeSchools || 0)} โรงเรียน)`, `No school within 5 km has published tuition in the dataset (${num(C.feeSchools || 0)} schools nationwide)`));
+    }
+    for (const e of ex.school || []) {
+      const g = groupOf(meta, 'school', e.g);
+      const parts = [g, e.f ? [`ค่าเทอม ${range(e.f[0], e.f[1])} บาท/ปี${e.y ? ` (ปีการศึกษา ${e.y})` : ''}`, `tuition THB ${range(e.f[0], e.f[1])} a year${e.y ? ` (${e.y})` : ''}`] : null, distanceWords(e.d)].filter(Boolean);
+      out.push(poiLine(meta, 'school', e.k, e.n, e.e, parts, e.u ? ` ${extLink(e.u, 'หน้าค่าเทอม', 'source-link', 'tuition page')}` : ''));
+    }
+    for (const e of ex.university || []) {
+      const parts = [groupOf(meta, 'university', e.t), e.s ? [`นักศึกษาทั้งมหาวิทยาลัย ${num(e.s)} คน`, `${num(e.s)} students in the university`] : null, distanceWords(e.d)].filter(Boolean);
+      out.push(poiLine(meta, 'university', e.k, e.n, '', parts));
+    }
+  } else if (seg === 'workers') {
+    if (s['office.n3'] != null) {
+      const rent = s['office.rent3.med'];
+      if (s['office.n3'] === 0) out.push(factLine('ไม่พบสำนักงานในชุดข้อมูลใน 3 กม.', 'No office record within 3 km'));
+      else out.push(factLine(`สำนักงาน ${num(s['office.n3'])} รายการใน 3 กม.${rent ? ` · ค่าเช่าที่ประกาศ (ค่ากลาง) ${num(rent)} บาท/ตร.ม./เดือน` : ''}`,
+        `${num(s['office.n3'])} office records within 3 km${rent ? ` · median asking rent THB ${num(rent)}/m²/month` : ''}`, rent ? ctxRank(meta, sg, 'office.rent3.med') : null));
+    }
+    for (const e of ex.office || []) {
+      const parts = [e.a ? [`${num(e.a)} ตร.ม.`, `${num(e.a)} m²`] : null, e.rr ? [`ค่าเช่าที่ประกาศ ${range(e.rr[0], e.rr[1])} บาท/ตร.ม./เดือน${e.ro ? ` (${thaiDay(e.ro)})` : ''}`, `asking rent THB ${range(e.rr[0], e.rr[1])}/m²/month${e.ro ? ` (${e.ro})` : ''}`] : null, distanceWords(e.d)].filter(Boolean);
+      out.push(poiLine(meta, 'office', e.k, e.n, e.e, parts));
+    }
+    if (s['hospital.private3'] === 0) out.push(factLine('ไม่พบโรงพยาบาลเอกชนใน 3 กม.', 'No private hospital within 3 km'));
+    else if (s['hospital.private3'] != null) {
+      out.push(factLine(`โรงพยาบาลเอกชน ${num(s['hospital.private3'])} แห่ง ${num(s['hospital.privateBeds3'] || 0)} เตียงใน 3 กม.`, `${num(s['hospital.private3'])} private hospitals with ${num(s['hospital.privateBeds3'] || 0)} beds within 3 km`,
+        ctxRank(meta, sg, 'hospital.privateBeds3', {count: true})));
+    }
+    for (const e of ex.hospital || []) {
+      out.push(poiLine(meta, 'hospital', e.k, e.n, '', [groupOf(meta, 'hospital', e.g), e.b ? [`${num(e.b)} เตียง`, `${num(e.b)} beds`] : null, distanceWords(e.d)].filter(Boolean)));
+    }
+    if (s['factory.workers5'] != null) {
+      out.push(factLine(`คนงานโรงงานตามทะเบียน ${num(s['factory.workers5'])} คนใน 5 กม.`, `${num(s['factory.workers5'])} registered factory workers within 5 km`, ctxRank(meta, sg, 'factory.workers5', {count: true})));
+    }
+    for (const e of ex.factory || []) {
+      out.push(poiLine(meta, 'factory', e.k, e.n, '', [groupOf(meta, 'factory', e.fm), [`คนงาน ${num(e.w)} คน`, `${num(e.w)} workers`], distanceWords(e.d)].filter(Boolean)));
+    }
+    if (s['transit.n1'] != null) {
+      const near = s['transit.nearM'] != null ? distanceWords(s['transit.nearM']) : null;
+      out.push(s['transit.n1'] > 0
+        ? factLine(`สถานีรางใน 1 กม. ${num(s['transit.n1'])} สถานี${near ? ` · ใกล้สุด ${near[0]}` : ''}`, `${num(s['transit.n1'])} rail stations within 1 km${near ? ` · nearest ${near[1]}` : ''}`)
+        : factLine(`ไม่มีสถานีรางใน 1 กม.${near ? ` · ใกล้สุด ${near[0]}` : ''}`, `No rail station within 1 km${near ? ` · nearest ${near[1]}` : ''}`));
+    }
+    for (const e of ex.transit || []) {
+      out.push(poiLine(meta, 'transit', e.k, e.n, e.e, [...(e.l || []), distanceWords(e.d)]));
+    }
+    if (s['gov.n3'] != null) out.push(s['gov.n3'] > 0 ? factLine(`หน่วยงานรัฐ ${num(s['gov.n3'])} แห่งใน 3 กม.`, `${num(s['gov.n3'])} government offices within 3 km`) : factLine('ไม่พบหน่วยงานรัฐใน 3 กม.', 'No government office within 3 km'));
+  } else if (seg === 'visitors') {
+    if (s['hotel.priced3']) {
+      out.push(factLine(`ที่พักรายคืนที่มีราคาบันทึก ${num(s['hotel.priced3'])} แห่งใน 3 กม. · ราคาเริ่มต้นที่บันทึก (ค่ากลาง) ${num(s['hotel.med3'])} บาท`,
+        `${num(s['hotel.priced3'])} nightly stays with a recorded price within 3 km · median lowest recorded price THB ${num(s['hotel.med3'])}`, ctxRank(meta, sg, 'hotel.med3')));
+      if (s['hotel.upperRooms3'] != null && C.hotel) {
+        out.push(factLine(`ห้องในที่พักราคาเริ่มต้น ${num(C.hotel.p80)} บาทขึ้นไป ${DECIMAL.format(s['hotel.upperRooms3'])}% · ${num(C.hotel.p20)} บาทลงมา ${DECIMAL.format(s['hotel.budgetRooms3'] ?? 0)}% ของห้องในที่พักที่มีราคาบันทึก`,
+          `Rooms in stays from THB ${num(C.hotel.p80)} up: ${DECIMAL.format(s['hotel.upperRooms3'])}% · THB ${num(C.hotel.p20)} or less: ${DECIMAL.format(s['hotel.budgetRooms3'] ?? 0)}% of rooms in stays with a recorded price`, ctxRank(meta, sg, 'hotel.upperRooms3')));
+      }
+    } else if (s['hotel.n3'] != null) {
+      out.push(factLine(`ที่พักใน 3 กม. ${num(s['hotel.n3'])} แห่ง ยังไม่มีราคาบันทึกของที่พักรายคืน`, `${num(s['hotel.n3'])} stays within 3 km; no recorded nightly price yet`));
+    }
+    for (const e of ex.hotel || []) {
+      const parts = [e.b || null, e.p ? [`ราคาเริ่มต้นที่บันทึก ${num(e.p)} บาท`, `lowest recorded price THB ${num(e.p)}`] : null, e.r ? [`${num(e.r)} ห้อง`, `${num(e.r)} rooms`] : null, distanceWords(e.d)].filter(Boolean);
+      out.push(poiLine(meta, 'hotel', e.k, e.n, e.e, parts));
+    }
+    if (s['lux.r3'] != null) {
+      out.push(factLine(`จุดขายแบรนด์หรู ${num(s['lux.r1'] || 0)} จุดใน 1 กม. · ${num(s['lux.r3'])} จุดใน 3 กม.`, `${num(s['lux.r1'] || 0)} luxury points of sale within 1 km · ${num(s['lux.r3'])} within 3 km`, ctxRank(meta, sg, 'lux.r3', {count: true})));
+    }
+    for (const e of ex.luxury || []) {
+      const g = groupOf(meta, 'luxury', e.sg);
+      out.push(poiLine(meta, 'luxury', e.k, e.n, '', [g, e.h || null, distanceWords(e.d)].filter(Boolean)));
+    }
+    const attr = areaLine(meta, facts, row, 'placeOfWorship', 'touristAttractionCount');
+    if (attr) out.push(attr);
+  }
+  return out;
+}
+
+const DATA_OF = {
+  residents: [['production', 'CityMETER production (ราคาประเมินที่ดิน ราคาประกาศ และค่าเช่า)', 'CityMETER production (appraisal, asking prices and rents)'], ['condominium', 'ทะเบียนวิจัยคอนโดมิเนียม', 'Condominium research master']],
+  students: [['school', 'CityMETER School', 'CityMETER School'], ['university', 'CityMETER University', 'CityMETER University']],
+  workers: [['office', 'CityMETER Office', 'CityMETER Office'], ['hospital', 'CityMETER Hospital', 'CityMETER Hospital'], ['factory', 'CityMETER Factory', 'CityMETER Factory'], ['transit', 'CityMETER Transit', 'CityMETER Transit']],
+  visitors: [['hotel', 'CityMETER Hotel', 'CityMETER Hotel'], ['luxury', 'CityMETER Luxury Brands', 'CityMETER Luxury Brands']],
+};
+function cardDataLine(meta, seg) {
+  const C = meta.context || {};
+  const parts = (DATA_OF[seg] || []).map(([fam, th, en]) => {
+    if (fam === 'production') return [th, en];
+    if (fam === 'condominium') return C.condoPeriod ? [`${th} ${C.condoPeriod[0]}`, `${en} ${C.condoPeriod[1]}`] : [th, en];
+    const d = C.dates?.[fam];
+    return d ? [`${th} ตรวจ ${thaiDay(d)}`, `${en} checked ${d}`] : [th, en];
+  });
+  const boundary = seg === 'residents' ? ['หน่วยพื้นที่ที่ศูนย์ตั้งอยู่', 'the units the centre sits in'] : ['รัศมีเส้นตรงจากจุดของศูนย์', 'straight-line radius from the centre’s point'];
+  const [th, en] = pairText([...parts, boundary]);
+  return `<p class="hint persona-data">${say(`ข้อมูล: ${th}`, `Data: ${en}`)}</p>`;
+}
+
+const pips = level => { const n = {low: 1, medium: 2, high: 3}[level] || 0; return `<span class="pips" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`; };
+
+/** One group: presence and the spending-power signal (generated priors), what the data shows (facts), the reading (hypotheses). */
+function personaHTML(meta, pr, sg, facts, row, seg, first) {
+  const P = meta.priors;
+  const s = pr.seg?.[seg], sp = pr.spend?.[seg], say_ = pr.say?.[seg] || {}, mix = pr.mix?.[seg];
+  if (!s) return '';
+  const lab = P.segments.find(x => x[0] === seg) || [seg, seg, seg];
+  const lv = P.levels[s[0]] || [s[0], s[0]];
+  const plv = sp && sp[0] !== 'insufficient' ? P.levels[sp[0]] : null;
+  const key = `seg-${seg}`;
+  const open = options.open[key] ?? first;
+  const words = (dict, ids) => (ids || []).map(id => dict[id]).filter(Boolean);
+  const list = items => say(items.map(x => x[0]).join(' · '), items.map(x => x[1]).join(' · '));
+  const pmf = (say_.pmf || []).map(id => P.pmf[id]).filter(Boolean);
+  const haveSets = new Set(pmf.flatMap(x => x[2] || []));
+  const have = Object.entries(sg?.ten || {}).filter(([ds, n]) => n > 0 && haveSets.has(ds) && P.tenantDatasets[ds]).sort((a, b) => b[1] - a[1]);
+  const basis = sigs => (sigs || []).filter(x => x[1] != null).map(([sid, p]) => {
+    const l = P.signals[sid] || [sid, sid];
+    const area = sid.startsWith('area:');
+    const w = rankPair(p, area ? 'พื้นที่ที่มีศูนย์' : 'ศูนย์', area ? 'areas with centres' : 'centres');
+    return [`${l[0]} ${w[0]}`, `${l[1]} ${w[1]}`];
+  });
+  const bPresence = basis(s[3]), bSpend = sp && sp[0] !== 'insufficient' ? basis(sp[3]) : [];
+  // workers: the two strongest clusters set the level (an office district or a factory belt are alternatives)
+  const top2 = s[4] === 'top2' ? [' (ใช้สองค่าที่สูงที่สุด เพราะงานแต่ละแบบแทนกันได้)', ' (the two highest count, since one kind of work stands in for another)'] : ['', ''];
+  const spendNote = sp?.[4] === 'factory_led' ? `<p class="hint persona-basis">${say('กำลังซื้อจากราคา: ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน ใช้แทนงานโรงงานไม่ได้', 'Spending power from prices: not rated; the prices on hand are office rents and areas, which do not speak for factory work')}</p>` : '';
+  const facts_ = factLines(meta, sg, facts, row, seg);
+  const read = [
+    ['น่าจะยอมจ่ายเพิ่มให้', 'Would likely pay more for', words(P.wtp, say_.wtp)],
+    ['น่าจะมาแบบไหน', 'How they would likely come', words(P.pref, say_.pref)],
+  ].filter(x => x[2].length).map(([th, en, items]) => `<div><dt>${say(th, en)}</dt><dd>${list(items)}</dd></div>`).join('');
+  const chips = pmf.map(x => `<span class="pmf">${say(x[0], x[1])}</span>`).join('');
+  const haveLine = have.length ? `<p class="hint">${say(`ในรายชื่อร้านที่ตรวจแล้วของศูนย์นี้มี ${have.map(([ds, n]) => `${P.tenantDatasets[ds][0]} ${num(n)}`).join(' · ')}`, `The centre’s checked shop list already has ${have.map(([ds, n]) => `${P.tenantDatasets[ds][1]} ${num(n)}`).join(' · ')}`)}</p>` : '';
+  const checks = words(P.check, say_.chk);
+  return `<details class="persona" data-locale-open="${key}"${open ? ' open' : ''}>
+    <summary><span class="persona-name">${say(lab[1], lab[2])}</span><span class="persona-level">${pips(s[0])}<b>${say(lv[0], lv[1])}</b></span>${plv ? `<span class="spend-chip">${say(`กำลังซื้อจากราคา ${plv[0]}`, `Spending power from prices: ${plv[1].toLowerCase()}`)}</span>` : ''}</summary>
+    <div class="persona-body">
+      ${mix && P.mix[mix] ? `<p class="persona-mix">${say(P.mix[mix][0], P.mix[mix][1])}</p>` : ''}
+      ${facts_.length ? `<h6 class="persona-h">${say('ข้อมูลที่เห็น', 'What the data shows')}</h6><ul class="prior-facts">${facts_.join('')}</ul>` : ''}
+      <h6 class="persona-h">${say('อ่านว่า', 'Reading')} <span class="prior-badge">${say('สมมติฐาน', 'Hypothesis')}</span></h6>
+      <dl class="persona-read">${read}${chips ? `<div><dt>${say('หมวดที่น่าจะเข้ากัน', 'Formats that would likely fit')}</dt><dd><span class="pmf-chips">${chips}</span>${haveLine}</dd></div>` : ''}${checks.length ? `<div><dt>${say('ตรวจได้ด้วย', 'Check it with')}</dt><dd>${list(checks)}</dd></div>` : ''}</dl>
+      ${bPresence.length || bSpend.length ? `<p class="hint persona-basis">${bPresence.length ? say(`ระดับ${lv[0]} อิงจาก ${pairText(bPresence)[0]}${top2[0]}`, `${lv[1]} level, based on ${pairText(bPresence)[1]}${top2[1]}`) : ''}${bSpend.length && plv ? `<br>${say(`กำลังซื้อจากราคา อิงจาก ${pairText(bSpend)[0]} · ไม่ใช่รายได้หรือยอดใช้จ่ายที่วัดได้`, `Spending power from prices, based on ${pairText(bSpend)[1]} · not measured income or spending`)}` : ''}</p>` : ''}${spendNote}
+      ${cardDataLine(meta, seg)}
+    </div></details>`;
+}
+
+/** How the centre presents itself: luxury points of sale in it, its checked shop list, the official description, Wikipedia. */
+function positioningHTML(meta, sg) {
+  const a = sg?.attr || {}, P = meta.priors, lines = [];
+  if (a.luxIn?.n) {
+    const url = demoRecordURL(meta, 'luxuryVenue', a.luxIn.center);
+    lines.push(`<li>${say(`จุดขายแบรนด์หรูในศูนย์นี้ ${num(a.luxIn.n)} จุด`, `${num(a.luxIn.n)} luxury points of sale in this centre`)}: ${esc(a.luxIn.brands.join(' · '))}${url ? ` ${extLink(url, 'ดูใน CityMETER Luxury Brands', 'source-link', 'See in CityMETER Luxury Brands')}` : ''}</li>`);
+  }
+  const ten = Object.entries(sg?.ten || {}).filter(([ds, n]) => n > 0 && P.tenantDatasets?.[ds]).sort((x, y) => y[1] - x[1]).slice(0, 6);
+  if (ten.length) lines.push(`<li>${say(`ร้านที่ตรวจแล้วในศูนย์: ${ten.map(([ds, n]) => `${P.tenantDatasets[ds][0]} ${num(n)}`).join(' · ')}`, `Checked shops in the centre: ${ten.map(([ds, n]) => `${P.tenantDatasets[ds][1]} ${num(n)}`).join(' · ')}`)}</li>`);
+  if (a.label) lines.push(`<li>${say('สรุปจากหน้าทางการของศูนย์', 'From the centre’s official page')}: “<span>${esc(a.label[0])}</span>”${a.label[1] ? ` ${extLink(a.label[1], 'ที่มา', 'source-link', 'source')}` : ''}</li>`);
+  const w = wikiURL(a.wiki);
+  if (w) lines.push(`<li>${extLink(w, 'บทความวิกิพีเดียของศูนย์นี้', 'source-link', 'Wikipedia article on this centre')}</li>`);
+  return lines.length ? `<div class="locale-block prior-positioning"><h5 class="locale-mini">${icon('store')}${say('ศูนย์นี้วางตัวอย่างไร', 'How this centre presents itself')}</h5><ul class="prior-facts">${lines.join('')}</ul></div>` : '';
+}
+
+/**
+ * Days of a 168-character grid (Monday 00–23 … Sunday 00–23; 0 closed, 1–5 relative to the centre's busiest hour) in
+ * runs of consecutive days with the same row: {days, top, ranges: [[from, to)], open: [first, last + 1] | null}.
+ */
+export function daypartGroups(grid) {
+  const rows = Array.from({length: 7}, (_, d) => String(grid || '').slice(d * 24, d * 24 + 24));
+  const groups = [];
+  rows.forEach((r, d) => {
+    const last = groups[groups.length - 1];
+    if (last && last.row === r && last.days[last.days.length - 1] === d - 1) last.days.push(d);
+    else groups.push({row: r, days: [d]});
+  });
+  return groups.map(({row, days}) => {
+    const cells = [...row].map(Number);
+    const top = Math.max(0, ...cells);
+    const ranges = [];
+    let start = -1;
+    for (let h = 0; h <= 24; h++) {
+      const on = h < 24 && top > 0 && cells[h] === top;
+      if (on && start < 0) start = h;
+      if (!on && start >= 0) { ranges.push([start, h]); start = -1; }
+    }
+    const first = cells.findIndex(c => c > 0);
+    return {days, top, ranges, open: first < 0 ? null : [first, 24 - [...cells].reverse().findIndex(c => c > 0)]};
+  });
+}
+const hh = h => String(h).padStart(2, '0');
+const hoursRange = ([o, c]) => `${hh(Math.floor(o))}:${hh(Math.round((o % 1) * 60))}–${hh(Math.floor(c))}:${hh(Math.round((c % 1) * 60))}`;
+/** [th, en] of parsed opening hours: “ทุกวัน 10:00–22:00 น.” or runs of days with the same hours. */
+export function groupHours(days, D) {
+  const runs = [];
+  days.forEach((x, d) => {
+    const last = runs[runs.length - 1], key = hoursRange(x);
+    if (last && last.key === key) last.days.push(d); else runs.push({key, days: [d]});
+  });
+  if (runs.length === 1) return [`ทุกวัน ${runs[0].key} น.`, `daily ${runs[0].key}`];
+  const label = (r, i) => (r.days.length > 1 ? `${D[r.days[0]][i]}–${D[r.days[r.days.length - 1]][i]}` : D[r.days[0]][i]);
+  return [runs.map(r => `${label(r, 0)} ${r.key} น.`).join(' · '), runs.map(r => `${label(r, 1)} ${r.key}`).join(' · ')];
+}
+
+/** The 7×24 grid: neutral foundation tones (a prior never takes a data colour), legend, peaks as text, hours, why. */
+function daypartHTML(meta, pr, sg) {
+  const P = meta.priors, grid = String(pr.grid || '');
+  if (grid.length !== 168 || !P.days || !P.gridLevels) return '';
+  const en = LANG === 'en', D = P.days, L = P.gridLevels;
+  const head = `<tr><td></td>${Array.from({length: 24}, (_, h) => `<th scope="col">${h % 6 === 0 ? hh(h) : ''}</th>`).join('')}</tr>`;
+  const body = D.map((d, i) => `<tr><th scope="row">${esc(d[0])}</th>${[...grid.slice(i * 24, i * 24 + 24)].map((c, h) =>
+    `<td class="g${c}" title="${esc(`${en ? d[3] : d[2]} ${hh(h)}:00–${hh(h + 1)}:00${en ? '' : ' น.'} · ${L[Number(c)]?.[en ? 1 : 0] || ''}`)}"></td>`).join('')}</tr>`).join('');
+  const legend = `<ul class="dp-legend" aria-label="${en ? 'Legend' : 'คำอธิบายสัญลักษณ์'}">${L.map((l, i) => `<li><i class="g${i}" aria-hidden="true"></i>${say(l[0], l[1])}</li>`).join('')}</ul>`;
+  const peaks = daypartGroups(grid).map(g => {
+    const a = D[g.days[0]], b = D[g.days[g.days.length - 1]];
+    const [dth, den] = g.days.length > 1 ? [`${a[0]}–${b[0]}`, `${a[1]}–${b[1]}`] : [a[0], a[1]];
+    if (!g.top) return `<li><b>${say(dth, den)}</b> ${say('ปิด', 'closed')}</li>`;
+    const r = g.ranges.map(([x, y]) => `${hh(x)}:00–${hh(y)}:00`).join(', ');
+    return `<li><b>${say(dth, den)}</b> ${g.top === 5 ? say(`คึกที่สุดของสัปดาห์ ${r} น.`, `busiest of the week ${r}`) : say(`คึกที่สุดของวัน ${r} น. (ระดับ${L[g.top][0]})`, `busiest of the day ${r} (${L[g.top][1].toLowerCase()})`)}</li>`;
+  }).join('');
+  const hrs = sg?.attr?.hours;
+  const basis = P.hoursBasis?.[hrs?.basis || pr.hb];
+  const parsed = hrs?.days ? groupHours(hrs.days, D) : null;
+  // the hours read from the published text, in the page's language; the text itself in the title (often English or mixed)
+  const rawTitle = hrs?.text ? ` title="${esc(hrs.text)}"` : '';
+  const used = parsed ? `<span${rawTitle}>${esc(parsed[en ? 1 : 0])}</span>` : !en && hrs?.text ? `<span>${esc(hrs.text)}</span>` : '';
+  const hoursLine = used || basis ? `<p class="hint">${used ? `${say('เวลาเปิดที่ใช้:', 'Opening hours used:')} ${used}` : ''}${used && basis ? ' · ' : ''}${basis ? say(basis[0], basis[1]) : ''}</p>` : '';
+  const strength = st => (st >= 0.66 ? ['แรง', 'strong'] : st >= 0.33 ? ['ปานกลาง', 'moderate'] : ['เล็กน้อย', 'slight']);
+  const rules = (pr.rules || []).map(([id, st]) => {
+    const r = P.rules?.[id];
+    if (!r) return '';
+    const w = st < 1 ? strength(st) : null;
+    return `<li>${say(r[0], r[1])}${w ? ` <span class="fact-rank">${say(`(${w[0]})`, `(${w[1]})`)}</span>` : ''}</li>`;
+  }).join('');
+  return `<h5 class="locale-mini">${icon('hours')}${say('ช่วงไหนน่าจะคึก รายชั่วโมง', 'When it is likely busy, by hour')}</h5>
+    <p class="hint">${say('เทียบกับชั่วโมงที่คึกที่สุดของศูนย์นี้เอง ไม่ใช่จำนวนคน', 'Relative to this centre’s own busiest hour — not people counts')}</p>
+    <div class="dp-wrap"><table class="dp-grid" aria-hidden="true"><thead>${head}</thead><tbody>${body}</tbody></table></div>
+    ${legend}
+    <ul class="dp-peaks">${peaks}</ul>
+    ${hoursLine}
+    ${rules ? `<details class="locale-details dp-why" data-locale-open="dpwhy"${openAttr('dpwhy')}><summary>${say('ทำไมตารางเป็นแบบนี้', 'Why the grid looks like this')}</summary><ul class="prior-targets">${rules}</ul></details>` : ''}`;
+}
+
+/** Generated priors (opt-in) read beside the observed context of the same venue. Neutral tones only. */
+export function priorsHTML(meta, pr, sg = null, row = {}, facts = null) {
+  const P = meta.priors;
+  const order = (P.segments || []).map(s => s[0]).filter(s => pr.seg?.[s]).sort((a, b) => (pr.seg[b][1] ?? -1) - (pr.seg[a][1] ?? -1));
+  const cards = order.map((seg, i) => personaHTML(meta, pr, sg, facts, row, seg, i === 0)).join('');
+  const targets = (pr.targets || []).map(t => P.check?.[t]).filter(Boolean);
+  return `<p class="hint">${say('ใช้เลือกสิ่งที่จะไปตรวจ ไม่ใช่จำนวนคน ยอดขาย รายได้ หรือความเต็มใจจ่ายที่วัดได้', 'For choosing what to check — not people counts, sales, income or measured willingness to pay')}</p>
+    ${positioningHTML(meta, sg)}
+    <h5 class="locale-mini">${icon('segment')}${say('ใครน่าจะอยู่รอบศูนย์', 'Who is likely around')}</h5>
+    <div class="persona-list">${cards}</div>
+    ${daypartHTML(meta, pr, sg)}
+    ${targets.length ? `<h5 class="locale-mini">${icon('checked')}${say('ตรวจช่วงเวลาได้ด้วย', 'Check the hours with')}</h5><ul class="prior-targets">${targets.map(t => `<li>${say(t[0], t[1])}</li>`).join('')}</ul>` : ''}`;
+}
+
+function priorsBlock(meta, row, priors, priorsState, signals = null, facts = null) {
+  const body = priors ? priorsHTML(meta, priors, signals, row, facts)
     : priorsState === 'error' ? '<p class="hint">โหลดสมมติฐานไม่สำเร็จ <button type="button" class="link-button" data-action="locale-retry-priors">ลองอีกครั้ง</button></p>'
       : options.open.priors ? '<p class="hint" role="status">กำลังโหลด…</p>' : '';
   return `<details class="locale-details locale-priors" data-locale-open="priors"${openAttr('priors')}><summary>${icon('idea')}ใครน่าจะอยู่รอบศูนย์ และช่วงไหนน่าจะคึก <span class="prior-badge">สมมติฐานจากกฎ</span></summary>${body}</details>`;
@@ -379,6 +710,9 @@ function methodBlock(meta, uni) {
       <li>ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย</li>
       <li>ชุดที่ยังมีพิกัดไม่ครบนับเฉพาะรายการที่มีพิกัด และติดดาวไว้ในตาราง</li>
       ${notCounted.length ? `<li>ยังนับไม่ได้ในรุ่นนี้: ${esc(notCounted.join(' · '))}</li>` : ''}
+      <li>คอนโดนับตามแขวง/ตำบลของฐานราคาประเมินตามนโยบายของชุดข้อมูล ไม่นับจุดบนแผนที่ในรัศมี</li>
+      <li>ตัวอย่างสถานที่รอบศูนย์มาจากเดโม CityMETER ของแต่ละชุด กดชื่อเพื่อเปิดในเดโมนั้น · ระยะปัดเป็น 100 ม.</li>
+      <li>ค่าเทอมคือค่าเล่าเรียนที่โรงเรียนประกาศ · ราคาที่พักคือราคาเริ่มต้นที่บันทึกในชุดข้อมูล ไม่ทราบช่วงเวลา · ค่าเช่าสำนักงานคือราคาที่ประกาศ</li>
       <li>ข้อมูลรุ่น ${esc(meta.release?.id || '')} (release candidate) · จุดของศูนย์ยังเป็นจุดอ้างอิง ไม่ใช่ขอบเขตหรือทางเข้าที่ผู้บริหารยืนยัน</li>
     </ul></details>`;
 }
@@ -390,10 +724,10 @@ export function localeDataLine(meta) {
 }
 
 /**
- * The “รอบศูนย์นี้” section of a venue: {meta, facts, priors, state: {meta, facts, priors}}. Returns '' for rows outside
+ * The “รอบศูนย์นี้” section of a venue: {meta, facts, priors, signals, state: {meta, facts, priors}}. Returns '' for rows outside
  * the 499-venue set (markets, fuel stations…), which the release does not cover.
  */
-export function renderLocale(row, {meta = null, facts = null, priors = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle'} = {}) {
+export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle'} = {}) {
   if (!inLocaleSet(row)) return '';
   const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}<span class="hint">รัศมีเส้นตรง</span></div>`;
   const shell = inner => `<section class="panel-section locale-section" id="venue-locale" data-venue="${esc(row.id)}" aria-labelledby="locale-title">${head}${inner}</section>`;
@@ -420,7 +754,7 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, met
     ${ringTable(meta, facts, row, uni)}
     ${areaBlock(meta, facts, row)}
     ${liveBlock(meta, row, facts)}
-    ${priorsBlock(meta, row, priors, priorsState)}
+    ${priorsBlock(meta, row, priors, priorsState, signals, facts)}
     ${methodBlock(meta, uni)}
     ${localeDataLine(meta)}`);
 }

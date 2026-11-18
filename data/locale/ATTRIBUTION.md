@@ -1,6 +1,6 @@
 # Attribution — Venue Locale Insight (CityMETER Shopping Centers demo)
 
-Serving derivative of canonical release `venue-locale-shopping-20261118-v0.1.0-rc1` (manifest SHA-256 `136b6e1f44ca67d271d812d776585435903b0a1ad549174e8cbeae1921a6cdcd`). Not canonical; rebuildable.
+Serving derivative of canonical release `venue-locale-shopping-20261118-v0.2.0-rc1` (manifest SHA-256 `5f152eb96de2f9c6e0aeed32a33edbea543c3b7eabcc7d54d2aa1566b85d1051`). Not canonical; rebuildable.
 
 ## Ring counts (straight-line rings of 1, 3 and 5 km)
 
@@ -9,7 +9,6 @@ Serving derivative of canonical release `venue-locale-shopping-20261118-v0.1.0-r
 - ร้านกล้อง / Camera Shops — CityMETER Camera Shops; date 2026-10-23
 - ศูนย์บริการรถ B-Quik / B-Quik car service centres — CityMETER research registry; date 2026-11-04; brands: B-Quik
 - โรงภาพยนตร์ Major และ SF / Major and SF cinemas — CityMETER research registry; date 2026-11-13; brands: Major, SF — no accepted points, province counts only
-- คอนโดมิเนียม (จุดในฐานราคาประเมิน) / Condominiums (appraisal map points) — CityMETER research registry; date 2026-11-05
 - โรงงาน / Factory — CityMETER Factory; date 2026-11-16
 - ฟิตเนส / Fitness — CityMETER Fitness; date 2026-10-26
 - ร้านทอง / Gold shops — CityMETER research registry; date 2026-11-08
@@ -78,5 +77,8 @@ Serving derivative of canonical release `venue-locale-shopping-20261118-v0.1.0-r
 ## Notices
 
 - Counts are records the sources list, not footfall, sales, rent or vacancy.
-- Generated priors (residents, visitors, workers/commuters, dayparts) are rule-based hypotheses, never observed facts.
+- Generated priors (four groups, price signals, hypothesis phrases, the 7×24 daypart grid) are rule-based hypotheses, never observed facts.
+- Named examples come from the CityMETER demo datasets listed above and open in their own demos; published tuition is the school's own page (tuition only); hotel prices are the lowest price CityMETER Hotel V3 recorded (period unknown).
+- Condominium appraisal records are listed by the subdistrict search area of the CityMETER condominium research master (tab 07_PRODUCTION); map points are not counted.
+- Wikipedia titles are links only (text not copied).
 - Rights for most production sources are recorded as unverified in the registry; this bundle carries aggregate values and links only.
