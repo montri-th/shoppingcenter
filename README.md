@@ -172,6 +172,8 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 ## 0.4.0 - รอบศูนย์นี้: Venue Locale Insight ของศูนย์ 499 แห่ง (`20261118-r2`)
 
+- 0.4.1 (`20261118-r3`): มุมว่างบนซ้ายของตารางช่วงเวลาไม่มีกรอบแล้ว (ไม่มีอย่างอื่นเปลี่ยน)
+
 - ข้อมูล: `data/locale/` = serving derivative ของ canonical release `venue-locale-shopping-20261118-v0.1.0-rc1` (release candidate; 499 แห่ง มีพิกัด 488) — `meta.json` · `facts/NN.json` · `priors/NN.json` (64 shard ต่อชุด, FNV-1a เดียวกับ `data/details`) · `serving_bundle_manifest.json` · `checksums.sha256` · `ATTRIBUTION.md` · `serving_exclusions.json` · `serving_profile.json` · `project_manifests.jsonl.gz`
 - ทะเบียนวิจัย 24 ชุดนับในรัศมี 1 · 3 · 5 กม. · 4 ชุดยังไม่มีพิกัด (แสดงจำนวนในจังหวัด) · 8 ชุด `catalog_only` ยังนับไม่ได้ · CityMETER production 34 ชุดเป็นค่าของพื้นที่ · 9 ชุดรายวันหรือคาดการณ์เป็นลิงก์
 - โค้ด: `js/venue-locale.js` (loader, pure renderers, amCharts dot plot) · `js/venue-locale-i18n.js` (อังกฤษของส่วนนี้) · `js/app.js` (โหลดเมื่อเปิดสถานที่, `PARTIAL` ของ `data/locale`) · `js/panel.js` (`renderVenue({locale})`) · `js/charts.js` (ส่งออก root และ token ของ LDS) · `styles.css` · `tests/venue-locale.test.js`

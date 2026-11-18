@@ -825,6 +825,7 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .daypart th { position: static; background: transparent; padding: 2px; font-size: 11px; color: var(--text-metadata); white-space: normal; text-align: center; font-weight: 600; }
 .daypart thead th small { display: block; font-weight: 400; font-size: 10px; }
 .daypart tbody th { text-align: left; width: 22%; }
+.daypart thead td { border: 0; background: transparent; }
 .daypart td { padding: 6px 2px; text-align: center; border-radius: 6px; border: 1px solid var(--border-hairline); line-height: 1.3; }
 .daypart td.dp-0 { border-style: dashed; color: var(--text-metadata); }
 .daypart td.dp-1 { background: var(--surface-soft); color: var(--text-secondary); }
