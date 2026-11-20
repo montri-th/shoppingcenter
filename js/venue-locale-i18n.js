@@ -25,11 +25,11 @@ const provinceEN = th => {
   if (s === 'กรุงเทพฯ' || s === 'กรุงเทพมหานคร') return 'Bangkok';
   return PROVINCES.find(p => p.th === s)?.en || null;
 };
-/** “ย่านในกรุงเทพฯ” → “neighbourhoods in Bangkok”; “แขวงที่มีศูนย์ในชุดนี้” → “subdistricts with centers of this set”. */
+/** “ย่านในกรุงเทพฯ” → “neighbourhoods in Bangkok”; “แขวงที่มีศูนย์ชุดอ้างอิง” → “subdistricts with centers of the reference set”. */
 function groupEN(text) {
   const s = String(text || '').trim();
-  let m = new RegExp(`^(${LEVEL_RE})ที่มีศูนย์ในชุดนี้$`).exec(s);
-  if (m) return `${LEVEL_EN[m[1]][1]} with centers of this set`;
+  let m = new RegExp(`^(${LEVEL_RE})ที่มีศูนย์ชุดอ้างอิง$`).exec(s);
+  if (m) return `${LEVEL_EN[m[1]][1]} with centers of the reference set`;
   m = new RegExp(`^(${LEVEL_RE})ใน(.+)$`).exec(s);
   if (m) { const p = provinceEN(m[2]); return p ? `${LEVEL_EN[m[1]][1]} in ${p}` : null; }
   return null;
@@ -41,8 +41,9 @@ function universeEN(text) {
   if (m) return `${m[1]} centers`;
   m = /^(.+) ([\d,]+) แห่ง$/.exec(s);
   if (m && TYPE_EN[m[1]]) return `${m[2]} ${TYPE_EN[m[1]]}`;
-  m = /^(.+)ที่มีพิกัด$/.exec(s);
-  if (m && (m[1] === 'ศูนย์ในชุดนี้' || TYPE_EN[m[1]])) return m[1] === 'ศูนย์ในชุดนี้' ? 'located centers of this set' : `located ${TYPE_EN[m[1]]}`;
+  // the release's universe labels: “ศูนย์ชุดอ้างอิงที่มีพิกัด”, “ศูนย์การค้าชุดอ้างอิงที่มีพิกัด”
+  m = /^(.+)ชุดอ้างอิงที่มีพิกัด$/.exec(s);
+  if (m && (m[1] === 'ศูนย์' || TYPE_EN[m[1]])) return `located ${m[1] === 'ศูนย์' ? 'centers' : TYPE_EN[m[1]]} of the reference set`;
   return null;
 }
 const or = (...parts) => (parts.some(p => p == null) ? null : parts.join(''));
@@ -96,7 +97,7 @@ const PATTERNS = [
   [/^ไม่พบ เหมือน ([\d,]+)% ของ(.+)$/, (m) => or(`none found, like ${m[1]}% of `, universeEN(m[2]))],
   [/^ไม่มีในข้อมูล เหมือน ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`none in the data, like ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
   [/^ต่อ ตร\.กม\. (.+)$/, (m, t) => or('per km²: ', t.part(m[1]))],
-  [/^ทุกศูนย์ ([\d,]+) แห่ง$/, 'All $1 centers'],
+  [/^ทุกประเภท ([\d,]+) แห่ง$/, '$1 of all types'],
   [/^(ศูนย์การค้า|คอมมูนิตี้มอลล์|เอาท์เล็ต) ([\d,]+) แห่ง$/, (m) => `${m[2]} ${TYPE_EN[m[1]]}`],
   [/^ใน(.+)$/, (m) => { const p = provinceEN(m[1]); return p ? `In ${p}` : null; }],
   [/^ดูอีก ([\d,]+) รายการ$/, 'Show $1 more'],

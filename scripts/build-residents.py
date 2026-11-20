@@ -8,21 +8,26 @@ Owner 2026-11-20 08:26 (VERBATIM): “1 ขึ้นเลย / 2 พี่ต�
 cells of the center's own 5 km map ranked on the 41 samples of the LDS `density.area` LUT, js/scales.js buildRamp).
 
 Inputs (both outside this repository):
-  --bundle    the extracted bundle 02-CityMETER__venue-locale-residents-488-venues-bundle__v1__2026-11-20 (results/
-              residents_488.json and results/grids_250m.json, checked against its SHA256SUMS). Method: residents of a
+  --bundle    the extracted bundle 02-CityMETER__venue-locale-residents-492-venues-bundle__v2__2026-11-20 (results/
+              residents_492.json and results/grids_250m.json, checked against its SHA256SUMS): bundle v1 (488 centres,
+              every record unchanged) and the four centres placed on 2026-11-20 (owner 11:57), computed with the same
+              scripts. Method: residents of a
               building = the subdistrict's registered population (Department of Provincial Administration, Oct 2026,
               `t_tot`) × the building's floor area ÷ the subdistrict floor area that CityMETER production caches (the
               production allocation, all buildings); summed over the buildings whose centroid lies within the
               straight-line radius. Read from the production API (GET only) on 20 Nov 2026.
-  --outlines  the subdistricts the 5 km radii touch, with the geometry production serves (base/info/geom; the bundle
-              keeps them without geometry, `inputs/touched.json`, and the response hashes in `inputs/fetch_log.csv`).
+  --outlines  the subdistricts the 5 km radii touch, with the geometry production serves (base/info/geom): the bundle's
+              `inputs/touched_with_geometry.json` (`inputs/touched.json` without geometry, response hashes in
+              `inputs/fetch_log.csv`).
               Drawn as thin lines: projected around the center (azimuthal equidistant, the grid's projection), snapped
               to 40 m, coverage-simplified at 60 m, clipped to 5 km — a reading aid, not a boundary to measure on.
 
 Published per center (shardOf(id, SHARDS), FNV-1a as js/details.js; one record per located center of the set):
   n     residents within 1 · 3 · 5 km (3 decimals, as ring and own: every figure the page rounds reads as from the
         bundle's own value, which the build checks)
-  p     mid-rank percentile among the 488 located centers [all], and among the same type [type], per radius
+  p     mid-rank percentile among the 488 located centers of bundle v1 [all], and among those of the same type [type],
+        per radius: the rank reference is fixed (owner 2026-11-20 11:57, “อันดับแบบแนะนำ”), so a center placed later is
+        ranked against the 488 and moves no one else's rank
   age   shares 0–14 · 15–59 · 60+ per radius (the subdistricts' age structure weighted by the residents inside)
   b     buildings counted per radius · sd subdistricts with a counted building per radius
   ring  [residents, residents per km²] of the rings 0–1 · 1–3 · 3–5 km
@@ -52,8 +57,9 @@ RINGS = ('0-1000', '1000-3000', '3000-5000')
 GROUPS = ('mall', 'community', 'outlet')
 CELL_M, HALF = 250, 20  # cells -20..19 on both axes: 40 × 40 around the center
 OUTLINE_UNIT_M, SNAP_M, SIMPLIFY_M = 25, 40, 60
-RELEASE = 'venue-locale-residents-488-20261120-v1'
-BUNDLE = '02-CityMETER__venue-locale-residents-488-venues-bundle__v1__2026-11-20'
+RELEASE = 'venue-locale-residents-492-20261120-v2'
+BUNDLE = '02-CityMETER__venue-locale-residents-492-venues-bundle__v2__2026-11-20'
+RESULTS = 'results/residents_492.json'
 
 
 def fail(msg):
@@ -182,11 +188,11 @@ def main():
     for line in (args.bundle / 'SHA256SUMS').read_text(encoding='utf-8').splitlines():
         h, name = line.split(None, 1)
         sums[name.strip().removeprefix('./')] = h
-    for name in ('results/residents_488.json', 'results/grids_250m.json', 'inputs/venues.json'):
+    for name in (RESULTS, 'results/grids_250m.json', 'inputs/venues.json'):
         got = sha256(args.bundle / name)
         if sums.get(name) != got:
             fail(f'{name}: SHA-256 {got} differs from SHA256SUMS ({sums.get(name)})')
-    R = json.loads((args.bundle / 'results/residents_488.json').read_text(encoding='utf-8'))
+    R = json.loads((args.bundle / RESULTS).read_text(encoding='utf-8'))
     G = json.loads((args.bundle / 'results/grids_250m.json').read_text(encoding='utf-8'))
     V = {v['id']: v for v in json.loads((args.bundle / 'inputs/venues.json').read_text(encoding='utf-8'))}
     T = json.loads(args.outlines.read_text(encoding='utf-8'))
@@ -203,16 +209,20 @@ def main():
             fail(f'{vid}: type {V[vid]["group"]} in the bundle, {row["group"]} in data/venues.json')
         if abs(V[vid]['lon'] - row['lon']) > 1e-6 or abs(V[vid]['lat'] - row['lat']) > 1e-6:
             fail(f'{vid}: the point moved since the bundle ({V[vid]["lon"]},{V[vid]["lat"]} → {row["lon"]},{row["lat"]})')
-    counts = {'all': len(venues), **{g: sum(1 for r in located.values() if r['group'] == g) for g in GROUPS}}
+    added = sorted(R['meta']['added']['venues'])
+    reference = sorted(set(venues) - set(added))
+    if len(reference) != 488 or set(added) - set(venues):
+        fail(f'rank reference of {len(reference)} centers, added {added}')
+    counts = {'all': len(reference), **{g: sum(1 for i in reference if located[i]['group'] == g) for g in GROUPS}}
     if R['meta']['universes'] != counts:
-        fail(f'universes {R["meta"]["universes"]} vs recount {counts}')
+        fail(f'universes {R["meta"]["universes"]} vs recount of the reference {counts}')
     if G.get('cell_m') != CELL_M:
         fail(f'grid cell {G.get("cell_m")} m, expected {CELL_M}')
 
-    # percentiles recounted from the residents themselves (all, and the same type)
+    # percentiles recounted from the residents themselves (all, and the same type), against the fixed reference
     for r in RADII:
-        allv = [venues[i]['radii'][r]['residents'] for i in venues]
-        by_type = {g: [venues[i]['radii'][r]['residents'] for i in venues if located[i]['group'] == g] for g in GROUPS}
+        allv = [venues[i]['radii'][r]['residents'] for i in reference]
+        by_type = {g: [venues[i]['radii'][r]['residents'] for i in reference if located[i]['group'] == g] for g in GROUPS}
         for vid, rec in venues.items():
             x = rec['radii'][r]['residents']
             for key, pool in (('pct_all', allv), ('pct_type', by_type[located[vid]['group']])):
@@ -298,6 +308,8 @@ def main():
         'shards': SHARDS,
         'venues': len(venues),
         'universes': counts,
+        'reference': {'n': len(reference), 'bundle': '02-CityMETER__venue-locale-residents-488-venues-bundle__v1__2026-11-20',
+                      'added': added, 'addedOn': R['meta']['added']['placedOn']},
         'radii': [int(r) for r in RADII],
         'rings': [[int(a) for a in k.split('-')] for k in RINGS],
         'cell': {'m': CELL_M, 'n': 2 * HALF, 'first': [-HALF, HALF - 1],
@@ -310,7 +322,7 @@ def main():
         'input': {
             'bundle': BUNDLE,
             'sha256sums': sha256(args.bundle / 'SHA256SUMS'),
-            'files': {name: sums[name] for name in ('results/residents_488.json', 'results/grids_250m.json', 'inputs/venues.json')},
+            'files': {name: sums[name] for name in (RESULTS, 'results/grids_250m.json', 'inputs/venues.json')},
             'outlines': {'file': args.outlines.name, 'sha256': sha256(args.outlines)},
             'tools': {'pyproj': pyproj.__version__, 'shapely': shapely.__version__},
         },
