@@ -1279,6 +1279,13 @@ function placesBlock(cfg, meta, row, pmeta, rec, state, {facts = null, residents
   const people = measured.length ? `<p class="res-age-text work-people">${say(
     `ที่แหล่งบันทึกไว้ใน ${km(r)}: ${measured.map(x => `${x.ms[1]} ${num(x.v)}`).join(' · ')}`,
     `Recorded by the sources within ${kmEn(r)}: ${measured.map(x => `${num(x.v)} ${x.ms[2]}`).join(' · ')}`)}</p>` : '';
+  // office workers (modelled; data/work-study-map w, 0.9.6): office area × occupancy ÷ 10–12 m² per person, a range, never added up
+  const om = cfg.people ? pmeta.officeWorkers : null, ow = om ? rec.w?.[i] : null;
+  const owN = ow ? ow[2] + ow[3] : 0;
+  const owRange = ow ? `${num(ow[0])}\u2060–\u2060${num(ow[1])}` : ''; // a range never breaks at its dash
+  const officeModel = owN > 0 ? `<p class="res-age-text work-office-model">${say(
+    `คนทำงานในสำนักงาน (แบบจำลอง) ใน ${km(r)} ราว ${owRange}\u00a0คน · จากพื้นที่ของสำนักงาน ${num(owN)} จาก ${num(ow[4])} แห่ง`,
+    `Office workers (modelled) within ${kmEn(r)}: about ${owRange} · from the area of ${num(owN)} of ${num(ow[4])} offices`)}</p>` : '';
   const model = placesMapModel(rec, pmeta, cfg.scale), {ramp} = model;
   const figure = `<figure class="res-figure">${placesMapHTML(cfg, row, rec, pmeta, r, model, {overlay: residentsMap, outline: residents?.o || null, outlineUnit: residentsMeta?.outline?.unit_m || 25})}
     <figcaption class="res-legend"><span class="res-legend-title">${say('สถานที่ต่อช่อง 250 × 250 ม.', 'Places per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'สถานที่ต่อช่อง 250 × 250 ม.'})}
@@ -1311,7 +1318,9 @@ function placesBlock(cfg, meta, row, pmeta, rec, state, {facts = null, residents
       <li>${say(`ที่มา: เว็บเดโม CityMETER ${num(fromDemos.length)} ชุด และทะเบียนวิจัย CityMETER ${num(fromRegistry.length)} ชุด ที่มาและวันที่ของแต่ละชุดอยู่ในตาราง “ตัวเลขทุกรัศมี” ด้านล่าง`,
         `Sources: ${num(fromDemos.length)} CityMETER demo webs and ${num(fromRegistry.length)} datasets of the CityMETER research registry; each one’s source and date are in the table “Figures for every radius” below`)}</li>
       ${partial.length ? `<li>${say(`นับเฉพาะรายการที่มีพิกัด ชุดที่มีพิกัดไม่ถึง 90%: ${partial.map(x => x[0]).join(' · ')}`, `Only records with a point are counted; datasets with points for under 90% of their records: ${partial.map(x => x[1]).join(' · ')}`)}</li>` : ''}
-      ${peopleNote}<li>${say(...cfg.caveat)}</li>
+      ${peopleNote}${om ? `<li>${say(
+    `คนทำงานในสำนักงาน (แบบจำลอง) = พื้นที่ของสำนักงาน × อัตราการเช่า ÷ ${om.sqmPerPerson[0]}–${om.sqmPerPerson[1]} ตร.ม. ต่อคน รวมทุกสำนักงานในรัศมีที่มีพื้นที่${owN > 0 ? ` (ใน ${km(r)}: พื้นที่ให้เช่าที่แหล่งเผยแพร่ ${num(ow[2])} แห่ง พื้นที่ตามแหล่ง ${num(ow[3])} แห่ง)` : ''} ไม่ใช้พื้นที่ที่แหล่งข้อมูลขัดกัน · อัตราการเช่าใช้ของอาคารเมื่อเจ้าของรายงาน นอกนั้นใช้ ${(om.occupancy.rate * 100).toFixed(1)}% ${om.occupancy.th} (${om.occupancy.byTh}) · ${om.density.th} (${om.density.byTh}) · นับสำนักงานละครั้ง ไม่รวมสำนักงานในอาคารเดียวกันเป็นรายการเดียว · เป็นค่าประมาณจากพื้นที่ ไม่ใช่จำนวนพนักงานที่นับได้ และไม่บวกกับคนที่แหล่งบันทึก · พื้นที่และอัตราการเช่าของอาคารจาก CityMETER · Office ${om.source.productVersion} ตรวจถึง ${thaiDay(om.source.checkedOn)}`,
+    `Office workers (modelled) = office area × occupancy ÷ ${om.sqmPerPerson[0]}–${om.sqmPerPerson[1]} m² per person, over every office within the radius that has an area${owN > 0 ? ` (within ${kmEn(r)}: ${num(ow[2])} with a published leasable area, ${num(ow[3])} with a source area)` : ''}; an area the sources disagree on is not used · the building’s own occupancy when its owner reports it, otherwise ${(om.occupancy.rate * 100).toFixed(1)}%, ${om.occupancy.en} (${om.occupancy.byEn}) · ${om.density.en} (${om.density.byEn}) · each office counts once; offices in one building are not merged · an estimate from floor area, not a count of employees, and never added to the people the sources record · areas and building occupancy from CityMETER · Office ${om.source.productVersion}, checked to ${englishDay(om.source.checkedOn)}`)} ${extLink(om.occupancy.url, 'ที่มาของอัตราการเช่า', 'source-link', 'occupancy source')} · ${extLink(om.density.url, 'ที่มาของพื้นที่ต่อคน', 'source-link', 'space-per-person source')}</li>` : ''}<li>${say(...cfg.caveat)}</li>
       <li>${say(`อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ${uni.th} ${num(uni.n)} แห่ง ค่าที่เท่ากันนับครึ่ง อันดับสูงไม่ได้แปลว่าทำเลดีกว่า`, `The rank is a mid-rank percentile among ${num(uni.n)} ${uniEn}, ties counted half; a higher rank does not make a better location`)}</li>
       ${referenceLine(meta)}
       <li>${say(`แผนที่: สีของช่อง 250 × 250 ม. เรียงตามจำนวนสถานที่ในช่องในวง 5 กม. ของศูนย์นี้ 41 ระดับ ตัวหารคือพื้นที่ของช่อง 1/16 ตร.กม. ทุกช่องเท่ากัน ใช้เทียบช่องในวงนี้ ไม่ใช้เทียบสีข้ามศูนย์ · ${cfg.colour[0]} · ช่องที่ขอบวงนับเฉพาะสถานที่ในรัศมี · ช่องสีพื้นไม่มีสถานที่ในชุดข้อมูลที่นับ ไม่ได้แปลว่าไม่มีคน`,
@@ -1320,7 +1329,7 @@ function placesBlock(cfg, meta, row, pmeta, rec, state, {facts = null, residents
       <li>${say(`รุ่นข้อมูล ${pmeta.release} คิดจากชุดจุดของ ${pmeta.localeRelease} จำนวนในรัศมีเท่ากับวงด้านบนทุกชุดข้อมูล`, `Release ${pmeta.release}, counted from the point sets of ${pmeta.localeRelease}; the counts within each radius equal the rings above, dataset by dataset`)} · <a href="DATA_METHOD.md#${cfg.anchor}" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
     </ul></details>`;
   return wrap(`${head}
-    ${mix}${people ? `\n    ${people}` : ''}
+    ${mix}${people ? `\n    ${people}` : ''}${officeModel ? `\n    ${officeModel}` : ''}
     ${figure}
     ${placesTableHTML(cfg, rec, pmeta)}
     ${line}

@@ -847,6 +847,30 @@ The regression fixture reproduces the duplicated main footprint before the corre
 
 **สร้างใหม่เมื่อ:** ออกรอบศูนย์นี้รุ่นใหม่ · ชุดอ้างอิงหรือชุดศูนย์ที่มีพิกัดเปลี่ยน · ทีมวิจัยเพิ่มพิกัดให้โรงงาน สถานพยาบาล หรือโรงภาพยนตร์
 
+<a id="office-workers-model"></a>
+
+## 26. คนทำงานในสำนักงาน (แบบจำลอง) (0.9.6, 21 พ.ย. 2569 · D63)
+
+**คำสั่งเจ้าของ (VERBATIM):** 20 พ.ย. 2569 23:27 “ลุยครับ ถ้าได้ผลดี run ให้จบทั้งหมดไปเลยนะ แล้วปรับ demo office ให้เรียบร้อยด้วย https://citymeter.pages.dev/office/?d=office&at=BKK” และ “นำผลลัพท์ใหม่ไปปรับทั้ง shopping center และ office demo web” — หลังตรวจพื้นที่ให้เช่าของอาคารสำนักงานในชีตวิจัยของ CityMETER · Office (20 พ.ย. 2569) ตามวิธีที่ Claude เสนอเมื่อเจ้าของถาม 22:34 “ช่วยแนะนำวิธีหน่อยครับ” และเจ้าของให้เริ่ม 22:46 “เริ่มเลยครับ”
+
+**สูตร (แบบจำลอง ไม่ใช่การนับ):** คนทำงานในสำนักงานในรัศมี = ผลรวมของ (พื้นที่ของสำนักงาน × อัตราการเช่า) ÷ 10–12 ตร.ม. ต่อคน แสดงเป็นช่วง ค่าต่ำหารด้วย 12 ปัดลง ค่าสูงหารด้วย 10 ปัดขึ้น (หลักสิบ หลักร้อยเมื่อถึง 1,000)
+
+- **พื้นที่:** พื้นที่ให้เช่าที่ CityMETER · Office เผยแพร่ (ตามเจ้าของ นายหน้า หรือข่าวประชาสัมพันธ์ 75 รายการ) ถ้าไม่มีใช้พื้นที่ตามแหล่งของรายการ (250 รายการ ส่วนใหญ่ไม่ระบุว่าเป็นพื้นที่เช่าหรือพื้นที่อาคารรวม) ไม่ใช้พื้นที่ที่สถานะ “แหล่งข้อมูลขัดกัน”
+- **อัตราการเช่า:** ของอาคารเมื่อเจ้าของรายงาน (18 รายการ) นอกนั้น 76.4% อัตราการเช่าของตลาดสำนักงานกรุงเทพฯ ไตรมาส 3/2569 ตาม Knight Frank Thailand ([Pattaya Mail 24 ต.ค. 2569](https://www.pattayamail.com/thailandnews/bangkok-office-vacancy-reaches-1-6-million-sqm-as-occupancy-stays-below-10-year-average-569566)) ใช้กับสำนักงานนอกกรุงเทพฯ และสำนักงานที่องค์กรใช้เองด้วย
+- **พื้นที่ต่อคน:** 10–12 ตร.ม. เกณฑ์เดิมในการคิดพื้นที่สำนักงานต่อคน ([Knight Frank Thailand และ Peoplespace ใน Bangkok Post](https://www.bangkokpost.com/property/2008523/knight-frank-thailand-and-peoplespace-showcase-workplace-strategy-concept-for-the-digital-era)) แหล่งเดียวกันระบุว่าปัจจุบันเปลี่ยนไปวางแผนตามจำนวนที่นั่ง
+- **จุดและการ join:** ชุดจุดสำนักงานของรอบศูนย์นี้ (427 รายการที่มีพิกัด จำนวนในรัศมีเท่ากับวงทุกศูนย์) join ด้วย Office ID กับ `montri-th/office` `data/offices.json` @`8e8d8be` (รุ่น 0.5.5, SHA-256 `4d225abb…`, ตรวจถึง 20 พ.ย. 2569; ค่าเต็มใน `meta.officeWorkers.source`) ระยะตรงเดียวกับวง
+- **นับรายการละครั้ง:** ไม่รวมรายการที่อยู่ในอาคารเดียวกันเป็นรายการเดียว (ส่วนใหญ่เป็นคนละอาคารที่ผูกกับรูปอาคารเดียวกัน เช่น สาธรธานี 1 และ 2) สำนักงานย่อยในอาคารที่มีพื้นที่ทั้งอาคารอยู่แล้วจึงนับซ้ำได้ เช่น Finansa ใน Italthai Tower
+
+**ที่หน้าแสดง:** บรรทัด “คนทำงานในสำนักงาน (แบบจำลอง) ใน 3 กม. ราว 222,600–267,200 คน · จากพื้นที่ของสำนักงาน 123 จาก 155 แห่ง” (เซ็นทรัลเวิลด์) ใต้ตัวเลขคนที่แหล่งบันทึก ไม่บวกกับนักเรียน คนงาน บุคลากร หรือเตียง สูตร แหล่ง และจำนวนรายการตามฐานพื้นที่ของรัศมีนั้นอยู่ในวิธีคิดที่พับไว้ · รัศมีที่สำนักงานยังไม่มีพื้นที่เลยไม่แสดงบรรทัดนี้ (ในไฟล์เป็น null ไม่ใช่ศูนย์)
+
+**ตัวเลข (Observed fact จากไฟล์ที่สร้าง):** ศูนย์ที่มีสำนักงานในรัศมี 165 · 263 · 307 ศูนย์ใน 1 · 3 · 5 กม. มีตัวเลขแบบจำลอง 134 · 185 · 216 ศูนย์ · ค่ากลางของศูนย์ที่มีตัวเลขใน 3 กม. ราว 39,600–47,700 คน · สูงสุดใน 3 กม. ออล ซีซั่นส์ เพลส รีเทล เซ็นเตอร์ ราว 261,700–314,100 คน (จากพื้นที่ของสำนักงาน 147 จาก 182 แห่ง) · ใน 3 กม. 168 จาก 185 ศูนย์อยู่ในกรุงเทพมหานคร
+
+**ไม่ได้บอก:** จำนวนพนักงานที่นับได้ คนที่อยู่ในอาคารแต่ละวัน การจ้างงาน หรือว่าคนเหล่านี้จะมาศูนย์ · พื้นที่ตามแหล่งหลายรายการเป็นพื้นที่อาคารรวม ตัวเลขจึงสูงกว่าที่คิดจากพื้นที่เช่าได้ · ผังสำนักงานใหม่ใช้พื้นที่ต่อคนน้อยกว่า 10 ตร.ม. คนจริงจึงอาจมากกว่า · สำนักงานที่ไม่มีพื้นที่ในชุดข้อมูลไม่เข้าสูตร และชุดสำนักงานมีพิกัด 427 จาก 608 รายการ ตัวเลขจึงไม่ครอบคลุมทุกสำนักงาน
+
+**ไฟล์:** `w` ของแต่ละศูนย์ใน `data/work-study-map/NNN.json` — ต่อรัศมี [ค่าต่ำ, ค่าสูง, รายการที่ใช้พื้นที่ให้เช่า, รายการที่ใช้พื้นที่ตามแหล่ง, สำนักงานทั้งหมด] — และ `officeWorkers` ใน `meta.json` (สูตร ข้อสมมติพร้อมแหล่ง และ commit ของชุดสำนักงาน) · release `venue-locale-work-study-492-20261121-v2` · สร้างด้วย `python3 -I scripts/build-visitors-map.py --points <ชุดจุดของรอบศูนย์นี้> --map workstudy --office-data <montri-th/office>/data/offices.json --office-commit <commit>` ได้ไบต์เดิมทุกครั้ง · ส่วนอื่นของไฟล์ (จำนวนสถานที่ อันดับ ช่องแผนที่) เท่ากับรุ่น 0.9.5
+
+**สร้างใหม่เมื่อ:** CityMETER · Office ออกข้อมูลรุ่นใหม่ (พื้นที่หรืออัตราการเช่าเปลี่ยน) · มีตัวเลขอัตราการเช่าของตลาดไตรมาสใหม่ (แก้ `OFFICE_MODEL` ใน `scripts/build-visitors-map.py`) · รอบศูนย์นี้ออกรุ่นใหม่
+
 ## Additional dated MLA membership evidence — 26 October 2026
 
 The PARC MLA crosswalk covers the project and15 competitors. Original venue/store source populations remain separate from this additional dated evidence. New venue identities are exact named project matches, never a nearest retailer or market. Current selected points win over older MLA alternatives; the newly selected Bangkok Mall point is a project-site reference, not an entrance or footprint. Dadfa’s leased-retail project supports historical definition with current operation unconfirmed. JAS has primary corporate portfolio and exact component-address evidence; approximately19,850sqm is reported leasable area, not surveyed area. PADDIO remains a future project: construction year, Zone1/2 area and floors do not become an actual opening date or whole-site GFA.
