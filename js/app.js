@@ -74,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -562,6 +562,7 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
   const L = state.locale;
   if (L.resId !== id) { L.resId = id; L.resState = 'idle'; }
   ensureLocaleCompare(id);
+  ensureLocaleResidentsMap(id);
   const rmeta = cachedResidentsMeta();
   if (rmeta && cachedResidents(id, rmeta.shards)) { L.resState = 'ready'; return; }
   if (L.resState === 'loading' || L.resState === 'ready' || L.resState === 'empty') return;
@@ -569,6 +570,28 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
   loadResidentsMeta().then(meta => loadResidents(id, {shards: meta.shards})).then(rec => { if (L.resId === id) L.resState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale residents', e); partial('data/residents'); if (L.resId === id) L.resState = 'error'; })
     .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
+}
+
+/**
+ * Roads, rail, rivers and station names over the residents map (data/residents-map, owner 2026-11-20 16:35): optional;
+ * the map is redrawn when its record arrives and reads without it when it cannot load.
+ */
+function ensureLocaleResidentsMap(id, {focus = ''} = {}) {
+  const L = state.locale;
+  if (L.mapId !== id) { L.mapId = id; L.mapState = 'idle'; }
+  const mm = cachedResidentsMapMeta();
+  if (mm && cachedResidentsMap(id, mm.shards)) { L.mapState = 'ready'; return; }
+  if (L.mapState !== 'idle') return;
+  L.mapState = 'loading';
+  loadResidentsMapMeta().then(meta => loadResidentsMap(id, {shards: meta.shards})).then(rec => { if (L.mapId === id) L.mapState = rec ? 'ready' : 'empty'; })
+    .catch(e => { console.warn('Venue locale residents map', e); partial('data/residents-map'); if (L.mapId === id) L.mapState = 'error'; })
+    .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
+}
+
+/** The lines of one center's residents map when they are loaded ({meta, rec}), else null. */
+function residentsMapOf(id) {
+  const mm = cachedResidentsMapMeta(), rec = mm ? cachedResidentsMap(id, mm.shards) : null;
+  return rec ? {meta: mm, rec} : null;
 }
 
 /**
@@ -594,7 +617,7 @@ function refreshLocaleResidents({focus = ''} = {}) {
   const rmeta = cachedResidentsMeta(), L = state.locale;
   el.outerHTML = renderLocaleResidents(v, {meta, facts: cachedLocaleFacts(v.id, meta.shards || 64), residentsMeta: rmeta,
     residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
-    compare: cachedCompare(), compareState: L.cmpState, venueOf});
+    compare: cachedCompare(), compareState: L.cmpState, venueOf, residentsMap: residentsMapOf(v.id)});
   if (focus) $('locale-residents')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
@@ -632,7 +655,7 @@ function localeHTML(v) {
     meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null, signals: meta ? cachedLocaleSignals(v.id, shards) : null,
     metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
     residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
-    compare: cachedCompare(), compareState: L.cmpState, venueOf,
+    compare: cachedCompare(), compareState: L.cmpState, venueOf, residentsMap: residentsMapOf(v.id),
   });
 }
 
@@ -1889,6 +1912,7 @@ const PARTIAL = {
   'data/locale': ['ข้อมูลรอบศูนย์', 'แผงสถานที่ไม่แสดงสิ่งที่อยู่รอบศูนย์และพื้นที่ที่ศูนย์ตั้งอยู่', 'Around the centre', 'The venue panel does not show what is around the centre or the area it sits in'],
   'data/residents': ['คนที่มีชื่อในทะเบียนบ้านรอบศูนย์', 'ส่วนรอบศูนย์นี้ไม่แสดงจำนวนคนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง) และแผนที่ของจำนวนนั้น', 'Registered residents around the center', 'Around this center does not show the registered residents around it (modelled) or their map'],
   'data/compare': ['การเทียบกับศูนย์อื่น', 'ส่วนรอบศูนย์นี้ไม่แสดงกราฟเทียบคนอยู่ใกล้และคนทำงานใกล้กับศูนย์อื่น', 'Comparison with other centers', 'Around this center does not show the chart of people living and working nearby against the other centers'],
+  'data/residents-map': ['ถนนและสถานีบนแผนที่คนรอบศูนย์', 'แผนที่คนรอบศูนย์แสดงเฉพาะช่องสี ไม่มีถนน ราง แม่น้ำ และชื่อสถานี', 'Roads and stations on the residents map', 'The residents map shows its coloured cells only, without roads, rail, rivers or station names'],
 };
 function partial(key) {
   const words = PARTIAL[key];

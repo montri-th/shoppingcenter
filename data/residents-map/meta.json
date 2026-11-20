@@ -1,0 +1,65 @@
+{
+ "asOf": "2026-11-12",
+ "counts": {
+  "labels": {
+   "river": 369,
+   "road": 1745,
+   "station": 689
+  },
+  "withRail": 405,
+  "withRiver": 456,
+  "withRoad": 492,
+  "withStations": 273
+ },
+ "labels": {
+  "fittedOnPx": 360,
+  "river": 1,
+  "road": 4,
+  "station": 3
+ },
+ "note": "lines to read the map by, not a network to measure on; names as OpenStreetMap writes them, shortened (ถนน → ถ., Road → Rd)",
+ "owner": "2026-11-20 16:35: heatmap วงกลมอันนี้ดี แต่ยังดูยากอยู่ … อย่างน้อยควรแสดงแนวถนน overlay ใน heatmap ด้วย",
+ "points": {
+  "of": "id,lon,lat of each located center (7 decimals), one line each, sorted by id",
+  "sha256": "a81284c26e694e98b8fff539e88ea7e6a0a391821431b343820e419eb1647c16"
+ },
+ "radius_m": 5000,
+ "rail": [
+  "rail",
+  "subway",
+  "light_rail",
+  "monorail"
+ ],
+ "roads": [
+  "motorway",
+  "trunk",
+  "primary",
+  "secondary"
+ ],
+ "schema": "shoppingcenter-residents-map/1",
+ "shards": 128,
+ "simplify_m": 12,
+ "source": {
+  "osm": {
+   "attribution": "© OpenStreetMap contributors",
+   "bytes": 330174243,
+   "file": "thailand-latest.osm.pbf",
+   "license": "ODbL 1.0",
+   "publisher": "Geofabrik extract of OpenStreetMap",
+   "sha256": "92cd031a67224c1ff98ca9a2ca8e7e518ef6ae987adc9f91617f422ad6be034c",
+   "timestamp": "2026-11-12T21:23:05Z"
+  },
+  "stations": {
+   "asOf": "2026-10-31",
+   "file": "data/stations.json",
+   "release": "transit-data-2026-10-31-r1",
+   "sha256": "1bcbb25abfab1f39b79d63b7790e63fd5f5b6770f8848b5654118a6febc5989f"
+  },
+  "venues": {
+   "file": "data/venues.json",
+   "sha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9"
+  }
+ },
+ "unit_m": 25,
+ "venues": 492
+}
