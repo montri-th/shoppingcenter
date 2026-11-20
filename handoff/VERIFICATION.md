@@ -627,3 +627,14 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - Assumptions, from search results read on 2026-11-21: 76.4% Bangkok office occupancy in Q3 2026 (Knight Frank Thailand, as Pattaya Mail reported on 24 Oct 2026; Real Estate Asia gives the same figure); 10–12 m² per person, the rule of thumb Knight Frank Thailand and Peoplespace describe in the Bangkok Post as the traditional one.
 - `npm test`: 343 / 343 (new: the model's assumptions and their sources, `w` per radius against the rings, null when no record has an area, the line under the recorded people and above the map, the folded method with both sources linked, no line where the offices have no area).
 - Headless Chrome on the local server (python Playwright with the system Chrome; tiles stubbed): CentralWorld work block in Thai and English at 1,280 px — the line reads “คนทำงานในสำนักงาน (แบบจำลอง) ใน 3 กม. ราว 222,600–267,200 คน · จากพื้นที่ของสำนักงาน 123 จาก 155 แห่ง” / “Office workers (modelled) within 3 km: about 222,600–267,200 · from the area of 123 of 155 offices”, 12 px, the range on one line (word joiners), `__citymeterI18n.missing` empty.
+- Preview (UTC, 2026-11-20): citymeter-pages-deploy run 44785582687 (17:40, preview, override `shoppingcenter` = `4fd226d`, with Office 0.5.5 from its GitHub Pages release): success. In the owner's Chrome, preview CentralWorld showed the new line with cache tag `20261121-r1`.
+- Production:
+  - pull request #34 merged into `main` (`ad5adff`) at 17:42 UTC;
+  - GitHub Pages deployment 7948500866 succeeded at 17:43 UTC;
+  - citymeter-pages-deploy run 44786004044 (17:43, publish): Office `8e8d8be` and Shopping Center `ad5adff`, 114 / 114 live checks, demo family check passed on the site and live;
+  - run 44787455427 (17:52, publish, Office 0.5.6) again 114 / 114.
+- `npm run handoff:manifest` (2,041 files, commit `ad5adff`), then `npm run verify:live`: 1,937 / 1,937 published files match on https://montri-th.github.io/shoppingcenter/.
+- Live in the owner's Chrome on citymeter.pages.dev (`js/shell/launch.js?v=20261121-r1`):
+  - CentralWorld in English at desktop width reads “Office workers (modelled) within 3 km: about 222,600–267,200 · from the area of 123 of 155 offices”, with nothing untranslated around it;
+  - Thai in a 393 × 740 frame (dark): the line wraps under the recorded people with the range on one line and no overflow.
+- Not checked: a physical phone, a language reviewer, and how the office-worker range compares with employee counts that companies publish (PRODUCT_STATEMENT §27, Hypothesis).
