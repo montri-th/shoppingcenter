@@ -230,5 +230,10 @@ test('published directory: every exported row has one disposition, bound to the 
   assert.doesNotMatch(text, /docs\.google\.com|drive\.google\.com|googleusercontent|\/Users\/|\/private\/|\/mnt\/|scratchpad/);
   // the export's brand references carry the research sheets' file ids; only brand ids may reach the page
   const uuid = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(?![A-Za-z0-9_-])';
-  assert.doesNotMatch(text, new RegExp(`(?<![A-Za-z0-9_-])(?!${uuid})1[A-Za-z0-9_-]{32,43}(?![A-Za-z0-9_-])|"book"|matched_brand_refs`));
+  // a Drive id looks random (mixed case with digits); a centre's URL slug such as 136-clickrobot-engineer-learning-center
+  // is lowercase words (the same rule as tests/data.test.js)
+  const random = t => (t.match(/[A-Z]/g) || []).length >= 3 && (t.match(/[0-9]/g) || []).length >= 2;
+  const ids = [...text.matchAll(new RegExp(`(?<![A-Za-z0-9_-])(?!${uuid})1[A-Za-z0-9_-]{32,43}(?![A-Za-z0-9_-])`, 'g'))].map(m => m[0]).filter(random);
+  assert.deepEqual(ids.map(t => `${t.slice(0, 6)}…`), [], 'no Drive or Sheets file id in the published directory');
+  assert.doesNotMatch(text, /"book"|matched_brand_refs/);
 });
