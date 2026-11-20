@@ -1,28 +1,28 @@
 # Attribution — Venue Locale Insight (CityMETER Shopping Centers demo)
 
-Serving derivative of canonical release `venue-locale-shopping-20261120-v0.2.2-rc1` (manifest SHA-256 `c0fa67d003f2f5ddd93f2d2c2516c8eb0f31bcdd8c5526fa9bbb23499fb29168`). Not canonical; rebuildable.
+Serving derivative of canonical release `venue-locale-shopping-20261120-v0.2.3-rc1` (manifest SHA-256 `01f71879d638585cea74dbfbd26ea3425aff753fc6e500576b0cc0822c39676f`). Not canonical; rebuildable.
 
 ## Ring counts (straight-line rings of 1, 3 and 5 km)
 
 - จุดขายความงาม / Beauty stores — CityMETER research registry; date 2026-11-03
 - นิติพลคลินิก / Nitipon Clinic — CityMETER research registry; date 2026-11-14; brands: Nitipon Clinic — no accepted points, province counts only
 - ร้านกล้อง / Camera Shops — CityMETER Camera Shops; date 2026-10-23
-- ศูนย์บริการรถ B-Quik / B-Quik car service centres — CityMETER research registry; date 2026-11-04; brands: B-Quik
+- ศูนย์บริการรถยนต์ / Automotive services — CityMETER research registry; date 2026-11-08
 - โรงภาพยนตร์ Major และ SF / Major and SF cinemas — CityMETER research registry; date 2026-11-13; brands: Major, SF — no accepted points, province counts only
 - โรงงาน / Factory — CityMETER Factory; date 2026-11-16
 - ฟิตเนส / Fitness — CityMETER Fitness; date 2026-10-26
 - ร้านทอง / Gold shops — CityMETER research registry; date 2026-11-08
 - หน่วยงานรัฐ / Government Office — CityMETER Government Office; date 2026-11-06
 - ร้านค้าปลีกของใช้ / Grocery — CityMETER Grocery; date 2026-10-22
-- ร้าน B2S / B2S stores — CityMETER research registry; date 2026-11-05; brands: B2S
+- ร้านงานอดิเรก / Hobby stores — CityMETER research registry; date 2026-11-07
 - สถานพยาบาล / Hospital — CityMETER Hospital; date 2026-11-01
 - ที่พัก / Hotel — CityMETER Hotel; date 2026-11-08
 - นิคมอุตสาหกรรม / Industrial Estate — CityMETER Industrial Estate; date 2026-11-17
 - แบรนด์หรู / Luxury Brands — CityMETER Luxury Brands; date 2026-10-21
-- ร้าน CHABA Nails & Spa / CHABA Nails & Spa — CityMETER research registry; date 2026-11-14; brands: CHABA
+- ร้านทำเล็บ / Nail salons — CityMETER research registry; date 2026-11-07
 - สำนักงาน / Office — CityMETER Office; date 2026-11-02
 - ร้านแว่น / Optical shops — CityMETER research registry; date 2026-11-08
-- ร้าน PETClub / PETClub stores — CityMETER research registry; date 2026-11-14; brands: PETClub
+- สินค้าและบริการสำหรับสัตว์เลี้ยง / Pet stores and services — CityMETER research registry; date 2026-11-04
 - ร้านยา / Pharmacy — CityMETER Pharmacy; date 2026-10-22
 - Joyliday / Joyliday — CityMETER research registry; date 2026-11-03; brands: Joyliday — no accepted points, province counts only
 - ร้านอาหาร / Restaurants — CityMETER Restaurants; date 2026-10-22

@@ -10,6 +10,7 @@ import {
   residentsShardPath, residentsMapModel, residentsMapHTML, renderLocaleResidents, aboutPeople, peopleWords, densityWords, englishDay, thaiDay,
   residentsSectors, DIRECTIONS, compareModel, quarterOf, QUARTERS, COMPARE_PATH,
   RESIDENTS_MAP_PATH, residentsMapShardPath, residentsOverlaySVG, residentsOverlayLabels, residentsOverlayKey, residentsOverlayCredit, residentsOverlayMethod,
+  nearWords, chartTipExtra,
 } from '../js/venue-locale.js';
 import {shardOf} from '../js/details.js';
 import {COUNT_SCALE, DENSITY_SCALE, buildRamp, classify} from '../js/scales.js';
@@ -704,4 +705,66 @@ test('lines over the residents map: a file that does not load is said on the pag
   assert.match(app, /partial\('data\/residents-map'\)/);
   assert.match(app, /residentsMap: residentsMapOf\(/);
   assert.equal((app.match(/residentsMap: residentsMapOf\(/g) || []).length, 2, 'both renders of the residents block');
+});
+
+/* ---------- every brand in four research datasets (0.9.3, owner 2026-11-20 17:21 and 17:37) ---------- */
+
+test('car service, hobby, pet and nail count every brand the source lists, named for their category, each record once', () => {
+  reset();
+  const FOUR = {car_service: 'research.TH.car_service', hobby: 'research.TH.hobby', pet: 'research.TH.pet', nail: 'research.TH.nail'};
+  const shards = new Map();
+  const factsOf = id => {
+    const path = localeShardPath('facts', id, meta.shards);
+    if (!shards.has(path)) shards.set(path, read(path).venues);
+    return shards.get(path)[id] || null;
+  };
+  assert.equal(meta.reference.release, 'venue-locale-shopping-20261118-v0.2.0-rc1', 'the release whose 488 located centres are the reference');
+  for (const [id, rid] of Object.entries(FOUR)) {
+    const m = meta.ring[id];
+    assert.equal(m.brands, null, `${id}: every brand`);
+    assert.doesNotMatch([m.th, m.en, ...m.short].join(' '), /B-Quik|B2S|PETClub|CHABA/, `${id}: named for the category`);
+    assert.equal(m.sourceRef, `${rid}:02_STORES`);
+    assert.ok(m.eligible > 100 && m.located < 0.9 * m.eligible, `${id}: ${m.located} of ${m.eligible} have a point, so it is partial`);
+    assert.ok(m.subgroups.length >= 3 && m.subgroups.every(([sid, th, en]) => sid && THAI.test(th) && en && !THAI.test(en)), `${id}: subgroups in Thai and English`);
+    let views = 0;
+    for (const v of set.filter(r => r.located)) {
+      const rec = factsOf(v.id)?.ring?.[id];
+      assert.ok(rec, `${v.id} ${id}`);
+      for (let i = 0; i < 3; i++) assert.equal(rec.sub[i].reduce((a, b) => a + b, 0), rec.n[i], `${v.id} ${id}: every record in one subgroup`);
+      for (const radius of RADII) {
+        const row = ringRows(meta, factsOf(v.id), v, {radius}).find(r => r.id === id);
+        assert.ok(row.partial, `${id} is starred`);
+        assert.ok(!ahaRows(ringRows(meta, factsOf(v.id), v, {radius})).some(r => r.id === id), `${v.id} ${radius}: never a headline while partial`);
+        views++;
+      }
+    }
+    assert.ok(views >= 3 * 480);
+  }
+  // The PARQ Life, the case the owner pointed at (16:39): the car services around it, not one brand's branches, and not first
+  const PARQ = 'VN-81603d67e7a34a';
+  const car = ringRows(meta, factsOf(PARQ), byId.get(PARQ)).find(r => r.id === 'car_service');
+  assert.ok(car.count > 5 && car.p < 90, `${car.count} car services within 3 km, rank ${car.p}`);
+  // a record at this center's own point (a shop tied to this center by id) reads as such, not as 0 m
+  assert.equal(nearWords(0), 'ใกล้สุดอยู่ที่จุดของศูนย์นี้');
+  assert.equal(nearWords(850), 'ใกล้สุด 850 ม.');
+  assert.equal(nearWords(1840), 'ใกล้สุด 1.84 กม.');
+  registerLocaleDictionary(meta);
+  assert.equal(translate('ใกล้สุดอยู่ที่จุดของศูนย์นี้'), 'nearest at this center’s point');
+  // the chart's tooltip lines read in English: subgroups with their counts, a measure, the nearest, the share with a point
+  assert.equal(translate('ยางและ fast-fit 3 · ฟิล์ม กระจก และ PPF 5'), 'Tyres and fast-fit 3 · Film, glass and PPF 5');
+  assert.equal(translate('เขตอุตสาหกรรม 1'), 'Industrial zone 1', 'a subgroup with its count, not a district');
+  assert.equal(translate('ห้อง 143'), '143 rooms');
+  let lines = 0;
+  for (const v of set) {
+    const facts = factsOf(v.id);
+    if (!facts) continue;
+    for (const r of ringRows(meta, facts, v, {radius: 3000})) {
+      for (const line of chartTipExtra(r)) {
+        lines++;
+        assert.doesNotMatch(translate(line) ?? line, THAI, `${v.id} ${r.id}: ${line}`);
+      }
+    }
+  }
+  assert.ok(lines > 10000, `${lines} tooltip lines`);
+  reset();
 });

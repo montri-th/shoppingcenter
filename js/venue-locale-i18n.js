@@ -69,6 +69,7 @@ const EXACT = {
   'ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย':
     'Area values come from CityMETER production for the units the center’s point sits in; counts are compared per km² of the unit',
   'ชุดที่ยังมีพิกัดไม่ครบนับเฉพาะรายการที่มีพิกัด และติดดาวไว้ในตาราง': 'Datasets with incomplete points count only the records with a point and carry a star in the table',
+  'ใกล้สุดอยู่ที่จุดของศูนย์นี้': 'nearest at this center’s point',
   'จุดของศูนย์ยังเป็นจุดอ้างอิง ไม่ใช่ขอบเขตหรือทางเข้าที่ผู้บริหารยืนยัน': 'The center’s point is a reference point, not an outline or entrance confirmed by the operator',
   'รัศมีเส้นตรงจากจุดของศูนย์ และขอบเขตพื้นที่ตาม CityMETER production': 'straight-line radii from the center’s point; area boundaries from CityMETER production',
   'ทะเบียนวิจัย CityMETER': 'CityMETER research registry', 'กำลังโหลดข้อมูลรอบศูนย์…': 'Loading the area around the center…', 'กำลังโหลด…': 'Loading…',
@@ -134,11 +135,12 @@ const PATTERNS = [
 export function localeDictionary(meta) {
   const exact = {...EXACT};
   const put = (th, en) => { if (th && en && th !== en) exact[th] = usSpelling(en); };
+  const subs = new Map(), measures = new Map();
   for (const [th, [one]] of Object.entries(LEVEL_EN)) put(th, one[0].toUpperCase() + one.slice(1));
   for (const m of Object.values(meta?.ring || {})) {
     put(m.th, m.en); put(m.short?.[0], m.short?.[1]); put(m.unit?.[0], m.unit?.[1]); put(m.source?.[0], m.source?.[1]);
-    for (const s of m.subgroups || []) put(s[1], s[2]);
-    if (m.measure) put(m.measure[1], m.measure[2]);
+    for (const s of m.subgroups || []) { put(s[1], s[2]); if (s[1] && s[2]) subs.set(s[1], usSpelling(s[2])); }
+    if (m.measure) { put(m.measure[1], m.measure[2]); measures.set(m.measure[1], usSpelling(m.measure[2])); }
   }
   for (const m of Object.values(meta?.area || {})) {
     put(m.th, m.en);
@@ -169,8 +171,15 @@ export function localeDictionary(meta) {
     for (const v of Object.values(C.labels || {})) { put(v[0], v[1]); put(v[2], v[3]); }
     for (const g of Object.values(C.groups || {})) for (const [th, en] of Object.values(g || {})) put(th, en);
   }
+  // The chart's tooltip lines with a count (0.9.3): subgroups (“ยางและ fast-fit 3 · ฟิล์ม กระจก และ PPF 5” → the name, then
+  // the count) and a dataset's measure (“ห้อง 143” → “143 rooms”). First, so “เขตอุตสาหกรรม 1” is a subgroup, not a district.
+  const escape = x => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = map => new RegExp(`^(${[...map.keys()].map(escape).join('|')}) ([\\d,]+)$`);
+  const counted = [];
+  if (subs.size) counted.push([named(subs), m => `${subs.get(m[1])} ${m[2]}`]);
+  if (measures.size) counted.push([named(measures), m => `${m[2]} ${measures.get(m[1])}`]);
   // Any text alone in an element that carries its English (data-en: units and names that read differently by dataset).
-  return {exact, patterns: PATTERNS, contexts: [['[data-en]', {}, [[/^[\s\S]+$/, (m, t, el) => el.getAttribute('data-en') || null]]]]};
+  return {exact, patterns: [...counted, ...PATTERNS], contexts: [['[data-en]', {}, [[/^[\s\S]+$/, (m, t, el) => el.getAttribute('data-en') || null]]]]};
 }
 
 let registered = null;
