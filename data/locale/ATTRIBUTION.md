@@ -1,6 +1,6 @@
 # Attribution — Venue Locale Insight (CityMETER Shopping Centers demo)
 
-Serving derivative of canonical release `venue-locale-shopping-20261120-v0.2.1-rc1` (manifest SHA-256 `6cdc8b40c69dd2598a2e1477dfda0003f264d88b4828c2ffd0a1eb75cc4ce7ca`). Not canonical; rebuildable.
+Serving derivative of canonical release `venue-locale-shopping-20261120-v0.2.2-rc1` (manifest SHA-256 `c0fa67d003f2f5ddd93f2d2c2516c8eb0f31bcdd8c5526fa9bbb23499fb29168`). Not canonical; rebuildable.
 
 ## Ring counts (straight-line rings of 1, 3 and 5 km)
 
@@ -28,7 +28,7 @@ Serving derivative of canonical release `venue-locale-shopping-20261120-v0.2.1-r
 - ร้านอาหาร / Restaurants — CityMETER Restaurants; date 2026-10-22
 - NEVERSAYCUTZ / NEVERSAYCUTZ — CityMETER research registry; date 2026-11-07; brands: NEVERSAYCUTZ — no accepted points, province counts only
 - สถานศึกษา / School — CityMETER School; date 2026-10-31
-- ศูนย์การค้าและตลาด / Shopping Center — CityMETER Shopping Center; date 2026-11-07
+- ศูนย์การค้าและตลาด / Shopping Center — CityMETER Shopping Center; date 2026-11-08
 - สถานีราง / Transit — CityMETER Transit; date 2026-10-31
 - มหาวิทยาลัย / University — CityMETER University; date 2026-11-10
 

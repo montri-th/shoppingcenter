@@ -95,5 +95,37 @@ class CoverageReceiptRefresh(unittest.TestCase):
         self.assertNotEqual(self.run_script('--hierarchy', 'A,P', '--decision', 'owner decision').returncode, 0)
 
 
+    def owner_rows(self, by):
+        by['B']['operationGroup'] = 'operating_source_evidence'
+
+    def test_added_rows_and_operation_groups_need_the_owner_decision(self):
+        def change(by):
+            self.owner_rows(by)
+        self.core(change)
+        rows = json.loads((self.data / 'venues.json').read_text())['rows'] + [{'id': 'N', 'name': 'New market', 'group': 'market', 'countable': True, 'lat': 13.9, 'lon': 100.5}]
+        (self.data / 'venues.json').write_text(json.dumps({'rows': rows, 'meta': {'counts': {'registry': 12}}}))
+        self.assertNotEqual(self.run_script().returncode, 0, 'a new venue is not a points-only change')
+        self.assertIn('--decision', self.run_script('--added', 'N', '--changed', 'B').stderr)
+        self.assertNotEqual(self.run_script('--changed', 'B', '--decision', 'owner').returncode, 0, 'the new venue must be named')
+        self.assertNotEqual(self.run_script('--added', 'N', '--decision', 'owner').returncode, 0, 'the operation group must be named')
+        self.assertNotEqual(self.run_script('--added', 'N,ZZ', '--changed', 'B', '--decision', 'owner').returncode, 0)
+        before = (self.data / 'tenant-coverage-audit.json').read_text()
+        self.assertEqual(before, json.dumps(self.receipt), 'nothing is written when it stops')
+        result = self.run_script('--added', 'N', '--changed', 'B', '--decision', 'owner 0.9.1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        refresh = json.loads((self.data / 'tenant-coverage-audit.json').read_text())['venueCoreRefresh']
+        self.assertEqual(refresh['ownerRefresh']['decision'], 'owner 0.9.1')
+        self.assertEqual([v['venueId'] for v in refresh['ownerRefresh']['added']], ['N'])
+        self.assertEqual(refresh['ownerRefresh']['changed'], [{'venueId': 'B', 'fieldsChanged': ['operationGroup'], 'operationGroup': 'operating_source_evidence'}])
+        self.assertEqual(refresh['rowsAdded'], 1)
+        self.assertTrue(refresh['rosterUnchanged'])
+
+    def test_a_status_change_still_needs_the_audit(self):
+        self.core(lambda by: by['B'].update(status='closed', operationGroup='closed'))
+        result = self.run_script('--changed', 'B', '--decision', 'owner')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("B: ['status']", result.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()

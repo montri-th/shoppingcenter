@@ -23,6 +23,16 @@ between rosters (the shards must still hash to publicRosterSha256), so the audit
 published items still holds. The audit's own component-to-parent map is explicit and was read before the change: the
 receipt lists the named venues under hierarchyChange so the next private audit run reads the new parent links.
 Every venue not named must be unchanged except for the point fields; a named venue may change nothing else.
+
+  python3 -I scripts/refresh-coverage-receipt.py --previous <core> --added ID,… --changed ID,… --decision "<owner decision>"
+
+An owner decision to publish the sheet's later venue rows before the next private audit (owner 2026-11-20: “ทุกอย่างที่
+ชีตมีตอนนี้”, release 0.9.1). --added names venues new to the core: rows the registry gained after the audit's asOf. They
+have no item in the roster (the shards must still hash to publicRosterSha256) and the audit never read them, so they are
+listed under ownerRefresh.added and stay out of the audited counts, which keep the audit's asOf. --changed names existing
+venues whose non-accounting fields changed (NON_ACCOUNTING_FIELDS: the operation group read from operation evidence; it
+counts no source record, host link or published item). The registry's row count before and after is written beside them
+(rows the core leaves out as not qualified are in that count too). Anything else stops, as before.
 """
 import argparse
 import hashlib
@@ -33,6 +43,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 POINT_FIELDS = frozenset({'lat', 'lon', 'located', 'provinceCode', 'districtCode'})
 HIERARCHY_FIELDS = frozenset({'parentId', 'children', 'countRole', 'countable', 'countHold', 'countBasis', 'group', 'groupBasis'})
+# fields of the venue core that no part of the coverage accounting reads (source records, host links, published items)
+NON_ACCOUNTING_FIELDS = frozenset({'operationGroup'})
 
 
 def sha256_bytes(raw):
@@ -45,11 +57,14 @@ def main():
     ap.add_argument('--data', default=str(ROOT / 'data'))
     ap.add_argument('--reason', default='new export of the Research Master that places points only; the roster and every other venue field are unchanged')
     ap.add_argument('--hierarchy', default='', help='comma-separated venue ids whose parent, count role, count and group an owner decision changed')
-    ap.add_argument('--decision', default='', help='the owner decision behind --hierarchy (required with it)')
+    ap.add_argument('--decision', default='', help='the owner decision behind --hierarchy, --added or --changed (required with them)')
+    ap.add_argument('--added', default='', help='comma-separated venue ids new to the core: registry rows added after the audit (owner decision)')
+    ap.add_argument('--changed', default='', help='comma-separated venue ids whose non-accounting fields changed (owner decision)')
     a = ap.parse_args()
-    named = {v.strip() for v in a.hierarchy.split(',') if v.strip()}
-    if named and not a.decision.strip():
-        raise SystemExit('--hierarchy needs --decision: the owner decision that changed these venues')
+    split = lambda text: {v.strip() for v in text.split(',') if v.strip()}
+    named, added_ids, changed_ids = split(a.hierarchy), split(a.added), split(a.changed)
+    if (named or added_ids or changed_ids) and not a.decision.strip():
+        raise SystemExit('--hierarchy, --added and --changed need --decision: the owner decision that changed these venues')
     data = Path(a.data)
     receipt_path = data / 'tenant-coverage-audit.json'
     receipt = json.loads(receipt_path.read_text())
@@ -68,28 +83,36 @@ def main():
     core_raw = (data / 'venues.json').read_bytes()
     old = {r['id']: r for r in json.loads(previous_raw)['rows']}
     new = {r['id']: r for r in json.loads(core_raw)['rows']}
-    if set(old) != set(new):
-        raise SystemExit(f'venue ids changed (+{len(set(new) - set(old))} -{len(set(old) - set(new))}): rerun the private audit')
-    unknown = sorted(named - set(new))
+    if set(old) - set(new) or set(new) - set(old) != added_ids:
+        raise SystemExit(f'venue ids changed (+{sorted(set(new) - set(old))[:5]} -{sorted(set(old) - set(new))[:5]}) and --added names '
+                         f'{sorted(added_ids)}: only venues new to the core, all of them named in --added, may be added; '
+                         'otherwise rerun the private audit')
+    unknown = sorted((named | changed_ids) - set(old))
     if unknown:
-        raise SystemExit(f'--hierarchy names venues that are not in the core: {unknown}')
-    problems, fields, changed, hierarchy = [], set(), 0, {}
-    for vid in sorted(new):
+        raise SystemExit(f'--hierarchy or --changed names venues that are not in the previous core: {unknown}')
+    problems, fields, changed, hierarchy, owner_changed = [], set(), 0, {}, {}
+    for vid in sorted(set(new) - added_ids):
         if old[vid] == new[vid]:
             continue
         changed += 1
         diff = {f for f in set(old[vid]) | set(new[vid]) if old[vid].get(f) != new[vid].get(f)}
         fields |= diff
-        allowed = POINT_FIELDS | (HIERARCHY_FIELDS if vid in named else frozenset())
+        allowed = (POINT_FIELDS | (HIERARCHY_FIELDS if vid in named else frozenset())
+                   | (NON_ACCOUNTING_FIELDS if vid in changed_ids else frozenset()))
         if diff - allowed:
             problems.append(f'{vid}: {sorted(diff - allowed)}')
         if diff & HIERARCHY_FIELDS:
             hierarchy[vid] = sorted(diff & HIERARCHY_FIELDS)
+        if vid in changed_ids and diff & NON_ACCOUNTING_FIELDS:
+            owner_changed[vid] = sorted(diff & NON_ACCOUNTING_FIELDS)
     if problems:
         raise SystemExit('fields other than the point fields (or, for --hierarchy venues, the hierarchy fields) changed — '
                          'rerun the private audit:\n  ' + '\n  '.join(problems[:20]))
     if named - set(hierarchy):
         raise SystemExit(f'--hierarchy names venues whose hierarchy did not change: {sorted(named - set(hierarchy))}')
+    if changed_ids - set(owner_changed):
+        raise SystemExit(f'--changed names venues whose non-accounting fields did not change: {sorted(changed_ids - set(owner_changed))}')
+    old_meta, new_meta = json.loads(previous_raw).get('meta', {}), json.loads(core_raw).get('meta', {})
 
     earlier = receipt.get('venueCoreRefresh') or {}
     new_sha = sha256_bytes(core_raw)
@@ -102,6 +125,7 @@ def main():
         'previousCoreSha256': previous_sha,
         'coreSha256': new_sha,
         'rowsChanged': changed,
+        **({'rowsAdded': len(added_ids)} if added_ids else {}),
         'fieldsChanged': sorted(fields),
         'rosterUnchanged': True,
         **({'hierarchyChange': {
@@ -112,6 +136,16 @@ def main():
             'note': 'no source record or roster item changed (a parent\'s panel may also show the listed shops of its sub-areas: '
                     'the same items); the audit read the parent links before this change, so its next private run reads the '
                     'new ones (componentPublicationHosts)'}} if hierarchy else {}),
+        **({'ownerRefresh': {
+            'decision': a.decision.strip(),
+            'added': [{'venueId': vid, 'name': new[vid].get('name'), 'group': new[vid].get('group'), 'countable': new[vid].get('countable'),
+                       'status': new[vid].get('status'), 'storeCount': new[vid].get('storeCount')} for vid in sorted(added_ids)],
+            'changed': [{'venueId': vid, 'fieldsChanged': owner_changed[vid], **{f: new[vid].get(f) for f in owner_changed[vid]}}
+                        for vid in sorted(owner_changed)],
+            'registryRows': {'previous': (old_meta.get('counts') or {}).get('registry'), 'now': (new_meta.get('counts') or {}).get('registry')},
+            'note': 'rows the registry gained after the audit asOf and fields no part of the accounting reads; the coverage '
+                    'counts above are still the audit\'s own (asOf), and the next private audit reads these rows'}}
+           if (added_ids or owner_changed) else {}),
         'history': earlier.get('history', []) + ([{k: earlier[k] for k in ('on', 'previousCoreSha256', 'coreSha256', 'rowsChanged') if k in earlier}]
                                                  if earlier else []),
     }
