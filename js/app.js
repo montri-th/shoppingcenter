@@ -74,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors, renderLocaleWork, loadWorkMeta, cachedWorkMeta, loadWork, cachedWork} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -109,7 +109,7 @@ const state = {
   look: {id: '', key: '', view: null}, lookReader: null,
   // Venue Locale Insight (owner 2026-11-18, js/venue-locale.js): data/locale meta once, the facts shard of the open
   // venue, the priors shard only when the reader opens that block; one amCharts dot plot at a time.
-  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: '', cmpState: 'idle', visState: 'idle', visId: ''}, localeChart: null,
+  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: '', cmpState: 'idle', visState: 'idle', visId: '', workState: 'idle', workId: ''}, localeChart: null,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
@@ -564,13 +564,14 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
   ensureLocaleCompare(id);
   ensureLocaleResidentsMap(id);
   ensureLocaleVisitors(id);
+  ensureLocaleWork(id);
   const rmeta = cachedResidentsMeta();
   if (rmeta && cachedResidents(id, rmeta.shards)) { L.resState = 'ready'; return; }
   if (L.resState === 'loading' || L.resState === 'ready' || L.resState === 'empty') return;
   L.resState = 'loading';
   loadResidentsMeta().then(meta => loadResidents(id, {shards: meta.shards})).then(rec => { if (L.resId === id) L.resState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale residents', e); partial('data/residents'); if (L.resId === id) L.resState = 'error'; })
-    .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); } });
+    .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); refreshLocaleWork(); } });
 }
 
 /**
@@ -602,6 +603,33 @@ function refreshLocaleVisitors({focus = ''} = {}) {
 }
 
 /**
+ * The places people come to work and study (data/work-study-map, 0.9.5; owner 2026-11-20 20:33 and the answers “แยกเป็น
+ * แผนที่ที่สอง”, “นับแห่ง + บอกจำนวนคนประกอบ”): optional, after the visitors, drawn the same way.
+ */
+function ensureLocaleWork(id, {focus = ''} = {}) {
+  const L = state.locale;
+  if (L.workId !== id) { L.workId = id; L.workState = 'idle'; }
+  const wm = cachedWorkMeta();
+  if (wm && cachedWork(id, wm.shards)) { L.workState = 'ready'; return; }
+  if (L.workState !== 'idle') return; // after an error, only the retry button asks again
+  L.workState = 'loading';
+  loadWorkMeta().then(meta => loadWork(id, {shards: meta.shards})).then(rec => { if (L.workId === id) L.workState = rec ? 'ready' : 'empty'; })
+    .catch(e => { console.warn('Venue locale work and study', e); partial('data/work-study-map'); if (L.workId === id) L.workState = 'error'; })
+    .finally(() => { if (localeOpen(id)) refreshLocaleWork({focus}); });
+}
+
+/** Replace only the work-and-study zone (the rest of the section stays as it is). */
+function refreshLocaleWork({focus = ''} = {}) {
+  const v = currentVenue(), section = $('venue-locale'), el = $('locale-work'), meta = cachedLocaleMeta();
+  if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
+  const wm = cachedWorkMeta(), rmeta = cachedResidentsMeta(), L = state.locale;
+  el.outerHTML = renderLocaleWork(v, {meta, facts: cachedLocaleFacts(v.id, meta.shards || 64), workMeta: wm,
+    work: wm ? cachedWork(v.id, wm.shards) : null, workState: L.workId === v.id ? L.workState : 'idle',
+    residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsMap: residentsMapOf(v.id)});
+  if (focus) $('locale-work')?.querySelector(focus)?.focus({preventScroll: true});
+}
+
+/**
  * Roads, rail, rivers and station names over the residents map (data/residents-map, owner 2026-11-20 16:35): optional;
  * the map is redrawn when its record arrives and reads without it when it cannot load.
  */
@@ -614,7 +642,7 @@ function ensureLocaleResidentsMap(id, {focus = ''} = {}) {
   L.mapState = 'loading';
   loadResidentsMapMeta().then(meta => loadResidentsMap(id, {shards: meta.shards})).then(rec => { if (L.mapId === id) L.mapState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale residents map', e); partial('data/residents-map'); if (L.mapId === id) L.mapState = 'error'; })
-    .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); } });
+    .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); refreshLocaleWork(); } });
 }
 
 /** The lines of one center's residents map when they are loaded ({meta, rec}), else null. */
@@ -686,6 +714,7 @@ function localeHTML(v) {
     residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
     compare: cachedCompare(), compareState: L.cmpState, venueOf, residentsMap: residentsMapOf(v.id),
     visitorsMeta: cachedVisitorsMeta(), visitors: cachedVisitorsMeta() ? cachedVisitors(v.id, cachedVisitorsMeta().shards) : null, visitorsState: L.visId === v.id ? L.visState : 'idle',
+    workMeta: cachedWorkMeta(), work: cachedWorkMeta() ? cachedWork(v.id, cachedWorkMeta().shards) : null, workState: L.workId === v.id ? L.workState : 'idle',
   });
 }
 
@@ -1084,6 +1113,7 @@ function onPanelAction(event) {
     case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id, {focus: '.who-tile, [data-action="locale-retry-priors"]'}); refreshLocalePriors(); } break;
     case 'locale-retry-residents': if (state.panel.mode === 'venue') { state.locale.resState = 'idle'; ensureLocaleResidents(state.panel.id, {focus: '.res-title, [data-action="locale-retry-residents"]'}); refreshLocaleResidents(); } break;
     case 'locale-retry-visitors': if (state.panel.mode === 'venue') { state.locale.visState = 'idle'; ensureLocaleVisitors(state.panel.id, {focus: '#locale-vis-title, [data-action="locale-retry-visitors"]'}); refreshLocaleVisitors(); } break;
+    case 'locale-retry-work': if (state.panel.mode === 'venue') { state.locale.workState = 'idle'; ensureLocaleWork(state.panel.id, {focus: '#locale-work-title, [data-action="locale-retry-work"]'}); refreshLocaleWork(); } break;
     case 'locale-retry-compare': if (state.panel.mode === 'venue') { state.locale.cmpState = 'idle'; ensureLocaleCompare(state.panel.id, {focus: '#locale-cmp-title'}); refreshLocaleResidents(); } break;
     default: break;
   }
@@ -1931,6 +1961,7 @@ const PARTIAL = {
   'data/compare': ['การเทียบกับศูนย์อื่น', 'ส่วนรอบศูนย์นี้ไม่แสดงกราฟเทียบคนอยู่ใกล้และคนทำงานใกล้กับศูนย์อื่น', 'Comparison with other centers', 'Around this center does not show the chart of people living and working nearby against the other centers'],
   'data/residents-map': ['ถนนและสถานีบนแผนที่คนรอบศูนย์', 'แผนที่คนรอบศูนย์แสดงเฉพาะช่องสี ไม่มีถนน ราง แม่น้ำ และชื่อสถานี', 'Roads and stations on the residents map', 'The residents map shows its coloured cells only, without roads, rail, rivers or station names'],
   'data/visitors-map': ['สถานที่ที่ผู้มาเยือนใช้รอบศูนย์', 'รอบศูนย์นี้ไม่มีแผนที่ จำนวน และอันดับของสถานที่ที่ผู้มาเยือนใช้', 'Places visitors use around the center', 'The section has no map, count or rank of the places visitors use'],
+  'data/work-study-map': ['สถานที่ที่คนมาทำงานและเรียนรอบศูนย์', 'รอบศูนย์นี้ไม่มีแผนที่ จำนวน และอันดับของสถานที่ทำงานและสถานศึกษา', 'Places people come to work and study around the center', 'The section has no map, count or rank of the places of work and study'],
 };
 function partial(key) {
   const words = PARTIAL[key];

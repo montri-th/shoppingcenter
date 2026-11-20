@@ -228,6 +228,13 @@ export function rampLegendHTML(model, {zero = false, unit = ''} = {}) {
   return `<span class="legend-ramp" role="img" aria-label="${esc(name)}"><span class="ramp-bar" aria-hidden="true">${cells}</span><span class="ramp-ticks" aria-hidden="true">${ticks}</span></span>${zeroSwatch}`;
 }
 
+/**
+ * A sample so pale that it nearly matches a light surface (contrast with white under 1.25: the first 4–5 samples of the
+ * sequential LUTs). The 5 km maps outline these cells with the border token (0.9.5), so a cell with one or two places
+ * never reads as an empty one; the data colour itself never changes (LDS contrast remedy: a meaningful boundary).
+ */
+export const isPaleSample = fill => contrastRatio(fill, '#FFFFFF') < 1.25;
+
 /** Relative luminance (sRGB) contrast ratio, used for label ink and in tests. */
 export function contrastRatio(hexA, hexB) {
   const lum = hex => {
