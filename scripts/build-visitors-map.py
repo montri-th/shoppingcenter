@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Write data/visitors-map/: the places visitors use around each located center — where people come to stay, eat,
 shop and use services — counted from the research-registry datasets of the locale release, for the 5 km map of
-"สถานที่ที่ผู้มาเยือนใช้รอบศูนย์", its figure and its rank.
+"สถานที่ที่ผู้มาเยือนใช้รอบศูนย์", its figure and its rank. With --map workstudy, data/work-study-map/ the same way: the
+places people come to work and study (0.9.5).
 
   python3 -I scripts/build-visitors-map.py --points <locale build>/w1/points
+  python3 -I scripts/build-visitors-map.py --points <locale build>/w1/points --map workstudy
 
 Owner 2026-11-20 (VERBATIM): 19:35 “และขอ heatmap แบบนี้สำหรับ visitor ด้วย”; asked which data to draw it from (no
 count of visitors per 250 m cell exists), the answer: “infer/imply จากจุดกิจกรรมต่างๆได้มั้ย เช่น POI จาก datasets ต่างๆที่
@@ -13,6 +15,13 @@ What is counted: the located records of the datasets the locale release groups a
 and services around) — data/locale/meta.json ringGroups — one record = one place, whatever the dataset: a place is the
 unit they all share (rooms, beds or seats are not added up across datasets). It is where visitors are likely to go
 (an inference), not a count of people or of visits. The center itself is not counted, as in the rings of the release.
+
+--map workstudy (owner 2026-11-20 20:33 “นอกจากสถานที่พัก ก็ยังมีสถานศึกษา ที่ทำงาน โรงงาน ร้านค้า ร้านอาหาร กิจกรรมต่างๆที่คน
+ต้องเดินทางออกจากบ้านมาใช้บริการด้วย จากจุดที่เรามีมากพอสมควร น่าจะใช้ infer/imply ได้ดีพอสมควรมั้ย”; answers “แยกเป็นแผนที่
+ที่สอง”, “นับแห่ง + บอกจำนวนคนประกอบ”): the groups "work" and "live" — offices, government offices, factories, industrial
+estates, universities, health facilities and schools — without the rail stations (a place people pass through; the map
+draws them, they are not counted). The people the sources record (students, workers, staff) and beds stay in the rings of
+the release (data/locale facts `m`); this file counts places only.
 Distances are great-circle straight lines from the center's point (R = 6,371,008.8 m, the rings' own formula, so every
 count equals the release); the cells are those of data/residents (azimuthal equidistant around the center, 250 m;
 a place on the 5 km edge whose cell falls one step outside is kept in the edge cell).
@@ -44,14 +53,27 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = ROOT / 'data' / 'visitors-map'
 SHARDS = 128
 RADII = (1000, 3000, 5000)
 GROUPS = ('mall', 'community', 'outlet')
 CELL_M, HALF = 250, 20  # cells -20..19 on both axes: 40 × 40 around the center, as data/residents
 R_EARTH = 6371008.8     # the rings of the locale release (great-circle, mean radius)
-USES = ('visit', 'retail')
-RELEASE = 'venue-locale-visitors-492-20261120-v1'
+MAPS = {
+    'visitors': {
+        'out': 'visitors-map', 'uses': ('visit', 'retail'), 'skip': (),
+        'release': 'venue-locale-visitors-492-20261120-v1', 'schema': 'shoppingcenter-visitors-map/1',
+        'owner': '2026-11-20, answer to the data question: infer/imply จากจุดกิจกรรมต่างๆได้มั้ย เช่น POI จาก datasets ต่างๆที่เชื่อมโยงกับ registry sheet สามารถในหน่วยอะไรก็ได้ที่สามารถบอกเชิงปริมาณได้',
+        'what': 'places visitors use (stays, retail and services) per 250 m cell within 5 km of each located center: listed places, not people or visits',
+        'dataMethod': 'DATA_METHOD.md#visitor-places',
+    },
+    'workstudy': {
+        'out': 'work-study-map', 'uses': ('work', 'live'), 'skip': ('transit',),
+        'release': 'venue-locale-work-study-492-20261120-v1', 'schema': 'shoppingcenter-work-study-map/1',
+        'owner': '2026-11-20 20:33: นอกจากสถานที่พัก ก็ยังมีสถานศึกษา ที่ทำงาน โรงงาน ร้านค้า ร้านอาหาร กิจกรรมต่างๆที่คนต้องเดินทางออกจากบ้านมาใช้บริการด้วย จากจุดที่เรามีมากพอสมควร น่าจะใช้ infer/imply ได้ดีพอสมควรมั้ย; answers: แยกเป็นแผนที่ที่สอง · นับแห่ง + บอกจำนวนคนประกอบ',
+        'what': 'places people come to work and study (offices, government offices, factories, industrial estates, universities, health facilities, schools) per 250 m cell within 5 km of each located center: listed places, not people or trips; rail stations are drawn on the map, not counted',
+        'dataMethod': 'DATA_METHOD.md#work-study-places',
+    },
+}
 
 
 def fail(msg):
@@ -89,7 +111,10 @@ def located_set():
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--points', required=True, type=Path)
+    ap.add_argument('--map', choices=sorted(MAPS), default='visitors')
     args = ap.parse_args()
+    cfg = MAPS[args.map]
+    out_dir = ROOT / 'data' / cfg['out']
     import numpy as np
     from pyproj import Transformer
     from scipy.spatial import cKDTree
@@ -97,9 +122,9 @@ def main():
     meta = json.loads((ROOT / 'data' / 'locale' / 'meta.json').read_text(encoding='utf-8'))
     rmeta = json.loads((ROOT / 'data' / 'residents' / 'meta.json').read_text(encoding='utf-8'))
     groups = {g['id']: g for g in meta['ringGroups']}
-    datasets = [ds for use in USES for ds in groups[use]['datasets']]
-    if len(set(datasets)) != len(datasets) or not datasets:
-        fail(f'datasets of the groups {USES}: {datasets}')
+    datasets = [ds for use in cfg['uses'] for ds in groups[use]['datasets'] if ds not in cfg['skip']]
+    if len(set(datasets)) != len(datasets) or not datasets or any(not any(ds in groups[u]['datasets'] for u in cfg['uses']) for ds in cfg['skip']):
+        fail(f'datasets of the groups {cfg["uses"]} without {cfg["skip"]}: {datasets}')
     facts = {}
     for f in sorted((ROOT / 'data' / 'locale' / 'facts').glob('*.json')):
         facts.update(json.loads(f.read_text(encoding='utf-8'))['venues'])
@@ -185,8 +210,8 @@ def main():
     shards = {}
     for vid in ids:
         shards.setdefault(shard_of(vid), {})[vid] = recs[vid]
-    OUT.mkdir(parents=True, exist_ok=True)
-    for old in OUT.glob('*.json'):
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for old in out_dir.glob('*.json'):
         old.unlink()
 
     def dump(obj):
@@ -195,16 +220,16 @@ def main():
     sizes = []
     for k in range(SHARDS):
         body = dump({'venues': shards.get(k, {})})
-        (OUT / f'{k:03d}.json').write_text(body, encoding='utf-8')
+        (out_dir / f'{k:03d}.json').write_text(body, encoding='utf-8')
         sizes.append(len(body.encode('utf-8')))
     totals = [sum(recs[v]['n'][i] for v in ids) for i in range(3)]
     out_meta = {
-        'schema': 'shoppingcenter-visitors-map/1',
-        'release': RELEASE,
-        'owner': '2026-11-20, answer to the data question: infer/imply จากจุดกิจกรรมต่างๆได้มั้ย เช่น POI จาก datasets ต่างๆที่เชื่อมโยงกับ registry sheet สามารถในหน่วยอะไรก็ได้ที่สามารถบอกเชิงปริมาณได้',
-        'what': 'places visitors use (stays, retail and services) per 250 m cell within 5 km of each located center: listed places, not people or visits',
+        'schema': cfg['schema'],
+        'release': cfg['release'],
+        'owner': cfg['owner'],
+        'what': cfg['what'],
         'unit': ['สถานที่', 'places'],
-        'uses': list(USES),
+        'uses': list(cfg['uses']),
         'datasets': [{'id': ds, **per_ds[ds]} for ds in datasets],
         'localeRelease': meta.get('release', {}).get('id') if isinstance(meta.get('release'), dict) else meta.get('release'),
         'input': {'points': inputs},
@@ -218,10 +243,12 @@ def main():
         'venues': len(ids),
         'shards': SHARDS,
         'totals': {'places1': totals[0], 'places3': totals[1], 'places5': totals[2]},
-        'dataMethod': 'DATA_METHOD.md#visitor-places',
+        'dataMethod': cfg['dataMethod'],
     }
-    (OUT / 'meta.json').write_text(dump(out_meta), encoding='utf-8')
-    print(f'data/visitors-map: {len(ids)} centers in {SHARDS} shards, {sum(sizes):,} bytes (largest {max(sizes):,}); '
+    if cfg['skip']:
+        out_meta['skipped'] = {ds: 'drawn on the map, not counted' for ds in cfg['skip']}
+    (out_dir / 'meta.json').write_text(dump(out_meta), encoding='utf-8')
+    print(f'data/{cfg["out"]}: {len(ids)} centers in {SHARDS} shards, {sum(sizes):,} bytes (largest {max(sizes):,}); '
           f'{len(datasets)} datasets; places within 1 · 3 · 5 km summed over centers {totals}')
 
 

@@ -6,7 +6,7 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Release 0.9.4 · Research snapshot: export 20 พ.ย. 2569 (ข้อมูลตรวจถึง 8 พ.ย. 2569) · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.9.5 · Research snapshot: export 20 พ.ย. 2569 (ข้อมูลตรวจถึง 8 พ.ย. 2569) · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
@@ -170,6 +170,15 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.9.5 - สถานที่ที่คนมาทำงานและเรียนรอบศูนย์ (`20261120-r7`)
+
+เจ้าของ 20 พ.ย. 2569 (VERBATIM): 20:33 “นอกจากสถานที่พัก ก็ยังมีสถานศึกษา ที่ทำงาน โรงงาน ร้านค้า ร้านอาหาร กิจกรรมต่างๆที่คนต้องเดินทางออกจากบ้านมาใช้บริการด้วย จากจุดที่เรามีมากพอสมควร น่าจะใช้ infer/imply ได้ดีพอสมควรมั้ย” · คำตอบที่เลือก “แยกเป็นแผนที่ที่สอง” · “นับแห่ง + บอกจำนวนคนประกอบ” · “ขึ้น 0.9.4 ก่อน แล้วทำต่อเป็น 0.9.5”
+
+- **สถานที่ที่คนมาทำงานและเรียนรอบศูนย์ (อนุมาน) (D59):** ส่วนใหม่ต่อจากผู้มาเยือน นับสถานที่ที่มีพิกัดของ 7 ชุด (สำนักงาน หน่วยงานรัฐ โรงงาน นิคมอุตสาหกรรม มหาวิทยาลัย สถานพยาบาล สถานศึกษา) ไม่นับสถานีราง (แสดงบนแผนที่อยู่แล้ว) พร้อมอันดับ ชุดที่มากที่สุด แผนที่ 5 กม. ทิศและตาราง และบรรทัดตัวเลขที่แหล่งบันทึก (นักเรียน คนงาน บุคลากร เตียง) แยกกันไม่บวกรวม · ศูนย์ที่ไม่มีสถานที่ใน 1 กม. แสดง 0 โดยไม่แสดงอันดับ · ตัวอย่าง เซ็นทรัลเวิลด์ 399 แห่งใน 3 กม. มากกว่า 97% ของ 488 ศูนย์
+- **ข้อมูล:** `data/work-study-map/` (128 shard + meta, 3.7 MB) จาก `scripts/build-visitors-map.py --map workstudy` (สคริปต์เดียวกับผู้มาเยือน ไฟล์ของผู้มาเยือนยังได้ไบต์เดิม) · จำนวนในรัศมีเท่ากับวงของรอบศูนย์นี้ทุกชุดทุกรัศมี · โหลดไม่สำเร็จ: ปุ่มลองอีกครั้ง และแถบข้อมูลไม่ครบ (`PARTIAL['data/work-study-map']`) · วิธี: `DATA_METHOD.md` §25
+- **สี (D61):** ครีม–น้ำเงิน (LDS `count`) แยกจากแผนที่คน (ส้ม) และผู้มาเยือน (ฟ้า–เขียว)
+- **ขอบของช่องสีอ่อน (D62):** ทั้งสามแผนที่ ช่องที่สีแทบเท่าพื้นสว่างได้เส้นขอบบาง ๆ ช่องที่มี 1–2 แห่งจึงไม่ดูเหมือนช่องว่าง สีข้อมูลไม่เปลี่ยน
 
 ## 0.9.4 - แผนที่ผู้มาเยือน หมุดศูนย์ โหมดภาษาอังกฤษ และหน้าแรกพอดีจอ (`20261120-r6`)
 
