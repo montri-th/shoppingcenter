@@ -176,6 +176,75 @@ export function fitPitched(map, bounds, {preset = 'city', padding = {top: 24, bo
   return target;
 }
 
+/** Every point drawn inside `box` and outside each `avoid` box ({left, top, right, bottom}, pixels of the map). */
+function pointsInBox(map, points, box, avoid = []) {
+  return points.every(q => {
+    const s = map.project([q[0], q[1]]);
+    if (!(s.x >= box.left && s.x <= box.right && s.y >= box.top && s.y <= box.bottom)) return false;
+    return !avoid.some(r => s.x >= r.left && s.x <= r.right && s.y >= r.top && s.y <= r.bottom);
+  });
+}
+
+/** Screen box of `points` under the current camera. */
+function screenBox(map, points) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const q of points) {
+    const s = map.project([q[0], q[1]]);
+    x0 = Math.min(x0, s.x); x1 = Math.max(x1, s.x); y0 = Math.min(y0, s.y); y1 = Math.max(y1, s.y);
+  }
+  return {x0, y0, x1, y1};
+}
+
+/**
+ * Frame `points` ([lng, lat]) as large as they fit inside `box` ({left, top, right, bottom}, pixels of the map
+ * container) under a preset, their screen box centred in it (0.9.4, owner 2026-11-20 19:47: “เปิดมาหน้าแรก ก็ควรจะ
+ * zoom to fit ส่วนพื้นที่ที่ highlight กับ viewport”). fitPitched keeps the area inside a padded viewport but zooms
+ * round a fixed point, so a pitched first view left the districts low with empty city above them. Here the centre and
+ * the zoom move together: each jump re-centres the area's screen box on the box centre and scales by the room left
+ * (a pitched camera draws the far side smaller, so a few jumps settle it; no frame is rendered). The start camera is
+ * restored; returns the camera, or null when no zoom from `minZoom` puts every point inside the box.
+ */
+export function fitInBox(map, points, {preset = 'city', box, maxZoom = 16, minZoom = 4, avoid = []} = {}) {
+  if (!points?.length || !box || !(box.right > box.left) || !(box.bottom > box.top)) return null;
+  const p = CAMERA[preset] || CAMERA.plan;
+  const start = {center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), padding: map.getPadding()};
+  setFov(map, p.fov);
+  const view = typeof map.getContainer === 'function' ? shiftPadding(map, p.fitShift || 0) : {top: 0, bottom: 0, left: 0, right: 0};
+  const bw = box.right - box.left, bh = box.bottom - box.top, cx = (box.left + box.right) / 2, cy = (box.top + box.bottom) / 2;
+  let lng0 = Infinity, lng1 = -Infinity, lat0 = Infinity, lat1 = -Infinity;
+  for (const q of points) { lng0 = Math.min(lng0, q[0]); lng1 = Math.max(lng1, q[0]); lat0 = Math.min(lat0, q[1]); lat1 = Math.max(lat1, q[1]); }
+  let center = [(lng0 + lng1) / 2, (lat0 + lat1) / 2];
+  let zoom = Math.min(maxZoom, Math.max(minZoom, start.zoom));
+  const put = () => map.jumpTo({center, zoom, pitch: p.pitch, bearing: p.bearing, padding: view});
+  // Move the camera centre by the screen offset that brings the area's box to the box centre.
+  const recentre = s => {
+    const here = map.project(center), dx = cx - (s.x0 + s.x1) / 2, dy = cy - (s.y0 + s.y1) / 2;
+    const c = map.unproject([here.x - dx, here.y - dy]);
+    if (Number.isFinite(c.lng) && Number.isFinite(c.lat)) center = [c.lng, c.lat];
+    return Math.hypot(dx, dy);
+  };
+  for (let i = 0; i < 60; i++) {
+    put();
+    const s = screenBox(map, points);
+    if (![s.x0, s.y0, s.x1, s.y1].every(Number.isFinite)) { zoom = Math.max(minZoom, zoom - 0.5); continue; }
+    const k = Math.min(bw / Math.max(1, s.x1 - s.x0), bh / Math.max(1, s.y1 - s.y0));
+    const off = recentre(s);
+    const next = Math.min(maxZoom, Math.max(minZoom, zoom + 0.85 * Math.log2(k)));
+    if (Math.abs(next - zoom) < 0.004 && off < 0.5) break;
+    zoom = next;
+  }
+  // The last jump can leave a vertex a pixel over an edge: step out, re-centring each time, until all are inside.
+  let guard = 0;
+  for (put(); !pointsInBox(map, points, box, avoid) && zoom > minZoom && guard++ < 120;) {
+    zoom = Math.max(minZoom, zoom - 0.02);
+    put(); recentre(screenBox(map, points)); put();
+  }
+  const ok = pointsInBox(map, points, box, avoid);
+  const target = ok ? {center: map.getCenter(), zoom: Math.floor(zoom * 100) / 100, pitch: p.pitch, bearing: p.bearing, padding: view} : null;
+  map.jumpTo(start);
+  return target;
+}
+
 /* ---------- two-point view of one building ---------- */
 
 const RAD = Math.PI / 180;

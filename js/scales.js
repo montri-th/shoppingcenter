@@ -5,6 +5,11 @@
  *    denominator family. scaleVersion 554812a7c19107b3a9b8658ba541fc8e13519cb19708e885a425f32d5b30f101.
  *  - `count` (provinces: number of venues) — sequential, dusty cyan/navy, totals.
  *    scaleVersion 4ff5c1fb4be71ecd13c48685b38371b528bcd4ce369ce964a75354c2eb4d0980.
+ *  - `activity` (the 5 km map of the places visitors use, 0.9.4) — sequential, mint/blue. LDS gives it to activity or
+ *    usage in a period; this map counts places per 250 m cell (an area denominator, density.area by the family rule).
+ *    Owner exception 2026-11-20 (VERBATIM question “visitor heatmap ใช้ คนละสีกับ residents ดีมั้ย”, answer
+ *    “เปลี่ยนเป็นฟ้า-เขียว (activity) เลย”): it keeps the visitors map apart from the residents map at a glance; its
+ *    legend states the unit and the cell. scaleVersion b1cf83edb8a7a0ad787c032feae9d65fa3a1674daf419412c7e6db78cddfb485.
  *
  * Both LUTs are the exact approved 41-sample light tables, consumed unchanged on both
  * themes (themePolicy identical-light-values-on-both-themes); nothing is interpolated or
@@ -55,7 +60,27 @@ export const COUNT_SCALE = Object.freeze({
   themePolicy: 'identical-light-values-on-both-themes',
 });
 
-const SCALES = {density: DENSITY_SCALE, count: COUNT_SCALE};
+export const ACTIVITY_SCALE = Object.freeze({
+  scaleId: 'activity',
+  kind: 'sequential',
+  unit: '',
+  labelTh: 'กิจกรรม',
+  anchors: ['#F1F5E5', '#60C9AD', '#25659A'],
+  lut: Object.freeze([
+    '#F1F5E5', '#EAF3E2', '#E4F1DF', '#DDEFDC', '#D7ECDA', '#D0EAD7', '#C9E8D4', '#C3E6D1',
+    '#BCE4CE', '#B5E2CB', '#AEDFC9', '#A7DDC6', '#A0DBC3', '#99D9C0', '#91D7BD', '#8AD4BB',
+    '#82D2B8', '#7AD0B5', '#72CEB2', '#69CBB0', '#60C9AD', '#5DC4AC', '#59BFAC', '#56BAAB',
+    '#53B5AB', '#4FB0AA', '#4CABA9', '#49A6A8', '#46A1A7', '#439CA7', '#4097A6', '#3D92A5',
+    '#3A8DA4', '#3788A3', '#3483A1', '#317EA0', '#2F799F', '#2C749E', '#2A6F9D', '#276A9B',
+    '#25659A',
+  ]),
+  noData: '#D5DAD6',
+  zeroOutline: '#7D877F',
+  scaleVersion: 'b1cf83edb8a7a0ad787c032feae9d65fa3a1674daf419412c7e6db78cddfb485',
+  themePolicy: 'identical-light-values-on-both-themes',
+});
+
+const SCALES = {density: DENSITY_SCALE, count: COUNT_SCALE, activity: ACTIVITY_SCALE};
 
 /** Label ink on a class fill: the darker/lighter foundation text that reaches the higher contrast. */
 export function inkFor(fill) {

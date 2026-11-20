@@ -60,7 +60,7 @@ import {buildOverviewModel, buildDistrictProfile, buildVenueProfile, buildPendin
 import {renderOverview, renderDistrict, renderVenue, renderPending, renderSearch, renderBrand, renderStation, renderFilterChips, statusPill, esc, num, provinceShort, groupSwatch, icon, meters, hoursShort, altName, PRODUCT_TITLE, SUBJECT, mapCardAha, mapCardVenue, mapCardDistrict, mapCardPending, mapCardSearch, mapCardBrand, mapCardStation} from './panel.js';
 import {buildMapStyle, basemapPalette, TILEJSON_URL, MASSING_BEFORE, VENUE_XRAY_BEFORE} from './map-style.js';
 import {installMassing, outerRings} from './massing.js';
-import {presetFor, applyPreset, fitPitched, framePoint, fitBuilding, twoPointBearing, groundAt} from './camera.js';
+import {presetFor, applyPreset, fitPitched, fitInBox, framePoint, fitBuilding, twoPointBearing, groundAt} from './camera.js';
 import {createBuildingUnitStore, createCmTileLoader, CM_ATTRIBUTION} from './building-units.js';
 import {installTerrain, TERRAIN} from './terrain.js';
 import {guardRetainedTiles, guardElevationFreeze} from './maplibre-guard.js';
@@ -74,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -109,7 +109,7 @@ const state = {
   look: {id: '', key: '', view: null}, lookReader: null,
   // Venue Locale Insight (owner 2026-11-18, js/venue-locale.js): data/locale meta once, the facts shard of the open
   // venue, the priors shard only when the reader opens that block; one amCharts dot plot at a time.
-  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: '', cmpState: 'idle'}, localeChart: null,
+  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: '', cmpState: 'idle', visState: 'idle', visId: ''}, localeChart: null,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
@@ -563,13 +563,42 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
   if (L.resId !== id) { L.resId = id; L.resState = 'idle'; }
   ensureLocaleCompare(id);
   ensureLocaleResidentsMap(id);
+  ensureLocaleVisitors(id);
   const rmeta = cachedResidentsMeta();
   if (rmeta && cachedResidents(id, rmeta.shards)) { L.resState = 'ready'; return; }
   if (L.resState === 'loading' || L.resState === 'ready' || L.resState === 'empty') return;
   L.resState = 'loading';
   loadResidentsMeta().then(meta => loadResidents(id, {shards: meta.shards})).then(rec => { if (L.resId === id) L.resState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale residents', e); partial('data/residents'); if (L.resId === id) L.resState = 'error'; })
-    .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
+    .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); } });
+}
+
+/**
+ * The places visitors use around the center (data/visitors-map, 0.9.4; owner 2026-11-20 19:35): optional, beside the
+ * residents; only its zone is redrawn when its record arrives, and again when the lines or the subdistrict outlines it
+ * borrows from the residents map arrive.
+ */
+function ensureLocaleVisitors(id, {focus = ''} = {}) {
+  const L = state.locale;
+  if (L.visId !== id) { L.visId = id; L.visState = 'idle'; }
+  const vm = cachedVisitorsMeta();
+  if (vm && cachedVisitors(id, vm.shards)) { L.visState = 'ready'; return; }
+  if (L.visState !== 'idle') return; // after an error, only the retry button asks again
+  L.visState = 'loading';
+  loadVisitorsMeta().then(meta => loadVisitors(id, {shards: meta.shards})).then(rec => { if (L.visId === id) L.visState = rec ? 'ready' : 'empty'; })
+    .catch(e => { console.warn('Venue locale visitors', e); partial('data/visitors-map'); if (L.visId === id) L.visState = 'error'; })
+    .finally(() => { if (localeOpen(id)) refreshLocaleVisitors({focus}); });
+}
+
+/** Replace only the visitors zone (the rest of the section stays as it is). */
+function refreshLocaleVisitors({focus = ''} = {}) {
+  const v = currentVenue(), section = $('venue-locale'), el = $('locale-visitors'), meta = cachedLocaleMeta();
+  if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
+  const vm = cachedVisitorsMeta(), rmeta = cachedResidentsMeta(), L = state.locale;
+  el.outerHTML = renderLocaleVisitors(v, {meta, facts: cachedLocaleFacts(v.id, meta.shards || 64), visitorsMeta: vm,
+    visitors: vm ? cachedVisitors(v.id, vm.shards) : null, visitorsState: L.visId === v.id ? L.visState : 'idle',
+    residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsMap: residentsMapOf(v.id)});
+  if (focus) $('locale-visitors')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
 /**
@@ -585,7 +614,7 @@ function ensureLocaleResidentsMap(id, {focus = ''} = {}) {
   L.mapState = 'loading';
   loadResidentsMapMeta().then(meta => loadResidentsMap(id, {shards: meta.shards})).then(rec => { if (L.mapId === id) L.mapState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale residents map', e); partial('data/residents-map'); if (L.mapId === id) L.mapState = 'error'; })
-    .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
+    .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); } });
 }
 
 /** The lines of one center's residents map when they are loaded ({meta, rec}), else null. */
@@ -656,6 +685,7 @@ function localeHTML(v) {
     metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
     residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
     compare: cachedCompare(), compareState: L.cmpState, venueOf, residentsMap: residentsMapOf(v.id),
+    visitorsMeta: cachedVisitorsMeta(), visitors: cachedVisitorsMeta() ? cachedVisitors(v.id, cachedVisitorsMeta().shards) : null, visitorsState: L.visId === v.id ? L.visState : 'idle',
   });
 }
 
@@ -1053,6 +1083,7 @@ function onPanelAction(event) {
     case 'locale-retry': if (state.panel.mode === 'venue') { state.locale.metaState = state.locale.metaState === 'error' ? 'idle' : state.locale.metaState; state.locale.factsState = 'idle'; ensureLocale(state.panel.id); refreshLocale(); } break;
     case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id, {focus: '.who-tile, [data-action="locale-retry-priors"]'}); refreshLocalePriors(); } break;
     case 'locale-retry-residents': if (state.panel.mode === 'venue') { state.locale.resState = 'idle'; ensureLocaleResidents(state.panel.id, {focus: '.res-title, [data-action="locale-retry-residents"]'}); refreshLocaleResidents(); } break;
+    case 'locale-retry-visitors': if (state.panel.mode === 'venue') { state.locale.visState = 'idle'; ensureLocaleVisitors(state.panel.id, {focus: '#locale-vis-title, [data-action="locale-retry-visitors"]'}); refreshLocaleVisitors(); } break;
     case 'locale-retry-compare': if (state.panel.mode === 'venue') { state.locale.cmpState = 'idle'; ensureLocaleCompare(state.panel.id, {focus: '#locale-cmp-title'}); refreshLocaleResidents(); } break;
     default: break;
   }
@@ -1220,25 +1251,8 @@ function fitBounds(b, {instant = false, points = null, maxZoom = 15, apply = tru
   return fitPitched(state.map, b, {preset, padding: pitched ? pitchedPadding() : cameraPadding(), maxZoom, minZoom: 4.5, animate: animate() && !instant, points: wide ? null : points, shift: mobilePortrait() && !wide ? -0.12 : null, apply, avoid: pitched ? legendAvoid() : []});
 }
 
-/** City massing (OpenMapTiles buildings) exists from zoom 13; the 3D focus view needs it to read as a city. */
-const MASSING_VIEW_ZOOM = 13.1;   // below the quiet-label zoom (13.2) so the first view keeps only the focus labels
-// How far below MASSING_VIEW_ZOOM the whole-district fit may be and still zoom in to it (×1.3 at most). A phone needs
-// about a zoom less to hold the three districts; zooming in there pushed them under the card (owner 5 Nov 2026 08:34,
-// “หน้าแรก เปิดมาเจอแบบนี้ ให้ดูอะไรเหรอ”), so the phone frames them whole instead.
-const MASSING_ZOOM_REACH = 0.4;
-
-/** `target` zoomed in to `zoom` around the middle of the free map box (between the toolbar and the card or legend). */
-function zoomInFreeBox(target, zoom) {
-  const map = state.map;
-  const start = {center: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), padding: map.getPadding()};
-  map.jumpTo(target);
-  const box = visibleBox();
-  const around = map.unproject([(box.left + box.right) / 2, (box.top + box.bottom) / 2]);
-  map.zoomTo(zoom, {around, duration: 0, animate: false});
-  const camera = {center: map.getCenter(), zoom, pitch: target.pitch, bearing: target.bearing, padding: target.padding};
-  map.jumpTo(start);
-  return camera;
-}
+/** The first view's zoom stays below the zoom where the other district labels appear (districtLabels quietMinZoom). */
+const FIRST_VIEW_MAX_ZOOM = 13.15;
 
 function fitMap({instant = false} = {}) {
   if (!state.loaded) return;
@@ -1255,17 +1269,20 @@ function fitMap({instant = false} = {}) {
   if (focus.length) {
     const b = new LB();
     for (const x of focus) featureBounds(x.feature, LB).toArray().forEach(p => b.extend(p));
-    const options = {instant, points: vertices(focus.map(x => x.feature))};
-    // Dense city districts that fit just below the massing zoom: zoom in to it around the middle of the free map box,
-    // so the first view shows the 3D city and the district fills still read around the venues. Further below (a phone),
-    // the districts are framed whole: zooming in would push them under the card.
-    const target = fitBounds(b, {...options, apply: false});
-    if (target && target.pitch > 0 && target.zoom >= MASSING_VIEW_ZOOM - MASSING_ZOOM_REACH && target.zoom < MASSING_VIEW_ZOOM && detailRows().some(hasPoint)) {
-      const camera = zoomInFreeBox(target, MASSING_VIEW_ZOOM);
+    const points = vertices(focus.map(x => x.feature));
+    // The highlighted districts fill the free map box, centred in it (0.9.4, owner 2026-11-20 19:47: “เปิดมาหน้าแรก
+    // ก็ควรจะ zoom to fit ส่วนพื้นที่ที่ highlight กับ viewport”). Until 0.9.3 a pitched fit zoomed round a fixed point
+    // and then in to the massing zoom, which left the districts low on a wide screen and cut them on a laptop.
+    // Districts spread wider than 0.3° (a province) are framed flat, as fitBounds does. The zoom stays below the
+    // quiet-label zoom (13.2, district labels), so on a wide screen the first view still names only these districts.
+    const wide = b.getNorth() - b.getSouth() > 0.3 || b.getEast() - b.getWest() > 0.3, box = visibleBox(), inset = 14;
+    const camera = fitInBox(state.map, points, {preset: wide ? 'plan' : cameraPreset(), maxZoom: FIRST_VIEW_MAX_ZOOM, minZoom: 4.5,
+      box: {left: box.left + inset, top: box.top + inset, right: box.right - inset, bottom: box.bottom - inset}});
+    if (camera) {
       if (animate() && !instant) state.map.easeTo({...camera, duration: 650}); else state.map.jumpTo(camera);
       return;
     }
-    fitBounds(b, options);
+    fitBounds(b, {instant, points});
     return;
   }
   const readCode = readingProvince();
@@ -1913,6 +1930,7 @@ const PARTIAL = {
   'data/residents': ['คนที่มีชื่อในทะเบียนบ้านรอบศูนย์', 'ส่วนรอบศูนย์นี้ไม่แสดงจำนวนคนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง) และแผนที่ของจำนวนนั้น', 'Registered residents around the center', 'Around this center does not show the registered residents around it (modelled) or their map'],
   'data/compare': ['การเทียบกับศูนย์อื่น', 'ส่วนรอบศูนย์นี้ไม่แสดงกราฟเทียบคนอยู่ใกล้และคนทำงานใกล้กับศูนย์อื่น', 'Comparison with other centers', 'Around this center does not show the chart of people living and working nearby against the other centers'],
   'data/residents-map': ['ถนนและสถานีบนแผนที่คนรอบศูนย์', 'แผนที่คนรอบศูนย์แสดงเฉพาะช่องสี ไม่มีถนน ราง แม่น้ำ และชื่อสถานี', 'Roads and stations on the residents map', 'The residents map shows its coloured cells only, without roads, rail, rivers or station names'],
+  'data/visitors-map': ['สถานที่ที่ผู้มาเยือนใช้รอบศูนย์', 'รอบศูนย์นี้ไม่มีแผนที่ จำนวน และอันดับของสถานที่ที่ผู้มาเยือนใช้', 'Places visitors use around the center', 'The section has no map, count or rank of the places visitors use'],
 };
 function partial(key) {
   const words = PARTIAL[key];

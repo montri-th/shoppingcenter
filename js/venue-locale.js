@@ -133,9 +133,27 @@ export async function loadResidentsMap(id, {shards = 128, fetchImpl = (...a) => 
 }
 export const cachedResidentsMap = (id, shards = 128) => resolved.get(residentsMapShardPath(id, shards))?.venues?.[id] || null;
 
+/**
+ * Places visitors use around the center (0.9.4; owner 2026-11-20 19:35 “และขอ heatmap แบบนี้สำหรับ visitor ด้วย”, and
+ * the answer to the data question “infer/imply จากจุดกิจกรรมต่างๆได้มั้ย เช่น POI จาก datasets ต่างๆที่เชื่อมโยงกับ
+ * registry sheet สามารถในหน่วยอะไรก็ได้ที่สามารถบอกเชิงปริมาณได้”): data/visitors-map/, written by
+ * scripts/build-visitors-map.py — the located places of the release's “visit” and “retail” datasets per 250 m cell
+ * within 5 km, their count at 1 · 3 · 5 km (equal to the rings, dataset by dataset) and its rank among the reference.
+ * Optional: the section reads without it (PARTIAL['data/visitors-map']).
+ */
+export const VISITORS_MAP_PATH = 'data/visitors-map';
+export const visitorsShardPath = (id, shards = 128) => `${VISITORS_MAP_PATH}/${String(shardOf(id, shards)).padStart(3, '0')}.json`;
+export const loadVisitorsMeta = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(`${VISITORS_MAP_PATH}/meta.json`, fetchImpl);
+export const cachedVisitorsMeta = () => resolved.get(`${VISITORS_MAP_PATH}/meta.json`) || null;
+export async function loadVisitors(id, {shards = 128, fetchImpl = (...a) => fetch(...a)} = {}) {
+  const shard = await fetchJSON(visitorsShardPath(id, shards), fetchImpl);
+  return shard?.venues?.[id] || null;
+}
+export const cachedVisitors = (id, shards = 128) => resolved.get(visitorsShardPath(id, shards))?.venues?.[id] || null;
+
 /* ---------- reader options (kept for the session, like charts.js) ---------- */
 
-const options = {radius: 3000, universe: 'all', level: '', bench: 'province', open: {table: false, more: false, live: false, method: false, res: false}};
+const options = {radius: 3000, universe: 'all', level: '', bench: 'province', open: {table: false, more: false, live: false, method: false, res: false, vis: false, vistable: false}};
 export const localeOptions = () => ({...options, open: {...options.open}});
 export function setLocaleOption(key, value) {
   if (key === 'radius' && RADII.includes(Number(value))) options.radius = Number(value);
@@ -947,9 +965,13 @@ export function residentsOverlayLabels(ov, at, {unit = 25, m = 250} = {}) {
 }
 
 /** The key of the lines over the map (beside the density legend): what each kind of line is. */
-export function residentsOverlayKey() {
+/** The key item of the center pin. */
+export const venuePinKey = () => `<span class="res-key-item"><svg class="res-key-pin" viewBox="-1 -2.55 2 2.75" aria-hidden="true">${VENUE_PIN}</svg>${say('ศูนย์นี้', 'This center')}</span>`;
+
+export function residentsOverlayKey({lines = true} = {}) {
   const sw = (cls, extra = '') => `<svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="${cls}-case${extra}" d="M2 4h20"/><path class="${cls}${extra}" d="M2 4h20"/></svg>`;
-  return `<span class="res-key">`
+  if (!lines) return `<span class="res-key">${venuePinKey()}</span>`;
+  return `<span class="res-key">${venuePinKey()}`
     + `<span class="res-key-item">${sw('res-road', ' c2')}${say('ถนนสายหลัก', 'Major roads')}</span>`
     + `<span class="res-key-item">${sw('res-rail')}${say('รถไฟฟ้าและรถไฟ', 'Rail lines')}</span>`
     + `<span class="res-key-item"><svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><circle class="res-station" cx="12" cy="4" r="3"/></svg>${say('สถานี', 'Stations')}</span>`
@@ -969,11 +991,21 @@ export function residentsOverlayMethod(mm) {
     `Lines on the map: major roads (motorway, trunk, primary, secondary), rail (rail, metro and monorail, without yards and sidings) and the waterways OpenStreetMap tags as rivers, from the Geofabrik extract of ${mm?.asOf ? englishDay(mm.asOf) : ''}, smoothed to ${num(mm?.simplify_m || 12)} m · operating stations from CityMETER Transit · up to 4 road names, 1 river and the 3 nearest stations where they fit without overlapping · lines to find your way by, not a network to measure on`);
 }
 
-/** The map of one center: one path per LUT sample (runs along each row), subdistrict lines, roads and rail to read it by, the rings and the point. */
-export function residentsMapHTML(row, rec, rmeta, radius = options.radius, model = residentsMapModel(rec, rmeta), overlay = null) {
-  const {n, m, ramp} = model;
+/**
+ * The center on the 5 km maps (0.9.4, owner 2026-11-20 19:35: “ขอปรับจุดของ venue ให้แสดงได้ชัดขึ้นหน่อย”): a pin in the
+ * map's selected role with the marker halo — its tip on the center's point, a head of 0.8 cell (200 m) 1.5 cells above
+ * it — where the 0.9.2 dot of 105 m read like a station. Names stay off it (scripts/build-residents-map.py PIN_*).
+ */
+export const VENUE_PIN = '<g class="res-venue"><path class="res-venue-pin" d="M0 0C-.3-.55-.8-.95-.8-1.5A.8 .8 0 1 1 .8-1.5C.8-.95 .3-.55 0 0Z"/>'
+  + '<circle class="res-venue-dot" cy="-1.5" r=".3"/></g>';
+
+/**
+ * A 5 km map of one center (residents or the places visitors use): one path per LUT sample (runs along each row), the
+ * subdistrict lines, the roads and rail to read it by, the rings and the pin. `kind` keeps the two maps' ids apart.
+ */
+function circleMapHTML(row, {g, o = null, outlineUnit = 25}, {n, m, ramp}, {radii: rr = RADII, radius = options.radius, overlay = null, title, kind = 'res'}) {
   const half = n / 2, pad = 0.4, size = n + 2 * pad;
-  const cell = rec.g.map(v => (v == null ? null : classify(v, ramp).fill));
+  const cell = g.map(v => (v == null ? null : classify(v, ramp).fill));
   const fills = new Map();
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n;) {
@@ -985,24 +1017,50 @@ export function residentsMapHTML(row, rec, rmeta, radius = options.radius, model
       c = e;
     }
   }
-  const id = `res-${String(row.id).replace(/[^\w-]/g, '')}`;
-  const radii = (rmeta?.radii || RADII).map(Number);
+  const id = `${kind}-${String(row.id).replace(/[^\w-]/g, '')}`;
+  const radii = (rr || RADII).map(Number);
   const outer = Math.max(...radii) / m;
-  const scale = (rmeta?.outline?.unit_m || 25) / m;
+  const scale = outlineUnit / m;
   const at = v => (((v + half + pad) / size) * 100).toFixed(2);
   const labels = radii.map(r => {
     const c = (r / m) * Math.SQRT1_2;
     return `<span class="res-ring-label${r === radius ? ' is-on' : ''}" style="left:${at(c)}%;top:${at(-c)}%">${say(km(r), kmEn(r))}</span>`;
   }).join('');
-  const title = ['คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
-    'Registered residents (modelled) per 250 × 250 m cell within 5 km of the center, north up'];
   return `<div class="res-map-wrap"><svg class="res-map" viewBox="${-half - pad} ${-half - pad} ${size} ${size}" role="img" aria-labelledby="${id}-t"><title id="${id}-t"${enAttr(title[1])}>${esc(title[0])}</title>`
     + `<defs><clipPath id="${id}-c"><circle r="${outer}"/></clipPath></defs><g clip-path="url(#${id}-c)"><circle class="res-bg" r="${outer}"/>`
     + [...fills].map(([f, d]) => `<path d="${d}" fill="${f}" shape-rendering="crispEdges"/>`).join('')
-    + `${rec.o ? `<path class="res-outline" d="${esc(rec.o)}" transform="scale(${scale})"/>` : ''}`
+    + `${o ? `<path class="res-outline" d="${esc(o)}" transform="scale(${scale})"/>` : ''}`
     + `${overlay?.rec ? residentsOverlaySVG(overlay.rec, {unit: overlay.meta?.unit_m || 25, m}) : ''}</g>`
     + radii.map(r => `<circle class="res-ring${r === radius ? ' is-on' : ''}" r="${r / m}"/>`).join('')
-    + `<circle class="res-venue" r="0.42"/></svg>${overlay?.rec ? residentsOverlayLabels(overlay.rec, at, {unit: overlay.meta?.unit_m || 25, m}) : ''}${labels}<span class="res-north" aria-hidden="true">↑ ${say('เหนือ', 'N')}</span></div>`;
+    + `${VENUE_PIN}</svg>${overlay?.rec ? residentsOverlayLabels(overlay.rec, at, {unit: overlay.meta?.unit_m || 25, m}) : ''}${labels}<span class="res-north" aria-hidden="true">↑ ${say('เหนือ', 'N')}</span></div>`;
+}
+
+/** The residents map of one center (people per 250 m cell). */
+export function residentsMapHTML(row, rec, rmeta, radius = options.radius, model = residentsMapModel(rec, rmeta), overlay = null) {
+  return circleMapHTML(row, {g: rec.g, o: rec.o, outlineUnit: rmeta?.outline?.unit_m || 25}, model, {radii: rmeta?.radii, radius, overlay, kind: 'res',
+    title: ['คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
+      'Registered residents (modelled) per 250 × 250 m cell within 5 km of the center, north up']});
+}
+
+/**
+ * Colours of the visitors map: the places of each cell ranked within this center's 5 km on the 41 samples of the LDS
+ * `activity` LUT (mint to blue; whole numbers). The cell is an area, which the LDS family rule gives to density.area;
+ * the owner chose activity so the visitors map reads apart from the residents map at a glance (2026-11-20, “visitor
+ * heatmap ใช้ คนละสีกับ residents ดีมั้ย” → “เปลี่ยนเป็นฟ้า-เขียว (activity) เลย”). The legend states the unit and the cell.
+ */
+export function visitorsMapModel(rec, vmeta) {
+  const n = vmeta?.cell?.n || 40, m = vmeta?.cell?.m || 250;
+  const values = [];
+  for (const v of rec?.g || []) if (v > 0) values.push(v);
+  const ramp = buildRamp(values, {kind: 'activity'});
+  return {n, m, km2: (m * m) / 1e6, ramp: {...ramp, format: num, ticks: rampTicks(ramp.levels, num)}};
+}
+
+/** The visitors map of one center (places per 250 m cell), drawn like the residents map with its lines and pin. */
+export function visitorsMapHTML(row, rec, vmeta, radius = options.radius, model = visitorsMapModel(rec, vmeta), {overlay = null, outline = null, outlineUnit = 25} = {}) {
+  return circleMapHTML(row, {g: rec.g, o: outline, outlineUnit}, model, {radii: vmeta?.radii, radius, overlay, kind: 'vis',
+    title: ['สถานที่ที่ผู้มาเยือนใช้ (ที่พัก ร้านอาหาร ร้านค้า และบริการ) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
+      'Places visitors use (stays, restaurants, shops and services) per 250 × 250 m cell within 5 km of the center, north up']});
 }
 
 const RING_WORDS = [['0–1 กม.', '0–1 km'], ['1–3 กม.', '1–3 km'], ['3–5 กม.', '3–5 km']];
@@ -1075,6 +1133,113 @@ function residentsTableHTML(rec, rmeta) {
     <tbody>${body}</tbody></table></div>
     <p class="hint">${say('ช่องระยะคือคนต่อ ตร.กม. ตัวหนาคือช่องที่หนาแน่นที่สุด · ช่องตาราง 250 ม. นับเข้าทิศและระยะตามกึ่งกลางช่อง ตัวเลขรายระยะจึงต่างจากวงด้านบนเล็กน้อย · – คือไม่มีอาคารที่นับได้',
       'Distance columns are people per km²; bold is the densest · each 250 m cell counts in the direction and distance of its centre, so these differ a little from the rings above · – means no counted building')}</p></details>`;
+}
+
+/** The line under the visitors map (the direction with the most places) and its table, folded. */
+function visitorsTableHTML(rec, vmeta) {
+  const {rows, top, total} = residentsSectors(rec, vmeta);
+  if (!(total > 0)) return '';
+  const share = num(Math.round(top.share));
+  const lead = `<p class="res-dir">${icon('maps')}${say(`สถานที่ในวง 5 กม. อยู่ทางทิศ${top.th}ของศูนย์มากที่สุด ${num(top.total)} แห่ง (${share}%)`,
+    `Most places within 5 km are to the ${top.en.toLowerCase()} of the center: ${num(top.total)} (${share}%)`)}</p>`;
+  const densest = rows.flatMap((r, s) => r.dens.map((d, j) => ({s, j, d: r.built[j] ? d : -1}))).reduce((a, b) => (b.d > a.d ? b : a));
+  const body = rows.map((r, s) => {
+    const cells = r.dens.map((d, j) => {
+      const v = densityCell(d, r.built[j]);
+      return `<td class="data-number">${s === densest.s && j === densest.j ? `<b>${v}</b>` : v}</td>`;
+    }).join('');
+    return `<tr${r === top ? ' class="is-top"' : ''}><th scope="row">${say(r.th, r.en)}</th>${cells}<td class="data-number">${r.total > 0 ? `${num(r.total)} <small>${num(Math.round(r.share))}%</small>` : '–'}</td></tr>`;
+  }).join('');
+  return `${lead}
+    <details class="locale-details" data-locale-open="vistable"${openAttr('vistable')}><summary>${icon('table')}${say('อ่านแผนที่เป็นตาราง: ทิศและระยะจากศูนย์', 'The map as a table: direction and distance from the center')}</summary>
+    <div class="table-wrap locale-table-wrap"><table class="locale-table res-table"><caption class="sr-only">${say('สถานที่ต่อ ตร.กม. ตามทิศและระยะจากศูนย์ และสถานที่ในวง 5 กม. ของแต่ละทิศ', 'Places per km² by direction and distance from the center, and the places within 5 km in each direction')}</caption>
+    <thead><tr><th scope="col">${say('ทิศจากศูนย์', 'Direction')}</th>${RING_WORDS.map(([th, en]) => `<th scope="col">${say(th, en)}</th>`).join('')}<th scope="col">${say('สถานที่ใน 5 กม.', 'Places within 5 km')}</th></tr></thead>
+    <tbody>${body}</tbody></table></div>
+    <p class="hint">${say('ช่องระยะคือสถานที่ต่อ ตร.กม. ตัวหนาคือช่องที่หนาแน่นที่สุด · ช่องตาราง 250 ม. นับเข้าทิศและระยะตามกึ่งกลางช่อง ตัวเลขรายระยะจึงต่างจากวงเล็กน้อย · – คือไม่มีสถานที่ในชุดข้อมูลที่นับ',
+      'Distance columns are places per km²; bold is the densest · each 250 m cell counts in the direction and distance of its centre, so these differ a little from the rings · – means no place in the datasets counted')}</p></details>`;
+}
+
+/**
+ * “สถานที่ที่ผู้มาเยือนใช้รอบศูนย์ (อนุมาน)” (0.9.4): the places of the release's stay and retail datasets at the radius of
+ * the chips with their rank (the `count` LUT sample, as the residents above), the datasets they come from, the 5 km map in
+ * places per 250 m cell with the same lines and pin as the residents map, where most of them are and the table (folded),
+ * one data line, and the method and limits folded. Places, not people: where visitors are likely to go is the inference.
+ */
+function visitorsBlock(meta, row, vmeta, rec, state, {facts = null, residents = null, residentsMeta = null, residentsMap = null} = {}) {
+  const titleTh = 'สถานที่ที่ผู้มาเยือนใช้รอบศูนย์ (อนุมาน)', titleEn = 'Places visitors use around the center (inferred)';
+  const wrap = inner => `<div class="locale-block res-block vis-block" id="locale-visitors" role="group" aria-labelledby="locale-vis-title">${inner}</div>`;
+  const simple = text => wrap(`<h4 class="locale-sub" id="locale-vis-title" tabindex="-1">${icon('visitors')}${say(titleTh, titleEn)}</h4>${text}`);
+  if (state === 'error') return simple(`<p class="hint">${say('โหลดสถานที่ที่ผู้มาเยือนใช้ไม่สำเร็จ', 'Could not load the places visitors use')} <button type="button" class="link-button" data-action="locale-retry-visitors">${say('ลองอีกครั้ง', 'Try again')}</button></p>`);
+  if (!vmeta || (!rec && state !== 'empty')) return simple(`<p class="hint" role="status">${say('กำลังโหลดสถานที่ที่ผู้มาเยือนใช้…', 'Loading the places visitors use…')}</p>`);
+  if (!rec) return simple(`<p class="hint">${say('รุ่นข้อมูลนี้ยังไม่มีสถานที่รอบศูนย์นี้', 'This release has no places for this center yet')}</p>`);
+  const i = RI[options.radius] ?? 1, r = RADII[i];
+  const uni = universeOf(meta, row);
+  const uniEn = usSpelling(meta.universes?.[uni.key === 'type' ? row.group : 'all']?.en || '');
+  const p = rec.p?.[uni.key === 'type' ? 1 : 0]?.[i] ?? null;
+  const nb = t => t.replace(/ (กม\.|km)$/, ' $1');
+  const big = `<b class="data-number">${num(rec.n[i])}</b> ${say(nb(`แห่ง ใน ${km(r)}`), nb(`places within ${kmEn(r)}`))}`;
+  const rank = p == null ? '' : `<span class="dot-track aha-track" aria-hidden="true"><b style="width:${p}%;background:${pctFill(p)}"></b><i class="dot" style="left:${p}%;background:${pctFill(p)}"></i></span><span class="aha-how">${esc(rankWords(p, uni.key === 'all' ? ` ${uni.short}` : uni.short))}</span>`;
+  const head = `<div class="res-head">${icon('visitors')}<div class="aha-body"><h4 class="res-title" id="locale-vis-title" tabindex="-1">${say(titleTh, titleEn)}</h4><p class="res-big">${big}</p>${rank}</div></div>`;
+  // where the places come from: the datasets at this radius, largest first (the counts of the rings above)
+  const sets = (vmeta.datasets || []).map(d => {
+    const m = meta.ring?.[d.id] || d;
+    return {th: m.short?.[0] || m.th, en: usSpelling(m.short?.[1] || m.en), n: facts?.ring?.[d.id]?.n?.[i] ?? 0};
+  }).filter(d => d.n > 0).sort((a, b) => b.n - a.n);
+  const shown = sets.slice(0, 3), rest = sets.slice(3), restN = rest.reduce((a, d) => a + d.n, 0);
+  const mix = sets.length ? `<p class="res-age-text vis-mix">${say(
+    `${shown.map(d => `${d.th} ${num(d.n)}`).join(' · ')}${rest.length ? ` · อีก ${num(rest.length)} ชุดข้อมูล รวม ${num(restN)}` : ''}`,
+    `${shown.map(d => `${d.en} ${num(d.n)}`).join(' · ')}${rest.length ? ` · ${num(rest.length)} more datasets: ${num(restN)} in all` : ''}`)}</p>` : '';
+  const model = visitorsMapModel(rec, vmeta), {ramp} = model;
+  const figure = `<figure class="res-figure">${visitorsMapHTML(row, rec, vmeta, r, model, {overlay: residentsMap, outline: residents?.o || null, outlineUnit: residentsMeta?.outline?.unit_m || 25})}
+    <figcaption class="res-legend"><span class="res-legend-title">${say('สถานที่ต่อช่อง 250 × 250 ม.', 'Places per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'สถานที่ต่อช่อง 250 × 250 ม.'})}
+    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec)})}
+    <span class="hint">${residents?.o
+    ? say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีสถานที่ในชุดข้อมูลที่นับ · เส้นบางคือขอบแขวง/ตำบล', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells hold no place of the datasets counted · thin lines are subdistrict boundaries')
+    : say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีสถานที่ในชุดข้อมูลที่นับ', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells hold no place of the datasets counted')}</span></figcaption></figure>`;
+  const dates = (vmeta.datasets || []).map(d => d.date).filter(Boolean).sort();
+  const span = dates.length ? (dates[0] === dates.at(-1) ? [thaiDay(dates[0]), englishDay(dates[0])] : [`${thaiDay(dates[0])}–${thaiDay(dates.at(-1))}`, `${englishDay(dates[0])}–${englishDay(dates.at(-1))}`]) : ['', ''];
+  const nSets = (vmeta.datasets || []).length;
+  // where each dataset comes from: a CityMETER demo web, or the CityMETER research registry (meta.ring[id].source)
+  const REGISTRY = 'ทะเบียนวิจัย CityMETER';
+  const fromRegistry = (vmeta.datasets || []).filter(d => meta.ring?.[d.id]?.source?.[0] === REGISTRY);
+  const fromDemos = (vmeta.datasets || []).filter(d => meta.ring?.[d.id]?.source && meta.ring[d.id].source[0] !== REGISTRY);
+  const line = `<p class="hint res-evidence">${say(
+    `สถานที่ที่ผู้มาเยือนใช้ (อนุมาน) · รายการที่มีพิกัดของ ${num(nSets)} ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ข้อมูล ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
+    `Places visitors use (inferred) · located records of ${num(nSets)} CityMETER stay, retail and service datasets · data ${span[1]} · straight-line radius from the center’s point`)}${residentsMap?.rec ? residentsOverlayCredit(residentsMap.meta) : ''}</p>`;
+  const partial = (vmeta.datasets || []).filter(d => d.eligible && d.located != null && d.located < 0.9 * d.eligible).map(d => {
+    const m = meta.ring?.[d.id] || d;
+    return [`${m.short?.[0] || m.th} มีพิกัด ${num(d.located)} จาก ${num(d.eligible)}`, `${usSpelling(m.short?.[1] || m.en)}: ${num(d.located)} of ${num(d.eligible)} have a point`];
+  });
+  const listTh = (vmeta.datasets || []).map(d => meta.ring?.[d.id]?.th || d.th).join(' · ');
+  const listEn = (vmeta.datasets || []).map(d => usSpelling(meta.ring?.[d.id]?.en || d.en)).join(' · ');
+  const method = `<details class="locale-details" data-locale-open="vis"${openAttr('vis')}><summary>${icon('evidence')}${say('วิธีคิดและข้อจำกัดของสถานที่ที่ผู้มาเยือนใช้', 'How the places visitors use are counted, and the limits')}</summary>
+    <ul class="locale-method">
+      <li>${say('ตัวเลขนี้คือจำนวนสถานที่ที่คนมาพัก กิน ซื้อ และใช้บริการ ซึ่งชุดข้อมูลของ CityMETER ระบุไว้ ไม่ใช่จำนวนผู้มาเยือน จำนวนครั้งที่มา คนเดิน หรือยอดขาย · การอ่านว่าที่ไหนผู้มาเยือนน่าจะไปเป็นการอนุมานจากสถานที่เหล่านี้',
+        'These are the places where people come to stay, eat, shop and use services, as CityMETER’s datasets list them: not visitors, visits, footfall or sales · reading where visitors are likely to go is an inference from these places')}</li>
+      <li>${say(`นับรายการที่มีพิกัดของ ${num(nSets)} ชุดข้อมูลที่รอบศูนย์นี้จัดไว้ในหมวด “ที่พักและผู้มาเยือน” และ “ค้าปลีกและบริการรอบศูนย์”: ${listTh} · หนึ่งรายการคือหนึ่งสถานที่ ไม่บวกห้อง เตียง หรือที่นั่งข้ามชุดข้อมูล และไม่นับศูนย์นี้เอง`,
+        `The located records of the ${num(nSets)} datasets this section groups as “Stays and visitors” and “Retail and services around”: ${listEn} · one record is one place; rooms, beds or seats are not added across datasets, and this center itself is not counted`)}</li>
+      <li>${say(`ที่มา: เว็บเดโม CityMETER ${num(fromDemos.length)} ชุด และทะเบียนวิจัย CityMETER ${num(fromRegistry.length)} ชุด ที่มาและวันที่ของแต่ละชุดอยู่ในตาราง “ตัวเลขทุกรัศมี” ด้านล่าง`,
+        `Sources: ${num(fromDemos.length)} CityMETER demo webs and ${num(fromRegistry.length)} datasets of the CityMETER research registry; each one’s source and date are in the table “Figures for every radius” below`)}</li>
+      ${partial.length ? `<li>${say(`นับเฉพาะรายการที่มีพิกัด ชุดที่มีพิกัดไม่ถึง 90%: ${partial.map(x => x[0]).join(' · ')}`, `Only records with a point are counted; datasets with points for under 90% of their records: ${partial.map(x => x[1]).join(' · ')}`)}</li>` : ''}
+      <li>${say('บางชุดข้อมูลวางร้านที่อยู่ในศูนย์การค้าไว้ที่จุดของศูนย์นั้น ร้านเหล่านี้จึงรวมอยู่ในช่องเดียวกับศูนย์ · ไม่ได้ตัดรายการซ้ำข้ามชุดข้อมูล สถานที่เดียวกันจึงอาจนับได้มากกว่าหนึ่งครั้ง', 'Some datasets place a shop inside a shopping center at that center’s point, so those shops share the center’s cell · records are not de-duplicated across datasets, so one place may count more than once')}</li>
+      <li>${say(`อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ${uni.th} ${num(uni.n)} แห่ง ค่าที่เท่ากันนับครึ่ง อันดับสูงไม่ได้แปลว่าทำเลดีกว่า`, `The rank is a mid-rank percentile among ${num(uni.n)} ${uniEn}, ties counted half; a higher rank does not make a better location`)}</li>
+      ${referenceLine(meta)}
+      <li>${say('แผนที่: สีของช่อง 250 × 250 ม. เรียงตามจำนวนสถานที่ในช่องในวง 5 กม. ของศูนย์นี้ 41 ระดับ ตัวหารคือพื้นที่ของช่อง 1/16 ตร.กม. ทุกช่องเท่ากัน ใช้เทียบช่องในวงนี้ ไม่ใช้เทียบสีข้ามศูนย์ · สีฟ้า–เขียว (LDS activity) แยกแผนที่นี้จากแผนที่คนตามที่เจ้าของเลือก สีไม่ได้บอกจำนวนครั้งที่มาหรือการใช้งาน · ช่องที่ขอบวงนับเฉพาะสถานที่ในรัศมี · ช่องสีพื้นไม่มีสถานที่ในชุดข้อมูลที่นับ ไม่ได้แปลว่าไม่มีคน', 'Map: each 250 × 250 m cell takes its rank of places within this center’s 5 km, 41 steps; the denominator is the cell’s area, 1/16 km², the same for every cell; to compare the cells of this map, not colours across centers · the mint-to-blue colours (LDS activity) keep this map apart from the residents map, as the owner chose; they do not show visits or use · cells on the edge count only the places inside the radius · a plain cell holds no place of the datasets counted, which does not mean no one is there')}</li>
+      ${residentsMap?.rec ? `<li>${residentsOverlayMethod(residentsMap.meta)}</li>` : ''}
+      <li>${say(`รุ่นข้อมูล ${vmeta.release} คิดจากชุดจุดของ ${vmeta.localeRelease} จำนวนในรัศมีเท่ากับวงด้านบนทุกชุดข้อมูล`, `Release ${vmeta.release}, counted from the point sets of ${vmeta.localeRelease}; the counts within each radius equal the rings above, dataset by dataset`)} · <a href="DATA_METHOD.md#visitor-places" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
+    </ul></details>`;
+  return wrap(`${head}
+    ${mix}
+    ${figure}
+    ${visitorsTableHTML(rec, vmeta)}
+    ${line}
+    ${method}`);
+}
+
+/** Only the visitors zone of a venue's section, for when its file arrives after the rest is drawn ('' when it has none). */
+export function renderLocaleVisitors(row, {meta = null, facts = null, visitorsMeta = null, visitors = null, visitorsState = 'idle', residentsMeta = null, residents = null, residentsMap = null} = {}) {
+  if (!inLocaleSet(row) || !meta || !facts || facts.located === false) return '';
+  return visitorsBlock(meta, row, visitorsMeta, visitors, visitorsState, {facts, residents, residentsMeta, residentsMap});
 }
 
 /* ---------- other centers on two ranks (method v1 §4 “เทียบหลายศูนย์”; owner 2026-11-20 11:27) ---------- */
@@ -1213,7 +1378,7 @@ function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareSt
   const model = residentsMapModel(rec, rmeta), {ramp} = model;
   const figure = `<figure class="res-figure">${residentsMapHTML(row, rec, rmeta, r, model, residentsMap)}
     <figcaption class="res-legend"><span class="res-legend-title">${say('คนต่อช่อง 250 × 250 ม.', 'People per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'คนต่อช่อง 250 × 250 ม.'})}
-    ${residentsMap?.rec ? residentsOverlayKey() : ''}
+    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec)})}
     <span class="hint">${say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีอาคารที่นับได้ · เส้นบางคือขอบแขวง/ตำบล', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells have no counted building · thin lines are subdistrict boundaries')}</span></figcaption></figure>`;
   const pm = rmeta.populationMonth, asOf = rmeta.asOf;
   const line = `<p class="hint res-evidence">${say(
@@ -1281,7 +1446,7 @@ export function localeDataLine(meta) {
  * registered residents (modelled, 0.8.0) follow the cards of the counted datasets. Returns '' for rows outside
  * the 499-venue set (markets, fuel stations…), which the release does not cover.
  */
-export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null, residentsMap = null} = {}) {
+export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null, residentsMap = null, visitorsMeta = null, visitors = null, visitorsState = 'idle'} = {}) {
   if (!inLocaleSet(row)) return '';
   const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}<span class="hint">รัศมีเส้นตรง</span></div>`;
   const shell = inner => `<section class="panel-section locale-section" id="venue-locale" data-venue="${esc(row.id)}" aria-labelledby="locale-title">${head}${inner}</section>`;
@@ -1303,6 +1468,7 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
     <p class="locale-lead">ใน ${esc(km(options.radius))} รอบศูนย์</p>
     ${ahaHTML}
     ${residentsBlock(meta, row, residentsMeta, residents, residentsState, {compare, compareState, venueOf, residentsMap})}
+    ${visitorsBlock(meta, row, visitorsMeta, visitors, visitorsState, {facts, residents, residentsMeta, residentsMap})}
     <h4 class="locale-sub">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centers, every dataset')}</h4>
     ${uniChips}
     <div class="locale-chart" id="locale-chart" data-radius="${options.radius}" data-universe="${esc(uni.key)}">${ringListHTML(rows, uni, options.radius)}</div>

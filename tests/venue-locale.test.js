@@ -10,10 +10,11 @@ import {
   residentsShardPath, residentsMapModel, residentsMapHTML, renderLocaleResidents, aboutPeople, peopleWords, densityWords, englishDay, thaiDay,
   residentsSectors, DIRECTIONS, compareModel, quarterOf, QUARTERS, COMPARE_PATH,
   RESIDENTS_MAP_PATH, residentsMapShardPath, residentsOverlaySVG, residentsOverlayLabels, residentsOverlayKey, residentsOverlayCredit, residentsOverlayMethod,
-  nearWords, chartTipExtra,
+  nearWords, chartTipExtra, VENUE_PIN,
+  VISITORS_MAP_PATH, visitorsShardPath, visitorsMapModel, visitorsMapHTML, renderLocaleVisitors,
 } from '../js/venue-locale.js';
 import {shardOf} from '../js/details.js';
-import {COUNT_SCALE, DENSITY_SCALE, buildRamp, classify} from '../js/scales.js';
+import {COUNT_SCALE, DENSITY_SCALE, ACTIVITY_SCALE, buildRamp, classify} from '../js/scales.js';
 import {translate} from '../js/shell/i18n.js';
 import {localeDictionary, registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from '../js/venue-locale-i18n.js';
 
@@ -30,8 +31,10 @@ const cmp = read(COMPARE_PATH);
 const venueOf = id => byId.get(id) || null;
 const mmeta = read(`${RESIDENTS_MAP_PATH}/meta.json`);
 const mapOf = id => { const rec = read(residentsMapShardPath(id, mmeta.shards)).venues[id]; return rec ? {meta: mmeta, rec} : null; };
+const vmeta = read(`${VISITORS_MAP_PATH}/meta.json`);
+const visitorsOf = id => read(visitorsShardPath(id, vmeta.shards)).venues[id] || null;
 const CENTRALWORLD = 'SC-001245';
-const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, method: false, dpwhy: false, res: false, restable: false, cmp: false}); };
+const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, method: false, dpwhy: false, res: false, restable: false, cmp: false, vis: false, vistable: false}); };
 const THAI = /[ก-ฺเ-๎]/;
 const num = n => new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0}).format(n);
 
@@ -258,9 +261,11 @@ test('English: every Thai text of the section has an English (names without an E
     for (const level of levelsOf(facts)) for (const bench of ['province', 'peer']) for (const universe of ['all', 'type']) for (const radius of RADII) {
       reset();
       setLocaleOption('level', level); setLocaleOption('bench', bench); setLocaleOption('universe', universe); setLocaleOption('radius', radius);
-      setLocaleOption('open', {restable: true, cmp: true, res: true});
-      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf, residentsMap: res ? mapOf(id) : null})
+      setLocaleOption('open', {restable: true, cmp: true, res: true, vis: true, vistable: true});
+      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf, residentsMap: res ? mapOf(id) : null,
+        visitorsMeta: vmeta, visitors: visitorsOf(id), visitorsState: 'ready'})
         + ['loading', 'error', 'empty'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: st === 'loading' ? null : rmeta, residentsState: st})).join('')
+        + ['loading', 'error', 'empty'].map(st => renderLocaleVisitors(row, {meta, facts, visitorsMeta: st === 'loading' ? null : vmeta, visitorsState: st})).join('')
         + ['loading', 'error'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: null, compareState: st})).join('');
       // text alone in an element with data-en carries its own English (the shell's [data-en] context)
       const withEn = html.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; })
@@ -691,9 +696,24 @@ test('lines over the residents map: ink and paper of the map labels, never a dat
   const folded = /<details class="locale-details" data-locale-open="res">[\s\S]*?<\/details>/.exec(html)[0];
   assert.ok(folded.includes('เส้นบนแผนที่:'), 'the method of the lines folded with the residents method');
   assert.ok(!html.replace(folded, '').includes('ไม่ใช่โครงข่าย'), 'its caveat only inside the fold');
-  // without the file: the same map without lines, key, credit or method
+  // without the file: the same map without lines, labels, credit or method; the key names the center pin only (0.9.4)
   const without = renderLocaleResidents(row, {meta, facts: shard('facts', CENTRALWORLD), residentsMeta: rmeta, residents: rec, residentsState: 'ready'});
-  assert.doesNotMatch(without, /res-overlay|res-key|res-lab|ถนน ราง และแม่น้ำ|เส้นบนแผนที่/);
+  assert.doesNotMatch(without, /res-overlay|res-lab|res-road|res-rail|res-river|res-station|ถนน ราง และแม่น้ำ|เส้นบนแผนที่/);
+  assert.match(without, /<span class="res-key"><span class="res-key-item"><svg class="res-key-pin"[^]*?ศูนย์นี้<\/span><\/span>/);
+});
+
+test('the center pin (0.9.4): one pin over the lines in the selected role, its key first, names kept off it', () => {
+  assert.match(VENUE_PIN, /^<g class="res-venue"><path class="res-venue-pin" d="M0 0C[^"]+Z"\/><circle class="res-venue-dot" cy="-1\.5" r="\.3"\/><\/g>$/);
+  const row = venueOf(CENTRALWORLD), rec = residents(CENTRALWORLD);
+  const html = renderLocaleResidents(row, {meta, facts: shard('facts', CENTRALWORLD), residentsMeta: rmeta, residents: rec, residentsState: 'ready', residentsMap: mapOf(CENTRALWORLD)});
+  const svg = /<svg class="res-map"[^]*?<\/svg>/.exec(html)[0];
+  assert.equal((svg.match(/class="res-venue"/g) || []).length, 1, 'one pin');
+  assert.ok(svg.indexOf('res-venue') > svg.lastIndexOf('res-ring'), 'drawn over the rings and the lines');
+  assert.ok(!/res-venue[^>]*(fill|stroke)=/.test(svg), 'colours from styles.css only');
+  const css = readFileSync(new URL('styles.css', ROOT), 'utf8');
+  assert.match(css, /\.res-venue-pin \{ fill: var\(--map-selected-stroke\); stroke: var\(--map-marker-halo\);/);
+  assert.match(html, /<span class="res-key"><span class="res-key-item"><svg class="res-key-pin"/, 'the key names the pin first');
+  // names stay off the pin: tests/test_residents_map.py boxes every published name by the script's own rule (PIN_*)
 });
 
 test('lines over the residents map: a file that does not load is said on the page, and the page asks for it only with the residents', () => {
@@ -704,7 +724,161 @@ test('lines over the residents map: a file that does not load is said on the pag
   assert.doesNotMatch(entry[3] + entry[4], THAI);
   assert.match(app, /partial\('data\/residents-map'\)/);
   assert.match(app, /residentsMap: residentsMapOf\(/);
-  assert.equal((app.match(/residentsMap: residentsMapOf\(/g) || []).length, 2, 'both renders of the residents block');
+  assert.equal((app.match(/residentsMap: residentsMapOf\(/g) || []).length, 3, 'both renders of the residents block, and the visitors zone (0.9.4)');
+});
+
+/* ---------- places visitors use around the center (inferred; 0.9.4, owner 2026-11-20 19:35 and the answer on its data) ---------- */
+
+test('visitors: one record per located center; the counts are the rings of the release, dataset by dataset; ranks recount', () => {
+  const files = readdirSync(new URL(`${VISITORS_MAP_PATH}/`, ROOT)).filter(f => f !== 'meta.json');
+  assert.equal(files.length, vmeta.shards);
+  assert.equal(vmeta.schema, 'shoppingcenter-visitors-map/1');
+  assert.equal(vmeta.release, 'venue-locale-visitors-492-20261120-v1');
+  assert.equal(vmeta.localeRelease, meta.release.id, 'counted from the point sets of this release');
+  const groups = Object.fromEntries(meta.ringGroups.map(g => [g.id, g.datasets]));
+  assert.deepEqual(vmeta.uses, ['visit', 'retail']);
+  assert.deepEqual(vmeta.datasets.map(d => d.id), [...groups.visit, ...groups.retail], 'stays, then retail and services, as the release groups them');
+  for (const d of vmeta.datasets) {
+    const m = meta.ring[d.id];
+    assert.match(vmeta.input.points[d.id].sha256, /^[0-9a-f]{64}$/, `${d.id}: only the SHA-256 of a point set is published`);
+    if (m.located != null) assert.equal(vmeta.input.points[d.id].points, m.located, `${d.id}: every located record`);
+    assert.deepEqual([d.th, d.en, d.date, d.eligible, d.located], [m.th, m.en, m.date, m.eligible, m.located], d.id);
+  }
+  assert.deepEqual(vmeta.reference, rmeta.reference, 'the rank reference of the residents');
+  assert.deepEqual(vmeta.universes, rmeta.universes);
+  assert.equal(vmeta.cell.m, 250);
+  assert.equal(vmeta.cell.n, 40);
+  assert.match(readFileSync(new URL('DATA_METHOD.md', ROOT), 'utf8'), /<a id="visitor-places"><\/a>/, 'the method the page links to');
+  const located = set.filter(r => r.located);
+  assert.equal(vmeta.venues, located.length);
+  const recs = new Map();
+  for (const f of files) {
+    for (const [id, rec] of Object.entries(read(`${VISITORS_MAP_PATH}/${f}`).venues)) {
+      assert.equal(visitorsShardPath(id, vmeta.shards), `${VISITORS_MAP_PATH}/${f}`, `${id} in its own shard`);
+      assert.ok(!recs.has(id), id);
+      recs.set(id, rec);
+    }
+  }
+  assert.deepEqual([...recs.keys()].sort(), located.map(r => r.id).sort(), 'every located center once, nothing else');
+  const sums = [0, 0, 0];
+  for (const [id, rec] of recs) {
+    const f = shard('facts', id);
+    for (let i = 0; i < 3; i++) {
+      assert.equal(rec.n[i], vmeta.datasets.reduce((a, d) => a + (f.ring[d.id]?.n?.[i] || 0), 0), `${id} ${RADII[i]}: the rings of the release, added`);
+      sums[i] += rec.n[i];
+    }
+    assert.ok(rec.n[0] <= rec.n[1] && rec.n[1] <= rec.n[2], `${id} grows with the radius`);
+    assert.equal(rec.g.length, vmeta.cell.n * vmeta.cell.n);
+    assert.ok(rec.g.every(v => v === null || (Number.isInteger(v) && v > 0)), `${id}: whole places, and no 0 (a cell without a place is null)`);
+    assert.equal(rec.g.reduce((a, v) => a + (v || 0), 0), rec.n[2], `${id}: every place within 5 km in one cell`);
+  }
+  assert.deepEqual(sums, [vmeta.totals.places1, vmeta.totals.places3, vmeta.totals.places5]);
+  const added = new Set(vmeta.reference.added), reference = located.filter(r => !added.has(r.id));
+  assert.equal(reference.length, vmeta.reference.n);
+  const mid = (x, pool) => (100 * (pool.filter(v => v < x).length + 0.5 * pool.filter(v => v === x).length)) / pool.length;
+  for (const [i] of RADII.entries()) {
+    const all = reference.map(r => recs.get(r.id).n[i]);
+    for (const r of located) {
+      const rec = recs.get(r.id), same = reference.filter(o => o.group === r.group).map(o => recs.get(o.id).n[i]);
+      assert.ok(Math.abs(rec.p[0][i] - mid(rec.n[i], all)) < 1e-3, `${r.id} all ${i}`);
+      assert.ok(Math.abs(rec.p[1][i] - mid(rec.n[i], same)) < 1e-3, `${r.id} type ${i}`);
+    }
+  }
+});
+
+test('visitors map: every coloured cell takes a sample of the LDS activity LUT (owner exception, apart from the residents map) by its rank in this center’s own map; ids apart too', () => {
+  for (const id of [CENTRALWORLD, 'SC-C3486', set.filter(r => r.located).at(-1).id]) {
+    const row = byId.get(id), rec = visitorsOf(id);
+    const {ramp, km2} = visitorsMapModel(rec, vmeta);
+    assert.equal(ramp.lut, ACTIVITY_SCALE.lut, 'mint to blue, so it reads apart from the orange residents map (owner 2026-11-20)');
+    assert.equal(ramp.scaleId, 'activity');
+    assert.equal(ramp.lut.length, 41);
+    assert.equal(km2, 0.0625);
+    const positive = rec.g.filter(v => v > 0);
+    assert.equal(ramp.min, Math.min(...positive));
+    assert.equal(ramp.max, Math.max(...positive));
+    assert.equal(ramp.levels[0].index, 0);
+    if (ramp.levels.length > 1) assert.equal(ramp.levels.at(-1).index, 40);
+    for (const t of ramp.ticks) assert.match(t.label, /^[1-9][\d,]*$/, `whole places: ${t.label}`);
+    const svg = visitorsMapHTML(row, rec, vmeta, 3000);
+    const fills = [...svg.matchAll(/<path d="([^"]+)" fill="(#[0-9A-F]{6})" shape-rendering="crispEdges"\/>/g)];
+    assert.ok(fills.every(([, , f]) => ACTIVITY_SCALE.lut.includes(f)), 'LUT colours only');
+    assert.equal(new Set(fills.map(f => f[2])).size, fills.length, 'one path per sample');
+    const drawn = fills.reduce((s, [, d]) => s + [...d.matchAll(/h(\d+)v1/g)].reduce((t, m) => t + Number(m[1]), 0), 0);
+    assert.equal(drawn, rec.g.filter(v => v != null).length, 'every cell with a place, and only those');
+    assert.match(svg, /<circle class="res-bg" r="20"\/>/, 'the plain surface where no place is listed');
+    assert.match(svg, new RegExp(`aria-labelledby="vis-${id}-t"`));
+    assert.match(svg, new RegExp(`<clipPath id="vis-${id}-c">`));
+    const inner = /<svg class="res-map"[^]*?<\/svg>/.exec(svg)[0];
+    assert.equal((inner.match(/class="res-venue"/g) || []).length, 1, 'the center pin');
+    assert.ok(inner.indexOf('res-venue') > inner.lastIndexOf('res-ring'), 'drawn over the rings');
+  }
+});
+
+test('visitors block: the figure and its rank first, the datasets it comes from, the map, where most are, one data line, the method folded', () => {
+  reset();
+  const id = CENTRALWORLD, row = byId.get(id), facts = shard('facts', id), rec = visitorsOf(id), res = residents(id);
+  for (const universe of ['all', 'type']) for (const [i, radius] of RADII.entries()) {
+    setLocaleOption('universe', universe); setLocaleOption('radius', radius);
+    const html = renderLocaleVisitors(row, {meta, facts, visitorsMeta: vmeta, visitors: rec, visitorsState: 'ready', residentsMeta: rmeta, residents: res, residentsMap: mapOf(id)});
+    assert.match(html, /^<div class="locale-block res-block vis-block" id="locale-visitors" role="group" aria-labelledby="locale-vis-title">/);
+    assert.doesNotMatch(html, /undefined|NaN|\bnull\b/);
+    assert.ok(html.includes(`<b class="data-number">${num(rec.n[i])}</b> <span data-en="places within ${radius / 1000} km">แห่ง ใน ${radius / 1000} กม.</span>`), `figure at ${radius}`);
+    const p = rec.p[universe === 'type' ? 1 : 0][i];
+    assert.ok(html.includes(`left:${p}%;background:${pctFill(p)}`), 'the rank track in the count LUT sample, as the residents above');
+    assert.ok(html.includes(rankWords(p, universe === 'all' ? ` ${num(meta.universes.all.n)} ศูนย์` : universeOf(meta, row).short)), 'rank words');
+    // the datasets it comes from: the three largest at this radius, then the rest added; they add up to the figure
+    const mix = /<p class="res-age-text vis-mix"><span data-en="([^"]+)">([^<]+)<\/span><\/p>/.exec(html);
+    assert.ok(mix, 'the mix line');
+    const counted = vmeta.datasets.map(d => facts.ring[d.id]?.n?.[i] || 0).filter(n => n > 0).sort((a, b) => b - a);
+    const shown = [...mix[2].matchAll(/ ([\d,]+)(?: ·|$)/g)].map(m => Number(m[1].replace(/,/g, '')));
+    assert.deepEqual(shown.slice(0, 3), counted.slice(0, 3));
+    if (counted.length > 3) assert.match(mix[2], new RegExp(`อีก ${counted.length - 3} ชุดข้อมูล รวม ${num(counted.slice(3).reduce((a, b) => a + b, 0))}$`));
+    assert.doesNotMatch(mix[1], THAI);
+    const at = k => { const j = html.indexOf(k); assert.ok(j >= 0, k); return j; };
+    ['class="res-head"', 'vis-mix', 'class="res-map"', 'class="legend-ramp"', 'class="res-key"', 'class="res-dir"', 'data-locale-open="vistable"', 'res-evidence', 'data-locale-open="vis"'].reduce((prev, k) => { assert.ok(at(k) > prev, `${k} in order`); return at(k); }, -1);
+    assert.equal((html.match(/<circle class="res-ring is-on"/g) || []).length, 1);
+    assert.ok(html.includes(`<circle class="res-ring is-on" r="${radius / vmeta.cell.m}"/>`));
+    assert.match(html, /aria-label="41 ระดับสีตามลำดับค่า ต่ำสุด [\d,]+ สูงสุด [\d,]+ สถานที่ต่อช่อง 250 × 250 ม\."/);
+    assert.match(html, /<span class="res-legend-title"><span data-en="Places per 250 × 250 m cell">สถานที่ต่อช่อง 250 × 250 ม\.<\/span><\/span>/);
+    // one line: dataset · source · date · boundary; no caveat on screen (the method is folded)
+    const line = /<p class="hint res-evidence">(.*?)<\/p>/s.exec(html)[1];
+    assert.match(line, /สถานที่ที่ผู้มาเยือนใช้ \(อนุมาน\) · รายการที่มีพิกัดของ 15 ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ข้อมูล 21 ต\.ค\. 2569–8 พ\.ย\. 2569 · รัศมีเส้นตรงจากจุดของศูนย์/);
+    const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
+    assert.doesNotMatch(visible, /ไม่ใช่/, 'no caveat outside the folded method');
+    assert.match(html, /<details class="locale-details" data-locale-open="vis">[\s\S]*ไม่ใช่จำนวนผู้มาเยือน[\s\S]*ไม่ได้ตัดรายการซ้ำข้ามชุดข้อมูล[\s\S]*DATA_METHOD\.md#visitor-places/);
+    // the partial datasets are named with their share of points
+    for (const d of vmeta.datasets.filter(x => x.located < 0.9 * x.eligible)) assert.ok(html.includes(`มีพิกัด ${num(d.located)} จาก ${num(d.eligible)}`), d.id);
+  }
+  reset();
+  // states: loading, error with a retry, a release without the center (never 0); outside the set or without a point: nothing
+  assert.match(renderLocaleVisitors(row, {meta, facts, visitorsState: 'loading'}), /role="status">.*กำลังโหลดสถานที่ที่ผู้มาเยือนใช้…/);
+  assert.match(renderLocaleVisitors(row, {meta, facts, visitorsMeta: vmeta, visitorsState: 'error'}), /data-action="locale-retry-visitors"/);
+  const empty = renderLocaleVisitors(row, {meta, facts, visitorsMeta: vmeta, visitors: null, visitorsState: 'empty'});
+  assert.match(empty, /ยังไม่มีสถานที่รอบศูนย์นี้/);
+  assert.doesNotMatch(empty, /data-number|\b0 แห่ง/);
+  assert.equal(renderLocaleVisitors(rows.find(r => !inLocaleSet(r)), {meta, facts}), '');
+  const unlocated = set.find(r => !r.located);
+  assert.equal(renderLocaleVisitors(unlocated, {meta, facts: shard('facts', unlocated.id)}), '');
+  // the whole section: residents, then the visitors, then the comparison of every dataset; no id twice
+  const page = renderLocale(row, {meta, facts, metaState: 'ready', factsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready', residentsMap: mapOf(id), visitorsMeta: vmeta, visitors: rec, visitorsState: 'ready'});
+  assert.ok(page.indexOf('id="locale-residents"') < page.indexOf('id="locale-visitors"'));
+  assert.ok(page.indexOf('id="locale-visitors"') < page.indexOf('เทียบกับศูนย์อื่นทุกชุดข้อมูล'));
+  const ids = [...page.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(ids.filter((x, k) => ids.indexOf(x) !== k), [], 'every id once');
+});
+
+test('visitors file: a file that does not load is said on the page; the page asks for it with the section and redraws only its zone', () => {
+  const app = readFileSync(new URL('js/app.js', ROOT), 'utf8');
+  const entry = /'data\/visitors-map': \['([^']+)', '([^']+)', '([^']+)', '([^']+)'\]/.exec(app);
+  assert.ok(entry, 'a PARTIAL entry');
+  assert.match(entry[1] + entry[2], THAI);
+  assert.doesNotMatch(entry[3] + entry[4], THAI);
+  assert.match(app, /partial\('data\/visitors-map'\)/);
+  assert.match(app, /case 'locale-retry-visitors':/);
+  assert.match(app, /ensureLocaleVisitors\(id\);/);
+  assert.match(app, /el = \$\('locale-visitors'\)/);
+  assert.match(app, /visitorsMeta: cachedVisitorsMeta\(\), visitors: /, 'the whole section draws it when the file is there');
 });
 
 /* ---------- every brand in four research datasets (0.9.3, owner 2026-11-20 17:21 and 17:37) ---------- */

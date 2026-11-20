@@ -2,9 +2,9 @@
  "asOf": "2026-11-12",
  "counts": {
   "labels": {
-   "river": 369,
-   "road": 1745,
-   "station": 689
+   "river": 368,
+   "road": 1742,
+   "station": 681
   },
   "withRail": 405,
   "withRiver": 456,
