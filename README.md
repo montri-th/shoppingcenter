@@ -170,6 +170,15 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.8.0 - คนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง) (`20261120-r1`)
+
+เจ้าของ 20 พ.ย. 2569 08:26 (VERBATIM): “1 ขึ้นเลย / 2 พี่ตัดสินใจเลย” (ข้อ 1 ขึ้นแถวที่เห็นในภาพร่างบนเว็บ · ข้อ 2 วิธีให้สีแผนที่) · ภาพร่าง แบบทุกอาคาร และการดึงจาก API ของ production ผ่านเจ้าของเวลา 00:47 น.
+
+- **รอบศูนย์นี้:** ต่อจากข้อค้นพบ ทุกศูนย์ที่มีพิกัด 488 แห่ง เห็นคนที่มีชื่อในทะเบียนบ้านในรัศมีที่เลือก (ราว 223,000 คนใน 3 กม. ที่เซ็นทรัลเวิลด์) พร้อมเส้นอันดับเทียบ 488 ศูนย์หรือศูนย์ประเภทเดียวกัน → สัดส่วนของคนใน 5 กม. ที่อยู่ใกล้หรือไกล (วง 0–1 · 1–3 · 3–5 กม. พร้อมคนต่อ ตร.กม.) → อายุ 3 ช่วง → แผนที่ช่อง 250 ม. ในวง 5 กม. พร้อมขอบแขวง/ตำบล → บรรทัดข้อมูล → วิธีและข้อจำกัดพับไว้ · ปุ่มรัศมีและปุ่มเทียบกับเดิมคุมทั้งแถว
+- **สีแผนที่ (D49):** LUT `density.area` ครบ 41 ตัวอย่าง เรียงอันดับภายในวง 5 กม. ของศูนย์นั้นเอง เพราะวงของศูนย์ทับกันมาก (462 จาก 488 วง) การจัดอันดับรวมทุกแผนที่จะนับช่องในเมืองซ้ำหลายสิบครั้ง · การเทียบข้ามศูนย์ใช้ตัวเลขและอันดับ · ช่องที่ไม่มีอาคารเป็นพื้นเรียบ
+- **ข้อมูล:** `data/residents/` (128 shard, 5.9 MB) สร้างด้วย `scripts/build-residents.py` จากชุดไฟล์ 488 ศูนย์ v1 (SHA256SUMS `1b48a172…6a6d`) ได้ไบต์เดิมทุกครั้ง · โหลดพร้อมข้อมูลรอบศูนย์ โหลดไม่สำเร็จแล้วบอกในส่วนนี้และในแถบข้อมูลไม่ครบ (`PARTIAL['data/residents']`) · วิธี: `DATA_METHOD.md` §17
+- **ตรวจ:** `tests/venue-locale.test.js` เพิ่ม 5 ข้อ: หนึ่งระเบียนต่อศูนย์ อันดับคำนวณซ้ำจากตัวเลข ผลรวมของวงและช่องเท่ารัศมี 5 กม. ลำดับของแถว สี LUT ของแผนที่ และคำภาษาอังกฤษ · สคริปต์ตรวจว่าทุกตัวเลขที่หน้าปัดอ่านเท่ากับค่าเต็มของชุดไฟล์
+
 ## 0.7.1 - ภาษาอังกฤษนอกแผง: ป้ายบนแผนที่ ชื่อแท็บ เสียงประกาศ และอาคาร (`20261118-r7`)
 
 หลัง 0.7.0 ขึ้น production (18 พ.ย. 2569) ตรวจหน้า `?lang=en` ใน Chrome ของเจ้าของแล้วพบข้อความไทยที่การตรวจในเครื่องไม่เห็น เพราะไม่ได้อยู่ในแผง แต่อยู่บนแผนที่ ในแท็บเบราว์เซอร์ และในเสียงที่โปรแกรมอ่านหน้าจออ่าน

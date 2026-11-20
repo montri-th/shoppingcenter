@@ -51,6 +51,7 @@ export const usSpelling = text => String(text ?? '').replace(/\b([Cc])entre(s?)\
 
 /** The static words of the section. */
 const EXACT = {
+  'คน/ตร.กม.': 'people/km²',
   'รอบศูนย์นี้': 'Around this center', 'รัศมีเส้นตรง': 'Straight-line radius', 'รัศมี': 'Radius', 'เทียบกับ': 'Compare with',
   '(เปิดแท็บใหม่)': '(opens a new tab)', 'ระดับพื้นที่': 'Area level', 'พื้นที่ที่ศูนย์ตั้งอยู่': 'The area the center sits in',
   'ที่มีศูนย์ทั่วประเทศ': 'Areas with centers nationwide', 'ตัวเลขทุกรัศมี': 'Figures for every radius', 'ชุดข้อมูล': 'Dataset',
@@ -86,6 +87,8 @@ const EXACT = {
 /** Patterns: numbers and names pass through; parts are translated with the same dictionary. */
 const PATTERNS = [
   [/^ใน ([\d,]+) กม\. รอบศูนย์$/, 'Within $1 km of the center'],
+  // the legend of the residents map (js/scales.js rampLegendHTML; the page's own legend pattern reads the unit too)
+  [/^([\d,]+) ระดับสีตามลำดับค่า ต่ำสุด ([\d,.]+) สูงสุด ([\d,.]+) คน\/ตร\.กม\.$/, '$1 colour steps by rank, lowest $2, highest $3 people/km²'],
   [/^มากกว่า ([\d,]+)% ของ(.+)$/, (m) => or(`above ${m[1]}% of `, universeEN(m[2]) ?? groupEN(m[2]))],
   [/^สูงกว่า ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`higher than ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
   [/^มากกว่า ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`above ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
