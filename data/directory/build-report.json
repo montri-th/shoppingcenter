@@ -11,7 +11,7 @@
     "hosts": 68
   },
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
-  "venueCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+  "venueCoreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
   "rows": {
     "shownAsDirectoryItems": 15154,
     "shownAsDepartmentStoreBrands": 7735,
@@ -634,5 +634,24 @@
     "A directory omission is not a closure; a centre without a collected directory has no directory items.",
     "Same-name matching against the brand roster is a display rule, not an identity merge; the research sheet keeps both records.",
     "Brand ids and logos only for brand matches the sheet confirmed; candidates stay unlinked."
-  ]
+  ],
+  "coreRebind": {
+    "previousCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+    "venues": [
+      "SC-007245",
+      "VN-7bb5b3abd9f811",
+      "VN-a263de54d31372",
+      "VN-c87c200db5d079"
+    ],
+    "changedFields": [
+      "districtCode",
+      "lat",
+      "located",
+      "lon",
+      "provinceCode"
+    ],
+    "reason": "points-only export of 2026-11-20: four counted venues placed at the points the owner approved (11:57); the 18_OFFICIAL_TENANTS export of 2026-11-07 is not kept, and the tab has grown since, so the directory is not rebuilt",
+    "on": "2026-11-20",
+    "check": "no placed venue is a directory host, a registered child zone or a coverage row; shards and counts unchanged"
+  }
 }
