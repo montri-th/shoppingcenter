@@ -89,7 +89,7 @@ const EXACT = {
 const PATTERNS = [
   [/^ใน ([\d,]+) กม\. รอบศูนย์$/, 'Within $1 km of the center'],
   // the legend of the residents map (js/scales.js rampLegendHTML; the page's own legend pattern reads the unit too)
-  [/^([\d,]+) ระดับสีตามลำดับค่า ต่ำสุด ([\d,.]+) สูงสุด ([\d,.]+) คน\/ตร\.กม\.$/, '$1 colour steps by rank, lowest $2, highest $3 people/km²'],
+  [/^([\d,]+) ระดับสีตามลำดับค่า ต่ำสุด (<1|[\d,]+) สูงสุด ([\d,]+) คนต่อช่อง 250 × 250 ม\.$/, '$1 colour steps by rank, lowest $2, highest $3 people per 250 × 250 m cell'],
   [/^มากกว่า ([\d,]+)% ของ(.+)$/, (m) => or(`above ${m[1]}% of `, universeEN(m[2]) ?? groupEN(m[2]))],
   [/^สูงกว่า ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`higher than ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],
   [/^มากกว่า ([\d,]+)% ของ(.+) \(([\d,]+)\)$/, (m) => or(`above ${m[1]}% of `, groupEN(m[2]), ` (${m[3]})`)],

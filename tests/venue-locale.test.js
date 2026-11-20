@@ -9,9 +9,10 @@ import {
   pctFill, universeOf, setLocaleOption, localeOptions, localeShardPath, RADII, localeDataLine,
   residentsShardPath, residentsMapModel, residentsMapHTML, renderLocaleResidents, aboutPeople, peopleWords, densityWords, englishDay, thaiDay,
   residentsSectors, DIRECTIONS, compareModel, quarterOf, QUARTERS, COMPARE_PATH,
+  RESIDENTS_MAP_PATH, residentsMapShardPath, residentsOverlaySVG, residentsOverlayLabels, residentsOverlayKey, residentsOverlayCredit, residentsOverlayMethod,
 } from '../js/venue-locale.js';
 import {shardOf} from '../js/details.js';
-import {COUNT_SCALE, DENSITY_SCALE} from '../js/scales.js';
+import {COUNT_SCALE, DENSITY_SCALE, buildRamp, classify} from '../js/scales.js';
 import {translate} from '../js/shell/i18n.js';
 import {localeDictionary, registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from '../js/venue-locale-i18n.js';
 
@@ -26,6 +27,8 @@ const residents = id => read(residentsShardPath(id, rmeta.shards)).venues[id] ||
 const set = rows.filter(inLocaleSet);
 const cmp = read(COMPARE_PATH);
 const venueOf = id => byId.get(id) || null;
+const mmeta = read(`${RESIDENTS_MAP_PATH}/meta.json`);
+const mapOf = id => { const rec = read(residentsMapShardPath(id, mmeta.shards)).venues[id]; return rec ? {meta: mmeta, rec} : null; };
 const CENTRALWORLD = 'SC-001245';
 const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, method: false, dpwhy: false, res: false, restable: false, cmp: false}); };
 const THAI = /[ก-ฺเ-๎]/;
@@ -245,7 +248,9 @@ test('English: every Thai text of the section has an English (names without an E
   assert.ok(Object.keys(dict.exact).length > 150);
   const decode = s => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   const missing = new Set();
-  for (const id of [CENTRALWORLD, 'SC-000034', set.find(r => r.located && r.provinceCode === 'CMI' && r.group === 'community')?.id, ...meta.reference.added].filter(Boolean)) {
+  // SC-C0220: a road name OpenStreetMap gives only in Thai on its residents map
+  assert.ok(mapOf('SC-C0220')?.rec.L.some(l => l[0] === 'road' && !l[5]));
+  for (const id of [CENTRALWORLD, 'SC-000034', set.find(r => r.located && r.provinceCode === 'CMI' && r.group === 'community')?.id, 'SC-C0220', ...meta.reference.added].filter(Boolean)) {
     const row = byId.get(id), facts = shard('facts', id), priors = shard('priors', id), signals = shard('signals', id), res = residents(id);
     registerLocaleNames(facts);
     registerLocaleSignalNames(signals);
@@ -253,11 +258,12 @@ test('English: every Thai text of the section has an English (names without an E
       reset();
       setLocaleOption('level', level); setLocaleOption('bench', bench); setLocaleOption('universe', universe); setLocaleOption('radius', radius);
       setLocaleOption('open', {restable: true, cmp: true, res: true});
-      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf})
+      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf, residentsMap: res ? mapOf(id) : null})
         + ['loading', 'error', 'empty'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: st === 'loading' ? null : rmeta, residentsState: st})).join('')
         + ['loading', 'error'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: null, compareState: st})).join('');
       // text alone in an element with data-en carries its own English (the shell's [data-en] context)
-      const withEn = html.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; });
+      const withEn = html.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; })
+        .replace(/<span lang="th" translate="no">[^<>]*<\/span>/g, ''); // a source name without English (the shell skips translate="no")
       const texts = [...withEn.matchAll(/>([^<>]+)</g)].map(m => m[1]).concat([...withEn.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(m => m[1]));
       for (const raw of texts) {
         const s = decode(raw).replace(/\s+/g, ' ').trim();
@@ -385,7 +391,8 @@ test('residents map: every coloured cell takes a sample of the LDS density LUT b
     const {ramp, km2} = residentsMapModel(rec, rmeta);
     assert.equal(ramp.lut, DENSITY_SCALE.lut);
     assert.equal(ramp.lut.length, 41);
-    const positive = rec.g.filter(v => v > 0).map(v => v / km2);
+    assert.equal(km2, 0.0625, 'every cell 250 × 250 m');
+    const positive = rec.g.filter(v => v > 0);
     assert.equal(ramp.min, Math.min(...positive));
     assert.equal(ramp.max, Math.max(...positive));
     assert.equal(ramp.levels[0].index, 0, 'the lowest cell on sample 0');
@@ -400,7 +407,12 @@ test('residents map: every coloured cell takes a sample of the LDS density LUT b
     assert.equal((svg.match(/class="res-ring-label/g) || []).length, 3);
     const legend = renderLocaleResidents(row, {meta, facts: shard('facts', id), residentsMeta: rmeta, residents: rec, residentsState: 'ready'});
     assert.equal((/<span class="ramp-bar"[^>]*>(.*?)<\/span>/.exec(legend)[1].match(/<i style="background:/g) || []).length, 41, 'all 41 samples in the legend');
-    assert.match(legend, /aria-label="41 ระดับสีตามลำดับค่า ต่ำสุด [\d,.]+ สูงสุด [\d,.]+ คน\/ตร\.กม\."/);
+    assert.match(legend, /aria-label="41 ระดับสีตามลำดับค่า ต่ำสุด (&lt;1|[\d,]+) สูงสุด [\d,]+ คนต่อช่อง 250 × 250 ม\."/);
+    // people per cell (0.9.2, owner 2026-11-20 17:19): the same colour for every cell as people per km², two-digit legend figures
+    const perKm2 = buildRamp(positive.map(v => v / km2), {kind: 'density'});
+    for (const v of positive) assert.equal(classify(v, ramp).fill, classify(v / km2, perKm2).fill);
+    assert.match(legend, /<span class="res-legend-title"><span data-en="People per 250 × 250 m cell">คนต่อช่อง 250 × 250 ม\.<\/span><\/span>/);
+    for (const t of ramp.ticks) assert.match(t.label, /^(<1|[1-9](,?\d)?(,?0)*)$/, `two significant figures: ${t.label}`);
   }
 });
 
@@ -584,4 +596,112 @@ test('comparison block: quarter and both ranks first, the chart in neutral tones
   assert.match(st('loading'), /id="locale-compare"[\s\S]*role="status">.*กำลังโหลดการเทียบกับศูนย์อื่น…/);
   assert.match(st('error'), /data-action="locale-retry-compare"/);
   assert.doesNotMatch(st('error'), /cmp-plot/);
+});
+
+/* ---------- roads, rail, rivers and stations over the residents map (0.9.2, owner 2026-11-20 16:35) ---------- */
+
+test('lines over the residents map: one record per center of the residents map, drawn around the same points, sources named', () => {
+  assert.equal(mmeta.schema, 'shoppingcenter-residents-map/1');
+  assert.equal(mmeta.unit_m, rmeta.outline?.unit_m || 25, 'the frame of the subdistrict lines');
+  assert.equal(mmeta.radius_m, Math.max(...RADII));
+  const files = readdirSync(new URL(`${RESIDENTS_MAP_PATH}/`, ROOT)).filter(f => f !== 'meta.json').sort();
+  assert.equal(files.length, mmeta.shards);
+  const stationNames = new Set(read('data/stations.json').stations.map(s => `สถานี${s[1]}`));
+  const ids = new Set(), labels = {road: 0, river: 0, station: 0};
+  let withRoad = 0, withRail = 0, withRiver = 0, withStations = 0;
+  const PATH = /^(M-?\d+ -?\d+(l-?\d+ -?\d+)+)*$/;
+  for (const f of files) {
+    for (const [id, rec] of Object.entries(read(`${RESIDENTS_MAP_PATH}/${f}`).venues)) {
+      assert.equal(residentsMapShardPath(id, mmeta.shards), `${RESIDENTS_MAP_PATH}/${f}`, `${id} in its own shard`);
+      ids.add(id);
+      assert.equal(rec.r.length, mmeta.roads.length, 'one path per road class');
+      for (const d of [...rec.r, rec.t, rec.w]) assert.match(d, PATH, `${id}: moves and relative lines only`);
+      const own = {road: 0, river: 0, station: 0};
+      for (const [kind, x, y, align, th, en] of rec.L) {
+        own[kind]++;
+        assert.ok(['c', 'l', 'r'].includes(align), `${id} ${th}`);
+        assert.ok(Math.hypot(x, y) * mmeta.unit_m <= mmeta.radius_m, `${id} ${th}: inside the circle`);
+        assert.ok(th, `${id}: a name`);
+        assert.ok(!en || !THAI.test(en), `${id}: ${en}`);
+        if (kind === 'station') {
+          assert.ok(rec.s.some(([sx, sy]) => sx === x && sy === y), `${id} ${th}: at a drawn station`);
+          assert.ok(stationNames.has(th), `${id} ${th}: a station of data/stations.json`);
+        }
+      }
+      assert.ok(own.road <= mmeta.labels.road && own.river <= mmeta.labels.river && own.station <= mmeta.labels.station, id);
+      for (const k of Object.keys(labels)) labels[k] += own[k];
+      withRoad += rec.r.some(Boolean) ? 1 : 0; withRail += rec.t ? 1 : 0; withRiver += rec.w ? 1 : 0; withStations += rec.s.length ? 1 : 0;
+    }
+  }
+  assert.deepEqual(mmeta.counts, {labels, withRail, withRiver, withRoad, withStations});
+  const resIds = readdirSync(new URL('data/residents/', ROOT)).filter(f => f !== 'meta.json').flatMap(f => Object.keys(read(`data/residents/${f}`).venues));
+  assert.deepEqual([...ids].sort(), resIds.sort(), 'the centers of the residents map');
+  assert.equal(ids.size, mmeta.venues);
+  // drawn around the points the page uses: a center that moves, comes or goes needs scripts/build-residents-map.py again
+  const located = rows.filter(r => r.countable && r.status === 'supply' && ['mall', 'community', 'outlet'].includes(r.group) && r.located).sort((a, b) => (a.id < b.id ? -1 : 1));
+  const points = located.map(r => `${r.id},${r.lon.toFixed(7)},${r.lat.toFixed(7)}\n`).join('');
+  assert.equal(createHash('sha256').update(points).digest('hex'), mmeta.points.sha256);
+  assert.match(mmeta.source.osm.sha256, /^[0-9a-f]{64}$/);
+  assert.equal(mmeta.source.osm.license, 'ODbL 1.0');
+  assert.match(mmeta.source.osm.timestamp, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(mmeta.asOf, mmeta.source.osm.timestamp.slice(0, 10));
+  assert.doesNotMatch(JSON.stringify(mmeta), /\/(Users|home|mnt)\//, 'no private paths');
+});
+
+test('lines over the residents map: ink and paper of the map labels, never a data colour; the cells keep theirs; TH/EN', () => {
+  const row = byId.get(CENTRALWORLD), rec = residents(CENTRALWORLD), ov = mapOf(CENTRALWORLD);
+  assert.ok(ov.rec.r.some(Boolean) && ov.rec.t && ov.rec.s.length, 'CentralWorld has roads, rail and stations');
+  const plain = residentsMapHTML(row, rec, rmeta, 3000);
+  const lined = residentsMapHTML(row, rec, rmeta, 3000, undefined, ov);
+  const cells = s => [...s.matchAll(/<path d="[^"]+" fill="#[0-9A-F]{6}" shape-rendering="crispEdges"\/>/g)].map(m => m[0]).join('');
+  assert.equal(cells(lined), cells(plain), 'the same cells in the same colours');
+  const g = /<g class="res-overlay" transform="scale\(0\.1\)">([\s\S]*?)<\/g>/.exec(lined)?.[1];
+  assert.ok(g, 'the lines in the frame of the subdistrict lines (25 m units over 250 m cells)');
+  assert.doesNotMatch(g, /fill=|stroke=|style=/, 'colours only from styles.css');
+  assert.ok(lined.indexOf('class="res-overlay"') > lined.indexOf('class="res-outline"') && lined.indexOf('class="res-overlay"') < lined.indexOf('class="res-ring'), 'over the cells and the subdistrict lines, under the rings');
+  const roads = [...g.matchAll(/class="res-road c(\d)"/g)].map(m => Number(m[1]));
+  assert.deepEqual(roads, [...roads].sort((a, b) => b - a), 'the major roads drawn last, on top');
+  assert.equal((g.match(/<circle class="res-station"/g) || []).length, ov.rec.s.length);
+  const css = readFileSync(new URL('styles.css', ROOT), 'utf8');
+  const rules = css.split('\n').filter(l => /\.res-(road|rail|river|station|lab|key)/.test(l)).join('\n');
+  assert.doesNotMatch(rules, /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/, 'theme tokens only');
+  assert.match(rules, /\.res-lab \{[^}]*font: 600 12px/, 'names at 12 px');
+  // the names: Thai, English beside it, a name without English stays Thai and says so
+  const at = v => v.toFixed(2);
+  const labs = residentsOverlayLabels(ov.rec, at, {unit: 25, m: 250});
+  assert.equal((labs.match(/class="res-lab /g) || []).length, ov.rec.L.length);
+  const thOnly = residentsOverlayLabels({L: [['road', 10, 10, 'c', 'ถ.ทดสอบ', '']]}, at);
+  assert.equal(thOnly, '<span class="res-lab is-road at-c" style="left:1.00%;top:1.00%"><span lang="th" translate="no">ถ.ทดสอบ</span></span>');
+  assert.match(residentsOverlayLabels({L: [['station', 0, 0, 'l', 'สถานีสยาม', 'Siam station']]}, at), /<span data-en="Siam station">สถานีสยาม<\/span>/);
+  assert.equal(residentsOverlaySVG(null), '');
+  // key, credit and method: every Thai word with its English
+  const key = residentsOverlayKey(), credit = residentsOverlayCredit(mmeta), method = residentsOverlayMethod(mmeta);
+  for (const [th, en] of [['ถนนสายหลัก', 'Major roads'], ['รถไฟฟ้าและรถไฟ', 'Rail lines'], ['สถานี', 'Stations'], ['แม่น้ำ', 'Rivers']]) {
+    assert.match(key, new RegExp(`<span data-en="${en}">${th}</span>`));
+  }
+  assert.match(credit, /© ผู้ร่วมสร้าง OpenStreetMap/);
+  assert.match(credit, /data-en="roads, rail and rivers © OpenStreetMap contributors \d+ \w+ \d{4}"/);
+  assert.match(credit, /data-en="stations: CityMETER Transit/);
+  assert.match(method, /^<span data-en="Lines on the map: [^"]+">เส้นบนแผนที่: /);
+  // in the residents block: the key under the map, the credit in the data line, the method folded
+  const html = renderLocaleResidents(row, {meta, facts: shard('facts', CENTRALWORLD), residentsMeta: rmeta, residents: rec, residentsState: 'ready', residentsMap: ov});
+  assert.ok(html.indexOf('class="res-key"') > html.indexOf('class="res-map"') && html.indexOf('class="res-key"') < html.indexOf('</figure>'), 'the key with the map');
+  assert.ok(html.includes(credit.trim().slice(2, 40)), 'the credit');
+  const folded = /<details class="locale-details" data-locale-open="res">[\s\S]*?<\/details>/.exec(html)[0];
+  assert.ok(folded.includes('เส้นบนแผนที่:'), 'the method of the lines folded with the residents method');
+  assert.ok(!html.replace(folded, '').includes('ไม่ใช่โครงข่าย'), 'its caveat only inside the fold');
+  // without the file: the same map without lines, key, credit or method
+  const without = renderLocaleResidents(row, {meta, facts: shard('facts', CENTRALWORLD), residentsMeta: rmeta, residents: rec, residentsState: 'ready'});
+  assert.doesNotMatch(without, /res-overlay|res-key|res-lab|ถนน ราง และแม่น้ำ|เส้นบนแผนที่/);
+});
+
+test('lines over the residents map: a file that does not load is said on the page, and the page asks for it only with the residents', () => {
+  const app = readFileSync(new URL('js/app.js', ROOT), 'utf8');
+  const entry = /'data\/residents-map': \['([^']+)', '([^']+)', '([^']+)', '([^']+)'\]/.exec(app);
+  assert.ok(entry, 'a PARTIAL entry');
+  assert.match(entry[1] + entry[2], THAI);
+  assert.doesNotMatch(entry[3] + entry[4], THAI);
+  assert.match(app, /partial\('data\/residents-map'\)/);
+  assert.match(app, /residentsMap: residentsMapOf\(/);
+  assert.equal((app.match(/residentsMap: residentsMapOf\(/g) || []).length, 2, 'both renders of the residents block');
 });

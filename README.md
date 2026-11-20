@@ -6,7 +6,7 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Release 0.9.1 · Research snapshot: export 20 พ.ย. 2569 (ข้อมูลตรวจถึง 8 พ.ย. 2569) · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.9.2 · Research snapshot: export 20 พ.ย. 2569 (ข้อมูลตรวจถึง 8 พ.ย. 2569) · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
@@ -77,6 +77,7 @@ npm test         # Node ≥ 20
 - [CityMETER Shopping Center production](https://landometer.com/v3/citymeter?d=shoppingCenter) — รหัสจังหวัด/เขตและ CityMETER id
 - รูปเขตกรมแผนที่ทหาร (RTSD 2562) ผ่าน [geoBoundaries](https://www.geoboundaries.org/) / OCHA HDX — ขอบเขตจังหวัดและเขต/อำเภอ (CC BY 3.0 IGO) ชุดเดียวกับ CityMETER production
 - [OpenGISData-Thailand](https://github.com/chingchai/OpenGISData-Thailand) — รหัสและชื่อเขต/อำเภอที่ใช้จับคู่ (CC BY 4.0)
+- [OpenStreetMap](https://www.openstreetmap.org/copyright) ผ่านไฟล์ประเทศไทยของ [Geofabrik](https://download.geofabrik.de/asia/thailand.html) — ถนน ราง และแม่น้ำบนแผนที่คนรอบศูนย์ (`data/residents-map/`, ODbL 1.0)
 
 ## Assets, สิทธิ์ และการตรวจ
 
@@ -169,6 +170,16 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.9.2 - ถนน ราง แม่น้ำ และสถานีบนแผนที่คนรอบศูนย์ และตัวเลขต่อช่อง (`20261120-r4`)
+
+เจ้าของ 20 พ.ย. 2569 (VERBATIM): 16:35 “heatmap วงกลมอันนี้ดี แต่ยังดูยากอยู่เพราะว่า user ดูไม่ออก ว่าอะไรอยู่ตรงไหน อย่างน้อยควรแสดงแนวถนน overlay ใน heatmap ด้วย หรือ ทำวิธีอื่นๆที่ช่วย user จะได้เข้าใจง่ายขึ้น” · 17:19 “อันนี้ดีขึ้นมากครับ ว่าแต่ heatmap นี้มันอยู่บน grid cell ที่มีขนาดเท่าๆกัน การใช้ความหนาแน่น มันสื่อความหมายได้ไม่ดีเท่าจำนวนนับมั้ยครับ ถ้านับไปเลยว่าแต่ละ cell มีจำนวนนับกี่คน อาจจะดีกว่ามั้ย”
+
+- **เส้นบนแผนที่ (D53):** ถนนสายหลัก (motorway · trunk · primary · secondary) ราง (รถไฟ รถไฟฟ้า รถไฟฟ้ารางเดี่ยว ไม่รวมรางในย่านสถานีและทางแยก) แม่น้ำ และสถานีที่เปิดให้บริการ วาดทับช่องสีของแผนที่ 5 กม. ของทุกศูนย์ที่มีพิกัด 492 แห่ง · ชื่อถนนไม่เกิน 4 ชื่อ แม่น้ำ 1 ชื่อ และสถานี 3 สถานี โดยตั้งชื่อสถานีที่ใกล้ศูนย์ที่สุดก่อน ไม่มีชื่อใดทับกัน ทับจุดของศูนย์ หรือทับป้ายวงรัศมี (วางบนแผนที่กว้าง 360 px) · เส้นใช้หมึกและกระดาษเดียวกับป้ายของแผนที่ แม่น้ำใช้สีน้ำเงินของแผนที่ (`--map-active-layer`) ไม่มีสีข้อมูลใดเปลี่ยน · คำอธิบายเส้นอยู่ใต้แผนที่ เครดิต OpenStreetMap อยู่ในบรรทัดข้อมูล วิธีอยู่ในส่วนที่พับไว้ · โหลดไม่สำเร็จแล้วแผนที่แสดงเฉพาะช่องสีและบอกในแถบข้อมูลไม่ครบ (`PARTIAL['data/residents-map']`)
+- **ข้อมูล:** `data/residents-map/` (128 shard + meta, 5.3 MB · ศูนย์หนึ่งโหลด shard เดียว เฉลี่ย 42 KB ราว 16 KB เมื่อบีบอัด) สร้างด้วย `scripts/build-residents-map.py` จากไฟล์ OpenStreetMap ประเทศไทยของ Geofabrik (ข้อมูลถึง 12 พ.ย. 2569 · ODbL · ไฟล์อยู่นอก repo เก็บ SHA-256 ขนาด และเวลาใน meta) กับ `data/stations.json` ได้ไบต์เดิมทุกครั้ง · ศูนย์ที่มีรางใน 5 กม. 405 · แม่น้ำ 456 · สถานี 273 แห่ง · ศูนย์ที่มีสถานีในระยะ 800 ม. ได้ชื่อสถานีที่ใกล้ที่สุด 113 จาก 149 แห่ง (ที่เหลือชื่อยาวเกินที่จะวางในวง) · วิธี: `DATA_METHOD.md` §22
+- **ตัวเลขต่อช่อง:** แถบสีอ่านเป็นคนต่อช่อง 250 × 250 ม. ปัดเหลือ 2 หลัก (ต่ำกว่า 1 คนเขียน “<1”) แทนคนต่อ ตร.กม. · ทุกช่องขนาดเท่ากัน ลำดับและสีของทุกช่องจึงเท่าเดิม · ตัวเลขของวง 0–1 · 1–3 · 3–5 กม. และตาราง 8 ทิศยังเป็นคนต่อ ตร.กม. เพราะพื้นที่ไม่เท่ากัน
+- **ไม่อยู่ในรุ่นนี้:** การย้ายชุดแบรนด์เดียว (B-Quik · B2S · PETClub · CHABA) ออกจากการ์ดข้อค้นพบ ซึ่งเจ้าของไม่เห็นด้วย (17:21 “ไม่เห็นด้วยครับ ควรไปแก้ที่ data มากกว่า เพราะใน google sheet มีจำนวนแบรนด์เยอะกว่านี้มากและใน citymeter web demo ของแต่ละ datset ก็มีจุดมากกว่านี้ มีหลายแบรนด์ ช่วย บอกวิธีแก้ให้สามารถนำจุดมาวิเคราะห์ได้ครบดีกว่า”) — เจ้าของเลือกแก้ที่ข้อมูล 17:37 (นับทุกแบรนด์ ร้านหลายป้ายนับครั้งเดียว ร้านในห้างใช้จุดของศูนย์การค้า) มาในรุ่นถัดไป (`PRODUCT_STATEMENT.md` §23)
+- **ตรวจ:** `npm test` 330 / 330 · `tests/venue-locale.test.js` เพิ่ม 3 ข้อ (ไฟล์เส้น: หนึ่งระเบียนต่อศูนย์ วาดรอบจุดเดียวกับหน้าเว็บ แหล่งระบุ hash · การวาด: สีของช่องเท่าเดิม เส้นใช้ token ของธีม ไทย/อังกฤษ · แถบข้อมูลไม่ครบ) และ `tests/test_residents_map.py` 3 ข้อ (ชื่อทุกชื่อไม่ทับกันตามกติกาของสคริปต์ shard ตรงกับ `shardOf`) · ภาพจริงในเบราว์เซอร์: เซ็นทรัล ชิดลม มาร์เช่ ทองหล่อ และเดอะ ปาร์ค ไลฟ์ ไทย/อังกฤษ 1,440 และ 390 px สว่าง/มืด ไม่มีชื่อทับกัน · ตัดไฟล์เส้นแล้วหน้ายังอ่านได้และบอกในแถบข้อมูลไม่ครบ
 
 ## 0.9.1 - ข้อมูลทั้งชีต 20 พ.ย. 2569 และศูนย์ข้างเคียงในรอบศูนย์นี้ (`20261120-r3`)
 
