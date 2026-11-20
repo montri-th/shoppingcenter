@@ -1,118 +1,130 @@
 {
-  "asOf": "2026-11-07",
+  "asOf": "2026-11-20",
   "rule": "D38",
   "dataset": "research.TH.shopping_directory",
   "input": {
     "tab": "18_OFFICIAL_TENANTS",
-    "exportedOn": "2026-11-07",
-    "bytes": 51070466,
-    "sha256": "c9f3d4f5f2f9b6cb9819d9644d1001e71d2df913c97e8e11d7230252e63ced32",
-    "rows": 26955,
-    "hosts": 68
+    "exportedOn": "2026-11-20",
+    "bytes": 75073219,
+    "sha256": "8f9d239f79790bdff0649ba506b3f4cc1f9d48359ce5c1416e172b051b7a5401",
+    "rows": 31969,
+    "hosts": 267
   },
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
-  "venueCoreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
+  "venueCoreSha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9",
   "rows": {
-    "shownAsDirectoryItems": 15154,
+    "shownAsDirectoryItems": 19766,
     "shownAsDepartmentStoreBrands": 7735,
-    "alreadyShownByRoster": 3161,
-    "held": 905,
+    "alreadyShownByRoster": 3509,
+    "held": 959,
     "byReason": {
-      "directory_item": 15154,
+      "directory_item": 19766,
       "department_store_brand": 7735,
-      "shown_by_roster_identity": 1835,
-      "shown_by_roster_name_floor": 1326,
+      "shown_by_roster_identity": 1864,
+      "shown_by_roster_name_floor": 1645,
       "held_counter_or_component": 674,
-      "held_consumer_location_or_visibility": 163,
-      "centre_facility_not_a_shop": 23,
+      "held_consumer_location_or_visibility": 165,
+      "centre_facility_not_a_shop": 27,
+      "held_event_or_public_space_component_not_retailer_qualified": 16,
+      "held_source_observation": 16,
       "department_store_name_row": 14,
-      "held_event_or_public_space_component_not_retailer_qualified": 14,
-      "held_shared_or_department_format_independence_review": 10,
-      "held_venue_amenity_or_lounge_operator_review": 4,
-      "held_planned_coming_soon_not_confirmed_open": 2,
-      "held_unnamed_operator_identity_review": 1
+      "held_venue_amenity_or_lounge_operator_review": 14,
+      "held_shared_or_department_format_independence_review": 11,
+      "held_planned_coming_soon_not_confirmed_open": 8,
+      "host_held_without_counted_parent": 8,
+      "host_not_in_public_venue_set": 4,
+      "held_unnamed_operator_identity_review": 2
     }
   },
   "entries": {
-    "directoryEntries": 18095,
-    "shownByRoster": 3137,
-    "directoryItems": 14958,
+    "directoryEntries": 22939,
+    "shownByRoster": 3474,
+    "directoryItems": 19465,
     "departmentStoreBrands": 7268
   },
-  "venues": 65,
+  "venues": 242,
   "counterVenues": 18,
   "coverage": [
     {
+      "venueId": "SC-000337",
+      "name": "แฟชั่นไอส์แลนด์",
+      "directoryEntries": 937,
+      "shownByRoster": 65,
+      "directoryItems": 872,
+      "rosterItems": 102,
+      "shownTotal": 974
+    },
+    {
       "venueId": "SC-007290",
       "name": "ฟิวเจอร์พาร์ค และ สเปลล์",
-      "directoryEntries": 884,
-      "shownByRoster": 17,
-      "directoryItems": 867,
+      "directoryEntries": 881,
+      "shownByRoster": 37,
+      "directoryItems": 844,
       "rosterItems": 70,
-      "shownTotal": 937
+      "shownTotal": 914
     },
     {
       "venueId": "SC-001245",
       "name": "เซ็นทรัลเวิลด์",
       "directoryEntries": 708,
-      "shownByRoster": 116,
-      "directoryItems": 592,
+      "shownByRoster": 118,
+      "directoryItems": 590,
       "rosterItems": 185,
-      "shownTotal": 777
+      "shownTotal": 775
     },
     {
       "venueId": "SC-006426",
       "name": "เซ็นทรัล เวสต์เกต",
       "directoryEntries": 620,
-      "shownByRoster": 100,
-      "directoryItems": 520,
+      "shownByRoster": 103,
+      "directoryItems": 517,
       "rosterItems": 145,
-      "shownTotal": 665
+      "shownTotal": 662
     },
     {
       "venueId": "SC-012204",
       "name": "เมกาบางนา",
       "directoryEntries": 592,
-      "shownByRoster": 124,
-      "directoryItems": 468,
+      "shownByRoster": 127,
+      "directoryItems": 465,
       "rosterItems": 172,
-      "shownTotal": 640
+      "shownTotal": 637
     },
     {
       "venueId": "SC-000401",
       "name": "เซ็นทรัล ลาดพร้าว",
       "directoryEntries": 484,
-      "shownByRoster": 45,
-      "directoryItems": 439,
+      "shownByRoster": 47,
+      "directoryItems": 437,
       "rosterItems": 95,
-      "shownTotal": 534
+      "shownTotal": 532
     },
     {
       "venueId": "SC-000887",
       "name": "เซ็นทรัล พระราม2",
       "directoryEntries": 445,
-      "shownByRoster": 80,
-      "directoryItems": 365,
+      "shownByRoster": 84,
+      "directoryItems": 361,
       "rosterItems": 126,
-      "shownTotal": 491
+      "shownTotal": 487
     },
     {
       "venueId": "SC-001360",
       "name": "ซีคอนสแควร์ ศรีนครินทร์",
       "directoryEntries": 444,
-      "shownByRoster": 16,
-      "directoryItems": 428,
+      "shownByRoster": 19,
+      "directoryItems": 425,
       "rosterItems": 38,
-      "shownTotal": 466
+      "shownTotal": 463
     },
     {
       "venueId": "SC-000761",
       "name": "เซ็นทรัล ปิ่นเกล้า",
       "directoryEntries": 418,
-      "shownByRoster": 72,
-      "directoryItems": 346,
+      "shownByRoster": 75,
+      "directoryItems": 343,
       "rosterItems": 130,
-      "shownTotal": 476
+      "shownTotal": 473
     },
     {
       "venueId": "SC-001244",
@@ -127,10 +139,10 @@
       "venueId": "SC-015800",
       "name": "เซ็นทรัล เชียงใหม่",
       "directoryEntries": 399,
-      "shownByRoster": 67,
-      "directoryItems": 332,
+      "shownByRoster": 72,
+      "directoryItems": 327,
       "rosterItems": 99,
-      "shownTotal": 431
+      "shownTotal": 426
     },
     {
       "venueId": "SC-001783",
@@ -145,19 +157,19 @@
       "venueId": "SC-C0221",
       "name": "เทอร์มินอล 21 โคราช",
       "directoryEntries": 386,
-      "shownByRoster": 18,
-      "directoryItems": 368,
+      "shownByRoster": 19,
+      "directoryItems": 367,
       "rosterItems": 27,
-      "shownTotal": 395
+      "shownTotal": 394
     },
     {
       "venueId": "SC-002060",
       "name": "เซ็นทรัล พระราม9",
       "directoryEntries": 382,
-      "shownByRoster": 64,
-      "directoryItems": 318,
+      "shownByRoster": 66,
+      "directoryItems": 316,
       "rosterItems": 88,
-      "shownTotal": 406
+      "shownTotal": 404
     },
     {
       "venueId": "SC-009298",
@@ -172,28 +184,28 @@
       "venueId": "SC-011757",
       "name": "เซ็นทรัล หาดใหญ่",
       "directoryEntries": 367,
-      "shownByRoster": 54,
-      "directoryItems": 313,
+      "shownByRoster": 55,
+      "directoryItems": 312,
       "rosterItems": 71,
-      "shownTotal": 384
+      "shownTotal": 383
     },
     {
       "venueId": "SC-001536",
       "name": "เซ็นทรัล พระราม3",
       "directoryEntries": 353,
-      "shownByRoster": 61,
-      "directoryItems": 292,
+      "shownByRoster": 64,
+      "directoryItems": 289,
       "rosterItems": 94,
-      "shownTotal": 386
+      "shownTotal": 383
     },
     {
       "venueId": "SC-002835",
       "name": "เซ็นทรัล ขอนแก่น",
       "directoryEntries": 347,
-      "shownByRoster": 63,
-      "directoryItems": 284,
+      "shownByRoster": 66,
+      "directoryItems": 281,
       "rosterItems": 88,
-      "shownTotal": 372
+      "shownTotal": 369
     },
     {
       "venueId": "SC-000799",
@@ -208,37 +220,37 @@
       "venueId": "SC-014484",
       "name": "เซ็นทรัล อุดร",
       "directoryEntries": 325,
-      "shownByRoster": 47,
-      "directoryItems": 278,
+      "shownByRoster": 49,
+      "directoryItems": 276,
       "rosterItems": 68,
-      "shownTotal": 346
+      "shownTotal": 344
     },
     {
       "venueId": "SC-006549",
       "name": "เซ็นทรัล นอร์ทวิลล์",
       "directoryEntries": 324,
-      "shownByRoster": 37,
-      "directoryItems": 287,
+      "shownByRoster": 39,
+      "directoryItems": 285,
       "rosterItems": 43,
-      "shownTotal": 330
+      "shownTotal": 328
     },
     {
       "venueId": "SC-003895",
       "name": "เซ็นทรัล ชลบุรี",
       "directoryEntries": 314,
-      "shownByRoster": 58,
-      "directoryItems": 256,
+      "shownByRoster": 62,
+      "directoryItems": 252,
       "rosterItems": 82,
-      "shownTotal": 338
+      "shownTotal": 334
     },
     {
       "venueId": "SC-005645",
       "name": "เซ็นทรัล โคราช",
       "directoryEntries": 313,
-      "shownByRoster": 42,
-      "directoryItems": 271,
+      "shownByRoster": 44,
+      "directoryItems": 269,
       "rosterItems": 56,
-      "shownTotal": 327
+      "shownTotal": 325
     },
     {
       "venueId": "SC-C0355",
@@ -253,10 +265,10 @@
       "venueId": "SC-C0262",
       "name": "เซ็นทรัล พัทยา",
       "directoryEntries": 304,
-      "shownByRoster": 55,
-      "directoryItems": 249,
+      "shownByRoster": 59,
+      "directoryItems": 245,
       "rosterItems": 82,
-      "shownTotal": 331
+      "shownTotal": 327
     },
     {
       "venueId": "SC-000229",
@@ -271,10 +283,10 @@
       "venueId": "SC-001664",
       "name": "เซ็นทรัล อีสต์วิลล์",
       "directoryEntries": 289,
-      "shownByRoster": 47,
-      "directoryItems": 242,
+      "shownByRoster": 50,
+      "directoryItems": 239,
       "rosterItems": 82,
-      "shownTotal": 324
+      "shownTotal": 321
     },
     {
       "venueId": "SC-015770",
@@ -289,28 +301,28 @@
       "venueId": "SC-C0015",
       "name": "วัน แบงค็อก (พื้นที่ค้าปลีก)",
       "directoryEntries": 279,
-      "shownByRoster": 83,
-      "directoryItems": 196,
+      "shownByRoster": 84,
+      "directoryItems": 195,
       "rosterItems": 97,
-      "shownTotal": 293
+      "shownTotal": 292
     },
     {
       "venueId": "SC-015253",
       "name": "เซ็นทรัล เชียงราย",
       "directoryEntries": 273,
-      "shownByRoster": 46,
-      "directoryItems": 227,
+      "shownByRoster": 47,
+      "directoryItems": 226,
       "rosterItems": 59,
-      "shownTotal": 286
+      "shownTotal": 285
     },
     {
       "venueId": "SC-010265",
       "name": "เซ็นทรัล ระยอง",
       "directoryEntries": 270,
-      "shownByRoster": 51,
-      "directoryItems": 219,
+      "shownByRoster": 52,
+      "directoryItems": 218,
       "rosterItems": 64,
-      "shownTotal": 283
+      "shownTotal": 282
     },
     {
       "venueId": "SC-000289",
@@ -325,37 +337,37 @@
       "venueId": "SC-005868",
       "name": "เซ็นทรัล นครศรี",
       "directoryEntries": 263,
-      "shownByRoster": 35,
-      "directoryItems": 228,
+      "shownByRoster": 36,
+      "directoryItems": 227,
       "rosterItems": 38,
-      "shownTotal": 266
+      "shownTotal": 265
     },
     {
       "venueId": "SC-001164",
       "name": "เดอะมอลล์ไลฟ์สโตร์ บางแค",
       "directoryEntries": 262,
-      "shownByRoster": 120,
-      "directoryItems": 142,
+      "shownByRoster": 121,
+      "directoryItems": 141,
       "rosterItems": 137,
-      "shownTotal": 279
+      "shownTotal": 278
     },
     {
       "venueId": "SC-005210",
       "name": "เซ็นทรัล นครปฐม",
       "directoryEntries": 256,
-      "shownByRoster": 51,
-      "directoryItems": 205,
+      "shownByRoster": 52,
+      "directoryItems": 204,
       "rosterItems": 67,
-      "shownTotal": 272
+      "shownTotal": 271
     },
     {
       "venueId": "SC-003680",
       "name": "เซ็นทรัล ศรีราชา",
       "directoryEntries": 254,
-      "shownByRoster": 37,
-      "directoryItems": 217,
+      "shownByRoster": 40,
+      "directoryItems": 214,
       "rosterItems": 57,
-      "shownTotal": 274
+      "shownTotal": 271
     },
     {
       "venueId": "SC-002950",
@@ -379,100 +391,109 @@
       "venueId": "SC-013641",
       "name": "เซ็นทรัล สุราษฎร์ธานี",
       "directoryEntries": 239,
-      "shownByRoster": 44,
-      "directoryItems": 195,
+      "shownByRoster": 45,
+      "directoryItems": 194,
       "rosterItems": 52,
-      "shownTotal": 247
+      "shownTotal": 246
     },
     {
       "venueId": "SC-005123",
       "name": "เซ็นทรัล ศาลายา",
       "directoryEntries": 237,
-      "shownByRoster": 54,
-      "directoryItems": 183,
+      "shownByRoster": 57,
+      "directoryItems": 180,
       "rosterItems": 74,
-      "shownTotal": 257
+      "shownTotal": 254
     },
     {
       "venueId": "SC-006469",
       "name": "เซ็นทรัล แจ้งวัฒนะ",
       "directoryEntries": 234,
-      "shownByRoster": 43,
-      "directoryItems": 191,
+      "shownByRoster": 48,
+      "directoryItems": 186,
       "rosterItems": 78,
-      "shownTotal": 269
+      "shownTotal": 264
+    },
+    {
+      "venueId": "SC-C0316",
+      "name": "มาร์เก็ตวิลเลจ หัวหิน",
+      "directoryEntries": 233,
+      "shownByRoster": 17,
+      "directoryItems": 216,
+      "rosterItems": 24,
+      "shownTotal": 240
     },
     {
       "venueId": "SC-006188",
       "name": "เซ็นทรัล นครสวรรค์",
       "directoryEntries": 232,
-      "shownByRoster": 40,
-      "directoryItems": 192,
+      "shownByRoster": 42,
+      "directoryItems": 190,
       "rosterItems": 61,
-      "shownTotal": 253
+      "shownTotal": 251
     },
     {
       "venueId": "SC-001765",
       "name": "เอ็มควอเทียร์",
       "directoryEntries": 225,
-      "shownByRoster": 33,
-      "directoryItems": 192,
+      "shownByRoster": 34,
+      "directoryItems": 191,
       "rosterItems": 78,
-      "shownTotal": 270
+      "shownTotal": 269
     },
     {
       "venueId": "SC-008771",
       "name": "เซ็นทรัล พิษณุโลก",
       "directoryEntries": 219,
-      "shownByRoster": 54,
-      "directoryItems": 165,
+      "shownByRoster": 55,
+      "directoryItems": 164,
       "rosterItems": 60,
-      "shownTotal": 225
+      "shownTotal": 224
     },
     {
       "venueId": "SC-012645",
       "name": "เซ็นทรัล มหาชัย",
       "directoryEntries": 219,
-      "shownByRoster": 46,
-      "directoryItems": 173,
+      "shownByRoster": 48,
+      "directoryItems": 171,
       "rosterItems": 57,
-      "shownTotal": 230
+      "shownTotal": 228
     },
     {
       "venueId": "SC-008039",
       "name": "เซ็นทรัล อยุธยา",
       "directoryEntries": 213,
-      "shownByRoster": 41,
-      "directoryItems": 172,
+      "shownByRoster": 45,
+      "directoryItems": 168,
       "rosterItems": 61,
-      "shownTotal": 233
+      "shownTotal": 229
     },
     {
       "venueId": "SC-014972",
       "name": "เซ็นทรัล อุบล",
       "directoryEntries": 211,
-      "shownByRoster": 44,
-      "directoryItems": 167,
+      "shownByRoster": 45,
+      "directoryItems": 166,
       "rosterItems": 47,
-      "shownTotal": 214
+      "shownTotal": 213
     },
     {
       "venueId": "SC-006353",
       "name": "เซ็นทรัล เวสต์วิลล์",
       "directoryEntries": 201,
-      "shownByRoster": 42,
-      "directoryItems": 159,
+      "shownByRoster": 45,
+      "directoryItems": 156,
       "rosterItems": 64,
-      "shownTotal": 223
+      "shownTotal": 220
     },
     {
       "venueId": "SC-003076",
       "name": "เซ็นทรัล จันทบุรี",
       "directoryEntries": 190,
-      "shownByRoster": 42,
-      "directoryItems": 148,
+      "shownByRoster": 43,
+      "directoryItems": 147,
       "rosterItems": 50,
-      "shownTotal": 198
+      "shownTotal": 197
     },
     {
       "venueId": "SC-C0450",
@@ -493,6 +514,24 @@
       "shownTotal": 160
     },
     {
+      "venueId": "SC-001304",
+      "name": "สามย่านมิตรทาวน์",
+      "directoryEntries": 158,
+      "shownByRoster": 8,
+      "directoryItems": 150,
+      "rosterItems": 16,
+      "shownTotal": 166
+    },
+    {
+      "venueId": "SC-012142",
+      "name": "มาร์เก็ตวิลเลจ สุวรรณภูมิ",
+      "directoryEntries": 157,
+      "shownByRoster": 10,
+      "directoryItems": 147,
+      "rosterItems": 21,
+      "shownTotal": 168
+    },
+    {
       "venueId": "SC-000710",
       "name": "เดอะมอลล์ไลฟ์สโตร์ ท่าพระ",
       "directoryEntries": 150,
@@ -511,6 +550,24 @@
       "shownTotal": 153
     },
     {
+      "venueId": "SC-C0124",
+      "name": "เดอะพาซิโอ สาขาลาดกระบัง",
+      "directoryEntries": 145,
+      "shownByRoster": 0,
+      "directoryItems": 145,
+      "rosterItems": 1,
+      "shownTotal": 146
+    },
+    {
+      "venueId": "SC-000327",
+      "name": "เดอะ พรอมานาด",
+      "directoryEntries": 143,
+      "shownByRoster": 19,
+      "directoryItems": 124,
+      "rosterItems": 32,
+      "shownTotal": 156
+    },
+    {
       "venueId": "SC-C0543",
       "name": "เซ็นทรัล มารีนา เอาต์เล็ต",
       "directoryEntries": 141,
@@ -523,10 +580,10 @@
       "venueId": "SC-000992",
       "name": "เซ็นทรัล บางนา",
       "directoryEntries": 140,
-      "shownByRoster": 15,
-      "directoryItems": 125,
+      "shownByRoster": 16,
+      "directoryItems": 124,
       "rosterItems": 66,
-      "shownTotal": 191
+      "shownTotal": 190
     },
     {
       "venueId": "SC-011214",
@@ -541,10 +598,10 @@
       "venueId": "SC-001109",
       "name": "เซ็นทรัล รามอินทรา",
       "directoryEntries": 134,
-      "shownByRoster": 27,
-      "directoryItems": 107,
+      "shownByRoster": 29,
+      "directoryItems": 105,
       "rosterItems": 38,
-      "shownTotal": 145
+      "shownTotal": 143
     },
     {
       "venueId": "SC-001242",
@@ -554,6 +611,15 @@
       "directoryItems": 98,
       "rosterItems": 44,
       "shownTotal": 142
+    },
+    {
+      "venueId": "SC-000631",
+      "name": "เดอะเซอร์เคิล ราชพฤกษ์",
+      "directoryEntries": 125,
+      "shownByRoster": 4,
+      "directoryItems": 121,
+      "rosterItems": 6,
+      "shownTotal": 127
     },
     {
       "venueId": "VN-7e2155ac67fe96",
@@ -568,10 +634,37 @@
       "venueId": "SC-000067",
       "name": "เซ็นทรัล กระบี่",
       "directoryEntries": 121,
-      "shownByRoster": 27,
-      "directoryItems": 94,
+      "shownByRoster": 28,
+      "directoryItems": 93,
       "rosterItems": 31,
-      "shownTotal": 125
+      "shownTotal": 124
+    },
+    {
+      "venueId": "SC-000660",
+      "name": "เดอะพาซิโอ พาร์ค กาญจนาภิเษก",
+      "directoryEntries": 118,
+      "shownByRoster": 2,
+      "directoryItems": 116,
+      "rosterItems": 3,
+      "shownTotal": 119
+    },
+    {
+      "venueId": "SC-003862",
+      "name": "เฉลิมไทยช้อปปิ้งมอลล์",
+      "directoryEntries": 117,
+      "shownByRoster": 0,
+      "directoryItems": 117,
+      "rosterItems": 0,
+      "shownTotal": 117
+    },
+    {
+      "venueId": "VN-fc8f0e850b7597",
+      "name": "มิกซ์ จตุจักร",
+      "directoryEntries": 117,
+      "shownByRoster": 1,
+      "directoryItems": 116,
+      "rosterItems": 2,
+      "shownTotal": 118
     },
     {
       "venueId": "SC-006590",
@@ -583,6 +676,15 @@
       "shownTotal": 154
     },
     {
+      "venueId": "VN-938c7726e93cf8",
+      "name": "ริเวอร์ ซิตี้ แบงค็อก",
+      "directoryEntries": 115,
+      "shownByRoster": 1,
+      "directoryItems": 114,
+      "rosterItems": 1,
+      "shownTotal": 115
+    },
+    {
       "venueId": "SC-C3650",
       "name": "เซ็นทรัล สมุย",
       "directoryEntries": 113,
@@ -590,6 +692,96 @@
       "directoryItems": 87,
       "rosterItems": 33,
       "shownTotal": 120
+    },
+    {
+      "venueId": "SC-001429",
+      "name": "ไชน่าเวิลด์",
+      "directoryEntries": 106,
+      "shownByRoster": 0,
+      "directoryItems": 106,
+      "rosterItems": 0,
+      "shownTotal": 106
+    },
+    {
+      "venueId": "SC-002015",
+      "name": "ชาน แอทดิอเวนิว",
+      "directoryEntries": 99,
+      "shownByRoster": 3,
+      "directoryItems": 96,
+      "rosterItems": 3,
+      "shownTotal": 99
+    },
+    {
+      "venueId": "SC-000269",
+      "name": "เค วิลเลจ",
+      "directoryEntries": 84,
+      "shownByRoster": 2,
+      "directoryItems": 82,
+      "rosterItems": 4,
+      "shownTotal": 86
+    },
+    {
+      "venueId": "SC-000534",
+      "name": "เดอะ สตรีท รัชดา",
+      "directoryEntries": 83,
+      "shownByRoster": 2,
+      "directoryItems": 81,
+      "rosterItems": 14,
+      "shownTotal": 95
+    },
+    {
+      "venueId": "SC-000717",
+      "name": "ริเวอร์ไซด์ พลาซ่า",
+      "directoryEntries": 77,
+      "shownByRoster": 5,
+      "directoryItems": 72,
+      "rosterItems": 7,
+      "shownTotal": 79
+    },
+    {
+      "venueId": "SC-001801",
+      "name": "เดอะไนน์ เซ็นเตอร์ พระราม 9",
+      "directoryEntries": 77,
+      "shownByRoster": 2,
+      "directoryItems": 75,
+      "rosterItems": 2,
+      "shownTotal": 77
+    },
+    {
+      "venueId": "SC-001576",
+      "name": "แพลทินัม แฟชั่น มอลล์",
+      "directoryEntries": 72,
+      "shownByRoster": 3,
+      "directoryItems": 69,
+      "rosterItems": 3,
+      "shownTotal": 72
+    },
+    {
+      "venueId": "VN-c87c200db5d079",
+      "name": "แบงค็อก แอ็กทีฟ ไลฟ์สไตล์ มอลล์",
+      "directoryEntries": 70,
+      "shownByRoster": 0,
+      "directoryItems": 70,
+      "rosterItems": 0,
+      "shownTotal": 70
+    },
+    {
+      "venueId": "SC-C0160",
+      "name": "เดอะโฟร์ท",
+      "directoryEntries": 68,
+      "shownByRoster": 0,
+      "directoryItems": 68,
+      "rosterItems": 3,
+      "shownTotal": 71
+    },
+    {
+      "venueId": "VN-c51362c077608f",
+      "name": "บลูพอร์ต หัวหิน รีสอร์ท มอลล์",
+      "directoryEntries": 68,
+      "shownByRoster": 0,
+      "directoryItems": 68,
+      "rosterItems": 0,
+      "shownTotal": 68
     },
     {
       "venueId": "SC-001243",
@@ -601,6 +793,87 @@
       "shownTotal": 78
     },
     {
+      "venueId": "SC-016089",
+      "name": "พรีเมี่ยมเอาท์เล็ทชะอำ",
+      "directoryEntries": 67,
+      "shownByRoster": 0,
+      "directoryItems": 67,
+      "rosterItems": 0,
+      "shownTotal": 67
+    },
+    {
+      "venueId": "SC-006489",
+      "name": "คอสโม บาซาร์",
+      "directoryEntries": 66,
+      "shownByRoster": 1,
+      "directoryItems": 65,
+      "rosterItems": 4,
+      "shownTotal": 69
+    },
+    {
+      "venueId": "SC-C1197",
+      "name": "ศูนย์การค้าธนิยะ",
+      "directoryEntries": 65,
+      "shownByRoster": 0,
+      "directoryItems": 65,
+      "rosterItems": 0,
+      "shownTotal": 65
+    },
+    {
+      "venueId": "SC-C3157",
+      "name": "พรีเมี่ยมเอาท์เล็ทเขาใหญ่",
+      "directoryEntries": 65,
+      "shownByRoster": 1,
+      "directoryItems": 64,
+      "rosterItems": 1,
+      "shownTotal": 65
+    },
+    {
+      "venueId": "SC-003681",
+      "name": "ตึกคอม ช้อปปิ้ง พลาซ่า ศรีราชา",
+      "directoryEntries": 59,
+      "shownByRoster": 0,
+      "directoryItems": 59,
+      "rosterItems": 0,
+      "shownTotal": 59
+    },
+    {
+      "venueId": "SC-007245",
+      "name": "มาร์เก็ตวิลเลจ รังสิต",
+      "directoryEntries": 57,
+      "shownByRoster": 0,
+      "directoryItems": 57,
+      "rosterItems": 3,
+      "shownTotal": 60
+    },
+    {
+      "venueId": "SC-C0159",
+      "name": "เอาท์เล็ทมอลล์ พัทยา",
+      "directoryEntries": 57,
+      "shownByRoster": 0,
+      "directoryItems": 57,
+      "rosterItems": 0,
+      "shownTotal": 57
+    },
+    {
+      "venueId": "SC-015527",
+      "name": "เจ สเปซ คอมมูนิตี้มอลล์",
+      "directoryEntries": 55,
+      "shownByRoster": 0,
+      "directoryItems": 55,
+      "rosterItems": 0,
+      "shownTotal": 55
+    },
+    {
+      "venueId": "SC-003846",
+      "name": "ตึกคอม ช้อปปิ้ง พลาซ่า ชลบุรี",
+      "directoryEntries": 53,
+      "shownByRoster": 0,
+      "directoryItems": 53,
+      "rosterItems": 0,
+      "shownTotal": 53
+    },
+    {
       "venueId": "SC-001052",
       "name": "พาร์ค สีลม",
       "directoryEntries": 52,
@@ -608,6 +881,33 @@
       "directoryItems": 30,
       "rosterItems": 23,
       "shownTotal": 53
+    },
+    {
+      "venueId": "SC-007932",
+      "name": "พรีเมี่ยมเอาท์เล็ท อยุธยา",
+      "directoryEntries": 52,
+      "shownByRoster": 0,
+      "directoryItems": 52,
+      "rosterItems": 1,
+      "shownTotal": 53
+    },
+    {
+      "venueId": "SC-015806",
+      "name": "มีโชคพลาซ่า",
+      "directoryEntries": 50,
+      "shownByRoster": 0,
+      "directoryItems": 50,
+      "rosterItems": 0,
+      "shownTotal": 50
+    },
+    {
+      "venueId": "SC-C0670",
+      "name": "รอยัล การ์เด้น พลาซ่า พัทยา",
+      "directoryEntries": 47,
+      "shownByRoster": 2,
+      "directoryItems": 45,
+      "rosterItems": 2,
+      "shownTotal": 47
     },
     {
       "venueId": "SC-005612",
@@ -619,6 +919,231 @@
       "shownTotal": 91
     },
     {
+      "venueId": "SC-001045",
+      "name": "มิตติ้งมอลล์",
+      "directoryEntries": 42,
+      "shownByRoster": 0,
+      "directoryItems": 42,
+      "rosterItems": 0,
+      "shownTotal": 42
+    },
+    {
+      "venueId": "SC-007396",
+      "name": "เดอะไนน์ เซ็นเตอร์ ติวานนท์",
+      "directoryEntries": 42,
+      "shownByRoster": 0,
+      "directoryItems": 42,
+      "rosterItems": 0,
+      "shownTotal": 42
+    },
+    {
+      "venueId": "SC-C0220",
+      "name": "เจ-พาร์ค ศรีราชา นิฮอน มูระ",
+      "directoryEntries": 42,
+      "shownByRoster": 0,
+      "directoryItems": 42,
+      "rosterItems": 0,
+      "shownTotal": 42
+    },
+    {
+      "venueId": "SC-C1008",
+      "name": "สวนเพลิน มาร์เก็ต",
+      "directoryEntries": 42,
+      "shownByRoster": 1,
+      "directoryItems": 41,
+      "rosterItems": 4,
+      "shownTotal": 45
+    },
+    {
+      "venueId": "SC-014485",
+      "name": "พรีเมี่ยมเอาท์เล็ทอุดรธานี",
+      "directoryEntries": 40,
+      "shownByRoster": 0,
+      "directoryItems": 40,
+      "rosterItems": 0,
+      "shownTotal": 40
+    },
+    {
+      "venueId": "SC-014486",
+      "name": "ตึกคอม แลนด์มาร์ค ช้อปปิ้ง พลาซ่า อุดรธานี",
+      "directoryEntries": 40,
+      "shownByRoster": 0,
+      "directoryItems": 40,
+      "rosterItems": 0,
+      "shownTotal": 40
+    },
+    {
+      "venueId": "VN-f26a0d31225b5a",
+      "name": "สิงห์ คอมเพล็กซ์",
+      "directoryEntries": 40,
+      "shownByRoster": 1,
+      "directoryItems": 39,
+      "rosterItems": 1,
+      "shownTotal": 40
+    },
+    {
+      "venueId": "SC-001262",
+      "name": "เวลา สินธร วิลเลจ หลังสวน",
+      "directoryEntries": 38,
+      "shownByRoster": 2,
+      "directoryItems": 36,
+      "rosterItems": 3,
+      "shownTotal": 39
+    },
+    {
+      "venueId": "SC-001735",
+      "name": "เดอะ คอมมอนส์ ทองหล่อ",
+      "directoryEntries": 35,
+      "shownByRoster": 0,
+      "directoryItems": 35,
+      "rosterItems": 2,
+      "shownTotal": 37
+    },
+    {
+      "venueId": "SC-C1143",
+      "name": "ศูนย์การค้าไดอาน่าคอมเพล็กซ์ หาดใหญ่",
+      "directoryEntries": 31,
+      "shownByRoster": 1,
+      "directoryItems": 30,
+      "rosterItems": 1,
+      "shownTotal": 31
+    },
+    {
+      "venueId": "SC-C1565",
+      "name": "Fifty Fifth Thonglor",
+      "directoryEntries": 31,
+      "shownByRoster": 0,
+      "directoryItems": 31,
+      "rosterItems": 2,
+      "shownTotal": 33
+    },
+    {
+      "venueId": "VN-8f7ad79ca43692",
+      "name": "Cloud 11",
+      "directoryEntries": 29,
+      "shownByRoster": 0,
+      "directoryItems": 29,
+      "rosterItems": 1,
+      "shownTotal": 30
+    },
+    {
+      "venueId": "SC-000314",
+      "name": "ซัมเมอร์ฮิลล์",
+      "directoryEntries": 24,
+      "shownByRoster": 0,
+      "directoryItems": 24,
+      "rosterItems": 1,
+      "shownTotal": 25
+    },
+    {
+      "venueId": "SC-C1872",
+      "name": "เดอะคอมมอนส์ ศาลาแดง",
+      "directoryEntries": 24,
+      "shownByRoster": 0,
+      "directoryItems": 24,
+      "rosterItems": 0,
+      "shownTotal": 24
+    },
+    {
+      "venueId": "SC-001540",
+      "name": "คิงสแควร์ คอมมูนิตี้ มอลล์",
+      "directoryEntries": 22,
+      "shownByRoster": 1,
+      "directoryItems": 21,
+      "rosterItems": 1,
+      "shownTotal": 22
+    },
+    {
+      "venueId": "SC-C1709",
+      "name": "มหานคร คิวบ์",
+      "directoryEntries": 21,
+      "shownByRoster": 0,
+      "directoryItems": 21,
+      "rosterItems": 2,
+      "shownTotal": 23
+    },
+    {
+      "venueId": "VN-ea2a93d5fd90a5",
+      "name": "ไลฟ์ เซ็นเตอร์ คิวเฮ้าส์ ลุมพินี",
+      "directoryEntries": 21,
+      "shownByRoster": 1,
+      "directoryItems": 20,
+      "rosterItems": 1,
+      "shownTotal": 21
+    },
+    {
+      "venueId": "SC-000979",
+      "name": "ฟอร์ ยู ปาร์ค บางนา",
+      "directoryEntries": 18,
+      "shownByRoster": 0,
+      "directoryItems": 18,
+      "rosterItems": 0,
+      "shownTotal": 18
+    },
+    {
+      "venueId": "SC-001278",
+      "name": "เอราวัณ แบงค็อก",
+      "directoryEntries": 18,
+      "shownByRoster": 2,
+      "directoryItems": 16,
+      "rosterItems": 4,
+      "shownTotal": 20
+    },
+    {
+      "venueId": "SC-000034",
+      "name": "เอาท์เล็ทวิลเลจ กระบี่",
+      "directoryEntries": 17,
+      "shownByRoster": 0,
+      "directoryItems": 17,
+      "rosterItems": 1,
+      "shownTotal": 18
+    },
+    {
+      "venueId": "SC-001283",
+      "name": "เซ็นทรัล เอ็มบาสซี",
+      "directoryEntries": 17,
+      "shownByRoster": 0,
+      "directoryItems": 17,
+      "rosterItems": 51,
+      "shownTotal": 68
+    },
+    {
+      "venueId": "VN-00bbd8013d3410",
+      "name": "เอส โอเอซิส / Sun Plaza",
+      "directoryEntries": 15,
+      "shownByRoster": 0,
+      "directoryItems": 15,
+      "rosterItems": 0,
+      "shownTotal": 15
+    },
+    {
+      "venueId": "VN-e527bfc425e4c8",
+      "name": "คิส มอลล์",
+      "directoryEntries": 13,
+      "shownByRoster": 0,
+      "directoryItems": 13,
+      "rosterItems": 0,
+      "shownTotal": 13
+    },
+    {
+      "venueId": "SC-C1527",
+      "name": "เรนฮิลล์",
+      "directoryEntries": 12,
+      "shownByRoster": 0,
+      "directoryItems": 12,
+      "rosterItems": 1,
+      "shownTotal": 13
+    },
+    {
+      "venueId": "SC-003688",
+      "name": "อาทาระ มอลล์ ศรีราชา",
+      "directoryEntries": 9,
+      "shownByRoster": 1,
+      "directoryItems": 8,
+      "rosterItems": 1,
+      "shownTotal": 9
+    },
+    {
       "venueId": "SC-001469",
       "name": "ซีคอน บางแค",
       "directoryEntries": 8,
@@ -626,6 +1151,1203 @@
       "directoryItems": 6,
       "rosterItems": 53,
       "shownTotal": 59
+    },
+    {
+      "venueId": "SC-006497",
+      "name": "คอสโม่ วอล์ก",
+      "directoryEntries": 8,
+      "shownByRoster": 1,
+      "directoryItems": 7,
+      "rosterItems": 1,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-009044",
+      "name": "คาแนลวิลเลจ",
+      "directoryEntries": 8,
+      "shownByRoster": 0,
+      "directoryItems": 8,
+      "rosterItems": 0,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-015609",
+      "name": "กาดฝรั่ง วิลเลจ",
+      "directoryEntries": 8,
+      "shownByRoster": 0,
+      "directoryItems": 8,
+      "rosterItems": 3,
+      "shownTotal": 11
+    },
+    {
+      "venueId": "SC-C0999",
+      "name": "อัลไล วิลเลจ ทาวน์ อิน ทาวน์",
+      "directoryEntries": 8,
+      "shownByRoster": 1,
+      "directoryItems": 7,
+      "rosterItems": 3,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "VN-909d444f9f798b",
+      "name": "RQ49 Mall",
+      "directoryEntries": 8,
+      "shownByRoster": 0,
+      "directoryItems": 8,
+      "rosterItems": 0,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-C0468",
+      "name": "ศูนย์การค้าอัลไล วิลเลจ นอร์ท ราชพฤกษ์",
+      "directoryEntries": 7,
+      "shownByRoster": 0,
+      "directoryItems": 7,
+      "rosterItems": 0,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "VN-3321e200e1c19c",
+      "name": "มาร์เช่ ทองหล่อ",
+      "directoryEntries": 7,
+      "shownByRoster": 2,
+      "directoryItems": 5,
+      "rosterItems": 7,
+      "shownTotal": 12
+    },
+    {
+      "venueId": "SC-001291",
+      "name": "อัลไล วิลเลจ พาร์ค สามย่าน",
+      "directoryEntries": 6,
+      "shownByRoster": 0,
+      "directoryItems": 6,
+      "rosterItems": 0,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-006455",
+      "name": "ศูนย์การค้าเดอะคริสตัล ชัยพฤกษ์",
+      "directoryEntries": 6,
+      "shownByRoster": 1,
+      "directoryItems": 5,
+      "rosterItems": 1,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-C0596",
+      "name": "โรบินสันไลฟ์สไตล์ ฉลอง",
+      "directoryEntries": 6,
+      "shownByRoster": 3,
+      "directoryItems": 3,
+      "rosterItems": 7,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-C2261",
+      "name": "สุนีย์ทาวเวอร์",
+      "directoryEntries": 6,
+      "shownByRoster": 1,
+      "directoryItems": 5,
+      "rosterItems": 2,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-000324",
+      "name": "อัลไล วิลเลจ อมอรินี่",
+      "directoryEntries": 5,
+      "shownByRoster": 0,
+      "directoryItems": 5,
+      "rosterItems": 1,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-000505",
+      "name": "ศูนย์การค้าอัลไล วิลเลจ สรงประภา",
+      "directoryEntries": 5,
+      "shownByRoster": 0,
+      "directoryItems": 5,
+      "rosterItems": 0,
+      "shownTotal": 5
+    },
+    {
+      "venueId": "SC-C1965",
+      "name": "เดอะเทิร์ดเพลส",
+      "directoryEntries": 5,
+      "shownByRoster": 0,
+      "directoryItems": 5,
+      "rosterItems": 1,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-06699",
+      "name": "ท็อปส์ พลาซ่า พะเยา",
+      "directoryEntries": 5,
+      "shownByRoster": 1,
+      "directoryItems": 4,
+      "rosterItems": 5,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-001701",
+      "name": "มาร์เก็ต เพลส วงศ์สว่าง",
+      "directoryEntries": 4,
+      "shownByRoster": 3,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-C0053",
+      "name": "โรบินสัน ไลฟ์สไตล์ ลพบุรี",
+      "directoryEntries": 4,
+      "shownByRoster": 2,
+      "directoryItems": 2,
+      "rosterItems": 8,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-SM-04347",
+      "name": "โลตัส รังสิต",
+      "directoryEntries": 4,
+      "shownByRoster": 2,
+      "directoryItems": 2,
+      "rosterItems": 9,
+      "shownTotal": 11
+    },
+    {
+      "venueId": "SC-SM-04355",
+      "name": "โลตัส พลัส อุดร",
+      "directoryEntries": 4,
+      "shownByRoster": 2,
+      "directoryItems": 2,
+      "rosterItems": 6,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04356",
+      "name": "โลตัส พระราม 3",
+      "directoryEntries": 4,
+      "shownByRoster": 1,
+      "directoryItems": 3,
+      "rosterItems": 5,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-000426",
+      "name": "ศูนย์การค้ายูเนี่ยนมอลล์",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 9,
+      "shownTotal": 12
+    },
+    {
+      "venueId": "SC-000934",
+      "name": "ศูนย์การค้าเกทเวย์ แอท บางซื่อ",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 7,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-001092",
+      "name": "มาร์เก็ตเพลส เทพรักษ์",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 5,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-C0025",
+      "name": "ซีดีซี คริสตัล ดีไซน์ เซ็นเตอร์",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 6,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-C0079",
+      "name": "โรบินสัน ไลฟ์สไตล์ ลาดกระบัง",
+      "directoryEntries": 3,
+      "shownByRoster": 2,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-C0252",
+      "name": "โรบินสัน ไลฟ์สไตล์ สุพรรณบุรี",
+      "directoryEntries": 3,
+      "shownByRoster": 1,
+      "directoryItems": 2,
+      "rosterItems": 9,
+      "shownTotal": 11
+    },
+    {
+      "venueId": "SC-C1632",
+      "name": "อาคารมิดทาวน์",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 0,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "SC-C2661",
+      "name": "โรบินสัน ไลฟ์สไตล์ ร้อยเอ็ด",
+      "directoryEntries": 3,
+      "shownByRoster": 3,
+      "directoryItems": 0,
+      "rosterItems": 9,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-SM-04215",
+      "name": "โลตัส ลาดกระบัง",
+      "directoryEntries": 3,
+      "shownByRoster": 2,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-04262",
+      "name": "โลตัส คลองหลวง",
+      "directoryEntries": 3,
+      "shownByRoster": 2,
+      "directoryItems": 1,
+      "rosterItems": 9,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-SM-04319",
+      "name": "โลตัส ศาลายา",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 5,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04322",
+      "name": "โลตัส บางปู",
+      "directoryEntries": 3,
+      "shownByRoster": 2,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04344",
+      "name": "โลตัส ลาดพร้าว",
+      "directoryEntries": 3,
+      "shownByRoster": 2,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "VN-1e014bc478ff90",
+      "name": "มิงเกิ้ล ฮิลล์ มีนบุรี",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 0,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "VN-6e04d3285f71d8",
+      "name": "โลตัส ศรีราชา",
+      "directoryEntries": 3,
+      "shownByRoster": 2,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "VN-81603d67e7a34a",
+      "name": "เดอะ ปาร์ค ไลฟ์",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 0,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "VN-937423fcb7000f",
+      "name": "เดอะ พอร์ทอล ไลฟ์สไตล์ คอมเพล็กซ์",
+      "directoryEntries": 3,
+      "shownByRoster": 0,
+      "directoryItems": 3,
+      "rosterItems": 0,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "SC-001237",
+      "name": "จามจุรีสแควร์",
+      "directoryEntries": 2,
+      "shownByRoster": 2,
+      "directoryItems": 0,
+      "rosterItems": 7,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-001292",
+      "name": "สเตเดียมวัน",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-001370",
+      "name": "แอม ไชน่าทาวน์",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-001523",
+      "name": "ดิอัพ พระราม 3",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-001528",
+      "name": "มาร์เก็ต เพลส นางลิ้นจี่",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-001554",
+      "name": "เซ็นเตอร์วัน ช้อปปิ้ง พลาซ่า",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-001904",
+      "name": "สายไหม อเวนิว",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-002961",
+      "name": "แฟรี่พลาซ่า",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 2,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "SC-005792",
+      "name": "สหไทย พลาซ่า ทุ่งสง",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 1,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "SC-005923",
+      "name": "สหไทย พลาซ่า นครศรีธรรมราช",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 2,
+      "shownTotal": 4
+    },
+    {
+      "venueId": "SC-006349",
+      "name": "เดอะ คริสตัล เอสบี ราชพฤกษ์",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-007322",
+      "name": "เอ็มที คูคต ไลฟ์สไตล์มอลล์",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-009062",
+      "name": "เดอะพลาซ่าสุรินทร์",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-010097",
+      "name": "ซีเค พลาซ่า ระยอง",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-014957",
+      "name": "วายสแควร์",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-C0253",
+      "name": "เอ สแควร์",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-C0288",
+      "name": "โรบินสันไลฟ์สไตล์ ฉะเชิงเทรา",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 4,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-C0714",
+      "name": "พรีเมียร์ เพลส ศรีนครินทร์",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-C0789",
+      "name": "ทิพย์พลาซ่า พัทยา",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 0,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-C0857",
+      "name": "เดอะ แจส รามอินทรา",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 3,
+      "shownTotal": 5
+    },
+    {
+      "venueId": "SC-C1174",
+      "name": "เอ็นมาร์คพลาซ่า บางกะปิ",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 2,
+      "shownTotal": 4
+    },
+    {
+      "venueId": "SC-C2584",
+      "name": "โรบินสัน ไลฟ์สไตล์ สุรินทร์",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 8,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-C3836",
+      "name": "โรบินสัน ไลฟ์สไตล์ บ่อวิน",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-04182",
+      "name": "โลตัส กระทุ่มแบน",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-SM-04230",
+      "name": "โลตัส บางกรวย ไทรน้อย",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 8,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-SM-04303",
+      "name": "โลตัส สุขาภิบาล 3",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 8,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-SM-04308",
+      "name": "โลตัส ลำลูกกา คลอง2",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-SM-04324",
+      "name": "โลตัส นครชัยศรี",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 6,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04326",
+      "name": "โลตัส สามพราน",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 9,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-SM-04335",
+      "name": "โลตัส รังสิตนครนายก",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 8,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-SM-04337",
+      "name": "โลตัส จรัญสนิทวงศ์",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-SM-04341",
+      "name": "โลตัส นครปฐม",
+      "directoryEntries": 2,
+      "shownByRoster": 0,
+      "directoryItems": 2,
+      "rosterItems": 7,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-SM-04352",
+      "name": "โลตัส บางนา-ตราด",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-04361",
+      "name": "โลตัส หลักสี่",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04362",
+      "name": "โลตัส สุขุมวิท 50",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 8,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-SM-04365",
+      "name": "โลตัส บางแค",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-SM-04369",
+      "name": "โลตัส สุขาภิบาล 1",
+      "directoryEntries": 2,
+      "shownByRoster": 1,
+      "directoryItems": 1,
+      "rosterItems": 9,
+      "shownTotal": 10
+    },
+    {
+      "venueId": "SC-000218",
+      "name": "เสนา เฟสท์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-000244",
+      "name": "แพลทฟอร์ม วงเวียนใหญ่",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-000322",
+      "name": "ศูนย์การค้าเกทเวย์ เอกมัย",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 7,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-000356",
+      "name": "บ็อคซ์ สเปซ รัชโยธิน",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-000612",
+      "name": "มาร์เก็ตเพลส ดุสิต",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-000750",
+      "name": "วังหลังพลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-001086",
+      "name": "เพลินนารี่ มอลล์ วัชรพล",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-001173",
+      "name": "ทีพาร์ค สาย 2",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-001421",
+      "name": "ดิโอลด์สยามพลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 6,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-001422",
+      "name": "ยอดพิมาน ริเวอร์วอล์ค",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-001468",
+      "name": "เมโทร ทาวน์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-001569",
+      "name": "เซ็นจูรี่ เดอะ มูฟวี่ พลาซ่า อนุสาวรีย์ชัยสมรภูมิ",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 6,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-001706",
+      "name": "วัน คูล อเวนิว",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-001730",
+      "name": "พาร์คเลน",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-002201",
+      "name": "ทีเอ็มเค พาร์ค กาญจนบุรี",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-006150",
+      "name": "เดอะวอล์ค นครสวรรค์",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 6,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-006255",
+      "name": "วี-สแควร์ พลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 6,
+      "shownTotal": 7
+    },
+    {
+      "venueId": "SC-006395",
+      "name": "เฟิร์ส อเวนิว",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-006555",
+      "name": "ลิตเติ้ลวอล์ค รัตนาธิเบศร์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-008636",
+      "name": "แฮปปี้ พลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 4,
+      "shownTotal": 4
+    },
+    {
+      "venueId": "SC-008955",
+      "name": "เซ็นทรัล ป่าตอง",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-009492",
+      "name": "เสริมไทย พลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-009799",
+      "name": "ศูนย์การค้าโคลีเซียมยะลา",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-010140",
+      "name": "อีซี่พลาซ่า 1",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-011477",
+      "name": "ซุ่นเฮงพลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-011823",
+      "name": "ลีการ์เด้นส์ พลาซ่า",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-014673",
+      "name": "ศรีพงษ์พาร์ค",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 2,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-015503",
+      "name": "เมตามอลล์ เชียงใหม่",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-015966",
+      "name": "วาซาบิพาร์ค",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-C0200",
+      "name": "เดอะพาร์ค กรุงเทพกรีฑา",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-C0368",
+      "name": "ลิตเติ้ลวอล์ค พัทยา",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 3,
+      "shownTotal": 4
+    },
+    {
+      "venueId": "SC-C0760",
+      "name": "เดอะ แจส วังหิน",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-C0773",
+      "name": "วันนิมมาน",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 8,
+      "shownTotal": 9
+    },
+    {
+      "venueId": "SC-C0991",
+      "name": "ฮาร์เบอร์ พัทยา",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-C1232",
+      "name": "เดอะฟิล",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "SC-C1255",
+      "name": "มะลิเพลส",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-C1436",
+      "name": "Inncome Community Mall",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "SC-SM-04187",
+      "name": "โลตัส กำแพงแสน",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-04279",
+      "name": "โลตัส พัฒนาการ",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 8,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04286",
+      "name": "โลตัส นครอินทร์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 5,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-04325",
+      "name": "โลตัส ซิตี้ พาร์ค บางพลี",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 6,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "SC-SM-04327",
+      "name": "โลตัส รังสิต คลอง7",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 8,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04363",
+      "name": "โลตัส แจ้งวัฒนะ",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 8,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "SC-SM-04372",
+      "name": "โลตัส พระราม 2",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 7,
+      "shownTotal": 8
+    },
+    {
+      "venueId": "VN-048ae113f08be8",
+      "name": "@Curve Community & Education Mall",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-2035b1282089fe",
+      "name": "เดอะ เซ้นส์ ปิ่นเกล้า",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-23c2cdf592bb54",
+      "name": "ดาดฟ้า ลาซาล",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 1,
+      "shownTotal": 2
+    },
+    {
+      "venueId": "VN-2f298d43d0f908",
+      "name": "Well Aesthetic & Wellness Center",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-2fddcfa7fc06ec",
+      "name": "สุขอนันต์ปาร์ค สระบุรี",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-5cfea32124d5f8",
+      "name": "ทรี ออน ธรี",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-76b3c63823c8d2",
+      "name": "แจส เออเบิร์น ศรีนครินทร์",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 6,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "VN-a0aaf9bc12b6ee",
+      "name": "The Pocket Park Onnut",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-af6f8f302b8c83",
+      "name": "ไลฟ์ รามอินทรา",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 2,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "VN-c35311e456ef98",
+      "name": "BigC บางนา",
+      "directoryEntries": 1,
+      "shownByRoster": 1,
+      "directoryItems": 0,
+      "rosterItems": 6,
+      "shownTotal": 6
+    },
+    {
+      "venueId": "VN-c5f415de3147f3",
+      "name": "พื้นที่ค้าปลีกโพธาลัย กอล์ฟ พาร์ค",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-cc97cf94acc741",
+      "name": "ซัมเมอร์ พ้อยท์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-d78e4bb22ab251",
+      "name": "บีไฮฟ์ ไลฟ์สไตล์ มอลล์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
+    },
+    {
+      "venueId": "VN-e08c399f3164d8",
+      "name": "ลิตเติ้ลวอล์ค พรานนก-พุทธมณฑล",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 2,
+      "shownTotal": 3
+    },
+    {
+      "venueId": "VN-f4c819a2f8f140",
+      "name": "ศรีสกล มอลล์",
+      "directoryEntries": 1,
+      "shownByRoster": 0,
+      "directoryItems": 1,
+      "rosterItems": 0,
+      "shownTotal": 1
     }
   ],
   "unit": "one entry = one listed name on one floor and unit of one centre; repeats of the same name, floor and unit are one entry",
@@ -634,24 +2356,5 @@
     "A directory omission is not a closure; a centre without a collected directory has no directory items.",
     "Same-name matching against the brand roster is a display rule, not an identity merge; the research sheet keeps both records.",
     "Brand ids and logos only for brand matches the sheet confirmed; candidates stay unlinked."
-  ],
-  "coreRebind": {
-    "previousCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
-    "venues": [
-      "SC-007245",
-      "VN-7bb5b3abd9f811",
-      "VN-a263de54d31372",
-      "VN-c87c200db5d079"
-    ],
-    "changedFields": [
-      "districtCode",
-      "lat",
-      "located",
-      "lon",
-      "provinceCode"
-    ],
-    "reason": "points-only export of 2026-11-20: four counted venues placed at the points the owner approved (11:57); the 18_OFFICIAL_TENANTS export of 2026-11-07 is not kept, and the tab has grown since, so the directory is not rebuilt",
-    "on": "2026-11-20",
-    "check": "no placed venue is a directory host, a registered child zone or a coverage row; shards and counts unchanged"
-  }
+  ]
 }

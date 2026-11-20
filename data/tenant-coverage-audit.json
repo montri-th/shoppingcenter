@@ -66,24 +66,55 @@
   "publicRosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "publicRosterShardCount": 32,
   "reviewedMembershipReceiptSha256": "401eba8affa0d2780f61d363b4fc41cd56f3bb1a3332d073675590aa220362e9",
-  "venueCoreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
+  "venueCoreSha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9",
   "sourceBaselineCommit": "25a9337707bc93ea70046f57b3319a5aed0ced15",
   "venueCoreRefresh": {
     "on": "2026-11-20",
     "by": "scripts/refresh-coverage-receipt.py",
-    "reason": "points-only export of 2026-11-20: four counted venues placed at points the owner approved (11:57); the roster and every other venue field are unchanged",
+    "reason": "full export of the Research Master of 2026-11-20 (release 0.9.1): one venue added (Chatuchak Weekend Market) and two operation groups read from new operation evidence; the roster is unchanged",
     "auditedCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
-    "previousCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
-    "coreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
-    "rowsChanged": 4,
+    "previousCoreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
+    "coreSha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9",
+    "rowsChanged": 2,
+    "rowsAdded": 1,
     "fieldsChanged": [
-      "districtCode",
-      "lat",
-      "located",
-      "lon",
-      "provinceCode"
+      "operationGroup"
     ],
     "rosterUnchanged": true,
+    "ownerRefresh": {
+      "decision": "Owner 2026-11-20 14:46 (VERBATIM): \"update เลย\", then chose \"ทุกอย่างที่ชีตมีตอนนี้ (Recommended)\": publish the venue rows the Research Master holds now (export 2026-11-20); the rows added after the 7 Nov audit stay out of its counts until the next private audit with the research team native snapshot",
+      "added": [
+        {
+          "venueId": "VN-f09755b5dbf43a",
+          "name": "ตลาดนัดจตุจักร",
+          "group": "market",
+          "countable": true,
+          "status": "supply",
+          "storeCount": 0
+        }
+      ],
+      "changed": [
+        {
+          "venueId": "SC-001422",
+          "fieldsChanged": [
+            "operationGroup"
+          ],
+          "operationGroup": "operating_source_evidence"
+        },
+        {
+          "venueId": "SC-C1291",
+          "fieldsChanged": [
+            "operationGroup"
+          ],
+          "operationGroup": "operating_source_evidence"
+        }
+      ],
+      "registryRows": {
+        "previous": 11139,
+        "now": 11142
+      },
+      "note": "rows the registry gained after the audit asOf and fields no part of the accounting reads; the coverage counts above are still the audit's own (asOf), and the next private audit reads these rows"
+    },
     "history": [
       {
         "on": "2026-11-08",
@@ -102,6 +133,12 @@
         "previousCoreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
         "coreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
         "rowsChanged": 26
+      },
+      {
+        "on": "2026-11-20",
+        "previousCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+        "coreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
+        "rowsChanged": 4
       }
     ]
   }
