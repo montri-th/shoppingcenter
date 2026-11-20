@@ -1,12 +1,12 @@
 {
  "schema": "citymeter-venue-locale-serving/1",
- "bundleId": "venue-locale-shopping-20261120-v0.2.1-rc1-web",
- "createdAt": "2026-11-20T06:04:50Z",
+ "bundleId": "venue-locale-shopping-20261120-v0.2.2-rc1-web",
+ "createdAt": "2026-11-20T08:53:13Z",
  "asOf": "2026-11-20",
  "release": {
-  "id": "venue-locale-shopping-20261120-v0.2.1-rc1",
+  "id": "venue-locale-shopping-20261120-v0.2.2-rc1",
   "status": "release_candidate",
-  "manifestSha256": "6cdc8b40c69dd2598a2e1477dfda0003f264d88b4828c2ffd0a1eb75cc4ce7ca",
+  "manifestSha256": "c0fa67d003f2f5ddd93f2d2c2516c8eb0f31bcdd8c5526fa9bbb23499fb29168",
   "schema": "venue_locale_schema_v1",
   "blockingIssues": 12
  },
@@ -44,7 +44,7 @@
  },
  "reference": {
   "n": 488,
-  "release": "venue-locale-shopping-20261118-v0.2.0-rc1",
+  "release": "venue-locale-shopping-20261120-v0.2.1-rc1",
   "asOf": "2026-11-18",
   "added": [
    "SC-007245",
@@ -1828,19 +1828,19 @@
     "CityMETER Shopping Center",
     "CityMETER Shopping Center"
    ],
-   "sourceRef": "montri-th/shoppingcenter@3711e6e621aae2895525ea90f459ebc8ffbf0b14:data/venues.json",
+   "sourceRef": "montri-th/shoppingcenter@46b74914f3181e0fde412ed999524ba7037e9a8e:data/venues.json",
    "sourceKind": "demo",
    "link": "https://citymeter.pages.dev/shoppingcenter/",
-   "date": "2026-11-07",
+   "date": "2026-11-08",
    "scope": [
     "สถานที่ค้าปลีกที่นับได้และแหล่งยังระบุว่าเปิด (ศูนย์การค้า ตลาด ห้าง และสถานีบริการที่มีร้านค้า)",
     "countable retail places the source still lists as operating (malls, markets, stores and fuel stations with shops)"
    ],
    "brands": null,
-   "eligible": 6153,
-   "located": 6141,
+   "eligible": 6154,
+   "located": 6146,
    "unlocatedByProvince": {
-    "_unknown_province": 12
+    "_unknown_province": 8
    },
    "subgroups": [
     [

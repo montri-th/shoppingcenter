@@ -11,8 +11,8 @@ Inputs (all already published in this repository; nothing is fetched):
   data/residents/   registered residents within 1 · 3 · 5 km (modelled) and their mid-rank percentiles among the 488
                     located centers of the rank reference and the same type (written by scripts/build-residents.py)
   data/locale/      the generated prior of the group “คนทำงานและผู้เดินทาง” (priors/NN.json seg.workers: level, score =
-                    mean of the two highest signal percentiles, the signals) of release
-                    venue-locale-shopping-20261120-v0.2.1-rc1
+                    mean of the two highest signal percentiles, the signals) of the release that data/locale/meta.json
+                    names (venue-locale-shopping-20261120-v0.2.2-rc1 since release 0.9.1; its priors are those of v0.2.1)
   data/venues.json  which centers are located, and their type
 
 Published per located center: [type, x of 1 · 3 · 5 km among all, x among the type, y among all, y among the type]
