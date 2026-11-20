@@ -15,6 +15,8 @@
  * never set here. Tiles: © OpenMapTiles © OpenStreetMap contributors, served by
  * OpenFreeMap (https://openfreemap.org) — attribution flows from the TileJSON.
  */
+import {LANG} from './shell/i18n.js';
+
 export const TILEJSON_URL = 'https://tiles.openfreemap.org/planet';
 export const GLYPHS_URL = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 export const SOURCE_ID = 'openmaptiles';
@@ -62,7 +64,11 @@ export function basemapPalette(theme = 'light') {
 const poly = ['match', ['geometry-type'], ['Polygon', 'MultiPolygon'], true, false];
 const line = ['match', ['geometry-type'], ['LineString', 'MultiLineString'], true, false];
 const cls = (...values) => ['match', ['get', 'class'], values, true, false];
-const name = ['coalesce', ['get', 'name:th'], ['get', 'name']];
+// Label names (0.9.4): Thai pages read the tiles' Thai name; English pages read the English name the tiles carry, else
+// their Latin spelling, else the local name (owner 2026-11-20 19:35: “mode ภาษาอังกฤษใช้ไม่ได้” — the basemap stayed Thai).
+const NAME_TH = ['coalesce', ['get', 'name:th'], ['get', 'name']];
+const NAME_EN = ['coalesce', ['get', 'name:en'], ['get', 'name_en'], ['get', 'name_int'], ['get', 'name:latin'], ['get', 'name']];
+export const labelName = (lang = LANG) => (lang === 'en' ? NAME_EN : NAME_TH);
 const zoomWidth = (base, pairs) => ['interpolate', ['exponential', base], ['zoom'], ...pairs.flat()];
 
 function roadLayers(p) {
@@ -94,7 +100,7 @@ function roadLayers(p) {
   ];
 }
 
-function labelLayers(p) {
+function labelLayers(p, name = labelName()) {
   const halo = {'text-halo-color': p.halo, 'text-halo-width': 1.2, 'text-halo-blur': 0.6};
   return [
     {id: 'water-name', type: 'symbol', source: SOURCE_ID, 'source-layer': 'water_name', minzoom: 11,
@@ -121,7 +127,7 @@ function labelLayers(p) {
  * buildings (2D) → [massing tiers are inserted before FIRST_LINE_LAYER by the
  * app] → roads → rail/transit → labels.
  */
-export function buildMapStyle(theme = 'light', {palette = basemapPalette(theme), tileJSON = TILEJSON_URL, glyphs = GLYPHS_URL} = {}) {
+export function buildMapStyle(theme = 'light', {palette = basemapPalette(theme), tileJSON = TILEJSON_URL, glyphs = GLYPHS_URL, lang = LANG} = {}) {
   const p = palette;
   return {
     version: 8,
@@ -152,7 +158,7 @@ export function buildMapStyle(theme = 'light', {palette = basemapPalette(theme),
       {id: 'aeroway-runway', type: 'line', source: SOURCE_ID, 'source-layer': 'aeroway', minzoom: 11, filter: ['all', line, cls('runway', 'taxiway')], paint: {'line-color': p.road, 'line-width': zoomWidth(1.4, [[11, 1], [18, 20]])}},
       {id: 'pier', type: 'fill', source: SOURCE_ID, 'source-layer': 'transportation', filter: ['all', poly, cls('pier')], paint: {'fill-color': p.road}},
       ...roadLayers(p),
-      ...labelLayers(p),
+      ...labelLayers(p, labelName(lang)),
     ],
   };
 }

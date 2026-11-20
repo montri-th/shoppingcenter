@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildMapStyle, basemapPalette, SOURCE_ID, DATA_FILL_BEFORE, MASSING_BEFORE, FIRST_LINE_LAYER, FIRST_LABEL_LAYER} from '../js/map-style.js';
+import {buildMapStyle, basemapPalette, labelName, SOURCE_ID, DATA_FILL_BEFORE, MASSING_BEFORE, FIRST_LINE_LAYER, FIRST_LABEL_LAYER} from '../js/map-style.js';
 import {buildBreadcrumb, renderBreadcrumb, breadcrumbText} from '../js/breadcrumb.js';
 import {presetFor, CAMERA, DEFAULT_FOV} from '../js/camera.js';
 import {PROVINCES, provinceByCode} from '../js/model.js';
@@ -79,4 +79,20 @@ test('camera presets: 2D plan, 3D city overview, upright-vertical model close-up
   assert.ok(CAMERA.model.fov < DEFAULT_FOV / 2, 'narrow field of view ≈ axonometric');
   assert.ok(CAMERA.eye.pitch <= 90 - CAMERA.eye.fov / 2 - 2, 'two-point: the horizon stays outside the frame (MapLibre 5.6.2 draws fill-extrusion wrongly once it enters)');
   assert.ok(CAMERA.eye.pitch >= 72 && CAMERA.eye.fov <= 26, 'strongly pitched, narrow field of view → verticals near-parallel');
+});
+
+test('basemap labels follow the page language: Thai names on Thai pages, English (else Latin) on English pages (0.9.4)', () => {
+  const fieldOf = layer => JSON.stringify(layer.layout['text-field']);
+  for (const theme of ['light', 'dark']) {
+    const th = buildMapStyle(theme, {lang: 'th'}).layers.filter(l => l.type === 'symbol');
+    const en = buildMapStyle(theme, {lang: 'en'}).layers.filter(l => l.type === 'symbol');
+    assert.ok(th.length >= 5 && th.length === en.length, 'water, road and place labels in both languages');
+    for (const l of th) assert.equal(fieldOf(l), JSON.stringify(labelName('th')), `${l.id} reads the Thai name`);
+    for (const l of en) assert.equal(fieldOf(l), JSON.stringify(labelName('en')), `${l.id} reads the English name`);
+  }
+  assert.deepEqual(labelName('th').slice(0, 2), ['coalesce', ['get', 'name:th']]);
+  assert.deepEqual(labelName('en').slice(0, 3), ['coalesce', ['get', 'name:en'], ['get', 'name_en']]);
+  assert.deepEqual(labelName('en').at(-1), ['get', 'name'], 'a feature with no English or Latin name keeps its local name');
+  assert.equal(JSON.stringify(buildMapStyle('light').layers.find(l => l.type === 'symbol').layout['text-field']), JSON.stringify(labelName('th')),
+    'without ?lang=en (Node, Thai pages) the style reads Thai');
 });

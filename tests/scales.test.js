@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {DENSITY_SCALE, COUNT_SCALE, RAMP_STEPS, classColors, buildRamp, rampTicks, rampLegendHTML, classify, contrastRatio, inkFor, needsPlate, roundSig, formatDensity} from '../js/scales.js';
+import {DENSITY_SCALE, COUNT_SCALE, ACTIVITY_SCALE, RAMP_STEPS, classColors, buildRamp, rampTicks, rampLegendHTML, classify, contrastRatio, inkFor, needsPlate, roundSig, formatDensity} from '../js/scales.js';
 
 test('LUTs are the exact 41-sample LDS tables; anchors at 0 / 20 / 40; same values on both themes', () => {
-  for (const s of [DENSITY_SCALE, COUNT_SCALE]) {
+  for (const s of [DENSITY_SCALE, COUNT_SCALE, ACTIVITY_SCALE]) {
     assert.equal(s.lut.length, 41);
     assert.deepEqual([s.lut[0], s.lut[20], s.lut[40]], s.anchors);
     assert.ok(s.lut.every(c => /^#[0-9A-F]{6}$/.test(c)));
@@ -12,12 +12,17 @@ test('LUTs are the exact 41-sample LDS tables; anchors at 0 / 20 / 40; same valu
   }
   assert.equal(DENSITY_SCALE.scaleVersion, '554812a7c19107b3a9b8658ba541fc8e13519cb19708e885a425f32d5b30f101');
   assert.equal(COUNT_SCALE.scaleVersion, '4ff5c1fb4be71ecd13c48685b38371b528bcd4ce369ce964a75354c2eb4d0980');
+  // activity (0.9.4, the visitors map; owner exception 2026-11-20): LDS 0.9.7 machine.analyticalScales.scales[0]
+  assert.equal(ACTIVITY_SCALE.scaleVersion, 'b1cf83edb8a7a0ad787c032feae9d65fa3a1674daf419412c7e6db78cddfb485');
+  assert.deepEqual(ACTIVITY_SCALE.anchors, ['#F1F5E5', '#60C9AD', '#25659A']);
 });
 
 test('class picks equal the LDS class tables (machine.analyticalScales …classes) for static tokens', () => {
   assert.deepEqual(classColors(5, DENSITY_SCALE), ['#FFF1D9', '#F3CF8F', '#E6AB30', '#DF8720', '#D6600C']);
   assert.deepEqual(classColors(3, DENSITY_SCALE), ['#FFF1D9', '#E6AB30', '#D6600C']);
   assert.deepEqual(classColors(5, COUNT_SCALE), ['#F4F0E7', '#BAD5D4', '#7DBAC0', '#4C7A98', '#213E70']);
+  assert.deepEqual(classColors(5, ACTIVITY_SCALE), ['#F1F5E5', '#AEDFC9', '#60C9AD', '#4097A6', '#25659A']);
+  assert.deepEqual(classColors(9, ACTIVITY_SCALE), ['#F1F5E5', '#D0EAD7', '#AEDFC9', '#8AD4BB', '#60C9AD', '#4FB0AA', '#4097A6', '#317EA0', '#25659A']);
   assert.throws(() => classColors(4));
   const theme = readFileSync(new URL('../assets/theme.css', import.meta.url), 'utf8');
   for (const [i, c] of classColors(5, COUNT_SCALE).entries()) assert.ok(theme.includes(`--scale-count-${i + 1}: ${c};`));

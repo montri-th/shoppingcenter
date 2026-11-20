@@ -4,7 +4,7 @@
 // nadir, bearing clockwise from north), so the algorithm is checked without a browser.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {wallAzimuth, twoPointBearing, occlusionScore, fitBuilding, screenBounds, CAMERA, cornersInside} from '../js/camera.js';
+import {wallAzimuth, twoPointBearing, occlusionScore, fitBuilding, screenBounds, CAMERA, cornersInside, fitInBox} from '../js/camera.js';
 
 const RAD = Math.PI / 180;
 const LON = 100.544, LAT = 13.744;
@@ -134,4 +134,34 @@ test('containment: inside the padded viewport and out from under each avoid box 
   assert.equal(cornersInside(map, [[100, 250]], pad, legend), false, 'under the legend');
   assert.equal(cornersInside(map, [[200, 250], [100, 150]], pad, legend), true, 'beside or above it');
   assert.equal(cornersInside(map, [[100, 250]], pad), true, 'no avoid box: the old rule');
+});
+
+test('first view (0.9.4): the highlighted districts fill the free map box, centred, every vertex inside', () => {
+  // A band of three districts about 9 × 4 km laid along the Siam–Phrom Phong axis, as on the Bangkok first view.
+  const band = rect(9000, 4000, 120).slice(0, 4);
+  const bigger = [...band, ...rect(3000, 2500, 120, [-4200, 1500]).slice(0, 4)];
+  for (const [width, height, preset] of [[1270, 771, 'city'], [1040, 635, 'city'], [390, 640, 'cityPortrait'], [1270, 771, 'plan']]) {
+    for (const points of [band, bigger]) {
+      const {map} = fakeMap({width, height});
+      const box = {left: 12, top: 62, right: width - 60, bottom: height - (height > 700 ? 190 : 120)};
+      const before = {center: map.getCenter(), zoom: map.getZoom()};
+      const cam = fitInBox(map, points, {preset, box, maxZoom: 16.5, minZoom: 4.5});
+      assert.ok(cam, `${width} × ${height} ${preset}: a camera`);
+      assert.deepEqual({center: map.getCenter(), zoom: map.getZoom()}, before, 'the start camera is restored');
+      map.jumpTo(cam);
+      const xs = [], ys = [];
+      for (const q of points) { const s = map.project(q); xs.push(s.x); ys.push(s.y); }
+      const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+      assert.ok(x0 >= box.left && x1 <= box.right && y0 >= box.top && y1 <= box.bottom, `${width} × ${height} ${preset}: every vertex inside the box`);
+      const fill = Math.max((x1 - x0) / (box.right - box.left), (y1 - y0) / (box.bottom - box.top));
+      assert.ok(fill > 0.95, `${width} × ${height} ${preset}: the area spans the box (${fill.toFixed(3)})`);
+      const dx = (x0 + x1) / 2 - (box.left + box.right) / 2, dy = (y0 + y1) / 2 - (box.top + box.bottom) / 2;
+      const loose = (x1 - x0) / (box.right - box.left) < 0.99 ? Math.abs(dx) : Math.abs(dy);
+      assert.ok(loose < 3, `${width} × ${height} ${preset}: centred in the box (${dx.toFixed(1)}, ${dy.toFixed(1)})`);
+      assert.equal(cam.pitch, CAMERA[preset].pitch);
+    }
+  }
+  const {map} = fakeMap();
+  assert.equal(fitInBox(map, [], {box: {left: 0, top: 0, right: 100, bottom: 100}}), null, 'no points, no camera');
+  assert.equal(fitInBox(map, band, {box: {left: 0, top: 0, right: 0, bottom: 100}}), null, 'an empty box, no camera');
 });

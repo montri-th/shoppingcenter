@@ -25,7 +25,7 @@ same frame as the subdistrict outlines `o` of data/residents):
   s  the operating stations within 5 km, [[x, y], …] nearest first
   L  labels [[kind, x, y, align, th, en], …] — kind road · river · station; align c (centred) · l · r (beside the
      point); at most 4 roads, 1 river and 3 stations, placed so that on a 360 px map no two overlap, none leaves the
-     circle and none covers the center point or the ring labels; the nearest station is named first
+     circle and none covers the center pin or the ring labels; the nearest station is named first
 
 Lines are simplified to SIMPLIFY_M before rounding to the 25 m grid. These are lines to read the map by, not a
 network to measure on. Writing the same inputs again gives the same bytes.
@@ -61,6 +61,9 @@ CLASS_WEIGHT = (0.8, 1.0, 1.0, 0.75)
 NEAR_M = 3000
 LABEL_RING_M = (900, 4500, 2000)  # a name sits between 0.9 and 4.5 km from the center, nearest 2 km first
 CENTER_CLEAR_M = 150  # no name over the center point (owner 2026-11-20 17:19 review: the station at the center was not named)
+# The center pin the page draws (0.9.4, owner 2026-11-20 19:35: “ขอปรับจุดของ venue ให้แสดงได้ชัดขึ้นหน่อย”): its tip at the
+# center, a head of 0.8 cell (200 m) radius 1.5 cells (375 m) above it, and its halo; no name covers it.
+PIN_HALF_W_M, PIN_TOP_M = 270, 650
 
 
 def fail(msg):
@@ -203,12 +206,13 @@ def label_size(th, en):
 
 
 def fixed_obstacles():
-    """The center point and the ring labels the page draws (translate(2px, −100%) from the 45° point of each ring). The
-    point is a dot of 105 m (r 0.42 of a 250 m cell): a name keeps CENTER_CLEAR_M from the center, so the station a
-    center stands at can be named beside it."""
+    """The center pin and the ring labels the page draws (translate(2px, −100%) from the 45° point of each ring). A name
+    keeps CENTER_CLEAR_M from the center and stays off the pin above it (PIN_HALF_W_M either side, PIN_TOP_M up), so the
+    station a center stands at can be named beside it."""
     bx = Boxes()
     c = CENTER_CLEAR_M / UNIT_M
     bx.add((-c, -c, c, c))
+    bx.add((-PIN_HALF_W_M / UNIT_M, -PIN_TOP_M / UNIT_M, PIN_HALF_W_M / UNIT_M, c))
     for r in RING_LABEL_M:
         x = (r / UNIT_M) * math.sqrt(0.5)
         w, h = (5 * CHAR_PX + 10) * U_PER_PX, LINE_PX * U_PER_PX
