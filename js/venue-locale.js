@@ -24,7 +24,7 @@
  *
  * Pure renderers (HTML strings, panel.js conventions) + a lazy amCharts dot plot with an HTML fallback.
  */
-import {COUNT_SCALE} from './scales.js';
+import {COUNT_SCALE, buildRamp, classify, rampLegendHTML} from './scales.js';
 import {shardOf} from './details.js';
 import {provinceByCode, BANGKOK, districtWord} from './model.js';
 import {loadAmCharts, makeChartRoot, chartTokens} from './charts.js';
@@ -101,9 +101,25 @@ export async function loadLocalePriors(id, {shards = 64, fetchImpl = (...a) => f
 export const cachedLocalePriors = (id, shards = 64) => resolved.get(localeShardPath('priors', id, shards))?.venues?.[id] || null;
 export const cachedLocaleSignals = (id, shards = 64) => resolved.get(localeShardPath('signals', id, shards))?.venues?.[id] || null;
 
+/**
+ * Registered residents around the center (modelled; owner 2026-11-20 08:26 “ขึ้นเลย”): data/residents/, the serving
+ * derivative of bundle venue-locale-residents-488-20261120-v1 (scripts/build-residents.py). meta.json once; one record
+ * per located center in NNN.json (shardOf(id, meta.shards)).
+ */
+export const RESIDENTS_PATH = 'data/residents';
+export const residentsShardPath = (id, shards = 128) => `${RESIDENTS_PATH}/${String(shardOf(id, shards)).padStart(3, '0')}.json`;
+export const loadResidentsMeta = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(`${RESIDENTS_PATH}/meta.json`, fetchImpl);
+export const cachedResidentsMeta = () => resolved.get(`${RESIDENTS_PATH}/meta.json`) || null;
+/** The residents record of one located center (null when the release has none). */
+export async function loadResidents(id, {shards = 128, fetchImpl = (...a) => fetch(...a)} = {}) {
+  const shard = await fetchJSON(residentsShardPath(id, shards), fetchImpl);
+  return shard?.venues?.[id] || null;
+}
+export const cachedResidents = (id, shards = 128) => resolved.get(residentsShardPath(id, shards))?.venues?.[id] || null;
+
 /* ---------- reader options (kept for the session, like charts.js) ---------- */
 
-const options = {radius: 3000, universe: 'all', level: '', bench: 'province', open: {table: false, more: false, live: false, method: false}};
+const options = {radius: 3000, universe: 'all', level: '', bench: 'province', open: {table: false, more: false, live: false, method: false, res: false}};
 export const localeOptions = () => ({...options, open: {...options.open}});
 export function setLocaleOption(key, value) {
   if (key === 'radius' && RADII.includes(Number(value))) options.radius = Number(value);
@@ -805,6 +821,157 @@ export function renderLocalePriors(row, {meta = null, facts = null, priors = nul
   return priorsBlock(meta, row, priors, priorsState, signals, facts);
 }
 
+/* ---------- registered residents around the center (modelled; 0.8.0, owner 2026-11-20) ---------- */
+
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** “2026-10” → “Oct 2026”, “2026-11-20” → “20 Nov 2026” (thaiDay's English). */
+export function englishDay(iso) {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(String(iso || ''));
+  if (!m) return String(iso || '');
+  return `${m[3] ? `${Number(m[3])} ` : ''}${MONTHS_EN[Number(m[2]) - 1]} ${m[1]}`;
+}
+const kmEn = r => `${num(r / 1000)} km`;
+
+/** A modelled number of people to the nearest 10, 100 or 1,000 by size (“223,000”); null under 10. */
+export function aboutPeople(x) {
+  if (!(x >= 10)) return null;
+  const step = x >= 10000 ? 1000 : x >= 1000 ? 100 : 10;
+  return num(Math.round(x / step) * step);
+}
+/** [th, en] “ราว 21,000 คน” / “about 21,000 people”; under 10 says so. */
+export function peopleWords(x) {
+  const s = aboutPeople(x);
+  return s ? [`ราว ${s} คน`, `about ${s} people`] : ['ไม่ถึง 10 คน', 'fewer than 10 people'];
+}
+/** [th, en] residents per km² to two significant figures; under 1 says so. */
+export function densityWords(x) {
+  if (!(x >= 1)) return ['ไม่ถึง 1 คน/ตร.กม.', 'under 1 per km²'];
+  const d = 10 ** Math.max(0, Math.floor(Math.log10(x)) - 1);
+  const s = num(Math.round(x / d) * d);
+  return [`${s} คน/ตร.กม.`, `${s} per km²`];
+}
+
+/**
+ * Colours of the 5 km map: residents per km² of the 250 m cells that hold a counted building, ranked on the 41 samples of
+ * the LDS density LUT within this center's own map (owner 2026-11-20 08:26 “พี่ตัดสินใจเลย”: a colour compares the cells
+ * of one map, never two centers — the rank track compares the centers). A cell under 0.05 residents (stored 0) takes
+ * the lowest sample; a cell without a counted building (null) is not coloured.
+ */
+export function residentsMapModel(rec, rmeta) {
+  const n = rmeta?.cell?.n || 40, m = rmeta?.cell?.m || 250;
+  const km2 = (m * m) / 1e6;
+  const values = [];
+  for (const v of rec?.g || []) if (v > 0) values.push(v / km2);
+  return {n, m, km2, ramp: buildRamp(values, {kind: 'density'})};
+}
+
+/** The map of one center: one path per LUT sample (runs along each row), subdistrict lines, the rings and the point. */
+export function residentsMapHTML(row, rec, rmeta, radius = options.radius, model = residentsMapModel(rec, rmeta)) {
+  const {n, m, km2, ramp} = model;
+  const half = n / 2, pad = 0.4, size = n + 2 * pad;
+  const cell = rec.g.map(v => (v == null ? null : classify(v / km2, ramp).fill));
+  const fills = new Map();
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n;) {
+      const fill = cell[r * n + c];
+      if (fill == null) { c++; continue; }
+      let e = c + 1;
+      while (e < n && cell[r * n + e] === fill) e++;
+      fills.set(fill, `${fills.get(fill) || ''}M${c - half} ${r - half}h${e - c}v1h${c - e}z`);
+      c = e;
+    }
+  }
+  const id = `res-${String(row.id).replace(/[^\w-]/g, '')}`;
+  const radii = (rmeta?.radii || RADII).map(Number);
+  const outer = Math.max(...radii) / m;
+  const scale = (rmeta?.outline?.unit_m || 25) / m;
+  const at = v => (((v + half + pad) / size) * 100).toFixed(2);
+  const labels = radii.map(r => {
+    const c = (r / m) * Math.SQRT1_2;
+    return `<span class="res-ring-label${r === radius ? ' is-on' : ''}" style="left:${at(c)}%;top:${at(-c)}%">${say(km(r), kmEn(r))}</span>`;
+  }).join('');
+  const title = ['ความหนาแน่นของคนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) ช่อง 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
+    'Registered residents per km² (modelled) in 250 m cells within 5 km of the center, north up'];
+  return `<div class="res-map-wrap"><svg class="res-map" viewBox="${-half - pad} ${-half - pad} ${size} ${size}" role="img" aria-labelledby="${id}-t"><title id="${id}-t"${enAttr(title[1])}>${esc(title[0])}</title>`
+    + `<defs><clipPath id="${id}-c"><circle r="${outer}"/></clipPath></defs><g clip-path="url(#${id}-c)"><circle class="res-bg" r="${outer}"/>`
+    + [...fills].map(([f, d]) => `<path d="${d}" fill="${f}" shape-rendering="crispEdges"/>`).join('')
+    + `${rec.o ? `<path class="res-outline" d="${esc(rec.o)}" transform="scale(${scale})"/>` : ''}</g>`
+    + radii.map(r => `<circle class="res-ring${r === radius ? ' is-on' : ''}" r="${r / m}"/>`).join('')
+    + `<circle class="res-venue" r="0.42"/></svg>${labels}<span class="res-north" aria-hidden="true">↑ ${say('เหนือ', 'N')}</span></div>`;
+}
+
+const RING_WORDS = [['0–1 กม.', '0–1 km'], ['1–3 กม.', '1–3 km'], ['3–5 กม.', '3–5 km']];
+
+/**
+ * “คนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง)”: the figure at the radius of the chips with its rank among the centers (the
+ * `count` LUT sample, as the cards above), how near or far the people live, their ages, the map, one data line, and
+ * the method and its limits folded.
+ */
+function residentsBlock(meta, row, rmeta, rec, state) {
+  const titleTh = 'คนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง)', titleEn = 'Registered residents around the center (modelled)';
+  const wrap = inner => `<div class="locale-block res-block" id="locale-residents" role="group" aria-labelledby="locale-res-title">${inner}</div>`;
+  const simple = text => wrap(`<h4 class="locale-sub" id="locale-res-title" tabindex="-1">${icon('residents')}${say(titleTh, titleEn)}</h4>${text}`);
+  if (state === 'error') return simple(`<p class="hint">${say('โหลดจำนวนคนรอบศูนย์ไม่สำเร็จ', 'Could not load the residents around the center')} <button type="button" class="link-button" data-action="locale-retry-residents">${say('ลองอีกครั้ง', 'Try again')}</button></p>`);
+  if (!rmeta || (!rec && state !== 'empty')) return simple(`<p class="hint" role="status">${say('กำลังโหลดจำนวนคนรอบศูนย์…', 'Loading the residents around the center…')}</p>`);
+  if (!rec) return simple(`<p class="hint">${say('รุ่นข้อมูลนี้ยังไม่มีจำนวนคนรอบศูนย์นี้', 'This release has no residents for this center yet')}</p>`);
+  const i = RI[options.radius] ?? 1, r = RADII[i];
+  const uni = universeOf(meta, row);
+  const uniEn = usSpelling(meta.universes?.[uni.key === 'type' ? row.group : 'all']?.en || '');
+  const p = rec.p?.[uni.key === 'type' ? 1 : 0]?.[i] ?? null;
+  const value = aboutPeople(rec.n[i]);
+  const nb = t => t.replace(/ (กม\.|km)$/, '\u00a0$1'); // the number stays with its unit when the line wraps
+  const big = `${value ? `${say('ราว', 'About')} <b class="data-number">${value}</b>` : `<b class="data-number">${say('ไม่ถึง 10', 'Fewer than 10')}</b>`} ${say(nb(`คน ใน ${km(r)}`), nb(`people within ${kmEn(r)}`))}`;
+  const rank = p == null ? '' : `<span class="dot-track aha-track" aria-hidden="true"><b style="width:${p}%;background:${pctFill(p)}"></b><i class="dot" style="left:${p}%;background:${pctFill(p)}"></i></span><span class="aha-how">${esc(rankWords(p, uni.key === 'all' ? ` ${uni.short}` : uni.short))}</span>`;
+  const head = `<div class="res-head">${icon('residents')}<div class="aha-body"><h4 class="res-title" id="locale-res-title" tabindex="-1">${say(titleTh, titleEn)}</h4><p class="res-big">${big}</p>${rank}</div></div>`;
+  const n5 = rec.n[2];
+  const rings = `<ol class="res-rings">${rec.ring.map(([people, dens], k) => {
+    const share = n5 > 0 ? (100 * people) / n5 : 0;
+    const pw = peopleWords(people), dw = densityWords(dens);
+    return `<li><span class="res-ring-name">${say(...RING_WORDS[k])}</span><span class="res-bar" aria-hidden="true"><b style="width:${share.toFixed(1)}%"></b></span><span class="res-ring-val"><b class="data-number">${share < 0.5 ? '&lt;1%' : `${num(Math.round(share))}%`}</b> ${say(`${pw[0]} · ${dw[0]}`, `${pw[1]} · ${dw[1]}`)}</span></li>`;
+  }).join('')}</ol>`;
+  const age = rec.age[i] || [];
+  const pc = age.map(a => num(Math.round(a * 100)));
+  const ages = age.length === 3 ? `<h5 class="res-sub">${say(nb(`อายุ · ใน ${km(r)}`), nb(`Age · within ${kmEn(r)}`))}</h5>
+    <div class="res-age" aria-hidden="true">${age.map((a, k) => `<b class="age-${k}" style="width:${(a * 100).toFixed(1)}%"></b>`).join('')}</div>
+    <p class="res-age-text">${say(`เด็ก 0–14 ปี ${pc[0]}% · วัยทำงาน 15–59 ปี ${pc[1]}% · ผู้สูงอายุ 60 ปีขึ้นไป ${pc[2]}%`, `Children 0–14 ${pc[0]}% · working age 15–59 ${pc[1]}% · 60 and over ${pc[2]}%`)}</p>` : '';
+  const model = residentsMapModel(rec, rmeta), {ramp} = model;
+  const figure = `<figure class="res-figure">${residentsMapHTML(row, rec, rmeta, r, model)}
+    <figcaption class="res-legend"><span class="res-legend-title">${say('ความหนาแน่น · คน/ตร.กม.', 'Density · people/km²')}</span>${rampLegendHTML(ramp, {unit: 'คน/ตร.กม.'})}
+    <span class="hint">${say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีอาคารที่นับได้ · เส้นบางคือขอบแขวง/ตำบล', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells have no counted building · thin lines are subdistrict boundaries')}</span></figcaption></figure>`;
+  const pm = rmeta.populationMonth, asOf = rmeta.asOf;
+  const line = `<p class="hint res-evidence">${say(
+    `คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) · ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)} ผ่าน CityMETER production · อาคาร Building V4 (3D-GloBFP, Open Buildings, © ผู้ร่วมสร้าง OpenStreetMap) · คิด ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์ แขวง/ตำบลตาม CityMETER production`,
+    `Registered residents (modelled) · registered population, Department of Provincial Administration, ${englishDay(pm)}, through CityMETER production · buildings: Building V4 (3D-GloBFP, Open Buildings, © OpenStreetMap contributors) · computed ${englishDay(asOf)} · straight-line radius from the center’s point, subdistricts as in CityMETER production`)}</p>`;
+  const own = rec.own ? (() => {
+    const w = peopleWords(rec.own[1]);
+    return ` ${say(`อาคารของศูนย์นี้ ${num(rec.own[0])} หลังได้รับ${w[0]}`, `this center’s own ${rec.own[0] === 1 ? 'building gets' : `${num(rec.own[0])} buildings get`} ${w[1]}`)}`;
+  })() : '';
+  const method = `<details class="locale-details" data-locale-open="res"${openAttr('res')}><summary>${icon('evidence')}${say('วิธีคิดและข้อจำกัดของจำนวนคน', 'How the residents are modelled, and the limits')}</summary>
+    <ul class="locale-method">
+      <li>${say('จำนวนนี้คือคนที่มีชื่อในทะเบียนบ้านของอาคารรอบศูนย์ตามแบบจำลอง ไม่ใช่คนที่อยู่จริงทั้งหมด ไม่ใช่จำนวนคนที่มาศูนย์ และไม่ใช่รายได้หรือกำลังซื้อ', 'These are the people registered at the buildings around the center, as modelled: not everyone who lives there, not the people who visit the center, and not income or spending power')}</li>
+      <li>${say(`ประชากรตามทะเบียนของแต่ละแขวง/ตำบล (กรมการปกครอง ${thaiDay(pm)}) แบ่งให้อาคาร Building V4 ตามพื้นที่ใช้สอยของอาคาร เทียบกับพื้นที่ใช้สอยรวมที่ CityMETER production ใช้ แล้วรวมอาคารที่จุดกึ่งกลางอยู่ในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ`, `Each subdistrict’s registered population (Department of Provincial Administration, ${englishDay(pm)}) is split over its Building V4 buildings by floor area, against the total floor area CityMETER production uses; the buildings whose centre lies within the straight-line 1 · 3 · 5 km radius of the center’s point are added up, not walking or driving distance`)}</li>
+      <li>${say('ทุกอาคารได้รับคนตามพื้นที่ใช้สอย รวมอาคารพาณิชย์และอาคารของศูนย์เอง เหมือนใน production ย่านพาณิชย์จึงมีค่าใกล้ศูนย์สูงกว่าคนที่อยู่จริง', 'Every building gets people by its floor area, shops and the center’s own buildings included, as in production, so commercial areas read higher near the center than the people who live there')}${own}</li>
+      <li>${say(`ใน ${km(r)} นับอาคาร ${num(rec.b[i])} หลัง ในแขวง/ตำบล ${num(rec.sd[i])} แห่ง`, `Within ${kmEn(r)}: ${num(rec.b[i])} buildings in ${num(rec.sd[i])} subdistricts`)}</li>
+      <li>${say('อายุคือโครงสร้างอายุของแขวง/ตำบลที่รัศมีคร่อม ถ่วงตามจำนวนคนในรัศมี ไม่ใช่อายุของคนในแต่ละอาคาร', 'Ages are the age structure of the subdistricts the radius covers, weighted by the people inside it, not the age of the people in each building')}</li>
+      <li>${say(`อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ${uni.th} ${num(uni.n)} แห่ง ค่าที่เท่ากันนับครึ่ง อันดับสูงไม่ได้แปลว่าทำเลดีกว่า`, `The rank is a mid-rank percentile among ${num(uni.n)} ${uniEn}, ties counted half; a higher rank does not make a better location`)}</li>
+      <li>${say('แผนที่: สีของช่อง 250 ม. เรียงตามความหนาแน่นของช่องในวง 5 กม. ของศูนย์นี้ (LDS density 41 ระดับ) ใช้เทียบช่องในวงนี้ ไม่ใช้เทียบสีข้ามศูนย์ · ช่องที่ขอบวงนับเฉพาะอาคารในรัศมี · ช่องที่มีอาคารแต่คนไม่ถึง 0.05 คนใช้สีต่ำสุด · เส้นบางคือขอบแขวง/ตำบลของ production ที่ปรับให้เรียบเพื่ออ่านแผนที่ ไม่ใช่เส้นสำหรับวัด', 'Map: each 250 m cell takes its rank of residents per km² within this center’s 5 km (LDS density, 41 steps), to compare the cells of this map, not colours across centers · cells on the edge count only the buildings inside the radius · cells with buildings but under 0.05 residents take the lowest step · thin lines are production’s subdistrict boundaries, smoothed to read the map by, not to measure on')}</li>
+      <li>${say(`รุ่นข้อมูล ${rmeta.release} คิดจาก API ของ CityMETER production ${thaiDay(asOf)}`, `Release ${rmeta.release}, computed from the CityMETER production API on ${englishDay(asOf)}`)} · <a href="DATA_METHOD.md#registered-residents" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
+    </ul></details>`;
+  return wrap(`${head}
+    <h5 class="res-sub">${say(nb('คนอยู่ใกล้หรือไกลศูนย์ · สัดส่วนของคนใน 5 กม.'), nb('Near or far from the center · share of the people within 5 km'))}</h5>
+    ${rings}
+    ${ages}
+    ${figure}
+    ${line}
+    ${method}`);
+}
+
+/** Only the residents zone of a venue's section, for when its file arrives after the rest is drawn ('' when it has none). */
+export function renderLocaleResidents(row, {meta = null, facts = null, residentsMeta = null, residents = null, residentsState = 'idle'} = {}) {
+  if (!inLocaleSet(row) || !meta || !facts || facts.located === false) return '';
+  return residentsBlock(meta, row, residentsMeta, residents, residentsState);
+}
+
 function methodBlock(meta, uni) {
   const notCounted = (meta.notCounted || []).filter(x => x.treatment === 'not_countable_catalog_only' && x.th).map(x => x.th);
   return `<details class="locale-details" data-locale-open="method"${openAttr('method')}><summary>${icon('evidence')}ที่มาและวิธีของส่วนนี้</summary>
@@ -828,10 +995,11 @@ export function localeDataLine(meta) {
 }
 
 /**
- * The “รอบศูนย์นี้” section of a venue: {meta, facts, priors, signals, state: {meta, facts, priors}}. Returns '' for rows outside
+ * The “รอบศูนย์นี้” section of a venue: {meta, facts, priors, signals, residents, state: {meta, facts, priors, residents}}; the
+ * registered residents (modelled, 0.8.0) follow the cards of the counted datasets. Returns '' for rows outside
  * the 499-venue set (markets, fuel stations…), which the release does not cover.
  */
-export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle'} = {}) {
+export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle'} = {}) {
   if (!inLocaleSet(row)) return '';
   const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}<span class="hint">รัศมีเส้นตรง</span></div>`;
   const shell = inner => `<section class="panel-section locale-section" id="venue-locale" data-venue="${esc(row.id)}" aria-labelledby="locale-title">${head}${inner}</section>`;
@@ -852,6 +1020,7 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
   return shell(`${radiusChips}
     <p class="locale-lead">ใน ${esc(km(options.radius))} รอบศูนย์</p>
     ${ahaHTML}
+    ${residentsBlock(meta, row, residentsMeta, residents, residentsState)}
     <h4 class="locale-sub">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centers, every dataset')}</h4>
     ${uniChips}
     <div class="locale-chart" id="locale-chart" data-radius="${options.radius}" data-universe="${esc(uni.key)}">${ringListHTML(rows, uni, options.radius)}</div>

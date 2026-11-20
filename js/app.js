@@ -74,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -109,7 +109,7 @@ const state = {
   look: {id: '', key: '', view: null}, lookReader: null,
   // Venue Locale Insight (owner 2026-11-18, js/venue-locale.js): data/locale meta once, the facts shard of the open
   // venue, the priors shard only when the reader opens that block; one amCharts dot plot at a time.
-  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: ''}, localeChart: null,
+  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: ''}, localeChart: null,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
@@ -536,6 +536,7 @@ function ensureLocale(id) {
   if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards)) {
     L.metaState = 'ready'; L.factsState = 'ready';
     ensureLocalePriors(id);
+    ensureLocaleResidents(id);
     return;
   }
   if (L.metaState !== 'ready') L.metaState = 'loading';
@@ -551,6 +552,32 @@ function ensureLocale(id) {
   }).finally(() => { if (localeOpen(id)) refreshLocale(); });
   // the hypotheses are part of the section from 0.6.0 (owner 2026-11-18: visuals first): fetched beside the facts
   ensureLocalePriors(id);
+  ensureLocaleResidents(id);
+}
+
+/** Registered residents around the center (modelled, 0.8.0): data/residents beside the facts; only its zone is redrawn. */
+function ensureLocaleResidents(id, {focus = ''} = {}) {
+  const row = state.byId.get(id);
+  if (!inLocaleSet(row) || !row.located) return;
+  const L = state.locale;
+  if (L.resId !== id) { L.resId = id; L.resState = 'idle'; }
+  const rmeta = cachedResidentsMeta();
+  if (rmeta && cachedResidents(id, rmeta.shards)) { L.resState = 'ready'; return; }
+  if (L.resState === 'loading' || L.resState === 'ready' || L.resState === 'empty') return;
+  L.resState = 'loading';
+  loadResidentsMeta().then(meta => loadResidents(id, {shards: meta.shards})).then(rec => { if (L.resId === id) L.resState = rec ? 'ready' : 'empty'; })
+    .catch(e => { console.warn('Venue locale residents', e); partial('data/residents'); if (L.resId === id) L.resState = 'error'; })
+    .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
+}
+
+/** Replace only the residents zone when its file arrives (the chart and the rest of the section stay as they are). */
+function refreshLocaleResidents({focus = ''} = {}) {
+  const v = currentVenue(), section = $('venue-locale'), el = $('locale-residents'), meta = cachedLocaleMeta();
+  if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
+  const rmeta = cachedResidentsMeta(), L = state.locale;
+  el.outerHTML = renderLocaleResidents(v, {meta, facts: cachedLocaleFacts(v.id, meta.shards || 64), residentsMeta: rmeta,
+    residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle'});
+  if (focus) $('locale-residents')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
 function ensureLocalePriors(id, {focus = ''} = {}) {
@@ -582,9 +609,11 @@ function localeHTML(v) {
   const L = state.locale, meta = cachedLocaleMeta();
   const shards = meta?.shards || 64;
   if (meta) { registerLocaleDictionary(meta); registerLocaleNames(cachedLocaleFacts(v.id, shards)); registerLocaleSignalNames(cachedLocaleSignals(v.id, shards)); }
+  const rmeta = cachedResidentsMeta();
   return renderLocale(v, {
     meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null, signals: meta ? cachedLocaleSignals(v.id, shards) : null,
     metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
+    residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
   });
 }
 
@@ -981,6 +1010,7 @@ function onPanelAction(event) {
     }
     case 'locale-retry': if (state.panel.mode === 'venue') { state.locale.metaState = state.locale.metaState === 'error' ? 'idle' : state.locale.metaState; state.locale.factsState = 'idle'; ensureLocale(state.panel.id); refreshLocale(); } break;
     case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id, {focus: '.who-tile, [data-action="locale-retry-priors"]'}); refreshLocalePriors(); } break;
+    case 'locale-retry-residents': if (state.panel.mode === 'venue') { state.locale.resState = 'idle'; ensureLocaleResidents(state.panel.id, {focus: '.res-title, [data-action="locale-retry-residents"]'}); refreshLocaleResidents(); } break;
     default: break;
   }
 }
@@ -1837,6 +1867,7 @@ const PARTIAL = {
   'data/districts.geojson': ['ขอบเขตเขต/อำเภอ', 'ผลไม่ได้แบ่งตามเขต/อำเภอ มุมมองเริ่มต้นจึงต่างจากปกติ', 'District outlines', 'Results are not divided by district, so the opening view differs'],
   'data/stations.json': ['สถานีรถไฟฟ้า', 'ไม่แสดงสถานีใกล้เคียงและมุมมองตามสถานี', 'Rail stations', 'Nearby stations and the station view are not shown'],
   'data/locale': ['ข้อมูลรอบศูนย์', 'แผงสถานที่ไม่แสดงสิ่งที่อยู่รอบศูนย์และพื้นที่ที่ศูนย์ตั้งอยู่', 'Around the centre', 'The venue panel does not show what is around the centre or the area it sits in'],
+  'data/residents': ['คนที่มีชื่อในทะเบียนบ้านรอบศูนย์', 'ส่วนรอบศูนย์นี้ไม่แสดงจำนวนคนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง) และแผนที่ของจำนวนนั้น', 'Registered residents around the center', 'Around this center does not show the registered residents around it (modelled) or their map'],
 };
 function partial(key) {
   const words = PARTIAL[key];
