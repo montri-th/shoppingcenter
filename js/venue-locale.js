@@ -326,6 +326,16 @@ const dateRange = meta => {
   return from && to && from !== to ? `${thaiDay(from)}–${thaiDay(to)}` : thaiDay(to || from || '');
 };
 
+/**
+ * “ใกล้สุด 850 ม.” / “ใกล้สุด 1.2 กม.”; a record at this center's own point (a shop tied to this center by id, placed at
+ * its point; 0.9.3) reads “ใกล้สุดอยู่ที่จุดของศูนย์นี้”, not “0 ม.”.
+ */
+export const nearWords = near => (near < 5 ? 'ใกล้สุดอยู่ที่จุดของศูนย์นี้' : `ใกล้สุด ${near < 1000 ? `${num(Math.round(near / 10) * 10)} ม.` : `${DECIMAL.format(near / 1000)} กม.`}`);
+
+/** The chart tooltip's lines under a row's count and rank: its measure, the nearest, up to four subgroups, the share with a point. */
+export const chartTipExtra = r => [r.measure ? `${r.measure.th} ${num(r.measure.value)}` : '', r.near != null ? nearWords(r.near) : '',
+  r.sub.length ? r.sub.slice(0, 4).map(s => `${s.th} ${num(s.count)}`).join(' · ') : '', r.partial ? `มีพิกัด ${num(r.located)} จาก ${num(r.eligible)} รายการ` : ''].filter(Boolean);
+
 /* ---------- HTML ---------- */
 
 const chip = (action, key, value, pressed, label) =>
@@ -336,7 +346,7 @@ function ringTable(meta, facts, row, uni) {
   const rows = RADII.map(r => ringRows(meta, facts, row, {radius: r}));
   const body = rows[0].map((r, k) => {
     const cells = RADII.map((_, j) => `<td class="data-number">${num(rows[j][k].count)}</td>`).join('');
-    const extra = [r.near != null ? `ใกล้สุด ${r.near < 1000 ? `${num(Math.round(r.near / 10) * 10)} ม.` : `${DECIMAL.format(r.near / 1000)} กม.`}` : '',
+    const extra = [r.near != null ? nearWords(r.near) : '',
       r.partial ? `มีพิกัด ${num(r.located)} จาก ${num(r.eligible)}` : '', r.brands ? `เฉพาะ ${r.brands}` : ''].filter(Boolean).join(' · ');
     const sub = [extra, r.source, r.date ? thaiDay(r.date) : ''].filter(Boolean).join(' · ');
     return `<tr><th scope="row">${say(r.name, r.nameEn)}${r.partial ? '<sup>*</sup>' : ''}<small>${esc(sub)}</small></th>${cells}<td class="data-number">${rows[1][k].count === 0 ? '–' : `${num(rows[1][k].p)}%`}</td></tr>`;
@@ -1340,10 +1350,9 @@ export function mountLocaleChart(element, {meta, facts, row} = {}) {
     const data = rows.map(r => {
       const x = r.count === 0 ? 0 : r.p ?? 0;
       const fill = pctFill(x);
-      const extra = [r.measure ? `${r.measure.th} ${num(r.measure.value)}` : '', r.near != null ? `ใกล้สุด ${r.near < 1000 ? `${num(Math.round(r.near / 10) * 10)} ม.` : `${DECIMAL.format(r.near / 1000)} กม.`}` : '',
-        r.sub.length ? r.sub.slice(0, 4).map(s => `${s.th} ${num(s.count)}`).join(' · ') : '', r.partial ? `มีพิกัด ${num(r.located)} จาก ${num(r.eligible)} รายการ` : ''].filter(Boolean).join('\n');
+      const extra = chartTipExtra(r);
       const en = LANG === 'en';
-      const lines = [en ? `${num(r.count)} ${T(r.unit)} within ${km(options.radius).replace(' กม.', ' km')}` : `${num(r.count)} ${r.unit} ใน ${km(options.radius)}`, T(pctPhrase(r, uni)), ...extra.split('\n').filter(Boolean).map(T)];
+      const lines = [en ? `${num(r.count)} ${T(r.unit)} within ${km(options.radius).replace(' กม.', ' km')}` : `${num(r.count)} ${r.unit} ใน ${km(options.radius)}`, T(pctPhrase(r, uni)), ...extra.map(T)];
       return {cat: `${en ? usSpelling(r.labelEn) : r.label}${r.partial ? '*' : ''}`, x, shown: num(r.count), tip: `[bold]${T(r.name)}[/]\n${lines.join('\n')}`,
         aria: `${T(r.name)}: ${lines.slice(0, 2).join(' ')}`, columnSettings: {fill: am5.color(fill)}, dotSettings: {fill: am5.color(fill), stroke: am5.color(r.count === 0 ? COUNT_SCALE.zeroOutline : t.text)}};
     });

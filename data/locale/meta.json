@@ -1,12 +1,12 @@
 {
  "schema": "citymeter-venue-locale-serving/1",
- "bundleId": "venue-locale-shopping-20261120-v0.2.2-rc1-web",
- "createdAt": "2026-11-20T08:53:13Z",
+ "bundleId": "venue-locale-shopping-20261120-v0.2.3-rc1-web",
+ "createdAt": "2026-11-20T11:09:54Z",
  "asOf": "2026-11-20",
  "release": {
-  "id": "venue-locale-shopping-20261120-v0.2.2-rc1",
+  "id": "venue-locale-shopping-20261120-v0.2.3-rc1",
   "status": "release_candidate",
-  "manifestSha256": "c0fa67d003f2f5ddd93f2d2c2516c8eb0f31bcdd8c5526fa9bbb23499fb29168",
+  "manifestSha256": "01f71879d638585cea74dbfbd26ea3425aff753fc6e500576b0cc0822c39676f",
   "schema": "venue_locale_schema_v1",
   "blockingIssues": 12
  },
@@ -44,7 +44,7 @@
  },
  "reference": {
   "n": 488,
-  "release": "venue-locale-shopping-20261120-v0.2.1-rc1",
+  "release": "venue-locale-shopping-20261118-v0.2.0-rc1",
   "asOf": "2026-11-18",
   "added": [
    "SC-007245",
@@ -326,15 +326,15 @@
    "placed": true
   },
   "car_service": {
-   "th": "ศูนย์บริการรถ B-Quik",
-   "en": "B-Quik car service centres",
+   "th": "ศูนย์บริการรถยนต์",
+   "en": "Automotive services",
    "short": [
-    "B-Quik",
-    "B-Quik"
+    "บริการรถยนต์",
+    "Car services"
    ],
    "unit": [
-    "สาขา",
-    "branches"
+    "แห่ง",
+    "outlets"
    ],
    "source": [
     "ทะเบียนวิจัย CityMETER",
@@ -343,23 +343,126 @@
    "sourceRef": "research.TH.car_service:02_STORES",
    "sourceKind": "research_master",
    "link": null,
-   "date": "2026-11-04",
+   "date": "2026-11-08",
    "scope": [
-    "นับรหัสศูนย์บริการไม่ซ้ำบนหน้าสาขาของ B-Quik ตามจังหวัดท้ายที่อยู่ที่แบรนด์ระบุ",
-    ""
+    "นับทุกแบรนด์ที่แหล่งยังระบุ ร้านที่ติดหลายป้ายนับครั้งเดียว ร้านในศูนย์การค้าที่ไม่มีจุดของตัวเองใช้จุดของศูนย์ที่ผูกด้วยรหัส",
+    "every brand the source still lists, a shop under several brand signs once; an in-mall shop without its own point takes the point of the shopping center it is tied to by id"
    ],
-   "brands": "B-Quik",
-   "eligible": 241,
-   "located": 240,
+   "brands": null,
+   "eligible": 5728,
+   "located": 3777,
    "unlocatedByProvince": {
-    "_unknown_province": 1
+    "ACR": 6,
+    "ATG": 6,
+    "AYA": 23,
+    "BKK": 373,
+    "BKN": 2,
+    "BRM": 19,
+    "CBI": 100,
+    "CCO": 18,
+    "CMI": 43,
+    "CNT": 5,
+    "CPM": 9,
+    "CPN": 13,
+    "CRI": 24,
+    "CTI": 19,
+    "KBI": 13,
+    "KKN": 36,
+    "KPT": 13,
+    "KRI": 19,
+    "KSN": 9,
+    "LEI": 8,
+    "LPG": 9,
+    "LPN": 6,
+    "LRI": 14,
+    "MDH": 8,
+    "MKM": 14,
+    "MSN": 1,
+    "NAN": 6,
+    "NBI": 92,
+    "NBP": 3,
+    "NKI": 8,
+    "NMA": 48,
+    "NPM": 11,
+    "NPT": 32,
+    "NSN": 18,
+    "NST": 15,
+    "NWT": 3,
+    "NYK": 10,
+    "PBI": 18,
+    "PCT": 7,
+    "PKN": 20,
+    "PKT": 26,
+    "PLG": 7,
+    "PLK": 13,
+    "PNA": 7,
+    "PNB": 22,
+    "PRE": 5,
+    "PRI": 14,
+    "PTE": 83,
+    "PTN": 5,
+    "PYO": 1,
+    "RBR": 23,
+    "RET": 16,
+    "RNG": 10,
+    "RYG": 42,
+    "SBR": 3,
+    "SKA": 34,
+    "SKM": 4,
+    "SKN": 42,
+    "SKW": 11,
+    "SNI": 15,
+    "SNK": 12,
+    "SPB": 23,
+    "SPK": 78,
+    "SRI": 20,
+    "SRN": 15,
+    "SSK": 10,
+    "STI": 6,
+    "STN": 2,
+    "TAK": 9,
+    "TRG": 5,
+    "TRT": 4,
+    "UBN": 22,
+    "UDN": 32,
+    "UTI": 9,
+    "UTT": 6,
+    "YLA": 2,
+    "YST": 7,
+    "_unknown_province": 205
    },
-   "subgroups": [],
+   "subgroups": [
+    [
+     "tyres",
+     "ยางและ fast-fit",
+     "Tyres and fast-fit"
+    ],
+    [
+     "service",
+     "ซ่อมบำรุงและน้ำมันเครื่อง",
+     "Maintenance and oil change"
+    ],
+    [
+     "film",
+     "ฟิล์ม กระจก และ PPF",
+     "Film, glass and PPF"
+    ],
+    [
+     "wash",
+     "ล้างรถและเคลือบสี",
+     "Car wash and detailing"
+    ],
+    [
+     "other",
+     "เครือข่ายผู้ติดตั้งผลิตภัณฑ์อื่น ๆ",
+     "Other product installer networks"
+    ]
+   ],
    "measure": null,
    "yolk": {
     "release": "yolk-20261116-v5",
-    "metric": "bquik_listed_branches",
-    "total": 240
+    "metric": "car_service_listed_outlets_all_brands",
+    "total": null
    },
    "placed": true
   },
@@ -909,14 +1012,14 @@
    "placed": true
   },
   "hobby": {
-   "th": "ร้าน B2S",
-   "en": "B2S stores",
+   "th": "ร้านงานอดิเรก",
+   "en": "Hobby stores",
    "short": [
-    "B2S",
-    "B2S"
+    "ร้านงานอดิเรก",
+    "Hobby stores"
    ],
    "unit": [
-    "สาขา",
+    "ร้าน",
     "stores"
    ],
    "source": [
@@ -926,21 +1029,113 @@
    "sourceRef": "research.TH.hobby:02_STORES",
    "sourceKind": "research_master",
    "link": null,
-   "date": "2026-11-05",
+   "date": "2026-11-07",
    "scope": [
-    "นับรหัสร้านไม่ซ้ำในรายชื่อสาขาสถานะ Active ที่ B2S เผยแพร่ จัดพื้นที่ตามที่อยู่ของร้าน",
-    ""
+    "นับทุกแบรนด์ที่แหล่งยังระบุ ร้านที่ติดหลายป้ายนับครั้งเดียว ร้านในศูนย์การค้าที่ไม่มีจุดของตัวเองใช้จุดของศูนย์ที่ผูกด้วยรหัส",
+    "every brand the source still lists, a shop under several brand signs once; an in-mall shop without its own point takes the point of the shopping center it is tied to by id"
    ],
-   "brands": "B2S",
-   "eligible": 126,
-   "located": 126,
-   "unlocatedByProvince": {},
-   "subgroups": [],
+   "brands": null,
+   "eligible": 2449,
+   "located": 1636,
+   "unlocatedByProvince": {
+    "ACR": 1,
+    "ATG": 1,
+    "AYA": 3,
+    "BKK": 192,
+    "BRM": 2,
+    "CBI": 25,
+    "CCO": 2,
+    "CMI": 24,
+    "CNT": 1,
+    "CPM": 2,
+    "CPN": 4,
+    "CRI": 5,
+    "CTI": 1,
+    "KBI": 4,
+    "KKN": 13,
+    "KRI": 1,
+    "KSN": 3,
+    "LEI": 2,
+    "LPG": 4,
+    "LPN": 1,
+    "LRI": 3,
+    "MKM": 7,
+    "NBI": 24,
+    "NBP": 1,
+    "NKI": 3,
+    "NMA": 10,
+    "NPM": 1,
+    "NPT": 11,
+    "NSN": 4,
+    "NST": 4,
+    "NWT": 1,
+    "NYK": 2,
+    "PBI": 2,
+    "PCT": 1,
+    "PKN": 6,
+    "PKT": 9,
+    "PLG": 1,
+    "PLK": 3,
+    "PNA": 2,
+    "PNB": 1,
+    "PRE": 1,
+    "PRI": 2,
+    "PTE": 17,
+    "PTN": 1,
+    "PYO": 2,
+    "RBR": 5,
+    "RET": 1,
+    "RNG": 2,
+    "RYG": 6,
+    "SKA": 10,
+    "SKM": 2,
+    "SKN": 7,
+    "SKW": 1,
+    "SNI": 8,
+    "SNK": 2,
+    "SPB": 3,
+    "SPK": 22,
+    "SRI": 4,
+    "SRN": 1,
+    "STI": 1,
+    "STN": 1,
+    "TAK": 2,
+    "TRG": 1,
+    "TRT": 1,
+    "UBN": 6,
+    "UDN": 7,
+    "UTI": 2,
+    "UTT": 2,
+    "YLA": 3,
+    "_unknown_province": 303
+   },
+   "subgroups": [
+    [
+     "variety",
+     "ของขวัญ ไลฟ์สไตล์ และร้านวาไรตี้",
+     "Gifts, lifestyle and variety"
+    ],
+    [
+     "books",
+     "หนังสือและมังงะ",
+     "Books and manga"
+    ],
+    [
+     "stationery",
+     "เครื่องเขียน ศิลปะ และงานฝีมือ",
+     "Stationery, art and crafts"
+    ],
+    [
+     "toys",
+     "ของเล่น ของสะสม และเกม",
+     "Toys, collectibles and games"
+    ]
+   ],
    "measure": null,
    "yolk": {
     "release": "yolk-20261116-v5",
-    "metric": "b2s_active_locator_ids",
-    "total": 126
+    "metric": "hobby_listed_outlets_all_brands",
+    "total": null
    },
    "placed": true
   },
@@ -1241,15 +1436,15 @@
    "placed": true
   },
   "nail": {
-   "th": "ร้าน CHABA Nails & Spa",
-   "en": "CHABA Nails & Spa",
+   "th": "ร้านทำเล็บ",
+   "en": "Nail salons",
    "short": [
-    "CHABA",
-    "CHABA"
+    "ร้านทำเล็บ",
+    "Nail salons"
    ],
    "unit": [
-    "สาขา",
-    "branches"
+    "ร้าน",
+    "salons"
    ],
    "source": [
     "ทะเบียนวิจัย CityMETER",
@@ -1258,23 +1453,41 @@
    "sourceRef": "research.TH.nail:02_STORES",
    "sourceKind": "research_master",
    "link": null,
-   "date": "2026-11-14",
+   "date": "2026-11-07",
    "scope": [
-    "นับ 7 สาขาที่ CHABA ระบุชื่อศูนย์การค้าและจับคู่กับพื้นที่ของศูนย์ได้",
-    ""
+    "นับทุกแบรนด์ที่แหล่งยังระบุ ร้านที่ติดหลายป้ายนับครั้งเดียว ร้านในศูนย์การค้าที่ไม่มีจุดของตัวเองใช้จุดของศูนย์ที่ผูกด้วยรหัส",
+    "every brand the source still lists, a shop under several brand signs once; an in-mall shop without its own point takes the point of the shopping center it is tied to by id"
    ],
-   "brands": "CHABA",
-   "eligible": 8,
-   "located": 6,
+   "brands": null,
+   "eligible": 132,
+   "located": 50,
    "unlocatedByProvince": {
-    "BKK": 2
+    "BKK": 25,
+    "PTE": 1,
+    "_unknown_province": 56
    },
-   "subgroups": [],
+   "subgroups": [
+    [
+     "mall",
+     "ร้านทำเล็บในห้างและเครือร้าน",
+     "Mall and chain nail salons"
+    ],
+    [
+     "salon",
+     "ซาลอนที่มีบริการทำเล็บ",
+     "Salons with nail services"
+    ],
+    [
+     "other",
+     "ร้านทำเล็บอิสระและอื่น ๆ",
+     "Independent and other nail salons"
+    ]
+   ],
    "measure": null,
    "yolk": {
     "release": "yolk-20261116-v5",
-    "metric": "chaba_listed_branches",
-    "total": 7
+    "metric": "nail_listed_outlets_all_brands",
+    "total": null
    },
    "placed": true
   },
@@ -1457,15 +1670,15 @@
    "placed": true
   },
   "pet": {
-   "th": "ร้าน PETClub",
-   "en": "PETClub stores",
+   "th": "สินค้าและบริการสำหรับสัตว์เลี้ยง",
+   "en": "Pet stores and services",
    "short": [
-    "PETClub",
-    "PETClub"
+    "สัตว์เลี้ยง",
+    "Pet places"
    ],
    "unit": [
-    "สาขา",
-    "stores"
+    "แห่ง",
+    "places"
    ],
    "source": [
     "ทะเบียนวิจัย CityMETER",
@@ -1474,24 +1687,65 @@
    "sourceRef": "research.TH.pet:02_STORES",
    "sourceKind": "research_master",
    "link": null,
-   "date": "2026-11-14",
+   "date": "2026-11-04",
    "scope": [
-    "นับสาขาที่ปรากฏบนหน้าสาขาของ PETClub และระบุจังหวัดได้จากชื่อสาขาหรือศูนย์การค้าที่ตรงกัน",
-    ""
+    "นับทุกแบรนด์ที่แหล่งยังระบุ ร้านที่ติดหลายป้ายนับครั้งเดียว ร้านในศูนย์การค้าที่ไม่มีจุดของตัวเองใช้จุดของศูนย์ที่ผูกด้วยรหัส",
+    "every brand the source still lists, a shop under several brand signs once; an in-mall shop without its own point takes the point of the shopping center it is tied to by id"
    ],
-   "brands": "PETClub",
-   "eligible": 32,
-   "located": 23,
+   "brands": null,
+   "eligible": 359,
+   "located": 107,
    "unlocatedByProvince": {
-    "CTI": 1,
-    "_unknown_province": 8
+    "AYA": 2,
+    "BKK": 122,
+    "CBI": 6,
+    "CMI": 7,
+    "KKN": 3,
+    "KRI": 1,
+    "LRI": 1,
+    "NBI": 22,
+    "NMA": 3,
+    "NPT": 5,
+    "PKN": 2,
+    "PKT": 9,
+    "PTE": 15,
+    "RBR": 1,
+    "RYG": 6,
+    "SBR": 1,
+    "SKA": 2,
+    "SKN": 3,
+    "SNI": 1,
+    "SPK": 9,
+    "SRI": 1,
+    "_unknown_province": 30
    },
-   "subgroups": [],
+   "subgroups": [
+    [
+     "shops",
+     "ร้านอาหาร อุปกรณ์ และร้านยา",
+     "Food, supplies and pharmacies"
+    ],
+    [
+     "vets",
+     "โรงพยาบาลและคลินิกสัตว์",
+     "Animal hospitals and clinics"
+    ],
+    [
+     "care",
+     "อาบน้ำ ตัดขน ฝากเลี้ยง และฝึก",
+     "Grooming, boarding and training"
+    ],
+    [
+     "places",
+     "สวนและพื้นที่สำหรับสัตว์เลี้ยง",
+     "Parks and pet areas"
+    ]
+   ],
    "measure": null,
    "yolk": {
     "release": "yolk-20261116-v5",
-    "metric": "petclub_area_matched_branches",
-    "total": 21
+    "metric": "pet_listed_outlets_all_brands",
+    "total": null
    },
    "placed": true
   },
