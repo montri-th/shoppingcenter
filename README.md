@@ -6,7 +6,7 @@
 
 ชื่อบนหน้าจอ (เจ้าของสั่ง 25 ต.ค. 2569): ไทย **ศูนย์การค้า** · อังกฤษ **Shopping centers** — ความหมายของชุดข้อมูลยังเป็นศูนย์การค้าและสถานที่ค้าปลีกตามนิยามเดิม
 
-**Release 0.9.5 · Research snapshot: export 20 พ.ย. 2569 (ข้อมูลตรวจถึง 8 พ.ย. 2569) · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
+**Release 0.9.6 · Research snapshot: export 20 พ.ย. 2569 (ข้อมูลตรวจถึง 8 พ.ย. 2569) · Grain: หนึ่งสถานที่ (site / parent complex / retail component แยกแถว) · สถานะ: public research demo ไม่ใช่ production release**
 
 ## ตัวเลขของ snapshot นี้
 
@@ -170,6 +170,13 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
+
+## 0.9.6 - คนทำงานในสำนักงาน (แบบจำลอง) (`20261121-r1`)
+
+เจ้าของ (VERBATIM): 20 พ.ย. 2569 23:27 “ลุยครับ ถ้าได้ผลดี run ให้จบทั้งหมดไปเลยนะ แล้วปรับ demo office ให้เรียบร้อยด้วย https://citymeter.pages.dev/office/?d=office&at=BKK” และ “นำผลลัพท์ใหม่ไปปรับทั้ง shopping center และ office demo web”
+
+- **คนทำงานในสำนักงาน (แบบจำลอง) (D63):** บรรทัดใหม่ในส่วนสถานที่ที่คนมาทำงานและเรียน ใต้ตัวเลขคนที่แหล่งบันทึก — พื้นที่ของสำนักงานในรัศมี × อัตราการเช่า ÷ 10–12 ตร.ม. ต่อคน เป็นช่วง พร้อมจำนวนสำนักงานที่มีพื้นที่ เช่น เซ็นทรัลเวิลด์ใน 3 กม. ราว 222,600–267,200 คน จากพื้นที่ของสำนักงาน 123 จาก 155 แห่ง · ไม่บวกกับคนที่แหล่งบันทึก · สูตรและแหล่งอยู่ในวิธีคิดที่พับไว้
+- **ข้อมูล:** `w` ใน `data/work-study-map/` (release `venue-locale-work-study-492-20261121-v2`) จาก `scripts/build-visitors-map.py --map workstudy --office-data … --office-commit …` · พื้นที่และอัตราการเช่าของอาคารจาก CityMETER · Office 0.5.5 (`montri-th/office` @`8e8d8be`) ที่เพิ่มพื้นที่ให้เช่าที่ตรวจเมื่อ 20 พ.ย. 2569 · อัตราการเช่าของตลาด 76.4% (Knight Frank Thailand ไตรมาส 3/2569) · ส่วนอื่นของไฟล์เท่ากับ 0.9.5
 
 ## 0.9.5 - สถานที่ที่คนมาทำงานและเรียนรอบศูนย์ (`20261120-r7`)
 

@@ -5,7 +5,8 @@ shop and use services — counted from the research-registry datasets of the loc
 places people come to work and study (0.9.5).
 
   python3 -I scripts/build-visitors-map.py --points <locale build>/w1/points
-  python3 -I scripts/build-visitors-map.py --points <locale build>/w1/points --map workstudy
+  python3 -I scripts/build-visitors-map.py --points <locale build>/w1/points --map workstudy \
+      --office-data <montri-th/office checkout>/data/offices.json --office-commit <its commit>
 
 Owner 2026-11-20 (VERBATIM): 19:35 “และขอ heatmap แบบนี้สำหรับ visitor ด้วย”; asked which data to draw it from (no
 count of visitors per 250 m cell exists), the answer: “infer/imply จากจุดกิจกรรมต่างๆได้มั้ย เช่น POI จาก datasets ต่างๆที่
@@ -22,6 +23,13 @@ unit they all share (rooms, beds or seats are not added up across datasets). It 
 estates, universities, health facilities and schools — without the rail stations (a place people pass through; the map
 draws them, they are not counted). The people the sources record (students, workers, staff) and beds stay in the rings of
 the release (data/locale facts `m`); this file counts places only.
+Office workers (modelled; 0.9.6, owner 2026-11-20 23:27: “นำผลลัพท์ใหม่ไปปรับทั้ง shopping center และ office demo web”, after
+the leasable-area check of CityMETER · Office): per center and radius, the area of the office records within it × an
+occupancy rate ÷ 10–12 m² per person, as a range (w). The area is the leasable area the Office demo publishes, else the
+record's source area unless its status is a source conflict; the occupancy is the building's own when its owner reports
+it, else the Bangkok market's (OFFICE_MODEL). Joined by Office ID to montri-th/office data/offices.json (commit and
+SHA-256 in meta.officeWorkers); every record counts once, records in one building are not merged; never added to the
+people the sources record, and never a count of employees.
 Distances are great-circle straight lines from the center's point (R = 6,371,008.8 m, the rings' own formula, so every
 count equals the release); the cells are those of data/residents (azimuthal equidistant around the center, 250 m;
 a place on the 5 km edge whose cell falls one step outside is kept in the edge cell).
@@ -40,6 +48,8 @@ Published per center (shardOf(id, SHARDS), FNV-1a as js/details.js):
   p  mid-rank percentile among the 488 reference centers [all], and among those of the same type [type], per radius
   g  places per 250 m cell within 5 km, 40 × 40, rows north to south, columns west to east; null = no place listed in
      the cell (not "no visitors")
+  w  (work-study map) per radius [low, high, records with a leasable area, records with a source area, office records]:
+     modelled office workers; low and high are null when no office record within the radius has an area
 
 Stops (a source error, not a value): a dataset of the groups without its point set; a point set whose count for a
 center differs from data/locale facts at any radius; cells that do not add up to the 5 km count; the reference or the
@@ -58,6 +68,65 @@ RADII = (1000, 3000, 5000)
 GROUPS = ('mall', 'community', 'outlet')
 CELL_M, HALF = 250, 20  # cells -20..19 on both axes: 40 × 40 around the center, as data/residents
 R_EARTH = 6371008.8     # the rings of the locale release (great-circle, mean radius)
+# Modelled office workers (--map workstudy): the assumptions, with where each comes from.
+OFFICE_MODEL = {
+    'sqmPerPerson': [10, 12],
+    'density': {'th': 'เกณฑ์เดิมในการคิดพื้นที่สำนักงานต่อคน 10–12 ตร.ม. ซึ่งแหล่งเดียวกันระบุว่าปัจจุบันเปลี่ยนไปคิดตามจำนวนที่นั่ง',
+                'en': 'the traditional rule of thumb of 10–12 m² of office space per person, which the same source says has given way to planning by seats',
+                'byTh': 'Knight Frank Thailand และ Peoplespace ใน Bangkok Post', 'byEn': 'Knight Frank Thailand and Peoplespace, in the Bangkok Post',
+                'url': 'https://www.bangkokpost.com/property/2008523/knight-frank-thailand-and-peoplespace-showcase-workplace-strategy-concept-for-the-digital-era'},
+    'occupancy': {'rate': 0.764, 'asOf': '2026-Q3', 'th': 'อัตราการเช่าของตลาดสำนักงานกรุงเทพฯ ไตรมาส 3/2569', 'en': 'the Bangkok office market occupancy of Q3 2026',
+                  'byTh': 'Knight Frank Thailand ตามข่าว Pattaya Mail 24 ต.ค. 2569', 'byEn': 'Knight Frank Thailand, as Pattaya Mail reported on 24 Oct 2026',
+                  'url': 'https://www.pattayamail.com/thailandnews/bangkok-office-vacancy-reaches-1-6-million-sqm-as-occupancy-stays-below-10-year-average-569566'},
+    'conflict': 'แหล่งข้อมูลขัดกัน',  # the Office demo's area status of source_scope_or_value_conflict: such an area is not used
+}
+COMMIT40 = __import__('re').compile(r'^[0-9a-f]{40}$')
+
+
+def rounded(x, up):
+    """Round a modelled count outward to 10s (100s from 1,000; units below 10): low down, high up."""
+    step = 100 if x >= 1000 else 10 if x >= 10 else 1
+    return int(math.ceil(x / step) * step) if up else int(math.floor(x / step) * step)
+
+
+def office_inputs(path, commit):
+    """Office ID → (area m², 'l' leasable | 'a' source area, occupancy share or None) from montri-th/office data/offices.json."""
+    if not path or not commit or not COMMIT40.match(commit):
+        fail('--map workstudy needs --office-data <montri-th/office data/offices.json> and --office-commit <its 40-hex commit>')
+    d = json.loads(Path(path).read_text(encoding='utf-8'))
+    c, statuses = d['cols'], d['vocab']['status']
+    if OFFICE_MODEL['conflict'] not in statuses:
+        fail(f'{path}: no area status “{OFFICE_MODEL["conflict"]}” in vocab.status')
+    conflict = statuses.index(OFFICE_MODEL['conflict'])
+    lease = {int(k): v for k, v in d.get('lease', {}).items()}
+    occ = {int(k): v for k, v in d.get('occupancy', {}).items()}
+    out = {}
+    for i, key in enumerate(c['key']):
+        area, kind = None, None
+        if i in lease and lease[i][0] > 0:
+            area, kind = float(lease[i][0]), 'l'
+        elif c['area'][i] and c['area'][i] > 0 and c['ast'][i] != conflict:
+            area, kind = float(c['area'][i]), 'a'
+        rate = None
+        if i in occ:
+            txt = str(occ[i][0]).strip().rstrip('%')
+            try:
+                rate = float(txt) / 100
+            except ValueError:
+                fail(f'{key}: occupancy “{occ[i][0]}” is not a percentage')
+            if not 0 < rate <= 1:
+                fail(f'{key}: occupancy {rate}')
+        out[key] = (area, kind, rate)
+    return out, {'repo': 'montri-th/office', 'file': 'data/offices.json', 'commit': commit, 'sha256': sha256(path),
+                 'productVersion': office_version(path), 'readOn': d['meta'].get('readOn'), 'checkedOn': d['meta'].get('checkedOn')}
+
+
+def office_version(path):
+    """The Office demo's release (package.json beside data/), '' when the file is not in a checkout."""
+    pkg = Path(path).resolve().parent.parent / 'package.json'
+    return json.loads(pkg.read_text(encoding='utf-8')).get('version', '') if pkg.is_file() else ''
+
+
 MAPS = {
     'visitors': {
         'out': 'visitors-map', 'uses': ('visit', 'retail'), 'skip': (),
@@ -68,7 +137,7 @@ MAPS = {
     },
     'workstudy': {
         'out': 'work-study-map', 'uses': ('work', 'live'), 'skip': ('transit',),
-        'release': 'venue-locale-work-study-492-20261120-v1', 'schema': 'shoppingcenter-work-study-map/1',
+        'release': 'venue-locale-work-study-492-20261121-v2', 'schema': 'shoppingcenter-work-study-map/1', 'officeWorkers': True,
         'owner': '2026-11-20 20:33: นอกจากสถานที่พัก ก็ยังมีสถานศึกษา ที่ทำงาน โรงงาน ร้านค้า ร้านอาหาร กิจกรรมต่างๆที่คนต้องเดินทางออกจากบ้านมาใช้บริการด้วย จากจุดที่เรามีมากพอสมควร น่าจะใช้ infer/imply ได้ดีพอสมควรมั้ย; answers: แยกเป็นแผนที่ที่สอง · นับแห่ง + บอกจำนวนคนประกอบ',
         'what': 'places people come to work and study (offices, government offices, factories, industrial estates, universities, health facilities, schools) per 250 m cell within 5 km of each located center: listed places, not people or trips; rail stations are drawn on the map, not counted',
         'dataMethod': 'DATA_METHOD.md#work-study-places',
@@ -112,8 +181,11 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('--points', required=True, type=Path)
     ap.add_argument('--map', choices=sorted(MAPS), default='visitors')
+    ap.add_argument('--office-data', type=Path, help='workstudy: montri-th/office data/offices.json (modelled office workers)')
+    ap.add_argument('--office-commit', help='workstudy: the montri-th/office commit that file comes from (40 hex)')
     args = ap.parse_args()
     cfg = MAPS[args.map]
+    offices, office_src = office_inputs(args.office_data, args.office_commit) if cfg.get('officeWorkers') else (None, None)
     out_dir = ROOT / 'data' / cfg['out']
     import numpy as np
     from pyproj import Transformer
@@ -151,6 +223,7 @@ def main():
     chord5 = 2 * math.sin(RADII[-1] / (2 * R_EARTH))
     inputs, per_ds = {}, {}
     found = {vid: [] for vid in ids}  # (lon, lat, distance) of every place within 5 km
+    near_offices = {vid: [] for vid in ids}  # (Office ID, distance) within 5 km, for the modelled office workers
     for ds in datasets:
         path = args.points / f'{ds}.json'
         if not path.exists():
@@ -179,6 +252,12 @@ def main():
             if got != list(want):
                 fail(f'{vid} {ds}: {got} within 1 · 3 · 5 km, the release says {want}')
             found[vid].extend((pts[j][0], pts[j][1]) for j, dd in dist.items() if dd <= RADII[-1])
+            if ds == 'office' and offices is not None:
+                for j, dd in dist.items():
+                    if dd <= RADII[-1]:
+                        if pts[j][4] not in offices:
+                            fail(f'office point {pts[j][4]} is not a row of {office_src["file"]} @{office_src["commit"][:12]}')
+                        near_offices[vid].append((pts[j][4], dd))
 
     recs = {}
     for k, vid in enumerate(ids):
@@ -197,6 +276,19 @@ def main():
         if sum(grid) != n[2]:
             fail(f'{vid}: cells add up to {sum(grid)}, 5 km {n[2]}')
         recs[vid] = {'n': n, 'g': [c or None for c in grid]}
+        if offices is not None:
+            w = []
+            for i, r in enumerate(RADII):
+                within = [offices[key] for key, dd in near_offices[vid] if dd <= r]
+                if len(within) != facts[vid]['ring'].get('office', {}).get('n', [0, 0, 0])[i]:
+                    fail(f'{vid}: {len(within)} office records within {r} m, the release says otherwise')
+                share = sum(a * (rate if rate is not None else OFFICE_MODEL['occupancy']['rate']) for a, _, rate in within if a)
+                nl = sum(1 for a, kind, _ in within if a and kind == 'l')
+                na = sum(1 for a, kind, _ in within if a and kind == 'a')
+                lo_sqm, hi_sqm = OFFICE_MODEL['sqmPerPerson'][1], OFFICE_MODEL['sqmPerPerson'][0]
+                w.append([rounded(share / lo_sqm, False) if nl + na else None, rounded(share / hi_sqm, True) if nl + na else None, nl, na, len(within)])
+            if any(x[4] for x in w):
+                recs[vid]['w'] = w
 
     for i, r in enumerate(RADII):
         allv = [recs[x]['n'][i] for x in reference]
@@ -247,6 +339,20 @@ def main():
     }
     if cfg['skip']:
         out_meta['skipped'] = {ds: 'drawn on the map, not counted' for ds in cfg['skip']}
+    if offices is not None:
+        used = sum(1 for v in offices.values() if v[0])
+        out_meta['officeWorkers'] = {
+            'owner': '2026-11-20 23:27: นำผลลัพท์ใหม่ไปปรับทั้ง shopping center และ office demo web (after the leasable-area check of CityMETER · Office)',
+            'what': 'modelled office workers per center and radius: area × occupancy ÷ 10–12 m² per person, as a range; a model, never a count of employees, never added to the people the sources record',
+            'record': 'w: per radius [low, high, records with a leasable area, records with a source area, office records]; low and high null when no record within the radius has an area',
+            'area': 'the leasable area the Office demo publishes (owner, broker or press release), else the record’s source area unless its status is a source conflict; one record counts once, records in one building are not merged',
+            'sqmPerPerson': OFFICE_MODEL['sqmPerPerson'], 'density': OFFICE_MODEL['density'], 'occupancy': OFFICE_MODEL['occupancy'],
+            'buildingOccupancy': 'the building’s own occupancy when its owner reports it (the Office demo’s occupancy), else occupancy.rate',
+            'rounding': 'low rounded down and high rounded up, to 10 (100 from 1,000; units below 10)',
+            'source': office_src,
+            'records': {'all': len(offices), 'withArea': used, 'leasable': sum(1 for v in offices.values() if v[1] == 'l'),
+                        'sourceArea': sum(1 for v in offices.values() if v[1] == 'a'), 'ownOccupancy': sum(1 for v in offices.values() if v[2] is not None)},
+        }
     (out_dir / 'meta.json').write_text(dump(out_meta), encoding='utf-8')
     print(f'data/{cfg["out"]}: {len(ids)} centers in {SHARDS} shards, {sum(sizes):,} bytes (largest {max(sizes):,}); '
           f'{len(datasets)} datasets; places within 1 · 3 · 5 km summed over centers {totals}')

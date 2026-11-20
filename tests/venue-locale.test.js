@@ -891,7 +891,7 @@ test('work and study: the release groups work and live without the rail stations
   const files = readdirSync(new URL(`${WORK_MAP_PATH}/`, ROOT)).filter(f => f !== 'meta.json');
   assert.equal(files.length, wmeta.shards);
   assert.equal(wmeta.schema, 'shoppingcenter-work-study-map/1');
-  assert.equal(wmeta.release, 'venue-locale-work-study-492-20261120-v1');
+  assert.equal(wmeta.release, 'venue-locale-work-study-492-20261121-v2');
   assert.equal(wmeta.localeRelease, meta.release.id);
   const groups = Object.fromEntries(meta.ringGroups.map(g => [g.id, g.datasets]));
   assert.deepEqual(wmeta.uses, ['work', 'live']);
@@ -987,6 +987,72 @@ test('work and study block: places with their rank, the datasets, the people the
   assert.equal(PLACES.work.scale, 'count');
   assert.equal(workMapModel(rec, wmeta).ramp.lut, COUNT_SCALE.lut);
   assert.match(workMapHTML(row, rec, wmeta, 3000), /aria-labelledby="wrk-SC-001245-t"/);
+});
+
+test('office workers (modelled, 0.9.6): office area × occupancy ÷ 10–12 m² per person from CityMETER · Office, a range per radius; missing is null, never zero', () => {
+  const om = wmeta.officeWorkers;
+  assert.ok(om, 'the work map carries the model and its assumptions');
+  assert.deepEqual(om.sqmPerPerson, [10, 12]);
+  assert.equal(om.occupancy.rate, 0.764);
+  assert.equal(om.occupancy.asOf, '2026-Q3');
+  for (const s of [om.occupancy, om.density]) {
+    assert.match(s.url, /^https:\/\//);
+    assert.match(s.th + s.byTh, THAI);
+    assert.doesNotMatch(s.en + s.byEn, THAI);
+  }
+  assert.equal(om.source.repo, 'montri-th/office');
+  assert.equal(om.source.file, 'data/offices.json');
+  assert.match(om.source.commit, /^[0-9a-f]{40}$/);
+  assert.match(om.source.sha256, /^[0-9a-f]{64}$/);
+  assert.match(om.source.productVersion, /^\d+\.\d+\.\d+$/);
+  assert.match(om.source.checkedOn, /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(om.records.withArea, om.records.leasable + om.records.sourceArea);
+  let shown = 0;
+  for (const f of readdirSync(new URL(`${WORK_MAP_PATH}/`, ROOT)).filter(x => x !== 'meta.json')) {
+    for (const [id, rec] of Object.entries(read(`${WORK_MAP_PATH}/${f}`).venues)) {
+      const offices = shard('facts', id).ring.office?.n || [0, 0, 0];
+      if (!rec.w) { assert.ok(offices.every(v => v === 0), `${id}: offices without a model`); continue; }
+      assert.equal(rec.w.length, 3, id);
+      rec.w.forEach(([lo, hi, nl, na, m], i) => {
+        assert.equal(m, offices[i], `${id} ${RADII[i]}: the office records of the rings`);
+        assert.ok(nl + na <= m, `${id} ${RADII[i]}`);
+        if (nl + na === 0) {
+          assert.equal(lo, null, `${id} ${RADII[i]}: no area, no figure`);
+          assert.equal(hi, null, `${id} ${RADII[i]}`);
+        } else {
+          assert.ok(Number.isInteger(lo) && Number.isInteger(hi) && lo > 0 && lo < hi, `${id} ${RADII[i]}: ${lo}–${hi}`);
+          shown += 1;
+        }
+        if (i) assert.ok(m >= rec.w[i - 1][4] && nl >= rec.w[i - 1][2] && na >= rec.w[i - 1][3], `${id}: the counts grow with the radius`);
+      });
+    }
+  }
+  assert.ok(shown > 100, `${shown} figures`);
+  // the work block: one line under the people the sources record, the method folded with both sources
+  reset();
+  const row = byId.get(CENTRALWORLD), facts = shard('facts', CENTRALWORLD), rec = workOf(CENTRALWORLD);
+  for (const [i, radius] of RADII.entries()) {
+    setLocaleOption('radius', radius);
+    const html = renderLocaleWork(row, {meta, facts, workMeta: wmeta, work: rec, workState: 'ready'});
+    const [lo, hi, nl, na, m] = rec.w[i];
+    const line = /<p class="res-age-text work-office-model"><span data-en="([^"]+)">([^<]+)<\/span><\/p>/.exec(html);
+    if (nl + na === 0) { assert.equal(line, null); continue; }
+    const range = `${num(lo)}\u2060–\u2060${num(hi)}`; // joined, so a range never breaks at its dash
+    assert.equal(line[2], `คนทำงานในสำนักงาน (แบบจำลอง) ใน ${radius / 1000} กม. ราว ${range}\u00a0คน · จากพื้นที่ของสำนักงาน ${num(nl + na)} จาก ${num(m)} แห่ง`);
+    assert.equal(line[1], `Office workers (modelled) within ${radius / 1000} km: about ${range} · from the area of ${num(nl + na)} of ${num(m)} offices`);
+    assert.ok(html.indexOf('work-people') < html.indexOf('work-office-model') && html.indexOf('work-office-model') < html.indexOf('class="res-map"'), 'under the recorded people, above the map');
+    const method = /<details class="locale-details" data-locale-open="work"[\s\S]*?<\/details>/.exec(html)[0];
+    assert.ok(method.includes(`(ใน ${radius / 1000} กม.: พื้นที่ให้เช่าที่แหล่งเผยแพร่ ${num(nl)} แห่ง พื้นที่ตามแหล่ง ${num(na)} แห่ง)`));
+    assert.ok(method.includes('76.4% อัตราการเช่าของตลาดสำนักงานกรุงเทพฯ ไตรมาส 3/2569') && method.includes('ไม่ใช่จำนวนพนักงานที่นับได้'));
+    assert.ok(method.includes(`href="${om.occupancy.url}"`) && method.includes(`href="${om.density.url}"`), 'both sources linked');
+  }
+  reset();
+  // a center whose offices within 1 km have no area shows no figure there (missing is not zero)
+  const bare = set.find(r => r.located && workOf(r.id)?.w && workOf(r.id).w[0][4] > 0 && workOf(r.id).w[0][2] + workOf(r.id).w[0][3] === 0);
+  assert.ok(bare, 'a center with office records but no area within 1 km');
+  setLocaleOption('radius', 1000);
+  assert.doesNotMatch(renderLocaleWork(bare, {meta, facts: shard('facts', bare.id), workMeta: wmeta, work: workOf(bare.id), workState: 'ready'}), /work-office-model/);
+  reset();
 });
 
 test('pale samples (0.9.5): a cell nearly the colour of a light surface carries the border token, so one place never reads as none', () => {
