@@ -1,14 +1,14 @@
 {
  "schema": "citymeter-venue-locale-serving/1",
- "bundleId": "venue-locale-shopping-20261118-v0.2.0-rc1-web",
- "createdAt": "2026-11-18T11:17:45Z",
- "asOf": "2026-11-18",
+ "bundleId": "venue-locale-shopping-20261120-v0.2.1-rc1-web",
+ "createdAt": "2026-11-20T06:04:50Z",
+ "asOf": "2026-11-20",
  "release": {
-  "id": "venue-locale-shopping-20261118-v0.2.0-rc1",
+  "id": "venue-locale-shopping-20261120-v0.2.1-rc1",
   "status": "release_candidate",
-  "manifestSha256": "5f152eb96de2f9c6e0aeed32a33edbea543c3b7eabcc7d54d2aa1566b85d1051",
+  "manifestSha256": "6cdc8b40c69dd2598a2e1477dfda0003f264d88b4828c2ffd0a1eb75cc4ce7ca",
   "schema": "venue_locale_schema_v1",
-  "blockingIssues": 16
+  "blockingIssues": 12
  },
  "shards": 64,
  "hash": "FNV-1a 32-bit of the UTF-8 venue id modulo shards, two digits (same function as data/details)",
@@ -19,28 +19,42 @@
  ],
  "defaultRadius": 3000,
  "venues": 499,
- "located": 488,
+ "located": 492,
  "universes": {
   "all": {
    "n": 488,
-   "th": "ศูนย์ในชุดนี้ที่มีพิกัด",
-   "en": "located centres of this set"
+   "th": "ศูนย์ชุดอ้างอิงที่มีพิกัด",
+   "en": "located centres of the reference set"
   },
   "outlet": {
    "n": 13,
-   "th": "เอาท์เล็ตที่มีพิกัด",
-   "en": "located outlets"
+   "th": "เอาท์เล็ตชุดอ้างอิงที่มีพิกัด",
+   "en": "located outlets of the reference set"
   },
   "mall": {
    "n": 288,
-   "th": "ศูนย์การค้าที่มีพิกัด",
-   "en": "located shopping malls"
+   "th": "ศูนย์การค้าชุดอ้างอิงที่มีพิกัด",
+   "en": "located shopping malls of the reference set"
   },
   "community": {
    "n": 187,
-   "th": "คอมมูนิตี้มอลล์ที่มีพิกัด",
-   "en": "located community malls"
+   "th": "คอมมูนิตี้มอลล์ชุดอ้างอิงที่มีพิกัด",
+   "en": "located community malls of the reference set"
   }
+ },
+ "reference": {
+  "n": 488,
+  "release": "venue-locale-shopping-20261118-v0.2.0-rc1",
+  "asOf": "2026-11-18",
+  "added": [
+   "SC-007245",
+   "VN-7bb5b3abd9f811",
+   "VN-a263de54d31372",
+   "VN-c87c200db5d079"
+  ],
+  "addedOn": "2026-11-20",
+  "th": "ชุดอ้างอิงคือศูนย์ที่มีพิกัด 488 แห่งในรุ่น 18 พ.ย. 2569 ศูนย์ที่ได้พิกัดภายหลังเทียบกับชุดนี้ และไม่ทำให้อันดับของศูนย์อื่นเปลี่ยน",
+  "en": "The reference set is the 488 centres located in the release of 18 Nov 2026. A centre placed later is ranked against this set and does not move the rank of any other centre."
  },
  "ringGroups": [
   {

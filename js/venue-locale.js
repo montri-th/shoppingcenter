@@ -142,10 +142,16 @@ const levelWord = (level, code) => ({
   locale: 'ย่าน', subdistrict: code === BANGKOK ? 'แขวง' : 'ตำบล', municipality: 'เทศบาล/อปท.', district: districtWord(code), province: 'จังหวัด',
 }[level] || level);
 
-/** Universe of a ring percentile: all located venues or the venue's own type. */
+/** “ศูนย์การค้าชุดอ้างอิงที่มีพิกัด” → “ศูนย์การค้า”: the type word of a universe label. */
+const typeWord = u => String(u?.th || '').replace(/(ชุดอ้างอิง)?ที่มีพิกัด$/, '');
+
+/**
+ * Universe of a ring percentile: the rank reference (meta.reference: the centers located in release 0.2.0, owner
+ * 2026-11-20 11:57) or its centers of the venue's own type. A center placed later is ranked against it.
+ */
 export function universeOf(meta, row, universe = options.universe) {
   const type = meta?.universes?.[row?.group];
-  if (universe === 'type' && type) return {key: 'type', n: type.n, th: type.th, short: `${type.th.replace(/ที่มีพิกัด$/, '')} ${num(type.n)} แห่ง`};
+  if (universe === 'type' && type) return {key: 'type', n: type.n, th: type.th, short: `${typeWord(type)} ${num(type.n)} แห่ง`};
   const all = meta?.universes?.all || {n: 0, th: ''};
   return {key: 'all', n: all.n, th: all.th, short: `${num(all.n)} ศูนย์`};
 }
@@ -276,10 +282,20 @@ export function formatValue(v, unit = '') {
 export function areaPhrase(r, {level, bench, provinceCode}) {
   if (r.p == null || r.n == null) return '';
   const word = levelWord(level, provinceCode);
-  const group = bench === 'peer' ? `${word}ที่มีศูนย์ในชุดนี้` : `${word}ใน${provinceWord(provinceCode)}`;
+  const group = bench === 'peer' ? `${word}ที่มีศูนย์ชุดอ้างอิง` : `${word}ใน${provinceWord(provinceCode)}`;
   if (r.value === 0 && r.zeroShare != null) return `ไม่มีในข้อมูล เหมือน ${num(r.zeroShare)}% ของ${group} (${num(r.n)})`;
   const words = rankWords(r.p, `${group} (${num(r.n)})`);
   return r.basis === 'per_sqkm' ? `ต่อ ตร.กม. ${words}` : words.replace(/^มากกว่า/, 'สูงกว่า');
+}
+
+/**
+ * The rank reference, one line for the folded methods: the release's own sentence, and what the block shows besides.
+ * Empty when the release ranks every located center (no meta.reference).
+ */
+export function referenceLine(meta, extra = ['', '']) {
+  const R = meta?.reference;
+  if (!R?.th || !R?.en) return '';
+  return `<li>${say(`${R.th}${extra[0] ? ` · ${extra[0]}` : ''}`, `${usSpelling(R.en)}${extra[1] ? ` · ${extra[1]}` : ''}`)}</li>`;
 }
 
 /** Production deep links for the views that change daily: the district of the venue. */
@@ -902,12 +918,183 @@ export function residentsMapHTML(row, rec, rmeta, radius = options.radius, model
 
 const RING_WORDS = [['0–1 กม.', '0–1 km'], ['1–3 กม.', '1–3 km'], ['3–5 กม.', '3–5 km']];
 
+/* ---------- the map read as a table (owner 2026-11-20 11:27: “ตารางที่อ่านแทนแผนที่ได้”) ---------- */
+
+export const DIRECTIONS = Object.freeze([['เหนือ', 'North'], ['ตะวันออกเฉียงเหนือ', 'Northeast'], ['ตะวันออก', 'East'], ['ตะวันออกเฉียงใต้', 'Southeast'],
+  ['ใต้', 'South'], ['ตะวันตกเฉียงใต้', 'Southwest'], ['ตะวันตก', 'West'], ['ตะวันตกเฉียงเหนือ', 'Northwest']]);
+
+/**
+ * The 250 m cells of the 5 km map by direction (8 sectors of 45°, the first centred on north) and by ring (0–1 · 1–3 ·
+ * 3–5 km), each cell by its own centre: a cell crossing a line goes wholly to one side, and a cell on the edge (it holds
+ * only the buildings inside 5 km) reads as 3–5 km. People per km² = the sector's people ÷ the sector's share of the ring
+ * area. Returns {rows: [{th, en, people: [3], dens: [3], built: [3], total, share}], top, total}; top = the direction
+ * with the most people (the first in compass order on a tie).
+ */
+export function residentsSectors(rec, rmeta) {
+  const n = rmeta?.cell?.n || 40, m = rmeta?.cell?.m || 250, half = n / 2;
+  const radii = (rmeta?.radii || RADII).map(Number);
+  const people = DIRECTIONS.map(() => [0, 0, 0]), built = DIRECTIONS.map(() => [0, 0, 0]);
+  (rec?.g || []).forEach((v, k) => {
+    if (v == null) return;
+    const east = ((k % n) - half + 0.5) * m, north = (half - 1 - Math.floor(k / n) + 0.5) * m;
+    const bearing = ((Math.atan2(east, north) * 180) / Math.PI + 360) % 360;
+    const s = Math.floor(((bearing + 22.5) % 360) / 45);
+    const d = Math.hypot(east, north);
+    const ring = d < radii[0] ? 0 : d < radii[1] ? 1 : 2;
+    people[s][ring] += v;
+    built[s][ring] += 1;
+  });
+  const bounds = [0, ...radii];
+  const area = [0, 1, 2].map(j => (Math.PI * (bounds[j + 1] ** 2 - bounds[j] ** 2)) / 8 / 1e6);
+  const total = people.reduce((s, p) => s + p[0] + p[1] + p[2], 0);
+  const rows = DIRECTIONS.map(([th, en], s) => {
+    const sum = people[s][0] + people[s][1] + people[s][2];
+    return {th, en, people: people[s], dens: people[s].map((p, j) => p / area[j]), built: built[s], total: sum, share: total > 0 ? (100 * sum) / total : 0};
+  });
+  const top = rows.reduce((best, r) => (r.total > best.total ? r : best), rows[0]);
+  return {rows, top, total};
+}
+
+/** A density for a table cell: two significant figures, “<1” under one person per km², “–” where no building is counted. */
+function densityCell(d, built) {
+  if (!built) return '–';
+  if (!(d >= 1)) return '&lt;1';
+  const step = 10 ** Math.max(0, Math.floor(Math.log10(d)) - 1);
+  return num(Math.round(d / step) * step);
+}
+
+/** The line under the map (where most of the people are) and the table of the map, folded. */
+function residentsTableHTML(rec, rmeta) {
+  const {rows, top, total} = residentsSectors(rec, rmeta);
+  if (!(total > 0)) return '';
+  const pw = peopleWords(top.total), share = num(Math.round(top.share));
+  const lead = `<p class="res-dir">${icon('maps')}${say(`คนในวง 5 กม. อยู่ทางทิศ${top.th}ของศูนย์มากที่สุด ${pw[0]} (${share}%)`,
+    `Most people within 5 km are to the ${top.en.toLowerCase()} of the center: ${pw[1]} (${share}%)`)}</p>`;
+  const densest = rows.flatMap((r, s) => r.dens.map((d, j) => ({s, j, d: r.built[j] ? d : -1}))).reduce((a, b) => (b.d > a.d ? b : a));
+  const body = rows.map((r, s) => {
+    const cells = r.dens.map((d, j) => {
+      const v = densityCell(d, r.built[j]);
+      return `<td class="data-number">${s === densest.s && j === densest.j ? `<b>${v}</b>` : v}</td>`;
+    }).join('');
+    const about = aboutPeople(r.total);
+    return `<tr${r === top ? ' class="is-top"' : ''}><th scope="row">${say(r.th, r.en)}</th>${cells}<td class="data-number">${r.total > 0 ? `${about ?? '&lt;10'} <small>${num(Math.round(r.share))}%</small>` : '–'}</td></tr>`;
+  }).join('');
+  return `${lead}
+    <details class="locale-details" data-locale-open="restable"${openAttr('restable')}><summary>${icon('table')}${say('อ่านแผนที่เป็นตาราง: ทิศและระยะจากศูนย์', 'The map as a table: direction and distance from the center')}</summary>
+    <div class="table-wrap locale-table-wrap"><table class="locale-table res-table"><caption class="sr-only">${say('คนต่อ ตร.กม. ตามทิศและระยะจากศูนย์ และคนในวง 5 กม. ของแต่ละทิศ', 'People per km² by direction and distance from the center, and the people within 5 km in each direction')}</caption>
+    <thead><tr><th scope="col">${say('ทิศจากศูนย์', 'Direction')}</th>${RING_WORDS.map(([th, en]) => `<th scope="col">${say(th, en)}</th>`).join('')}<th scope="col">${say('คนใน 5 กม. (ราว)', 'People within 5 km (about)')}</th></tr></thead>
+    <tbody>${body}</tbody></table></div>
+    <p class="hint">${say('ช่องระยะคือคนต่อ ตร.กม. ตัวหนาคือช่องที่หนาแน่นที่สุด · ช่องตาราง 250 ม. นับเข้าทิศและระยะตามกึ่งกลางช่อง ตัวเลขรายระยะจึงต่างจากวงด้านบนเล็กน้อย · – คือไม่มีอาคารที่นับได้',
+      'Distance columns are people per km²; bold is the densest · each 250 m cell counts in the direction and distance of its centre, so these differ a little from the rings above · – means no counted building')}</p></details>`;
+}
+
+/* ---------- other centers on two ranks (method v1 §4 “เทียบหลายศูนย์”; owner 2026-11-20 11:27) ---------- */
+
+export const COMPARE_PATH = 'data/compare/residents-workers.json';
+export const loadCompare = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(COMPARE_PATH, fetchImpl);
+export const cachedCompare = () => resolved.get(COMPARE_PATH) || null;
+
+export const QUARTERS = Object.freeze({work: ['ย่านงาน', 'Workplace'], mixed: ['ผสม', 'Mixed'], sparse: ['เบาบาง', 'Sparse'], home: ['ย่านบ้าน', 'Residential']});
+/** The quarter of two ranks: both at or above the split read “mixed”, both below “sparse”. */
+export const quarterOf = (x, y, split = 50) => (x >= split ? (y >= split ? 'mixed' : 'home') : (y >= split ? 'work' : 'sparse'));
+
+/**
+ * The centers of the universe of the chips on two ranks at the radius of the chips: x = registered residents nearby
+ * (the rank of data/residents), y = workers and commuters nearby (a rank of the generated prior, which does not change
+ * with the radius). Nearest = the five closest on the chart (straight-line distance in rank points; ties by id).
+ * Returns null when the file has no record of the center.
+ */
+export function compareModel(cmp, row, {radius = options.radius, universe = options.universe, near = 5} = {}) {
+  const i = RI[radius] ?? 1, mine = cmp?.venues?.[row?.id];
+  if (!mine) return null;
+  const type = universe === 'type';
+  const points = [];
+  for (const [id, v] of Object.entries(cmp.venues)) {
+    if (type && v[0] !== mine[0]) continue;
+    points.push({id, x: type ? v[2][i] : v[1][i], y: type ? v[4] : v[3]});
+  }
+  const split = cmp.split ?? 50;
+  const ref = type ? cmp.universes?.[cmp.groups?.[mine[0]]] : cmp.universes?.all;
+  const me = points.find(q => q.id === row.id);
+  const counts = {work: 0, mixed: 0, sparse: 0, home: 0};
+  for (const q of points) counts[quarterOf(q.x, q.y, split)] += 1;
+  const nearest = points.filter(q => q.id !== row.id).map(q => ({...q, d: Math.hypot(q.x - me.x, q.y - me.y)}))
+    .sort((a, b) => a.d - b.d || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)).slice(0, near);
+  // n: the centers on the chart (every located one); ref: the centers the two ranks are read against (the reference)
+  return {i, radius: RADII[i], universe: type ? 'type' : 'all', points, me, quarter: quarterOf(me.x, me.y, split), counts, nearest, split, n: points.length, ref: ref ?? points.length};
+}
+
+const at1 = v => Number(Number(v).toFixed(1));
+/** One path of circles (the plot's 0–100 box, y up). */
+const dotsPath = (pts, rad) => pts.map(q => `M${at1(q.x - rad)} ${at1(100 - q.y)}a${rad} ${rad} 0 1 0 ${2 * rad} 0a${rad} ${rad} 0 1 0 ${-2 * rad} 0`).join('');
+
+/** The comparison of the residents zone: the quarter, the two ranks, the chart, the nearest centers, one data line, the method folded. */
+function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
+  const wrap = inner => `<div class="cmp-block" id="locale-compare" role="group" aria-labelledby="locale-cmp-title"><h5 class="res-sub" id="locale-cmp-title" tabindex="-1">${say('เทียบกับศูนย์อื่น: คนอยู่ใกล้และคนทำงานใกล้', 'Against other centers: people living and working nearby')}</h5>${inner}</div>`;
+  if (state === 'error') return wrap(`<p class="hint">${say('โหลดการเทียบกับศูนย์อื่นไม่สำเร็จ', 'Could not load the comparison with other centers')} <button type="button" class="link-button" data-action="locale-retry-compare">${say('ลองอีกครั้ง', 'Try again')}</button></p>`);
+  if (!cmp) return wrap(`<p class="hint" role="status">${say('กำลังโหลดการเทียบกับศูนย์อื่น…', 'Loading the comparison with other centers…')}</p>`);
+  const model = compareModel(cmp, row);
+  if (!model) return '';
+  const {me, quarter, counts, nearest, n, ref, radius, universe} = model;
+  const uni = universeOf(meta, row);
+  const typeEn = usSpelling(meta.universes?.[row.group]?.en || '').replace(/^located /, '').replace(/ of the reference set$/, '');
+  // ranks read against the reference (as the rings above); the chart and the quarter counts are every located center
+  const uniTh = universe === 'all' ? ` ${num(ref)} ศูนย์` : uni.short, uniEn = universe === 'all' ? `${num(ref)} centers` : `${num(ref)} ${typeEn}`;
+  const plotTh = `${universe === 'all' ? 'ศูนย์' : typeWord(meta.universes?.[row.group])}ที่มีพิกัดทั้งหมด ${num(n)} แห่ง`, plotEn = `all ${num(n)} located ${universe === 'all' ? 'centers' : typeEn}`;
+  const [qTh, qEn] = QUARTERS[quarter];
+  // people are a count (“มากกว่า”), the workers level is a level (“สูงกว่า”), as the rest of the section
+  const xr = rankPair(me.x, uniTh, uniEn, {count: true}), yr = rankPair(me.y, uniTh, uniEn);
+  const lead = `<p class="cmp-lead">${say(`ศูนย์นี้อยู่ช่อง “${qTh}”`, `This center is in “${qEn}”`)} <span class="cmp-count">${say(`${num(counts[quarter])} จาก ${num(n)} ศูนย์อยู่ช่องนี้`, `${num(counts[quarter])} of ${num(n)} centers are here`)}</span></p>
+    <ul class="cmp-ranks"><li>${icon('residents')}${say(`คนอยู่ใกล้ใน ${km(radius)}: ${xr[0]}`, `People living within ${kmEn(radius)}: ${xr[1]}`)}</li><li>${icon('office')}${say(`คนทำงานใกล้: ${yr[0]}`, `People working nearby: ${yr[1]}`)}</li></ul>`;
+  const pos = v => `${(((v + 3) / 106) * 100).toFixed(2)}%`;
+  // the quarter names sit outside the plot, over and under their own half, so no name covers a dot or this center's label
+  const quarterTag = key => `<span class="cmp-q${key === quarter ? ' is-on' : ''}">${say(QUARTERS[key][0], QUARTERS[key][1])} <b class="data-number">${num(counts[key])}</b></span>`;
+  const meSide = `${me.x > 70 ? ' is-left' : ''}${me.y > 90 ? ' is-below' : me.y < 10 ? ' is-above' : ''}`;
+  const title = [`จุดของ${plotTh} ตามอันดับคนอยู่ใกล้ใน ${km(radius)} (แนวนอน) และคนทำงานใกล้ (แนวตั้ง) ศูนย์นี้อยู่ช่อง${qTh}`,
+    `${plotEn[0].toUpperCase()}${plotEn.slice(1)} by the rank of people living within ${kmEn(radius)} (across) and people working nearby (up); this center is in ${qEn}`];
+  const chart = `<figure class="cmp-figure">
+    <div class="cmp-qrow">${quarterTag('work')}${quarterTag('mixed')}</div>
+    <div class="cmp-wrap"><svg class="cmp-plot" viewBox="-3 -3 106 106" role="img" aria-labelledby="locale-cmp-t"><title id="locale-cmp-t"${enAttr(title[1])}>${esc(title[0])}</title>
+      <rect class="cmp-bg" x="0" y="0" width="100" height="100" rx="2"/><path class="cmp-mid" d="M50 0V100M0 50H100"/>
+      <path class="cmp-dots" d="${dotsPath(model.points.filter(q => q.id !== me.id), 0.9)}"/>
+      <path class="cmp-near" d="${dotsPath(nearest, 1.5)}"/>
+      <circle class="cmp-me" cx="${at1(me.x)}" cy="${at1(100 - me.y)}" r="2.4"/></svg>
+    <span class="cmp-me-label${meSide}" style="left:${pos(me.x)};top:${pos(100 - me.y)}" aria-hidden="true">${say('ศูนย์นี้', 'This center')}</span></div>
+    <div class="cmp-qrow">${quarterTag('sparse')}${quarterTag('home')}</div>
+    <figcaption class="cmp-axes">${say(`แนวนอน: คนอยู่ใกล้ใน ${km(radius)} (อันดับ) → · แนวตั้ง: คนทำงานใกล้ (อันดับ) ↑ · เส้นประคืออันดับกลาง`, `Across: people living within ${kmEn(radius)} (rank) → · up: people working nearby (rank) ↑ · dashed lines are the middle rank`)}</figcaption></figure>`;
+  const pEnOf = code => (code === BANGKOK ? 'Bangkok' : provinceByCode(code)?.en || '');
+  const items = nearest.map(q => {
+    const v = venueOf?.(q.id);
+    if (!v) return '';
+    const [nqTh, nqEn] = QUARTERS[quarterOf(q.x, q.y, model.split)];
+    return `<li><button type="button" class="cmp-near-row" data-action="select-venue" data-id="${esc(q.id)}"><span class="cmp-near-name">${say(v.name, v.nameEn)}<small>${say(provinceWord(v.provinceCode), pEnOf(v.provinceCode))} · ${say(nqTh, nqEn)}</small></span><span class="cmp-near-val">${icon('residents')}<b class="data-number">${num(Math.round(q.x))}%</b>${icon('office')}<b class="data-number">${num(Math.round(q.y))}%</b></span></button></li>`;
+  }).join('');
+  const list = items ? `<p class="cmp-near-head"><span class="res-sub">${say('ศูนย์ที่อันดับใกล้กันที่สุด', 'Centers with the closest ranks')}</span><span class="cmp-near-key">${icon('residents')}${say('คนอยู่ใกล้', 'living')} ${icon('office')}${say('คนทำงานใกล้', 'working')}</span></p><ol class="cmp-near-list">${items}</ol>` : '';
+  const pm = rmeta?.populationMonth, asOf = meta.asOf;
+  const line = `<p class="hint res-evidence cmp-evidence">${say(
+    `อันดับเทียบกับ${uniTh}ในชุดอ้างอิง · คนอยู่ใกล้: คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) กรมการปกครอง ${thaiDay(pm)} ผ่าน CityMETER production · คนทำงานใกล้: ระดับคนทำงานและผู้เดินทางจากกฎของรอบศูนย์นี้ ทะเบียนวิจัย CityMETER ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์`,
+    `Ranks against the ${uniEn} of the reference set · living nearby: registered residents (modelled), Department of Provincial Administration, ${englishDay(pm)}, through CityMETER production · working nearby: the workers and commuters level from the rules of this section, CityMETER research registry, ${englishDay(asOf)} · straight-line radius from the center’s point`)}</p>`;
+  const method = `<details class="locale-details" data-locale-open="cmp"${openAttr('cmp')}><summary>${icon('evidence')}${say('วิธีอ่านกราฟเทียบและข้อจำกัด', 'How to read the comparison, and the limits')}</summary>
+    <ul class="locale-method">
+      <li>${say(`แนวนอนคืออันดับ (เปอร์เซ็นไทล์แบบ mid-rank) ของคนที่มีชื่อในทะเบียนบ้านใน ${km(radius)} เทียบกับ${uniTh} เหมือนอันดับด้านบน เปลี่ยนตามรัศมีและกลุ่มที่เลือก`, `Across: the rank (mid-rank percentile) of the registered residents within ${kmEn(radius)} among ${uniEn}, as the rank above; it follows the radius and the comparison chosen`)}</li>
+      <li>${say('แนวตั้งคืออันดับของระดับ “คนทำงานและผู้เดินทาง” ในสมมติฐานของรอบศูนย์นี้ (ค่าเฉลี่ยของสองสัญญาณที่อันดับสูงสุด จากสำนักงาน หน่วยงานราชการ คนงานโรงงาน โรงพยาบาล สำนักงานใหญ่ของธุรกิจ และสถานีรถไฟฟ้า) เป็นสมมติฐานจากกฎ ไม่ใช่จำนวนคนทำงาน และไม่เปลี่ยนตามรัศมี',
+        'Up: the rank of the “workers and commuters” level in this section’s hypotheses (the mean of its two highest signals among offices, government offices, factory workers, hospitals, business headquarters and rail stations); a rule-based hypothesis, not a count of workers, and the same at every radius')}</li>
+      <li>${say(`ชื่อช่องเป็นการตีความ แบ่งที่อันดับ ${num(model.split)}% ของทั้งสองแกน: ย่านบ้าน คนอยู่มากกว่าครึ่งของศูนย์อื่นแต่คนทำงานน้อยกว่า · ย่านงาน กลับกัน · ผสม มากทั้งสองแกน · เบาบาง น้อยทั้งสองแกน`,
+        `The quarter names are an interpretation, split at the ${num(model.split)}% rank on both axes: Residential, more people living nearby than half the centers but fewer working · Workplace, the reverse · Mixed, more on both · Sparse, fewer on both`)}</li>
+      ${n !== ref ? referenceLine(meta, [`กราฟแสดง${plotTh} วางตามอันดับที่เทียบกับชุดอ้างอิง`, `the chart shows ${plotEn}, placed by their ranks against the reference set`]) : ''}
+      <li>${say('ศูนย์ที่อันดับใกล้กันคือ 5 ศูนย์ที่อยู่ใกล้ที่สุดบนกราฟนี้ ไม่ได้แปลว่าทำเล ลูกค้า หรือยอดขายเหมือนกัน และอันดับสูงไม่ได้แปลว่าทำเลดีกว่า', 'The centers with the closest ranks are the five nearest on this chart; that does not make their location, shoppers or sales alike, and a higher rank does not make a better location')}</li>
+      <li>${say(`ไฟล์ ${COMPARE_PATH} สร้างจากไฟล์จำนวนคนและสมมติฐานที่เว็บนี้ใช้อยู่แล้ว`, `File ${COMPARE_PATH}, built from the residents and hypothesis files this page already uses`)} · <a href="DATA_METHOD.md#compare-residents-workers" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
+    </ul></details>`;
+  return wrap(`${lead}${chart}${list}${line}${method}`);
+}
+
 /**
  * “คนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง)”: the figure at the radius of the chips with its rank among the centers (the
- * `count` LUT sample, as the cards above), how near or far the people live, their ages, the map, one data line, and
- * the method and its limits folded.
+ * `count` LUT sample, as the cards above), how near or far the people live, their ages, the map with where most of the
+ * people are and the map as a table (folded), one data line, the method and its limits folded, then the comparison with
+ * the other centers on two ranks (data/compare, its own data line and method).
  */
-function residentsBlock(meta, row, rmeta, rec, state) {
+function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareState = 'idle', venueOf = null} = {}) {
   const titleTh = 'คนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง)', titleEn = 'Registered residents around the center (modelled)';
   const wrap = inner => `<div class="locale-block res-block" id="locale-residents" role="group" aria-labelledby="locale-res-title">${inner}</div>`;
   const simple = text => wrap(`<h4 class="locale-sub" id="locale-res-title" tabindex="-1">${icon('residents')}${say(titleTh, titleEn)}</h4>${text}`);
@@ -954,6 +1141,7 @@ function residentsBlock(meta, row, rmeta, rec, state) {
       <li>${say(`ใน ${km(r)} นับอาคาร ${num(rec.b[i])} หลัง ในแขวง/ตำบล ${num(rec.sd[i])} แห่ง`, `Within ${kmEn(r)}: ${num(rec.b[i])} buildings in ${num(rec.sd[i])} subdistricts`)}</li>
       <li>${say('อายุคือโครงสร้างอายุของแขวง/ตำบลที่รัศมีคร่อม ถ่วงตามจำนวนคนในรัศมี ไม่ใช่อายุของคนในแต่ละอาคาร', 'Ages are the age structure of the subdistricts the radius covers, weighted by the people inside it, not the age of the people in each building')}</li>
       <li>${say(`อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ${uni.th} ${num(uni.n)} แห่ง ค่าที่เท่ากันนับครึ่ง อันดับสูงไม่ได้แปลว่าทำเลดีกว่า`, `The rank is a mid-rank percentile among ${num(uni.n)} ${uniEn}, ties counted half; a higher rank does not make a better location`)}</li>
+      ${referenceLine(meta)}
       <li>${say('แผนที่: สีของช่อง 250 ม. เรียงตามความหนาแน่นของช่องในวง 5 กม. ของศูนย์นี้ (LDS density 41 ระดับ) ใช้เทียบช่องในวงนี้ ไม่ใช้เทียบสีข้ามศูนย์ · ช่องที่ขอบวงนับเฉพาะอาคารในรัศมี · ช่องที่มีอาคารแต่คนไม่ถึง 0.05 คนใช้สีต่ำสุด · เส้นบางคือขอบแขวง/ตำบลของ production ที่ปรับให้เรียบเพื่ออ่านแผนที่ ไม่ใช่เส้นสำหรับวัด', 'Map: each 250 m cell takes its rank of residents per km² within this center’s 5 km (LDS density, 41 steps), to compare the cells of this map, not colours across centers · cells on the edge count only the buildings inside the radius · cells with buildings but under 0.05 residents take the lowest step · thin lines are production’s subdistrict boundaries, smoothed to read the map by, not to measure on')}</li>
       <li>${say(`รุ่นข้อมูล ${rmeta.release} คิดจาก API ของ CityMETER production ${thaiDay(asOf)}`, `Release ${rmeta.release}, computed from the CityMETER production API on ${englishDay(asOf)}`)} · <a href="DATA_METHOD.md#registered-residents" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
     </ul></details>`;
@@ -962,14 +1150,16 @@ function residentsBlock(meta, row, rmeta, rec, state) {
     ${rings}
     ${ages}
     ${figure}
+    ${residentsTableHTML(rec, rmeta)}
     ${line}
-    ${method}`);
+    ${method}
+    ${compareBlock(meta, row, rmeta, compare, compareState, venueOf)}`);
 }
 
 /** Only the residents zone of a venue's section, for when its file arrives after the rest is drawn ('' when it has none). */
-export function renderLocaleResidents(row, {meta = null, facts = null, residentsMeta = null, residents = null, residentsState = 'idle'} = {}) {
+export function renderLocaleResidents(row, {meta = null, facts = null, residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null} = {}) {
   if (!inLocaleSet(row) || !meta || !facts || facts.located === false) return '';
-  return residentsBlock(meta, row, residentsMeta, residents, residentsState);
+  return residentsBlock(meta, row, residentsMeta, residents, residentsState, {compare, compareState, venueOf});
 }
 
 function methodBlock(meta, uni) {
@@ -978,6 +1168,7 @@ function methodBlock(meta, uni) {
     <ul class="locale-method">
       <li>นับรายการที่แหล่งระบุในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ และไม่ใช่จำนวนคนเดิน</li>
       <li>อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ${esc(uni.th)} ${num(uni.n)} แห่ง ค่าที่เท่ากันนับครึ่ง · 0 คือไม่พบรายการในรัศมี ไม่ใช่ไม่มีข้อมูล</li>
+      ${referenceLine(meta)}
       <li>ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย</li>
       <li>ชุดที่ยังมีพิกัดไม่ครบนับเฉพาะรายการที่มีพิกัด และติดดาวไว้ในตาราง</li>
       ${notCounted.length ? `<li>ยังนับไม่ได้ในรุ่นนี้: ${esc(notCounted.join(' · '))}</li>` : ''}
@@ -999,7 +1190,7 @@ export function localeDataLine(meta) {
  * registered residents (modelled, 0.8.0) follow the cards of the counted datasets. Returns '' for rows outside
  * the 499-venue set (markets, fuel stations…), which the release does not cover.
  */
-export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle'} = {}) {
+export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null} = {}) {
   if (!inLocaleSet(row)) return '';
   const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}<span class="hint">รัศมีเส้นตรง</span></div>`;
   const shell = inner => `<section class="panel-section locale-section" id="venue-locale" data-venue="${esc(row.id)}" aria-labelledby="locale-title">${head}${inner}</section>`;
@@ -1011,7 +1202,7 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
   const aha = ahaRows(rows);
   const radiusChips = `<div class="chart-controls locale-controls" role="group" aria-label="รัศมี">${RADII.map(r => chip('locale-radius', 'radius', r, r === options.radius, km(r))).join('')}</div>`;
   const typeU = meta.universes?.[row.group];
-  const uniChips = typeU ? `<div class="chart-controls locale-controls" role="group" aria-label="เทียบกับ"><span class="chart-note">เทียบกับ</span>${chip('locale-universe', 'universe', 'all', options.universe === 'all', `ทุกศูนย์ ${num(meta.universes.all.n)} แห่ง`)}${chip('locale-universe', 'universe', 'type', options.universe === 'type', `${typeU.th.replace(/ที่มีพิกัด$/, '')} ${num(typeU.n)} แห่ง`)}</div>` : '';
+  const uniChips = typeU ? `<div class="chart-controls locale-controls" role="group" aria-label="เทียบกับ"><span class="chart-note">เทียบกับ</span>${chip('locale-universe', 'universe', 'all', options.universe === 'all', `ทุกประเภท ${num(meta.universes.all.n)} แห่ง`)}${chip('locale-universe', 'universe', 'type', options.universe === 'type', `${typeWord(typeU)} ${num(typeU.n)} แห่ง`)}</div>` : '';
   const ahaHTML = aha.length ? `<ul class="locale-aha">${aha.map(r => `<li>${icon(ringIcon(r))}<span class="aha-body"><span class="aha-what">${say(r.name, r.nameEn)} <b class="data-number">${num(r.count)}</b> ${say(r.unit, r.unitEn)}</span><span class="dot-track aha-track" aria-hidden="true"><b style="width:${r.p}%;background:${pctFill(r.p)}"></b><i class="dot" style="left:${r.p}%;background:${pctFill(r.p)}"></i></span><span class="aha-how">${esc(pctPhrase(r, uni))}</span></span></li>`).join('')}</ul>`
     : '<p class="subtle">ในรัศมีนี้ยังไม่พบรายการจากชุดข้อมูลที่นับได้</p>';
   const unplaced = unplacedRows(meta, row);
@@ -1020,7 +1211,7 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
   return shell(`${radiusChips}
     <p class="locale-lead">ใน ${esc(km(options.radius))} รอบศูนย์</p>
     ${ahaHTML}
-    ${residentsBlock(meta, row, residentsMeta, residents, residentsState)}
+    ${residentsBlock(meta, row, residentsMeta, residents, residentsState, {compare, compareState, venueOf})}
     <h4 class="locale-sub">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centers, every dataset')}</h4>
     ${uniChips}
     <div class="locale-chart" id="locale-chart" data-radius="${options.radius}" data-universe="${esc(uni.key)}">${ringListHTML(rows, uni, options.radius)}</div>

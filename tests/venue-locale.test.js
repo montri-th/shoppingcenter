@@ -8,6 +8,7 @@ import {
   inLocaleSet, ringRows, ahaRows, pctPhrase, rankWords, areaRows, areaPhrase, levelsOf, unplacedRows, liveLinks, renderLocale, renderLocalePriors, priorsHTML, fitRows, ringIcon,
   pctFill, universeOf, setLocaleOption, localeOptions, localeShardPath, RADII, localeDataLine,
   residentsShardPath, residentsMapModel, residentsMapHTML, renderLocaleResidents, aboutPeople, peopleWords, densityWords, englishDay, thaiDay,
+  residentsSectors, DIRECTIONS, compareModel, quarterOf, QUARTERS, COMPARE_PATH,
 } from '../js/venue-locale.js';
 import {shardOf} from '../js/details.js';
 import {COUNT_SCALE, DENSITY_SCALE} from '../js/scales.js';
@@ -23,8 +24,10 @@ const shard = (kind, id) => read(localeShardPath(kind, id, meta.shards)).venues[
 const rmeta = read('data/residents/meta.json');
 const residents = id => read(residentsShardPath(id, rmeta.shards)).venues[id] || null;
 const set = rows.filter(inLocaleSet);
+const cmp = read(COMPARE_PATH);
+const venueOf = id => byId.get(id) || null;
 const CENTRALWORLD = 'SC-001245';
-const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, method: false, dpwhy: false}); };
+const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe', 'all'); setLocaleOption('level', ''); setLocaleOption('bench', 'province'); setLocaleOption('open', {table: false, more: false, live: false, method: false, dpwhy: false, res: false, restable: false, cmp: false}); };
 const THAI = /[ก-ฺเ-๎]/;
 const num = n => new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0}).format(n);
 
@@ -32,9 +35,14 @@ test('the release covers the 499 countable shopping centres, community malls and
   assert.equal(set.length, 499);
   assert.equal(meta.venues, 499);
   assert.equal(meta.located, set.filter(r => r.located).length);
-  assert.equal(meta.universes.all.n, meta.located);
+  // the rank reference (owner 2026-11-20 11:57): the centers located in release 0.2.0; a center placed later ranks against them
+  const added = new Set(meta.reference.added), reference = set.filter(r => r.located && !added.has(r.id));
+  assert.ok(meta.reference.added.length > 0 && meta.reference.added.every(id => byId.get(id)?.located && inLocaleSet(byId.get(id))), 'centers placed later are located and in the set');
+  assert.equal(meta.reference.n, reference.length);
+  assert.equal(meta.universes.all.n, meta.reference.n);
   const types = Object.entries(meta.universes).filter(([k]) => k !== 'all');
-  assert.equal(types.reduce((s, [, u]) => s + u.n, 0), meta.located, 'type universes partition the located venues');
+  assert.equal(types.reduce((s, [, u]) => s + u.n, 0), meta.reference.n, 'type universes partition the reference');
+  for (const [k, u] of types) assert.equal(u.n, reference.filter(r => r.group === k).length, k);
   assert.ok(!rows.filter(r => !inLocaleSet(r)).some(r => r.group === 'market' && inLocaleSet(r)));
 });
 
@@ -237,15 +245,17 @@ test('English: every Thai text of the section has an English (names without an E
   assert.ok(Object.keys(dict.exact).length > 150);
   const decode = s => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
   const missing = new Set();
-  for (const id of [CENTRALWORLD, 'SC-000034', set.find(r => r.located && r.provinceCode === 'CMI' && r.group === 'community')?.id].filter(Boolean)) {
+  for (const id of [CENTRALWORLD, 'SC-000034', set.find(r => r.located && r.provinceCode === 'CMI' && r.group === 'community')?.id, ...meta.reference.added].filter(Boolean)) {
     const row = byId.get(id), facts = shard('facts', id), priors = shard('priors', id), signals = shard('signals', id), res = residents(id);
     registerLocaleNames(facts);
     registerLocaleSignalNames(signals);
     for (const level of levelsOf(facts)) for (const bench of ['province', 'peer']) for (const universe of ['all', 'type']) for (const radius of RADII) {
       reset();
       setLocaleOption('level', level); setLocaleOption('bench', bench); setLocaleOption('universe', universe); setLocaleOption('radius', radius);
-      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready'})
-        + ['loading', 'error', 'empty'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: st === 'loading' ? null : rmeta, residentsState: st})).join('');
+      setLocaleOption('open', {restable: true, cmp: true, res: true});
+      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf})
+        + ['loading', 'error', 'empty'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: st === 'loading' ? null : rmeta, residentsState: st})).join('')
+        + ['loading', 'error'].map(st => renderLocaleResidents(row, {meta, facts, residentsMeta: rmeta, residents: res, residentsState: 'ready', compare: null, compareState: st})).join('');
       // text alone in an element with data-en carries its own English (the shell's [data-en] context)
       const withEn = html.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; });
       const texts = [...withEn.matchAll(/>([^<>]+)</g)].map(m => m[1]).concat([...withEn.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(m => m[1]));
@@ -271,7 +281,9 @@ test('no file of the bundle is referenced that is not shipped', () => {
 test('residents: one record per located center of the set, keyed like the locale shards, tied to the bundle', () => {
   const files = readdirSync(new URL('data/residents/', ROOT)).filter(f => f !== 'meta.json');
   assert.equal(files.length, rmeta.shards);
-  assert.equal(rmeta.release, 'venue-locale-residents-488-20261120-v1');
+  assert.equal(rmeta.release, 'venue-locale-residents-492-20261120-v2');
+  assert.deepEqual([...rmeta.reference.added].sort(), [...meta.reference.added].sort(), 'the same rank reference as the locale release');
+  assert.equal(rmeta.reference.n, meta.reference.n);
   assert.match(rmeta.input.sha256sums, /^[0-9a-f]{64}$/);
   for (const h of Object.values(rmeta.input.files)) assert.match(h, /^[0-9a-f]{64}$/);
   assert.match(rmeta.input.outlines.sha256, /^[0-9a-f]{64}$/);
@@ -293,12 +305,13 @@ test('residents: one record per located center of the set, keyed like the locale
 
 test('residents: values add up, ranks recount from the figures, ages are shares', () => {
   const located = set.filter(r => r.located);
+  const added = new Set(rmeta.reference.added), reference = located.filter(r => !added.has(r.id));
   const recs = new Map(located.map(r => [r.id, residents(r.id)]));
   const mid = (x, pool) => (100 * (pool.filter(v => v < x).length + 0.5 * pool.filter(v => v === x).length)) / pool.length;
   for (const [i] of RADII.entries()) {
-    const all = located.map(r => recs.get(r.id).n[i]);
+    const all = reference.map(r => recs.get(r.id).n[i]);  // ranks read against the reference, every located center ranked
     for (const r of located) {
-      const rec = recs.get(r.id), same = located.filter(o => o.group === r.group).map(o => recs.get(o.id).n[i]);
+      const rec = recs.get(r.id), same = reference.filter(o => o.group === r.group).map(o => recs.get(o.id).n[i]);
       assert.ok(Math.abs(rec.p[0][i] - mid(rec.n[i], all)) < 1e-3, `${r.id} all ${i}`);
       assert.ok(Math.abs(rec.p[1][i] - mid(rec.n[i], same)) < 1e-3, `${r.id} type ${i}`);
     }
@@ -403,4 +416,172 @@ test('residents words: about-figures, densities, shares and dates round the way 
   assert.equal(englishDay('2026-10'), 'Oct 2026');
   assert.equal(englishDay('2026-11-20'), '20 Nov 2026');
   assert.equal(thaiDay('2026-11-20'), '20 พ.ย. 2569');
+});
+
+/* ---------- the map as a table, and the other centers on two ranks (0.9.0, owner 2026-11-20 11:27) ---------- */
+
+test('map table: every 250 m cell counts once, in the direction and ring of its centre', () => {
+  // a synthetic map: one cell due north 500 m out, one east at about 2 km, one south-west near 4.5 km, one without a building
+  const n = rmeta.cell.n, half = n / 2, g = Array(n * n).fill(null);
+  const cell = (east, north) => (half - 1 - Math.floor(north / 250)) * n + (Math.floor(east / 250) + half);
+  g[cell(10, 500)] = 30; g[cell(2000, 10)] = 50; g[cell(-3200, -3200)] = 20; g[cell(-10, -10)] = 0;
+  const s = residentsSectors({g}, rmeta);
+  assert.equal(s.rows.length, 8);
+  assert.deepEqual(s.rows.map(r => r.th), DIRECTIONS.map(d => d[0]));
+  assert.deepEqual(s.rows[0].people, [30, 0, 0], 'north, 0–1 km');
+  assert.deepEqual(s.rows[2].people, [0, 50, 0], 'east, 1–3 km');
+  assert.deepEqual(s.rows[5].people, [0, 0, 20], 'south-west, 3–5 km');
+  assert.equal(s.rows[5].built[2], 1);
+  assert.equal(s.rows.reduce((t, r) => t + r.built[0] + r.built[1] + r.built[2], 0), 4, 'a counted building with no people still counts as built');
+  assert.equal(s.total, 100);
+  assert.equal(s.top.en, 'East');
+  assert.ok(Math.abs(s.rows[0].dens[0] - 30 / (Math.PI / 8)) < 1e-9, 'people ÷ the sector’s share of the ring area');
+  // the real maps: the table adds up to the map, shares to 100%
+  for (const id of [CENTRALWORLD, set.filter(r => r.located).at(-1).id]) {
+    const rec = residents(id), t = residentsSectors(rec, rmeta);
+    const cells = rec.g.filter(v => v != null).reduce((a, v) => a + v, 0);
+    assert.ok(Math.abs(t.total - cells) < 1e-6, `${id} table = cells`);
+    assert.ok(Math.abs(t.total - rec.n[2]) <= 0.05 * rec.g.filter(v => v != null).length + 1, `${id} table ≈ 5 km`);
+    assert.ok(Math.abs(t.rows.reduce((a, r) => a + r.share, 0) - 100) < 1e-6);
+    assert.equal(t.top.total, Math.max(...t.rows.map(r => r.total)));
+  }
+});
+
+test('map table: a line on where most people are, then the table folded; plain numbers, TH/EN', () => {
+  reset();
+  const row = byId.get(CENTRALWORLD), facts = shard('facts', CENTRALWORLD), rec = residents(CENTRALWORLD);
+  const t = residentsSectors(rec, rmeta);
+  const html = renderLocaleResidents(row, {meta, facts, residentsMeta: rmeta, residents: rec, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf});
+  const pw = peopleWords(t.top.total);
+  assert.ok(html.includes(`คนในวง 5 กม. อยู่ทางทิศ${t.top.th}ของศูนย์มากที่สุด ${pw[0]} (${num(Math.round(t.top.share))}%)`), 'the line under the map');
+  assert.ok(html.includes(`data-en="Most people within 5 km are to the ${t.top.en.toLowerCase()} of the center: ${pw[1]} (${num(Math.round(t.top.share))}%)"`));
+  const table = /<details class="locale-details" data-locale-open="restable">([\s\S]*?)<\/details>/.exec(html)?.[1];
+  assert.ok(table, 'the table is folded');
+  assert.equal((table.match(/<tr( class="is-top")?><th scope="row">/g) || []).length, 8, 'eight directions');
+  assert.equal((table.match(/<tr class="is-top">/g) || []).length, 1);
+  assert.equal((table.match(/<td class="data-number"><b>/g) || []).length, 1, 'one densest cell in bold');
+  assert.doesNotMatch(table, /background:|fill=/, 'no data colour in the table');
+  const at = k => html.indexOf(k);
+  assert.ok(at('class="res-map"') < at('class="res-dir"') && at('class="res-dir"') < at('data-locale-open="restable"') && at('data-locale-open="restable"') < at('res-evidence'), 'map, line, table, then the data line');
+  const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
+  assert.doesNotMatch(visible, /ไม่ใช่|ข้อจำกัด/, 'no caveat outside the folded parts');
+});
+
+test('comparison file: every located center once; x copies the residents ranks, y recounts from the workers prior', () => {
+  const located = set.filter(r => r.located);
+  assert.equal(cmp.schema, 'shoppingcenter-compare/1');
+  assert.match(readFileSync(new URL('DATA_METHOD.md', ROOT), 'utf8'), /<a id="compare-residents-workers"><\/a>/, 'the method the block links to');
+  assert.deepEqual(Object.keys(cmp.venues).sort(), located.map(r => r.id).sort());
+  assert.deepEqual(cmp.universes, rmeta.universes);
+  assert.deepEqual(cmp.reference, {n: rmeta.reference.n, added: [...rmeta.reference.added].sort()});
+  const added = new Set(cmp.reference.added), reference = located.filter(r => !added.has(r.id));
+  assert.equal(cmp.builtFrom.residents.release, rmeta.release);
+  assert.equal(cmp.builtFrom.workers.release, meta.release.id);
+  const score = id => shard('priors', id).seg.workers[1];
+  const mid = (x, pool) => (100 * (pool.filter(v => v < x).length + 0.5 * pool.filter(v => v === x).length)) / pool.length;
+  const all = reference.map(r => score(r.id));
+  for (const r of located) {
+    const v = cmp.venues[r.id], rec = residents(r.id);
+    assert.equal(cmp.groups[v[0]], r.group);
+    for (const i of [0, 1, 2]) {
+      assert.ok(Math.abs(v[1][i] - rec.p[0][i]) <= 0.0501 && Math.abs(v[2][i] - rec.p[1][i]) <= 0.0501, `${r.id} x ${i}`);
+    }
+    const same = reference.filter(o => o.group === r.group).map(o => score(o.id));
+    assert.ok(Math.abs(v[3] - mid(score(r.id), all)) <= 0.0501, `${r.id} y all`);  // one decimal
+    assert.ok(Math.abs(v[4] - mid(score(r.id), same)) <= 0.0501, `${r.id} y type`);
+  }
+});
+
+test('centers placed later (owner 2026-11-20 11:57): ranked against the reference, plotted with every center, the reference folded in each method', () => {
+  assert.deepEqual([...meta.reference.added].sort(), ['SC-007245', 'VN-7bb5b3abd9f811', 'VN-a263de54d31372', 'VN-c87c200db5d079']);
+  const strip = h => h.replace(/<details[\s\S]*?<\/details>/g, '');
+  for (const id of [...meta.reference.added, CENTRALWORLD]) {
+    const row = byId.get(id), facts = shard('facts', id), priors = shard('priors', id), signals = shard('signals', id), rec = residents(id);
+    assert.ok(row?.located && facts?.ring && facts.located !== false && priors && signals && rec && cmp.venues[id], `${id}: every layer`);
+    for (const universe of ['all', 'type']) {
+      reset();
+      setLocaleOption('universe', universe);
+      const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: rec, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf});
+      assert.doesNotMatch(html, /undefined|NaN|\bnull\b/, id);
+      const uni = universeOf(meta, row), m = compareModel(cmp, row);
+      assert.equal(uni.n, universe === 'all' ? meta.reference.n : meta.universes[row.group].n, 'ranks against the reference');
+      assert.equal(m.ref, uni.n);
+      assert.ok(m.n > m.ref, 'the chart holds the centers placed later too');
+      assert.ok(m.points.some(q => q.id === id) && html.includes(`${num(m.counts[m.quarter])} จาก ${num(m.n)} ศูนย์อยู่ช่องนี้`));
+      // rings, residents and comparison: each method carries the reference once, folded; the screen names it in the data line
+      const folded = [...html.matchAll(/<details[\s\S]*?<\/details>/g)].map(x => x[0]).join('');
+      assert.equal(folded.split(meta.reference.th).length - 1, 3, `${id} ${universe}: the reference in three methods`);
+      assert.ok(!strip(html).includes(meta.reference.th));
+      assert.match(strip(html), new RegExp(`อันดับเทียบกับ${universe === 'all' ? ` ${num(m.ref)} ศูนย์` : uni.short}ในชุดอ้างอิง`));
+      assert.match(html, new RegExp(`ทุกประเภท ${num(meta.reference.n)} แห่ง`), 'the chip of all types counts the reference');
+    }
+  }
+  reset();
+  // the peer benchmark of an area: units holding a center of the reference
+  assert.match(areaPhrase({p: 40, n: 120, value: 3, basis: 'value'}, {level: 'district', bench: 'peer', provinceCode: 'BKK'}), /เขตที่มีศูนย์ชุดอ้างอิง \(120\)/);
+});
+
+test('comparison model: quarters split at the middle rank; the universe of the chips; five nearest, never itself', () => {
+  assert.equal(quarterOf(50, 50), 'mixed');
+  assert.equal(quarterOf(49.9, 50), 'work');
+  assert.equal(quarterOf(50, 49.9), 'home');
+  assert.equal(quarterOf(10, 10), 'sparse');
+  const row = byId.get(CENTRALWORLD);
+  for (const universe of ['all', 'type']) for (const radius of RADII) {
+    const m = compareModel(cmp, row, {radius, universe});
+    const plotted = set.filter(r => r.located && (universe === 'all' || r.group === row.group)).length;
+    assert.equal(m.ref, universe === 'all' ? cmp.universes.all : cmp.universes[row.group], 'ranks read against the reference');
+    assert.equal(m.n, plotted, 'every located center on the chart');
+    assert.equal(m.points.length, plotted);
+    assert.equal(Object.values(m.counts).reduce((a, b) => a + b, 0), plotted);
+    const v = cmp.venues[CENTRALWORLD], i = RADII.indexOf(radius);
+    assert.deepEqual([m.me.x, m.me.y], universe === 'all' ? [v[1][i], v[3]] : [v[2][i], v[4]]);
+    assert.equal(m.nearest.length, 5);
+    assert.ok(!m.nearest.some(q => q.id === CENTRALWORLD));
+    assert.ok(m.nearest.every((q, k) => k === 0 || m.nearest[k - 1].d <= q.d), 'nearest first');
+    const others = m.points.filter(q => q.id !== CENTRALWORLD).map(q => Math.hypot(q.x - m.me.x, q.y - m.me.y)).sort((a, b) => a - b);
+    assert.ok(Math.abs(m.nearest[4].d - others[4]) < 1e-9, 'the five closest');
+    if (universe === 'type') assert.ok(m.points.every(q => cmp.venues[q.id][0] === v[0]), 'same type only');
+  }
+  assert.equal(compareModel(cmp, set.find(r => !r.located)), null, 'a center without a point has no place on the chart');
+  assert.equal(compareModel(null, row), null);
+});
+
+test('comparison block: quarter and both ranks first, the chart in neutral tones, the nearest centers open, one data line, the method folded', () => {
+  for (const universe of ['all', 'type']) for (const radius of RADII) {
+    reset();
+    setLocaleOption('universe', universe); setLocaleOption('radius', radius);
+    const row = byId.get(CENTRALWORLD), facts = shard('facts', CENTRALWORLD), rec = residents(CENTRALWORLD);
+    const html = renderLocaleResidents(row, {meta, facts, residentsMeta: rmeta, residents: rec, residentsState: 'ready', compare: cmp, compareState: 'ready', venueOf});
+    assert.doesNotMatch(html, /undefined|NaN|\bnull\b/);
+    const block = /<div class="cmp-block" id="locale-compare"[\s\S]*$/.exec(html)?.[0];
+    assert.ok(block, 'the comparison closes the residents zone');
+    assert.ok(html.indexOf('data-locale-open="res"') < html.indexOf('id="locale-compare"'));
+    const m = compareModel(cmp, row);
+    const [qTh, qEn] = QUARTERS[m.quarter];
+    assert.ok(block.includes(`ศูนย์นี้อยู่ช่อง “${qTh}”`) && block.includes(`This center is in “${qEn}”`));
+    assert.ok(block.includes(`${num(m.counts[m.quarter])} จาก ${num(m.n)} ศูนย์อยู่ช่องนี้`));
+    // the chart: every other center once, the five nearest ringed, this center on top; no data colour (neutral tones)
+    const dots = /<path class="cmp-dots" d="([^"]*)"\/>/.exec(block)[1];
+    assert.equal((dots.match(/M/g) || []).length, m.n - 1);
+    assert.equal((/<path class="cmp-near" d="([^"]*)"\/>/.exec(block)[1].match(/M/g) || []).length, 5);
+    assert.match(block, new RegExp(`<circle class="cmp-me" cx="${m.me.x}" cy="${Number((100 - m.me.y).toFixed(1))}" r="2.4"/>`));
+    assert.doesNotMatch(block, /#[0-9A-Fa-f]{6}|fill="|background:/, 'no colour of its own: the page tokens draw it');
+    for (const k of Object.keys(QUARTERS)) assert.ok(block.includes(`${QUARTERS[k][0]}</span> <b class="data-number">${num(m.counts[k])}</b>`), k);
+    // the nearest centers: buttons that open them
+    const buttons = [...block.matchAll(/data-action="select-venue" data-id="([^"]+)"/g)].map(x => x[1]);
+    assert.deepEqual(buttons, m.nearest.map(q => q.id));
+    // one data line; caveats folded
+    assert.equal((block.match(/class="hint res-evidence cmp-evidence"/g) || []).length, 1);
+    assert.match(block, /คนอยู่ใกล้: คนที่มีชื่อในทะเบียนบ้าน \(แบบจำลอง\) กรมการปกครอง ต\.ค\. 2569 .*คนทำงานใกล้: ระดับคนทำงานและผู้เดินทางจากกฎ.*รัศมีเส้นตรงจากจุดของศูนย์/);
+    assert.match(block, /<details class="locale-details" data-locale-open="cmp">[\s\S]*ไม่ใช่จำนวนคนทำงาน[\s\S]*DATA_METHOD\.md#compare-residents-workers/);
+    const visible = block.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
+    assert.doesNotMatch(visible, /ไม่ใช่|ข้อจำกัด|ทำเลทอง/, 'no caveat on screen');
+  }
+  reset();
+  const row = byId.get(CENTRALWORLD), facts = shard('facts', CENTRALWORLD), rec = residents(CENTRALWORLD);
+  const st = compareState => renderLocaleResidents(row, {meta, facts, residentsMeta: rmeta, residents: rec, residentsState: 'ready', compare: null, compareState});
+  assert.match(st('loading'), /id="locale-compare"[\s\S]*role="status">.*กำลังโหลดการเทียบกับศูนย์อื่น…/);
+  assert.match(st('error'), /data-action="locale-retry-compare"/);
+  assert.doesNotMatch(st('error'), /cmp-plot/);
 });

@@ -74,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -109,7 +109,7 @@ const state = {
   look: {id: '', key: '', view: null}, lookReader: null,
   // Venue Locale Insight (owner 2026-11-18, js/venue-locale.js): data/locale meta once, the facts shard of the open
   // venue, the priors shard only when the reader opens that block; one amCharts dot plot at a time.
-  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: ''}, localeChart: null,
+  locale: {metaState: 'idle', factsState: 'idle', factsId: '', priorsState: 'idle', priorsId: '', resState: 'idle', resId: '', cmpState: 'idle'}, localeChart: null,
   pins: null, points: null, buildings: null, pinBuildings: null, massing: null, xray: null, districtLayers: null, districtLabels: null, provinceLayers: null, provinceLabels: null, marker: null,
   // Buildings per area (js/building-units.js, the CityMETER · Hotel rule): which อปท./เขต draw CityMETER Building V4;
   // one shared reader of its tiles; terrain mode (js/terrain.js) at hilly sites; research sites (data/venue-sites.json).
@@ -561,6 +561,7 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
   if (!inLocaleSet(row) || !row.located) return;
   const L = state.locale;
   if (L.resId !== id) { L.resId = id; L.resState = 'idle'; }
+  ensureLocaleCompare(id);
   const rmeta = cachedResidentsMeta();
   if (rmeta && cachedResidents(id, rmeta.shards)) { L.resState = 'ready'; return; }
   if (L.resState === 'loading' || L.resState === 'ready' || L.resState === 'empty') return;
@@ -570,13 +571,30 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
     .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
 }
 
+/**
+ * Every located center on two ranks (data/compare/residents-workers.json, one file for the session; 0.9.0, owner
+ * 2026-11-20 11:27): drawn at the end of the residents zone, which is redrawn when it arrives.
+ */
+function ensureLocaleCompare(id, {focus = ''} = {}) {
+  const L = state.locale;
+  if (cachedCompare()) { L.cmpState = 'ready'; return; }
+  if (L.cmpState === 'loading') return;
+  L.cmpState = 'loading';
+  loadCompare().then(() => { L.cmpState = 'ready'; })
+    .catch(e => { console.warn('Venue locale comparison', e); partial('data/compare'); L.cmpState = 'error'; })
+    .finally(() => { if (localeOpen(id)) refreshLocaleResidents({focus}); });
+}
+
+const venueOf = id => state.byId.get(id) || null;
+
 /** Replace only the residents zone when its file arrives (the chart and the rest of the section stay as they are). */
 function refreshLocaleResidents({focus = ''} = {}) {
   const v = currentVenue(), section = $('venue-locale'), el = $('locale-residents'), meta = cachedLocaleMeta();
   if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
   const rmeta = cachedResidentsMeta(), L = state.locale;
   el.outerHTML = renderLocaleResidents(v, {meta, facts: cachedLocaleFacts(v.id, meta.shards || 64), residentsMeta: rmeta,
-    residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle'});
+    residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
+    compare: cachedCompare(), compareState: L.cmpState, venueOf});
   if (focus) $('locale-residents')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
@@ -614,6 +632,7 @@ function localeHTML(v) {
     meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null, signals: meta ? cachedLocaleSignals(v.id, shards) : null,
     metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
     residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
+    compare: cachedCompare(), compareState: L.cmpState, venueOf,
   });
 }
 
@@ -1011,6 +1030,7 @@ function onPanelAction(event) {
     case 'locale-retry': if (state.panel.mode === 'venue') { state.locale.metaState = state.locale.metaState === 'error' ? 'idle' : state.locale.metaState; state.locale.factsState = 'idle'; ensureLocale(state.panel.id); refreshLocale(); } break;
     case 'locale-retry-priors': if (state.panel.mode === 'venue') { state.locale.priorsState = 'idle'; ensureLocalePriors(state.panel.id, {focus: '.who-tile, [data-action="locale-retry-priors"]'}); refreshLocalePriors(); } break;
     case 'locale-retry-residents': if (state.panel.mode === 'venue') { state.locale.resState = 'idle'; ensureLocaleResidents(state.panel.id, {focus: '.res-title, [data-action="locale-retry-residents"]'}); refreshLocaleResidents(); } break;
+    case 'locale-retry-compare': if (state.panel.mode === 'venue') { state.locale.cmpState = 'idle'; ensureLocaleCompare(state.panel.id, {focus: '#locale-cmp-title'}); refreshLocaleResidents(); } break;
     default: break;
   }
 }
@@ -1868,6 +1888,7 @@ const PARTIAL = {
   'data/stations.json': ['สถานีรถไฟฟ้า', 'ไม่แสดงสถานีใกล้เคียงและมุมมองตามสถานี', 'Rail stations', 'Nearby stations and the station view are not shown'],
   'data/locale': ['ข้อมูลรอบศูนย์', 'แผงสถานที่ไม่แสดงสิ่งที่อยู่รอบศูนย์และพื้นที่ที่ศูนย์ตั้งอยู่', 'Around the centre', 'The venue panel does not show what is around the centre or the area it sits in'],
   'data/residents': ['คนที่มีชื่อในทะเบียนบ้านรอบศูนย์', 'ส่วนรอบศูนย์นี้ไม่แสดงจำนวนคนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง) และแผนที่ของจำนวนนั้น', 'Registered residents around the center', 'Around this center does not show the registered residents around it (modelled) or their map'],
+  'data/compare': ['การเทียบกับศูนย์อื่น', 'ส่วนรอบศูนย์นี้ไม่แสดงกราฟเทียบคนอยู่ใกล้และคนทำงานใกล้กับศูนย์อื่น', 'Comparison with other centers', 'Around this center does not show the chart of people living and working nearby against the other centers'],
 };
 function partial(key) {
   const words = PARTIAL[key];

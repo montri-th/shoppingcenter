@@ -824,6 +824,52 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .res-legend .legend-ramp { width: 100%; max-width: 420px; }
 .res-legend .ramp-tick { font-size: 12px; }
 .res-legend .hint, .res-evidence { margin: 0; font-size: 12px; }
+/* the map read as a table (0.9.0): where most of the people are, then the table folded; plain numbers, no data colour */
+.res-dir { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 13px; line-height: 1.45; }
+.res-dir .pictogram { width: 18px; height: 18px; font-size: 18px; flex: 0 0 18px; color: var(--text-secondary); }
+.res-table th[scope="row"] { text-align: left; font-weight: 400; white-space: nowrap; }
+.res-table td { text-align: right; white-space: nowrap; }
+.res-table td small { margin-left: 4px; font-size: 12px; color: var(--text-secondary); }
+.res-table tr.is-top th[scope="row"] { font-weight: 600; }
+/* other centers on two ranks (0.9.0): neutral tones only (the workers axis is a generated prior), this center emphasised */
+.cmp-block { display: grid; gap: 8px; border-top: 1px solid var(--border-hairline); padding-top: 8px; }
+.cmp-block > .res-sub { margin: 0; }
+.cmp-lead { margin: 0; font-size: 14px; line-height: 1.45; font-weight: 600; }
+.cmp-count { display: block; font-size: 12px; font-weight: 400; color: var(--text-secondary); }
+.cmp-ranks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+.cmp-ranks li { display: flex; gap: 6px; align-items: flex-start; }
+.cmp-ranks .pictogram, .cmp-near-val .pictogram { width: 16px; height: 16px; font-size: 16px; flex: 0 0 16px; color: var(--text-secondary); }
+.cmp-figure { margin: 0; display: grid; gap: 4px; }
+.cmp-wrap { position: relative; width: 100%; max-width: 420px; }
+.cmp-plot { display: block; width: 100%; height: auto; }
+.cmp-plot .cmp-bg { fill: var(--surface-alt); }
+.cmp-plot .cmp-mid { fill: none; stroke: var(--text-muted); stroke-width: 1px; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.cmp-plot .cmp-dots { fill: var(--text-muted); fill-opacity: 0.5; }
+.cmp-plot .cmp-near { fill: none; stroke: var(--text-primary); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+.cmp-plot .cmp-me { fill: var(--text-primary); stroke: var(--surface-card); stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.cmp-qrow { display: flex; justify-content: space-between; gap: 8px; max-width: 420px; padding: 0 1.5%; }
+.cmp-q { font-size: 12px; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; }
+.cmp-q.is-on { color: var(--text-primary); font-weight: 600; }
+.cmp-q .data-number { font-weight: 400; }
+.cmp-me-label { position: absolute; transform: translate(10px, -50%); padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 12px; line-height: 1.35; font-weight: 600; color: var(--text-primary); white-space: nowrap; pointer-events: none; }
+.cmp-me-label.is-left { transform: translate(calc(-100% - 10px), -50%); }
+.cmp-me-label.is-below { transform: translate(10px, 25%); }
+.cmp-me-label.is-left.is-below { transform: translate(calc(-100% - 10px), 25%); }
+.cmp-me-label.is-above { transform: translate(10px, -125%); }
+.cmp-me-label.is-left.is-above { transform: translate(calc(-100% - 10px), -125%); }
+.cmp-axes { max-width: 420px; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
+.cmp-near-head { margin: 4px 0 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cmp-near-head .res-sub { margin: 0; }
+.cmp-near-key { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; color: var(--text-secondary); }
+.cmp-near-key .pictogram { width: 16px; height: 16px; font-size: 16px; flex: 0 0 16px; }
+.cmp-near-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.cmp-near-row { width: 100%; min-height: 44px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
+.cmp-near-row:hover { background: var(--surface-alt); }
+.cmp-near-row:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.cmp-near-name { display: grid; min-width: 0; font-size: 13px; line-height: 1.4; font-weight: 600; }
+.cmp-near-name small { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
+.cmp-near-val { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; white-space: nowrap; }
+.cmp-near-val .data-number { margin-right: 6px; }
 .locale-chart { min-height: 40px; }
 .locale-dots { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .dot-row { display: grid; grid-template-columns: minmax(84px, 118px) minmax(0, 1fr) 52px; align-items: center; gap: 8px; min-height: 24px; font-size: 12px; }

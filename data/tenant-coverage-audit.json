@@ -66,19 +66,22 @@
   "publicRosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "publicRosterShardCount": 32,
   "reviewedMembershipReceiptSha256": "401eba8affa0d2780f61d363b4fc41cd56f3bb1a3332d073675590aa220362e9",
-  "venueCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+  "venueCoreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
   "sourceBaselineCommit": "25a9337707bc93ea70046f57b3319a5aed0ced15",
   "venueCoreRefresh": {
-    "on": "2026-11-08",
+    "on": "2026-11-20",
     "by": "scripts/refresh-coverage-receipt.py",
-    "reason": "new export of the Research Master that places points only: 26 venues moved into the buildings OpenStreetMap names for them (D43, owner 8 Nov 2026 09:17); the roster and every other venue field are unchanged",
+    "reason": "points-only export of 2026-11-20: four counted venues placed at points the owner approved (11:57); the roster and every other venue field are unchanged",
     "auditedCoreSha256": "3cbb2d75b676cd748c49a9ecb72d18542430fb8f06558d291ab7d30917cf15b6",
-    "previousCoreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
-    "coreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
-    "rowsChanged": 26,
+    "previousCoreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+    "coreSha256": "25c9dd6bd1d277b44fe0dfa33012e29b6f77ba65799b75cd0aad2da47ad22026",
+    "rowsChanged": 4,
     "fieldsChanged": [
+      "districtCode",
       "lat",
-      "lon"
+      "located",
+      "lon",
+      "provinceCode"
     ],
     "rosterUnchanged": true,
     "history": [
@@ -93,6 +96,12 @@
         "previousCoreSha256": "2565bc5cac429d87bf8aa02cb79dcf03dfe5358a177330050b66b7682a6f5bcc",
         "coreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
         "rowsChanged": 4
+      },
+      {
+        "on": "2026-11-08",
+        "previousCoreSha256": "ee9d9848adc9d8fcbf32dc171436433ca4c256746a491f1fe45c38fad45d549f",
+        "coreSha256": "e83e3645e34090fc239c2bac8bbd66696f7feb4310af6a63e065614d21eedd8b",
+        "rowsChanged": 26
       }
     ]
   }
