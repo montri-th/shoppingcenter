@@ -302,7 +302,8 @@ export function partialShare(facts, pmeta, i) {
 /**
  * The four readings every located center has: people living near (modelled), places to work and study, places
  * visitors use, other centers and markets. A figure that comes mostly from datasets without full points carries the
- * star and no level (Dataset Registry rule P06, owner-approved 2026-11-22: partial coverage is context, not ranked).
+ * star and no level (rule (3) of 0.4.0: a headline never comes from a dataset with points for under 90% of its
+ * records; whether such a figure may sit in this row at all is the owner's open decision — AGENTS.md, 0.10.0).
  */
 export function glanceModel(meta, row, facts, {residents = null, residentsMeta = null, residentsState = 'idle', visitors = null, visitorsMeta = null, visitorsState = 'idle', work = null, workMeta = null, workState = 'idle'} = {}) {
   const i = RI[options.radius] ?? 1, u = options.universe === 'type' && meta?.universes?.[row?.group] ? 1 : 0;

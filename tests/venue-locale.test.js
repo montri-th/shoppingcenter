@@ -1165,7 +1165,7 @@ test('the glance: four fixed readings, a five-step level in the chart colour, th
     assert.equal(tiles[3].count, facts.ring.shopping.n[1]);
     assert.equal(tiles[2].count, args.visitors.n[1]);
     for (const t of tiles) {
-      // Registry rule P06: a figure mostly from datasets without full points is context, so it has the star and no level
+      // rule (3) of 0.4.0: a figure mostly from datasets without full points has the star and no level
       if (t.star) { starred += 1; assert.equal(t.p, null, `${id} ${t.key}`); } else if (t.p != null) ranked += 1;
     }
     assert.ok(Math.abs(partialShare(facts, wmeta, 1) - tiles[1].star * 1) < 1);
@@ -1184,6 +1184,8 @@ test('the glance: four fixed readings, a five-step level in the chart colour, th
   // while a file loads the tile says so and shows no figure
   const loading = glanceHTML(meta, byId.get(CENTRALWORLD), shard('facts', CENTRALWORLD), {});
   assert.equal((loading.match(/class="glance-wait"/g) || []).length, 3);
+  // the star is text: 12 px at least, in the glance and in the section
+  assert.match(readFileSync(new URL('styles.css', ROOT), 'utf8'), /\.locale-section sup, \.locale-glance sup \{ font-size: 12px;/);
 });
 
 test('formats block: seen in the list, in the center’s own list by role, checked and not seen, nothing to compare with', () => {

@@ -1077,3 +1077,6 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 /* an empty step of the meter is a low stub, so the level reads by shape whatever the data colour is on the theme
    (LDS DATAVIZ-03: the dark samples of high ranks sit close to a dark tile; the colour is never changed) */
 .level-meter i:not(.on) { height: 3px; border-color: var(--text-metadata); }
+/* the star that marks a count from records with a point only: the size of the text beside it, never smaller than
+   12 px (LDS TYPE minimum); a browser draws a bare <sup> at 10 px here */
+.locale-section sup, .locale-glance sup { font-size: 12px; line-height: 0; }
