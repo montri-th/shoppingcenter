@@ -59,4 +59,11 @@ for title, items in (('status values read by the fallback rule', fallback),
             print('  ', i)
 PY
 
+# D64: shop logos the CityMETER demo family already verified (scripts/attach-family-logos.py). It reads the demo checkouts
+# side by side: FAMILY_DIR=<folder holding shoppingcenter/, restaurant/, fitness/, …>. Without it the logo links stay as
+# built, and tests/logo-links.test.js fails once data/tenants/ or data/directory/ changed.
+if [ -n "${FAMILY_DIR:-}" ]; then
+  python3 -I scripts/attach-family-logos.py --family "$FAMILY_DIR" --checked-on "$(TZ=Asia/Bangkok date +%F)"
+fi
+
 npm test

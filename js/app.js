@@ -69,7 +69,7 @@ import {createCodec, createNavigator} from './shell/url.js';
 import {mapBudget, budgetPixelRatio, reloadOnContextLoss} from './shell/maplibre-guard.js';
 import {pageTitle} from './shell/title.js';
 import {loadDetail, cachedDetail} from './details.js';
-import {createTenantSelection, createTenantLoader, createDirectoryLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
+import {createTenantSelection, createTenantLoader, createDirectoryLoader, createLogoLinkLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
@@ -122,7 +122,8 @@ const state = {
 };
 // D41: a place's shop list also holds the listed shops of its sub-areas (each shop names the sub-area it is in).
 const tenantSelection = createTenantSelection({
-  load: (load => id => load(id).then(noteRoster))(createTenantLoader(undefined, {directory: createDirectoryLoader(), parts: id => subAreasOf(state.byId.get(id), state.byId)})),
+  load: (load => id => load(id).then(noteRoster))(createTenantLoader(undefined, {directory: createDirectoryLoader(), parts: id => subAreasOf(state.byId.get(id), state.byId),
+    logos: createLogoLinkLoader(undefined, {onError: () => partial('data/logo-links')})})),
   changed: selection => { if (state.panel.mode === 'venue' && state.panel.id === selection.id) renderPanel(); },
 });
 
@@ -1953,6 +1954,7 @@ const PARTIAL = {
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
   'data/venue-logos.json': ['โลโก้สถานที่', 'แสดงชื่อแทนโลโก้', 'Venue logos', 'Names are shown instead of logos'],
+  'data/logo-links': ['โลโก้ร้านจากชุดข้อมูลอื่น', 'ร้านที่โลโก้มาจากชุดข้อมูลอื่นแสดงสัญลักษณ์ร้านแทนโลโก้', 'Shop logos from other datasets', 'Shops whose logo comes from another dataset show the shop symbol instead'],
   'data/venue-buildings.geojson': ['อาคารของศูนย์การค้า', 'ศูนย์การค้าไม่แสดงเป็นอาคารบนแผนที่', 'Venue buildings', 'Venues are not drawn as buildings on the map'],
   'data/districts.geojson': ['ขอบเขตเขต/อำเภอ', 'ผลไม่ได้แบ่งตามเขต/อำเภอ มุมมองเริ่มต้นจึงต่างจากปกติ', 'District outlines', 'Results are not divided by district, so the opening view differs'],
   'data/stations.json': ['สถานีรถไฟฟ้า', 'ไม่แสดงสถานีใกล้เคียงและมุมมองตามสถานี', 'Rail stations', 'Nearby stations and the station view are not shown'],

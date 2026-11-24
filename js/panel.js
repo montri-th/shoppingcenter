@@ -390,6 +390,11 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
     const counterBrands = (tenants.roster.counters || []).reduce((n, st) => n + (st?.brands || 0), 0);
     if (counterBrands) note('แบรนด์ในห้างสรรพสินค้า', `${num(counterBrands)} แบรนด์ที่ไดเรกทอรีของศูนย์ลงไว้เป็นเคาน์เตอร์ในห้างสรรพสินค้าของศูนย์ · ตรวจ ${esc(thaiDate((tenants.roster.counters || []).map(st => st.checkedOn).filter(Boolean).sort().pop() || ''))} · เป็นแบรนด์ภายในห้าง ไม่ใช่ร้านแยกของศูนย์ จึงไม่นับในร้านข้างใน ไม่อยู่ในการค้นตามแบรนด์ และแบรนด์เดียวกันอาจอยู่ในรายชื่อร้านด้วย`);
     note('นับร้าน', `หนึ่งรายการคือหนึ่งสาขาที่แหล่งทางการลงไว้ แบรนด์เดียวมีได้หลายสาขาในศูนย์เดียว แหล่งสองแห่งที่ระบุสาขาเดียวกันนับครั้งเดียว${listed?.items > 0 ? ' · รายการจากไดเรกทอรีของศูนย์นับหนึ่งชื่อต่อหนึ่งชั้นและยูนิต' : ''} ตัวเลขร้านข้างในของแผนที่ ตาราง และพื้นที่ใช้รายชื่อชุดเดียวกันนี้`);
+    // D64: how many shops of this list show a logo, and how many of those the family's other datasets supplied.
+    const shopItems = tenants.roster.items || [];
+    const withLogo = shopItems.filter(x => x.logo).length;
+    const fromFamily = shopItems.filter(x => x.logo && x.logoBasis).length;
+    if (shopItems.length) note('โลโก้ร้าน', `${num(withLogo)} จาก ${num(shopItems.length)} ร้านในรายชื่อนี้มีโลโก้${fromFamily ? ` · ${num(fromFamily)} โลโก้มาจากชุดข้อมูลอื่นของ CityMETER ที่รู้จักแบรนด์เดียวกัน` : ''} · จับคู่ด้วยรหัสแบรนด์เดียวกัน หรือชื่อเดียวกับที่ทีมวิจัยยืนยันแล้ว ไม่ใช้ชื่อที่แค่คล้ายกัน · ไฟล์ตรวจ SHA-256 ตรงกับชุดที่เผยแพร่ · โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับร้าน และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า`);
   }
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
   return rowsHtml.join('');
