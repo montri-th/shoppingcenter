@@ -41,8 +41,46 @@ export function createDirectoryLoader(fetchImpl = (...args) => fetch(...args)) {
   };
 }
 
+/**
+ * D64 (owner 24 Nov 2026 07:53, “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue”): the
+ * logo the CityMETER demo family already verified for a shop's brand (data/logo-links/NN.json, written by
+ * scripts/attach-family-logos.py with the shared kit scripts/logo-kit/citymeter_logos.py) — by the same brand id, the
+ * same id in another dataset, or a name the research sheets confirmed. Same FNV-1a shard as the roster. Optional: a shard
+ * that fails leaves the list as it was (onError says so on the page). The roster and directory files stay as built.
+ */
+export const LOGO_LINK_SHARDS = 32;
+const LOGO_FILE = /^assets\/tenant-logos\/[A-Za-z0-9._-]+\.(svg|png|jpe?g|webp|gif)$/i;
+
+export function createLogoLinkLoader(fetchImpl = (...args) => fetch(...args), {onError = () => {}} = {}) {
+  const cache = new Map();
+  return async id => {
+    const path = `data/logo-links/${String(shardOf(id, LOGO_LINK_SHARDS)).padStart(2, '0')}.json`;
+    if (!cache.has(path)) cache.set(path, (async () => {
+      const response = await fetchImpl(path, {cache: 'no-cache'});
+      if (!response.ok) throw new Error(`logo links: ${response.status}`);
+      const json = await response.json();
+      if (!json?.venues || typeof json.venues !== 'object' || !json.logos || typeof json.logos !== 'object') throw new Error('Invalid logo-link shard');
+      return json;
+    })().catch(error => { cache.delete(path); onError(error); throw error; }));
+    const json = await cache.get(path);
+    return {links: json.venues[id] || {}, logos: json.logos};
+  };
+}
+
+/** A shop keeps its own logo; one without gets the linked file (never a retailer marked suppressManufacturerLogo). */
+export function withLogoLinks(items, linked) {
+  if (!linked?.links || !Array.isArray(items)) return items;
+  return items.map(item => {
+    if (!item || item.logo || item.suppressManufacturerLogo) return item;
+    const link = linked.links[item.id];
+    const logo = Array.isArray(link) ? linked.logos?.[link[0]] : null;
+    if (!logo || !LOGO_FILE.test(logo.file || '') || !/^[a-f0-9]{64}$/.test(logo.sha256 || '')) return item;
+    return {...item, logo, logoBasis: link[1] || ''};
+  });
+}
+
 /** Failed requests are evicted so the panel's retry can recover without reloading the map. */
-export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {directory = null, parts = () => []} = {}) {
+export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {directory = null, parts = () => [], logos = null} = {}) {
   const cache = new Map();
   let profiles;
   const read = async path => {
@@ -61,12 +99,15 @@ export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {dir
       if (!json?.venues || typeof json.venues !== 'object') throw new Error('Invalid tenant shard');
       return json;
     }).catch(error => { cache.delete(path); throw error; }));
-    const [json, profileData, listed] = await Promise.all([cache.get(path), readProfiles(), directory ? directory(id).catch(() => null) : null]);
+    const [json, profileData, listed, linked] = await Promise.all([cache.get(path), readProfiles(), directory ? directory(id).catch(() => null) : null,
+      logos ? logos(id).catch(() => null) : null]);
     const roster = json.venues[id] || {items: [], observations: 0};
     if (!Array.isArray(roster.items)) throw new Error('Invalid tenant roster');
     // D38: the centre's directory entries follow the brand roster's items; a directory that failed to load adds none.
     const extra = listed?.items?.length ? listed.items : [];
-    return {...roster, items: extra.length ? [...roster.items, ...extra] : roster.items,
+    // D64: logos the family verified for these shops' brands; a shop that has its own keeps it.
+    const items = withLogoLinks(extra.length ? [...roster.items, ...extra] : roster.items, linked);
+    return {...roster, items,
       directory: listed ? {items: extra.length, meta: listed.meta || {}} : null,
       counters: listed?.counters?.length ? listed.counters : [],
       profile: profileData?.venues?.[id] || null, meta: json.meta || {}};
@@ -85,7 +126,7 @@ export function createTenantLoader(fetchImpl = (...args) => fetch(...args), {dir
   };
 }
 
-export const loadTenants = createTenantLoader(undefined, {directory: createDirectoryLoader()});
+export const loadTenants = createTenantLoader(undefined, {directory: createDirectoryLoader(), logos: createLogoLinkLoader()});
 
 /**
  * D41: the sub-areas of a counted place — its children that do not count on their own (a zone, a building of the block).

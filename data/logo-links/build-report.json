@@ -1,0 +1,1652 @@
+{
+ "meta": {
+  "schemaVersion": "1",
+  "kit": "citymeter-logos 1.0.0",
+  "checkedOn": "2026-11-24",
+  "shards": 32,
+  "rule": "D64: own id → same id in another dataset → a name the research sheets confirmed → one fixed rewrite; two different files give none; a shop that has a logo keeps it"
+ },
+ "inputs": {
+  "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
+  "directorySha256": "340f52fc0b2eb57106a15010b79a9b7e15006dfe8892528c8ea4ae4bb442ad0a",
+  "logoManifestSha256": "979350fa9bef7eca5650c0b717d5ffd1149ea98d16ea22737439a39a0677fb36"
+ },
+ "pool": {
+  "kit": "citymeter-logos 1.0.0",
+  "files": 1347,
+  "entities": 1431,
+  "names": 1434,
+  "sources": {
+   "restaurant": {
+    "commit": "8ed9b4b5cb1854ce943130c6232489cab393a22e",
+    "files": 563,
+    "entities": 619,
+    "issues": 0
+   },
+   "fitness": {
+    "commit": "e82a7dff859c4b87fa8825b331c7a41cee9ec5e7",
+    "files": 126,
+    "entities": 126,
+    "issues": 0
+   },
+   "hotel": {
+    "commit": "77343704a8861f453a5e1cd9b5eae81d16f4d734",
+    "files": 107,
+    "entities": 107,
+    "issues": 0
+   },
+   "camera": {
+    "commit": "f38d405386415795144b3214b97be1a0e1432ca3",
+    "files": 43,
+    "entities": 43,
+    "issues": 0
+   },
+   "luxurybrands": {
+    "commit": "1496b942e8453c6de44019591672bcf8890dcb92",
+    "files": 168,
+    "entities": 168,
+    "issues": 0
+   },
+   "grocery": {
+    "commit": "549be8969a89335ef8b769ef28aa124099fd5fdb",
+    "files": 18,
+    "entities": 18,
+    "issues": 0
+   },
+   "university": {
+    "commit": "d429c52bc2e93dc37d8d9d0063866ab0476f12ad",
+    "files": 15,
+    "entities": 15,
+    "issues": 0
+   },
+   "shoppingcenter": {
+    "commit": "e66af02a423abb327af9550bcf9e8ce90cc1b6ae",
+    "files": 307,
+    "entities": 335,
+    "issues": 0
+   }
+  },
+  "issues": []
+ },
+ "items": 26683,
+ "withLogoBefore": 5182,
+ "added": 3229,
+ "withLogoAfter": 8411,
+ "byBasis": {
+  "own": 1333,
+  "same-id": 195,
+  "label": 1459,
+  "bilingual": 60,
+  "legal": 3,
+  "descriptor": 151,
+  "bank": 28
+ },
+ "notAttached": {
+  "suppressed": 8,
+  "ambiguous": 0,
+  "none": 18264
+ },
+ "byDataset": {
+  "research.MLA.PARC": {
+   "already": 15,
+   "label": 16,
+   "none": 61
+  },
+  "research.TH.apparel": {
+   "already": 691,
+   "none": 77,
+   "same-id": 2
+  },
+  "research.TH.bank": {
+   "already": 250,
+   "none": 6
+  },
+  "research.TH.beauty": {
+   "already": 1105,
+   "none": 34
+  },
+  "research.TH.beauty_clinic": {
+   "none": 509
+  },
+  "research.TH.camera": {
+   "already": 183,
+   "none": 1,
+   "own": 5
+  },
+  "research.TH.car_service": {
+   "already": 106,
+   "none": 41
+  },
+  "research.TH.fitness": {
+   "already": 140
+  },
+  "research.TH.furniture": {
+   "already": 109,
+   "none": 24
+  },
+  "research.TH.gold": {
+   "already": 303,
+   "none": 19
+  },
+  "research.TH.grocery": {
+   "already": 61,
+   "none": 1,
+   "own": 21
+  },
+  "research.TH.hobby": {
+   "none": 222
+  },
+  "research.TH.hospital": {
+   "none": 1
+  },
+  "research.TH.luxury": {
+   "already": 289,
+   "own": 22,
+   "suppressed": 8
+  },
+  "research.TH.massage_spa": {
+   "already": 18,
+   "none": 7
+  },
+  "research.TH.miscellaneous": {
+   "none": 804,
+   "same-id": 125
+  },
+  "research.TH.nail": {
+   "already": 19,
+   "none": 11
+  },
+  "research.TH.optical": {
+   "label": 2,
+   "none": 547
+  },
+  "research.TH.pet": {
+   "already": 45,
+   "none": 16
+  },
+  "research.TH.pharmacy": {
+   "none": 57,
+   "same-id": 68
+  },
+  "research.TH.playground": {
+   "already": 94,
+   "none": 33
+  },
+  "research.TH.restaurants": {
+   "already": 572,
+   "descriptor": 4,
+   "label": 14,
+   "none": 322,
+   "own": 1285
+  },
+  "research.TH.salon_barber": {
+   "already": 64,
+   "none": 34
+  },
+  "research.TH.school": {
+   "none": 1
+  },
+  "research.TH.shopping_directory": {
+   "already": 808,
+   "bank": 28,
+   "bilingual": 60,
+   "descriptor": 147,
+   "label": 1427,
+   "legal": 3,
+   "none": 15363
+  },
+  "research.TH.sport": {
+   "already": 310,
+   "none": 73
+  }
+ },
+ "files": 371,
+ "filesCopied": 0,
+ "ambiguousNames": [],
+ "withoutLogoTop": {
+  "research.MLA.PARC": [
+   [
+    "Central Department Store",
+    1
+   ],
+   [
+    "Tops Food Hall",
+    1
+   ],
+   [
+    "Tempura Yamaya",
+    1
+   ],
+   [
+    "Sourcream Factory",
+    1
+   ],
+   [
+    "Bosch Living Studio",
+    1
+   ],
+   [
+    "TonTon",
+    1
+   ],
+   [
+    "BARBERISTA CLUB",
+    1
+   ],
+   [
+    "FOUND Academy",
+    1
+   ],
+   [
+    "Sight & Sense Optical",
+    1
+   ],
+   [
+    "Pet All",
+    1
+   ],
+   [
+    "BEEF BANK",
+    1
+   ],
+   [
+    "Eminence Clinic",
+    1
+   ],
+   [
+    "Myora Wellbeing Clinic",
+    1
+   ],
+   [
+    "Shabu Shizen",
+    1
+   ],
+   [
+    "Mamma Mia! Hair Club",
+    1
+   ],
+   [
+    "Alicia Nail & Lash",
+    1
+   ],
+   [
+    "Flow Movement Studio",
+    1
+   ],
+   [
+    "Treasure Factory",
+    1
+   ],
+   [
+    "Whale Pilates & Physio",
+    1
+   ],
+   [
+    "The Moon Massage and Spa",
+    1
+   ],
+   [
+    "AT Medical Clinic",
+    1
+   ],
+   [
+    "Kinroll",
+    1
+   ],
+   [
+    "Ramen Kourakuen",
+    1
+   ],
+   [
+    "แซ่บซี๊ด eatery",
+    1
+   ],
+   [
+    "กับข้าวกับปลา",
+    1
+   ]
+  ],
+  "research.TH.apparel": [
+   [
+    "URTHE",
+    16
+   ],
+   [
+    "Export Shop",
+    7
+   ],
+   [
+    "EXPORT SHOP",
+    6
+   ],
+   [
+    "MATTER MAKERS",
+    5
+   ],
+   [
+    "Dapper",
+    4
+   ],
+   [
+    "Suitcube",
+    3
+   ],
+   [
+    "MITR",
+    3
+   ],
+   [
+    "2nd STREET",
+    3
+   ],
+   [
+    "Hush Puppies",
+    3
+   ],
+   [
+    "2ND STREET",
+    2
+   ],
+   [
+    "SUITCUBE",
+    2
+   ],
+   [
+    "Espada",
+    2
+   ],
+   [
+    "BERSHKA",
+    2
+   ],
+   [
+    "NAUTICA",
+    2
+   ],
+   [
+    "Guy Laroche",
+    2
+   ],
+   [
+    "GUY LAROCHE",
+    2
+   ],
+   [
+    "ESP",
+    1
+   ],
+   [
+    "BROOKS BROTHERS",
+    1
+   ],
+   [
+    "GQ",
+    1
+   ],
+   [
+    "Export shop",
+    1
+   ],
+   [
+    "Urthe",
+    1
+   ],
+   [
+    "John Henry",
+    1
+   ],
+   [
+    "UR THE",
+    1
+   ],
+   [
+    "พรอนโต้ แอนด์ โค",
+    1
+   ],
+   [
+    "ยูอาร์เดอะ",
+    1
+   ]
+  ],
+  "research.TH.bank": [
+   [
+    "กรุงศรี",
+    4
+   ],
+   [
+    "ธนาคารกรุงศรีอยุธยา จำกัด (มหาชน)",
+    2
+   ]
+  ],
+  "research.TH.beauty": [
+   [
+    "THE FACE SHOP",
+    15
+   ],
+   [
+    "BEAUTY BUFFET",
+    6
+   ],
+   [
+    "The Face Shop",
+    3
+   ],
+   [
+    "Beauty Buffet",
+    3
+   ],
+   [
+    "MERREZ'CA",
+    1
+   ],
+   [
+    "JM Cosmetics",
+    1
+   ],
+   [
+    "บิวตี้ บุฟเฟ่ต์",
+    1
+   ],
+   [
+    "เจเอ็ม คอสเมติคส์",
+    1
+   ],
+   [
+    "ELEMIS",
+    1
+   ],
+   [
+    "BOBBI BROWN",
+    1
+   ],
+   [
+    "THE COSMETICS COMPANY STORE",
+    1
+   ]
+  ],
+  "research.TH.beauty_clinic": [
+   [
+    "Nitipon Clinic / นิติพลคลินิก",
+    49
+   ],
+   [
+    "APEX Clinic / APEX Medical Center",
+    44
+   ],
+   [
+    "Gangnam Clinic / กังนัมคลินิก",
+    35
+   ],
+   [
+    "The Klinique",
+    28
+   ],
+   [
+    "Pornkasem Clinic / พรเกษมคลินิก",
+    28
+   ],
+   [
+    "V Square Clinic",
+    23
+   ],
+   [
+    "Romrawin Clinic / รมย์รวินท์คลินิก",
+    22
+   ],
+   [
+    "SLC Clinic / Siam Laser Clinic",
+    20
+   ],
+   [
+    "L.A.B.X Clinic",
+    17
+   ],
+   [
+    "THE KLINIQUE",
+    17
+   ],
+   [
+    "Sparsha / Sparsha Slimming Center",
+    16
+   ],
+   [
+    "INFINITY MEDICAL CLINIC",
+    13
+   ],
+   [
+    "AES CLASS Clinic",
+    12
+   ],
+   [
+    "The Touch Clinic",
+    11
+   ],
+   [
+    "The Skin Doctors",
+    11
+   ],
+   [
+    "PAN Clinic / แพนคลินิก",
+    11
+   ],
+   [
+    "Dr. Tattof",
+    11
+   ],
+   [
+    "Doctor Life Clinic",
+    10
+   ],
+   [
+    "Aura Bangkok Clinic",
+    9
+   ],
+   [
+    "La Grace Clinic / ลา กราซ",
+    7
+   ],
+   [
+    "The Ritz Clinic",
+    7
+   ],
+   [
+    "The Venisia Clinic",
+    5
+   ],
+   [
+    "Immagini Clinic / อิมเมจินี่คลินิก",
+    5
+   ],
+   [
+    "Destiny Clinic",
+    5
+   ],
+   [
+    "Seoul Society Clinic",
+    4
+   ]
+  ],
+  "research.TH.camera": [
+   [
+    "Camera Exchange",
+    1
+   ]
+  ],
+  "research.TH.car_service": [
+   [
+    "Shell Helix Oil Change+ / เชลล์ เฮลิกส์ พลัส",
+    41
+   ]
+  ],
+  "research.TH.furniture": [
+   [
+    "BEWELL",
+    4
+   ],
+   [
+    "PAPAYA",
+    3
+   ],
+   [
+    "SB Furniture",
+    2
+   ],
+   [
+    "HomePro",
+    2
+   ],
+   [
+    "Seagull",
+    2
+   ],
+   [
+    "Furlish Common Room",
+    1
+   ],
+   [
+    "HOMEPRO",
+    1
+   ],
+   [
+    "SMEG",
+    1
+   ],
+   [
+    "Bewell",
+    1
+   ],
+   [
+    "MLK Connect",
+    1
+   ],
+   [
+    "Officemate",
+    1
+   ],
+   [
+    "SEAGULL",
+    1
+   ],
+   [
+    "HOMEBEST",
+    1
+   ],
+   [
+    "ซีกัล",
+    1
+   ],
+   [
+    "เอส.วี.เค.เซฟ แอนด์ เฟอร์นิเจอร์",
+    1
+   ],
+   [
+    "MLK CONNECT",
+    1
+   ]
+  ],
+  "research.TH.gold": [
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-670",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-4070",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-4379",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-3970",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-2979",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-3633",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-3833",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-524",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-2098",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-4364",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-3392",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-2670",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-3904",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-79",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-335",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-3719",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-2584",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-4588",
+    1
+   ],
+   [
+    "research.TH.gold:02_STORES:GOLD-O-GTA-2575",
+    1
+   ]
+  ],
+  "research.TH.grocery": [
+   [
+    "เลมอน ฟาร์ม",
+    1
+   ]
+  ],
+  "research.TH.hobby": [
+   [
+    "DAISO",
+    32
+   ],
+   [
+    "MOSHI MOSHI",
+    31
+   ],
+   [
+    "LEMONY",
+    31
+   ],
+   [
+    "MINISO",
+    16
+   ],
+   [
+    "POP MART",
+    13
+   ],
+   [
+    "YUMEYA",
+    12
+   ],
+   [
+    "Moshi Moshi",
+    10
+   ],
+   [
+    "ASIA BOOKS",
+    9
+   ],
+   [
+    "Yumeya",
+    6
+   ],
+   [
+    "Daiso",
+    4
+   ],
+   [
+    "TEDDY HOUSE",
+    4
+   ],
+   [
+    "TOYS R US",
+    3
+   ],
+   [
+    "Miniso",
+    3
+   ],
+   [
+    "B2S",
+    3
+   ],
+   [
+    "LOFT",
+    3
+   ],
+   [
+    "Asia Books",
+    3
+   ],
+   [
+    "LEGO CERTIFIED STORE",
+    3
+   ],
+   [
+    "52TOYS",
+    2
+   ],
+   [
+    "Pop Mart",
+    2
+   ],
+   [
+    "KKV",
+    2
+   ],
+   [
+    "Flying Tiger Copenhagen",
+    2
+   ],
+   [
+    "Lemony",
+    2
+   ],
+   [
+    "Elephant Parade",
+    2
+   ],
+   [
+    "ANOTHER STORY",
+    1
+   ],
+   [
+    "BKK BRICK LUXURY",
+    1
+   ]
+  ],
+  "research.TH.hospital": [
+   [
+    "About Tooth Dental Clinic",
+    1
+   ]
+  ],
+  "research.TH.massage_spa": [
+   [
+    "SCape by HARNN",
+    3
+   ],
+   [
+    "Relax Place Health & Massage",
+    1
+   ],
+   [
+    "BHU MHAI",
+    1
+   ],
+   [
+    "Yunomori Onsen & Spa",
+    1
+   ],
+   [
+    "ERB SPA",
+    1
+   ]
+  ],
+  "research.TH.miscellaneous": [
+   [
+    "True Shop",
+    84
+   ],
+   [
+    "AIS",
+    78
+   ],
+   [
+    "Samsung",
+    51
+   ],
+   [
+    "Huawei",
+    49
+   ],
+   [
+    "JIB",
+    43
+   ],
+   [
+    "OPPO",
+    40
+   ],
+   [
+    "Jaymart",
+    38
+   ],
+   [
+    "Xiaomi",
+    36
+   ],
+   [
+    "IT City",
+    33
+   ],
+   [
+    "Vivo",
+    31
+   ],
+   [
+    "TG Fone",
+    30
+   ],
+   [
+    "Telewiz",
+    27
+   ],
+   [
+    "dtac",
+    24
+   ],
+   [
+    "Advice",
+    20
+   ],
+   [
+    "itgo",
+    20
+   ],
+   [
+    "Thailand Post",
+    19
+   ],
+   [
+    "iStudio",
+    18
+   ],
+   [
+    "iCare",
+    17
+   ],
+   [
+    ".LIFE",
+    13
+   ],
+   [
+    "425 Degree",
+    12
+   ],
+   [
+    "ASUS",
+    11
+   ],
+   [
+    "REMAX",
+    10
+   ],
+   [
+    "HONOR",
+    10
+   ],
+   [
+    "Jaymart IoT",
+    10
+   ],
+   [
+    "True Sphere",
+    9
+   ]
+  ],
+  "research.TH.nail": [
+   [
+    "The Heritage Nail Spa",
+    3
+   ],
+   [
+    "Nail it! Tokyo",
+    2
+   ],
+   [
+    "Lady Daisy",
+    1
+   ],
+   [
+    "The story nails",
+    1
+   ],
+   [
+    "Alisa nails",
+    1
+   ],
+   [
+    "Bonnie Nail",
+    1
+   ],
+   [
+    "The Klinique Nail Palettes",
+    1
+   ],
+   [
+    "Kaia Nail Spa",
+    1
+   ]
+  ],
+  "research.TH.optical": [
+   [
+    "Top Charoen",
+    126
+   ],
+   [
+    "KT OPTIC",
+    56
+   ],
+   [
+    "OWNDAYS",
+    52
+   ],
+   [
+    "Better Vision",
+    29
+   ],
+   [
+    "THE NEXT Optical",
+    28
+   ],
+   [
+    "BETTER VISION",
+    22
+   ],
+   [
+    "Eye Class",
+    15
+   ],
+   [
+    "Beautiful Optic",
+    13
+   ],
+   [
+    "EYE CLASS",
+    13
+   ],
+   [
+    "Sunglass Hut",
+    11
+   ],
+   [
+    "OPTIC SQUARE",
+    10
+   ],
+   [
+    "Luxoptic",
+    10
+   ],
+   [
+    "Monde Eyewear",
+    10
+   ],
+   [
+    "Lenskart",
+    9
+   ],
+   [
+    "EYELAB EXCLUSIVE",
+    9
+   ],
+   [
+    "LUXOPTIC",
+    9
+   ],
+   [
+    "OPTICAL 88",
+    8
+   ],
+   [
+    "Optic Square",
+    7
+   ],
+   [
+    "OPTICAL88",
+    7
+   ],
+   [
+    "Modern Optical",
+    6
+   ],
+   [
+    "Oakley Store",
+    6
+   ],
+   [
+    "CAROLINA LEMKE",
+    5
+   ],
+   [
+    "Eye Sport",
+    4
+   ],
+   [
+    "PARIS MIKI",
+    4
+   ],
+   [
+    "EYELAB",
+    4
+   ]
+  ],
+  "research.TH.pet": [
+   [
+    "PETClub Select",
+    12
+   ],
+   [
+    "Nelly Pet Grooming & Spa / Nelly Pet Wellness",
+    1
+   ],
+   [
+    "CLUB PAWRENTS BY ARAK",
+    1
+   ],
+   [
+    "PETA PET SHOP",
+    1
+   ],
+   [
+    "Peta Pet Shop",
+    1
+   ]
+  ],
+  "research.TH.pharmacy": [
+   [
+    "Tops Care",
+    12
+   ],
+   [
+    "Pharmax",
+    9
+   ],
+   [
+    "P&F",
+    7
+   ],
+   [
+    "SAVE DRUG",
+    7
+   ],
+   [
+    "eXta Plus",
+    5
+   ],
+   [
+    "HEALTH UP",
+    3
+   ],
+   [
+    "iCare",
+    2
+   ],
+   [
+    "Fascino",
+    2
+   ],
+   [
+    "Super Save",
+    2
+   ],
+   [
+    "Bangkok Drugstore",
+    1
+   ],
+   [
+    "PURE PHARMACY",
+    1
+   ],
+   [
+    "HEALTH PLUS",
+    1
+   ],
+   [
+    "Dr.Pharma",
+    1
+   ],
+   [
+    "พีแอนด์เอฟ สมูทไลฟ์",
+    1
+   ],
+   [
+    "Health up",
+    1
+   ],
+   [
+    "Save Drug",
+    1
+   ],
+   [
+    "Health Up",
+    1
+   ]
+  ],
+  "research.TH.playground": [
+   [
+    "FUN CITY",
+    12
+   ],
+   [
+    "Fun City",
+    10
+   ],
+   [
+    "Active Z",
+    3
+   ],
+   [
+    "Space & Time Cube+",
+    1
+   ],
+   [
+    "G-Station",
+    1
+   ],
+   [
+    "LITTLE GAIA",
+    1
+   ],
+   [
+    "Let's Play",
+    1
+   ],
+   [
+    "Fun city",
+    1
+   ],
+   [
+    "เลทซ์ เพล",
+    1
+   ],
+   [
+    "PLAYLAND KIDZ",
+    1
+   ],
+   [
+    "SF STRIKE BOWL",
+    1
+   ]
+  ],
+  "research.TH.restaurants": [
+   [
+    "YOGURUTO",
+    30
+   ],
+   [
+    "KRISPY KREME",
+    23
+   ],
+   [
+    "Krispy Kreme",
+    7
+   ],
+   [
+    "PLAYGROUND",
+    6
+   ],
+   [
+    "Yoguruto",
+    6
+   ],
+   [
+    "BARON'S BAR BY THE CHEESE BARON",
+    6
+   ],
+   [
+    "Oishi Eaterium",
+    5
+   ],
+   [
+    "Ramen NeO",
+    5
+   ],
+   [
+    "GUSS DAMN GOOD",
+    5
+   ],
+   [
+    "GONG CHA",
+    5
+   ],
+   [
+    "Guss Damn Good",
+    5
+   ],
+   [
+    "getfresh",
+    5
+   ],
+   [
+    "CTM",
+    5
+   ],
+   [
+    "Baron's Bar by The Cheese Baron",
+    5
+   ],
+   [
+    "Beard Papa’s",
+    4
+   ],
+   [
+    "MARU WAFFLE",
+    4
+   ],
+   [
+    "Fantuan",
+    4
+   ],
+   [
+    "MK Premium Buffet",
+    4
+   ],
+   [
+    "SONG FA BAK KUT TEH",
+    4
+   ],
+   [
+    "MIYAZAKI",
+    3
+   ],
+   [
+    "HONAJI RAMEN",
+    3
+   ],
+   [
+    "The Barrel",
+    3
+   ],
+   [
+    "FATT CHICKEN RICE",
+    3
+   ],
+   [
+    "Kogoro Katsu",
+    3
+   ],
+   [
+    "MAJI CURRY",
+    3
+   ]
+  ],
+  "research.TH.salon_barber": [
+   [
+    "HAIR D'CRAFT",
+    3
+   ],
+   [
+    "Future Cut",
+    2
+   ],
+   [
+    "MIND HAIR",
+    2
+   ],
+   [
+    "PEN THE STYLE SALON",
+    2
+   ],
+   [
+    "THE ESQUIRE BARBER CLUB",
+    2
+   ],
+   [
+    "FUTURE CUT",
+    1
+   ],
+   [
+    "ToB1 Hair Station",
+    1
+   ],
+   [
+    "The Gallery Hair Salon",
+    1
+   ],
+   [
+    "Sizzers Hair Salon",
+    1
+   ],
+   [
+    "GAMO",
+    1
+   ],
+   [
+    "Hair d'craft",
+    1
+   ],
+   [
+    "Hair Heart",
+    1
+   ],
+   [
+    "The Lounge Hair Salon",
+    1
+   ],
+   [
+    "MASTERPIECE HAIR COLOR",
+    1
+   ],
+   [
+    "EASY CUT",
+    1
+   ],
+   [
+    "Kudos by Tarakorn",
+    1
+   ],
+   [
+    "sara sara",
+    1
+   ],
+   [
+    "MORI CUT",
+    1
+   ],
+   [
+    "JAKRAWAL SALON",
+    1
+   ],
+   [
+    "จักรวาล ซาลอน",
+    1
+   ],
+   [
+    "ดิ เอสไควร์ บาร์เบอร์ คลับ",
+    1
+   ],
+   [
+    "ฟอร์ คิดส์ ซาลอน",
+    1
+   ],
+   [
+    "มายแฮร์",
+    1
+   ],
+   [
+    "เวอแรนดา",
+    1
+   ],
+   [
+    "แฮร์เวิลด์แชมเปี้ยน",
+    1
+   ]
+  ],
+  "research.TH.school": [
+   [
+    "Smile Cooking Club",
+    1
+   ]
+  ],
+  "research.TH.shopping_directory": [
+   [
+    "LEMO",
+    69
+   ],
+   [
+    "CROCS",
+    47
+   ],
+   [
+    "COWAY",
+    43
+   ],
+   [
+    "ธนาคารกรุงศรีอยุธยา",
+    42
+   ],
+   [
+    "ธนาคารกสิกรไทย",
+    40
+   ],
+   [
+    "KRUNG THAI BANK",
+    39
+   ],
+   [
+    "ธนาคารทหารไทยธนชาต",
+    38
+   ],
+   [
+    "ฮะจิบัง ราเมน",
+    38
+   ],
+   [
+    "BATA",
+    36
+   ],
+   [
+    "BOOST JUICE BAR",
+    35
+   ],
+   [
+    "CC-OO",
+    34
+   ],
+   [
+    "B2S",
+    33
+   ],
+   [
+    "G-SHOCK CASIO",
+    31
+   ],
+   [
+    "AKA",
+    30
+   ],
+   [
+    "PANDORA",
+    30
+   ],
+   [
+    "CHARLES & KEITH",
+    28
+   ],
+   [
+    "JUBILEE",
+    28
+   ],
+   [
+    "ลาวญวน",
+    26
+   ],
+   [
+    "NITIPON CLINIC",
+    25
+   ],
+   [
+    "CPS CHAPS",
+    24
+   ],
+   [
+    "APEX",
+    23
+   ],
+   [
+    "GQ",
+    23
+   ],
+   [
+    "SEECHA",
+    23
+   ],
+   [
+    "ห้างทองหวังโต๊ะกังเยาวราช",
+    23
+   ],
+   [
+    "ก๋วยเตี๋ยวเรือพระนคร",
+    23
+   ]
+  ],
+  "research.TH.sport": [
+   [
+    "Ari Football",
+    16
+   ],
+   [
+    "Golf Challenge",
+    5
+   ],
+   [
+    "Reebok",
+    4
+   ],
+   [
+    "Coollabo",
+    3
+   ],
+   [
+    "ARI FOOTBALL",
+    2
+   ],
+   [
+    "ANEW Golf",
+    1
+   ],
+   [
+    "ANUNG & NIM",
+    1
+   ],
+   [
+    "AOR Golf",
+    1
+   ],
+   [
+    "Callaway",
+    1
+   ],
+   [
+    "Classic Golf",
+    1
+   ],
+   [
+    "Cobra Puma",
+    1
+   ],
+   [
+    "DEVA",
+    1
+   ],
+   [
+    "FLOG",
+    1
+   ],
+   [
+    "Golf Premium",
+    1
+   ],
+   [
+    "Golf Revoution",
+    1
+   ],
+   [
+    "Honma",
+    1
+   ],
+   [
+    "Huge",
+    1
+   ],
+   [
+    "Kasco",
+    1
+   ],
+   [
+    "KT Sport",
+    1
+   ],
+   [
+    "LMV",
+    1
+   ],
+   [
+    "Louis Castel",
+    1
+   ],
+   [
+    "Love Green",
+    1
+   ],
+   [
+    "MR Golf",
+    1
+   ],
+   [
+    "Only Golf Lifestyle",
+    1
+   ],
+   [
+    "PERFORMANCE GEAR",
+    1
+   ]
+  ]
+ }
+}

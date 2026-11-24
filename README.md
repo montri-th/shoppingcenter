@@ -171,6 +171,13 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.9.7 - โลโก้ร้านจากชุดข้อมูลอื่นของ CityMETER (`20261124-r1`)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน”
+
+- **โลโก้ร้าน (D64):** ร้านที่แบรนด์มีโลโก้ในเดโมอื่นของ CityMETER อยู่แล้วแสดงโลโก้นั้น — รหัสแบรนด์เดียวกัน รหัสเดียวกันในชุดอื่น หรือชื่อเดียวกับที่ทีมวิจัยยืนยัน (รวมรูปชื่อแบบตายตัว: ชื่อสองภาษา คำต่อท้ายทางกฎหมาย Starbucks Coffee → Starbucks · MK Restaurants → MK · ธนาคารกรุงไทย → กรุงไทย) ไม่ใช้ชื่อที่แค่คล้ายกัน · ร้านที่มีโลโก้ 5,182 → 8,411 จาก 26,683 รายการ ใน 212 สถานที่ · เทอร์มินอล21 อโศก 41 → 74 จาก 400 คาเฟ่มีโลโก้ 7 ใน 10 ร้านแรก
+- **ชุดกลาง:** `scripts/logo-kit/` (citymeter-logos 1.0.0) คลังโลโก้ 1,347 ไฟล์จาก 8 เดโม ตรวจ SHA-256 ทุกไฟล์ และกฎเดียวกันทุกเดโม · `scripts/attach-family-logos.py` เขียน `data/logo-links/` ข้างรายชื่อร้าน ไม่แก้รายชื่อร้าน ไดเรกทอรี หรือ manifest ที่ผูกใบรับ · `tests/logo-links.test.js` ล้มเมื่อรายชื่อร้านเปลี่ยนแต่ไม่ได้รันขั้นนี้ซ้ำ
+
 ## 0.9.6 - คนทำงานในสำนักงาน (แบบจำลอง) (`20261121-r1`)
 
 เจ้าของ (VERBATIM): 20 พ.ย. 2569 23:27 “ลุยครับ ถ้าได้ผลดี run ให้จบทั้งหมดไปเลยนะ แล้วปรับ demo office ให้เรียบร้อยด้วย https://citymeter.pages.dev/office/?d=office&at=BKK” และ “นำผลลัพท์ใหม่ไปปรับทั้ง shopping center และ office demo web”

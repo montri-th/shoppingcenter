@@ -10,7 +10,7 @@ import SHOPPING_EN, {LINE_EN, GROUP_EN, ROLE_EN} from '../js/lang-en.js';
 import {dataNamePairs, rosterTexts, detailTexts, companyEnglish, sourceNames} from '../js/lang.js';
 import {GROUPS, PROVINCES, STATUS_FILTERS, filterVenues, prepareRows, applyShopLists, summarize, DEFAULT_GROUP, groupMatches, rowProvince} from '../js/model.js';
 import {parseStations, attachNearestStations, nearRail, rowsNearStation, STATION_RADIUS_M} from '../js/stations.js';
-import {buildTenantIndex, buildAmenities, createTenantLoader, createDirectoryLoader, subAreasOf, rollUpSubAreas, comparePeers, brandPresence, searchBrands, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE} from '../js/tenants.js';
+import {buildTenantIndex, buildAmenities, createTenantLoader, createDirectoryLoader, createLogoLinkLoader, subAreasOf, rollUpSubAreas, comparePeers, brandPresence, searchBrands, TENANT_ROLE_LABELS, TENANT_PAGE_SIZE} from '../js/tenants.js';
 import {indexDistricts, summarizeDistricts, districtsInScope} from '../js/areas.js';
 import {summarizeAreaInsight} from '../js/area-insight.js';
 import {buildDistrictModel} from '../js/map-layers.js';
@@ -44,7 +44,8 @@ for (const f of readdirSync(new URL('data/details/', ROOT))) for (const [id, d] 
 const asOf = venues.meta.asOf;
 const transit = read('data/stations.json').meta;
 const fetchLocal = async path => ({ok: true, json: async () => read(path)});
-const loadRoster = createTenantLoader(fetchLocal, {directory: createDirectoryLoader(fetchLocal), parts: id => subAreasOf(byId.get(id), byId)});
+const loadRoster = createTenantLoader(fetchLocal, {directory: createDirectoryLoader(fetchLocal), parts: id => subAreasOf(byId.get(id), byId),
+  logos: createLogoLinkLoader(fetchLocal)});
 
 /* ---------- the English the page registers (js/lang.js) ---------- */
 registerDictionary(SHOPPING_EN);
@@ -176,7 +177,7 @@ test('English: district views, rank rows and their map cards', () => {
 test('English: venue panels with their details, shop lists, nearby centers and Google links', async () => {
   const missing = new Set();
   const ids = ['SC-001245', 'SC-000067', 'SC-000034', 'SC-000218', 'SC-000652', 'SC-C0840', 'SC-001223', 'SC-000001', 'SC-000256', 'SC-000788', 'SC-SM-03840',
-    'SC-000620', 'SC-001118', 'SC-002049', 'SC-000698', 'VN-6d4211fb2ef4fb', 'VN-5523fa4482b213', 'SC-C0015', '002e4de9-09f5-491d-8bb1-a8e0d337bb9d'];
+    'SC-000620', 'SC-001118', 'SC-002049', 'SC-000698', 'VN-6d4211fb2ef4fb', 'VN-5523fa4482b213', 'SC-C0015', '002e4de9-09f5-491d-8bb1-a8e0d337bb9d', 'SC-001783'];
   for (const id of ids) {
     const row = byId.get(id);
     if (!row) continue;

@@ -871,6 +871,29 @@ The regression fixture reproduces the duplicated main footprint before the corre
 
 **สร้างใหม่เมื่อ:** CityMETER · Office ออกข้อมูลรุ่นใหม่ (พื้นที่หรืออัตราการเช่าเปลี่ยน) · มีตัวเลขอัตราการเช่าของตลาดไตรมาสใหม่ (แก้ `OFFICE_MODEL` ใน `scripts/build-visitors-map.py`) · รอบศูนย์นี้ออกรุ่นใหม่
 
+## 27. โลโก้ร้านจากชุดข้อมูลอื่นของ CityMETER (0.9.7, 24 พ.ย. 2569 · D64) {#family-logos}
+
+**คำสั่งเจ้าของ (VERBATIM):** 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน”
+
+**คลังโลโก้ของตระกูลเดโม (pool):** `scripts/logo-kit/citymeter_logos.py` (citymeter-logos 1.0.0 ไบต์เดียวกันในทุก repo ที่ใช้ ตามบันทึก `scripts/logo-kit/kit.json`) อ่าน checkout ของเดโมที่อยู่ข้างกัน (`--family <โฟลเดอร์>`) แล้วรวมทุกไฟล์โลโก้ที่เดโมเผยแพร่แล้ว ตรวจ SHA-256 ของไฟล์กับระเบียนที่เผยแพร่ไฟล์นั้นทุกไฟล์ (ไม่ตรง = ไม่ใช้ และรายงาน) · รอบ 24 พ.ย. 2569: Restaurants 563 ไฟล์ (`8ed9b4b`) · Fitness 126 (`e82a7df`) · Hotel 107 (`7734370`) · Camera 43 (`f38d405`) · Luxury Brands 168 (`1496b94`) · Grocery 18 (`549be89`) · University 15 (`d429c52`) · Shopping Center 307 ไฟล์ที่ไม่ซ้ำกับเดโมอื่น (`e66af02`) รวม 1,347 ไฟล์ 1,431 รหัส ไม่มีไฟล์ไม่ตรง · Luxury Brands และ Grocery เผยแพร่เป็น sprite ที่ฝังไฟล์ต้นฉบับเป็น data URI ใช้ไบต์ที่ฝังเมื่อ SHA-256 ตรงกับ `sourceSHA256` ของแบรนด์ (ตรงครบ 168 และ 18)
+
+**กฎหาโลโก้ (เหมือนกันทุกเดโม):** แรกที่พบชนะ · ขั้นที่พบสองไฟล์ต่างกัน = ไม่ใส่
+
+1. `own` รหัสแบรนด์ของชุดเอง (dataset|id) มีไฟล์
+2. `same-id` รหัสเดียวกันมีไฟล์ในชุดอื่น (ชีตวิจัยใช้รหัสร่วมกัน เช่น `PHB-…` ใน Beauty และ Pharmacy · `BR-…` ใน Luxury และ Apparel · `CAM-B…` ใน Camera และ Miscellaneous)
+3. `label` ชื่อร้านหลัง `norm()` ตรงกับชื่อที่ทีมวิจัยยืนยันให้แบรนด์ที่มีไฟล์: ชื่อแบรนด์ในทะเบียนของชุด หรือชื่อตามไดเรกทอรีที่ `18_OFFICIAL_TENANTS` ผูกกับรหัสแบรนด์นั้น (`registry_brand_membership_linked`)
+4. รูปชื่อแบบตายตัวหนึ่งครั้ง แล้วทำขั้น 3: `bilingual` “A / B” หรือ “A (B)” ฝั่งหนึ่งอักษรไทย อีกฝั่งละติน · `legal` ตัดคำต่อท้ายทางกฎหมาย (จำกัด (มหาชน) · (มหาชน) · จำกัด · Public Company Limited · Company Limited · Co., Ltd. · PCL · PLC) · `descriptor` ตัดคำท้าย shop · store · express · kiosk · thailand ได้ทุกแบรนด์ และ coffee · cafe · tea · bakery · restaurant(s) เฉพาะแบรนด์ในชุด Restaurants · `bank` ตัด “ธนาคาร” ข้างหน้าหรือ “bank” ข้างท้าย เฉพาะแบรนด์ในชุด Bank
+
+`norm()`: NFKC · อัญประกาศเดี่ยวแบบเดียว · ตัดเครื่องหมายเสียงของอักษรละติน (U+0300–U+036F เท่านั้น สระและวรรณยุกต์ไทยคงเดิม) · ช่องว่างเดียว · casefold · NFKC เขียนสระอำเป็นนิคหิต + สระอา จึงเทียบคำตายตัวผ่าน `norm()` ทุกคำ · ไม่ใช้ fuzzy หรือส่วนของชื่อ · ร้านที่ `suppressManufacturerLogo` (ร้านที่ขายแบรนด์ เช่น ตัวแทนจำหน่าย Rolex) ไม่ได้โลโก้ของแบรนด์ · ร้านที่มีโลโก้อยู่แล้วคงของเดิม
+
+**พื้นรอง:** พื้นที่เดโมต้นทางเลือกเมื่อเป็นพื้นของ LDS (`#E5E9E6` · `#FFFFFF` · `#182327`) ไม่เช่นนั้นกฎเดิมของเดโมนี้ (`scripts/collect-research-logos.py` 0.1.9: ภาพทึบตามโทนขอบ · ภาพโปร่งให้เส้นขอบของเครื่องหมายโหวต · SVG ให้สีที่วาดโหวต) ไบต์ไม่เปลี่ยน พื้นเดียวกันทั้งสองธีม · contact sheet ของ 371 ไฟล์ที่ใช้ ดูด้วยตาทั้งพื้นสว่างและมืด (24 พ.ย. 2569) ไม่มีภาพเสีย
+
+**ไฟล์ที่เขียน (ข้างรายชื่อที่ผูกใบรับ ไม่เขียนทับ):** `python3 -I scripts/attach-family-logos.py --family <โฟลเดอร์ checkout> --checked-on 2026-11-24` → `data/logo-links/NN.json` 32 shard ตาม FNV-1a ของรหัสสถานที่ (ชุดเดียวกับ `data/tenants/`): สถานที่ → รหัสรายการร้าน → [คีย์โลโก้, ขั้นที่พบ] และระเบียนไฟล์ที่ shard ใช้ · `data/logo-links/build-report.json` (commit ของแต่ละเดโมในคลัง SHA-256 ของรายชื่อร้าน ไดเรกทอรี และ manifest ที่ผูกไว้ ตัวเลขตามขั้นและตามชุด แบรนด์ที่ยังไม่มีไฟล์) · ไฟล์ใหม่ 262 ไฟล์ใน `assets/tenant-logos/<sha256 20 ตัวแรก>.<ext>` ไบต์ตามเดโมต้นทาง · `data/tenants/` `data/directory/` และ `assets/tenant-logos-manifest.json` ไม่เปลี่ยน ใบรับและการตรวจความครบจึงคงเดิม · หน้าเว็บโหลด shard พร้อมรายชื่อร้าน (`js/tenants.js#createLogoLinkLoader` · `withLogoLinks`) shard ที่โหลดไม่ได้บอกบนหน้า (`PARTIAL['data/logo-links']`) และรายชื่อคงเดิม · หลักฐานรายช่องของรายชื่อร้านบอกว่ากี่ร้านมีโลโก้และกี่โลโก้มาจากชุดอื่น
+
+**ตัวเลข (24 พ.ย. 2569):** รายชื่อร้าน 26,683 รายการ · มีโลโก้เดิม 5,182 · เพิ่ม 3,229 (own 1,333 · same-id 195 · label 1,459 · bilingual 60 · legal 3 · descriptor 151 · bank 28) · มีโลโก้ 8,411 ใน 212 จาก 704 สถานที่ · ไม่ใส่: ร้านที่ขายแบรนด์ 8 · สองไฟล์ชนกัน 0 · ไม่พบไฟล์ 18,264 (รู้แบรนด์แต่ไม่มีไฟล์ในเดโมใดเลย 2,901 รายการ 535 แบรนด์ · ไดเรกทอรีที่ยังไม่ผูกแบรนด์และชื่อไม่ตรง 15,363 รายการ 9,277 ชื่อ)
+
+**กันไม่ให้หายอีก:** `tests/logo-links.test.js` — ไบต์ของ kit ตรงบันทึก · กฎของ kit (`tests/test_logo_kit.py`) · shard ผูก SHA-256 ของรายชื่อร้านและไดเรกทอรีปัจจุบัน (รีเฟรชข้อมูลแล้วไม่รันซ้ำ = test ล้ม) · ทุกลิงก์ชี้รายการของสถานที่นั้นที่ยังไม่มีโลโก้ · ทุกไฟล์ SHA-256 ตรง · กรณีของเจ้าของ: คาเฟ่ของเทอร์มินอล21 อโศก · `scripts/refresh-data.sh` รันขั้นนี้ต่อท้ายเมื่อกำหนด `FAMILY_DIR`
+
 ## Additional dated MLA membership evidence — 26 October 2026
 
 The PARC MLA crosswalk covers the project and15 competitors. Original venue/store source populations remain separate from this additional dated evidence. New venue identities are exact named project matches, never a nearest retailer or market. Current selected points win over older MLA alternatives; the newly selected Bangkok Mall point is a project-site reference, not an entrance or footprint. Dadfa’s leased-retail project supports historical definition with current operation unconfirmed. JAS has primary corporate portfolio and exact component-address evidence; approximately19,850sqm is reported leasable area, not surveyed area. PADDIO remains a future project: construction year, Zone1/2 area and floors do not become an actual opening date or whole-site GFA.
