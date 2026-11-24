@@ -970,7 +970,7 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 @media (prefers-reduced-motion: reduce) { .who-tile::after { transition: none; } }
 .who-tile:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
 .who-tile > .pictogram { width: 28px; height: 28px; font-size: 28px; color: var(--text-primary); }
-.who-name { font-size: 13.5px; font-weight: 600; line-height: 1.35; }
+.who-name { font-size: 13.5px; font-weight: 600; line-height: 1.35; text-wrap: balance; }
 .who-presence, .spend-meter { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
 .baht { display: inline-flex; gap: 1px; font-size: 13px; font-weight: 700; line-height: 1; }
 .baht i { font-style: normal; color: var(--border-default); }
