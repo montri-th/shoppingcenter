@@ -678,6 +678,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
       <p class="store-status">${statusPill(r)}${hierarchy ? `<span class="status-pill tone-neutral">${esc(hierarchy)}</span>` : ''}${logo?.roleLabel ? `<span class="venue-logo-role">${esc(logo.roleLabel)}</span>` : ''}</p>
       ${parent}
       ${tiles.length ? `<div class="metrics compact venue-metrics">${tiles.join('')}</div>` : ''}
+      ${glance}
       ${links.length ? `<p class="venue-links">${links.join('')}</p>` : ''}
       ${lookBar(look)}
       <dl class="facts">
@@ -690,7 +691,6 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
         ${fact('checked', 'สัตว์เลี้ยง', amenityFacts(r._amenities))}
       </dl>
       ${!d && !detailError ? '<p class="hint">กำลังโหลดรายละเอียด…</p>' : ''}${detailError ? '<p class="hint">โหลดรายละเอียดไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</p>' : ''}
-      ${glance}
     </section>
     ${storeBlock}
     ${renderPeers(peers, r)}

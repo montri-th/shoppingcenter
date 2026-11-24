@@ -161,7 +161,9 @@ test('section HTML: observed first (Aha, then the full comparison), hypotheses d
   assert.match(renderLocale(row, {meta, facts, priors: null, metaState: 'ready', factsState: 'ready', priorsState: 'error'}), /data-action="locale-retry-priors"/);
   assert.match(localeDataLine(meta), /DATA_METHOD\.md#venue-locale-insight/);
   const html = renderLocale(row, {meta, facts, priors, signals, metaState: 'ready', factsState: 'ready', priorsState: 'ready', residentsMeta: rmeta, residents: residents(CENTRALWORLD), residentsState: 'ready'});
-  assert.match(html, /รอบศูนย์นี้ · ทะเบียนวิจัย CityMETER \d+ ชุด และ CityMETER production \d+ ชุด · ข้อมูล .+ · รัศมีเส้นตรงจากจุดของศูนย์/);
+  // the closing line of the section, kept short (0.10.1, D-9): datasets · dates, the year once · boundary
+  assert.match(html, /<p class="hint panel-foot"><span data-en="CityMETER research registry, \d+ datasets · production, \d+ · [^"]+ · straight-line radius from the center’s point; areas as in production">ทะเบียนวิจัย CityMETER \d+ ชุด · production \d+ ชุด · \d+ [^ ]+–\d+ [^ ]+ \d{4} · รัศมีเส้นตรงจากจุดของศูนย์ และพื้นที่ตาม production<\/span>/);
+  assert.match(html, /<details class="locale-details" id="locale-method"[\s\S]*รายชื่อร้านไม่ใช่การสำรวจครบทุกร้าน/, 'the shop-list caveat lives in the folded method');
   assert.doesNotMatch(html, /undefined|NaN|\bnull\b/);
   // read the measured, then the benchmark, then the interpretation; the evidence and the method after
   const at = k => { const i = html.indexOf(k); assert.ok(i >= 0, k); return i; };
@@ -183,7 +185,10 @@ test('section HTML: observed first (Aha, then the full comparison), hypotheses d
   assert.equal((ph.match(/<summary class="who-tile">/g) || []).length, 4);
   for (const seg of ['residents', 'students', 'workers', 'visitors']) assert.match(ph, new RegExp(`<summary class="who-tile"><i class="pictogram pic-${seg}"`));
   assert.equal((ph.match(/<span class="baht" aria-hidden="true">/g) || []).length, 4 + 1, 'a ฿ meter per tile, and one in the key');
-  assert.match(ph, /ระดับราคารอบศูนย์ (สูง|กลาง|ต่ำ|ยังไม่ประเมิน)/);
+  // owner 2026-11-25 01:30 (D-3): “ราคาแถวนี้”; 01:34: the group reads “นักท่องเที่ยวและผู้มาเยือน”
+  assert.match(ph, /<span data-en="Prices nearby: (high|medium|low|not rated)">ราคาแถวนี้ (สูง|กลาง|ต่ำ|ยังไม่ประเมิน)<\/span>/);
+  assert.doesNotMatch(html, /กำลังซื้อจากราคา|ระดับราคารอบศูนย์|Spending power from prices|Price level around/);
+  assert.match(html, /<span data-en="Tourists and visitors">นักท่องเที่ยวและผู้มาเยือน<\/span>/);
   assert.doesNotMatch(ph, /กำลังซื้อ/, 'the ฿ marks read as a price level, never as spending power (review D-3)');
   assert.doesNotMatch(ph, / open>/, 'every card starts closed');
   // inside a card: what the data shows (symbol rows with rank tracks and places to open), then the reading
@@ -244,7 +249,8 @@ test('formats that would likely fit: hypotheses never carry a count; the checked
   }
   assert.match(fit, /<li class="fit-row"><i class="pictogram pic-fit"/);
   assert.doesNotMatch(fit, /ไม่มีร้าน|ไม่พบ/, 'a format the list does not show never reads as absent');
-  assert.match(fit, /ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center ตรวจถึง .+ ไม่ใช่การสำรวจครบทุกร้าน.* · ขอบเขต: /);
+  assert.match(fit, /รายชื่อร้านของ CityMETER Shopping Center ตรวจถึง \d+ [^ ]+ \d{4}( · Luxury Brands \d+ [^ ]+ \d{4})? · เฉพาะร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้/);
+  assert.doesNotMatch(fit.replace(/<details[\s\S]*?<\/details>/g, ''), /ไม่ใช่การสำรวจ/, 'the caveat is in the folded method of the section');
 });
 
 test('ring colours: the LDS count LUT, 41 samples, sample of the rank', () => {
@@ -384,7 +390,14 @@ test('residents: the block reads the figure and its rank first, then near or far
     assert.ok(html.includes(`<circle class="res-ring is-on" r="${radius / rmeta.cell.m}"/>`));
     // one line: dataset · source · date · boundary; no caveat on screen (the method is folded)
     const line = /<p class="hint res-evidence">(.*?)<\/p>/s.exec(html)[1];
-    assert.match(line, /คนที่มีชื่อในทะเบียนบ้าน \(แบบจำลอง\) · ประชากรตามทะเบียน กรมการปกครอง ต\.ค\. 2569 ผ่าน CityMETER production · อาคาร Building V4 .*© ผู้ร่วมสร้าง OpenStreetMap.* · คิด 20 พ\.ย\. 2569 · รัศมีเส้นตรงจากจุดของศูนย์/);
+    assert.match(line, /ประชากรตามทะเบียน กรมการปกครอง ต\.ค\. 2569 · อาคาร Building V4 · รัศมีเส้นตรงจากจุดของศูนย์<\/span> · <span data-en="map © OpenStreetMap contributors">แผนที่ © ผู้ร่วมสร้าง OpenStreetMap<\/span>$/);
+    assert.ok(line.replace(/<[^>]+>/g, '').length <= 150, 'a short line');
+    // what left the line is in the folded method: the sources of the buildings and the day it was computed
+    assert.match(html, /<details class="locale-details" data-locale-open="res">[\s\S]*3D-GloBFP, Open Buildings และ © ผู้ร่วมสร้าง OpenStreetMap[\s\S]*คิดจาก API ของ CityMETER production 20 พ\.ย\. 2569/);
+    // the key under the map says what a plain cell and a thin line are; no sentence about the colours on screen
+    assert.match(html, /<svg class="res-key-cell"[^>]*><rect class="res-bg"[^>]*\/><\/svg><span data-en="No counted building">ไม่มีอาคารที่นับ<\/span>/);
+    assert.match(html, /<path class="res-outline" d="M2 4h20"\/><\/svg><span data-en="Subdistrict boundary">ขอบแขวง\/ตำบล<\/span>/);
+    assert.doesNotMatch(html.replace(/<details[\s\S]*?<\/details>/g, ''), /สีเทียบช่อง/);
     const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
     assert.doesNotMatch(visible, /ไม่ใช่/, 'no caveat outside the folded method');
     assert.match(html, /<details class="locale-details" data-locale-open="res">[\s\S]*ไม่ใช่จำนวนคนที่มาศูนย์[\s\S]*DATA_METHOD\.md#registered-residents/);
@@ -601,7 +614,8 @@ test('comparison block: quarter and both ranks first, the chart in neutral tones
     assert.deepEqual(buttons, m.nearest.map(q => q.id));
     // one data line; caveats folded
     assert.equal((block.match(/class="hint res-evidence cmp-evidence"/g) || []).length, 1);
-    assert.match(block, /คนอยู่ใกล้: คนที่มีชื่อในทะเบียนบ้าน \(แบบจำลอง\) กรมการปกครอง ต\.ค\. 2569 .*คนทำงานใกล้: ระดับคนทำงานและผู้เดินทางจากกฎ.*รัศมีเส้นตรงจากจุดของศูนย์/);
+    assert.match(block, /คนอยู่ใกล้ \(แบบจำลอง\): กรมการปกครอง ต\.ค\. 2569 · คนทำงานใกล้ \(สมมติฐาน\): ทะเบียนวิจัย CityMETER \d+ [^ ]+ \d{4} · รัศมีเส้นตรงจากจุดของศูนย์/);
+    assert.match(block, /<details class="locale-details" data-locale-open="cmp">[\s\S]*คนที่มีชื่อในทะเบียนบ้าน[\s\S]*“คนทำงานและผู้เดินทาง” ในสมมติฐานของรอบศูนย์นี้/, 'what each axis is stays in the folded method');
     assert.match(block, /<details class="locale-details" data-locale-open="cmp">[\s\S]*ไม่ใช่จำนวนคนทำงาน[\s\S]*DATA_METHOD\.md#compare-residents-workers/);
     const visible = block.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
     assert.doesNotMatch(visible, /ไม่ใช่|ข้อจำกัด|ทำเลทอง/, 'no caveat on screen');
@@ -696,8 +710,9 @@ test('lines over the residents map: ink and paper of the map labels, never a dat
     assert.match(key, new RegExp(`<span data-en="${en}">${th}</span>`));
   }
   assert.match(credit, /© ผู้ร่วมสร้าง OpenStreetMap/);
-  assert.match(credit, /data-en="roads, rail and rivers © OpenStreetMap contributors \d+ \w+ \d{4}"/);
-  assert.match(credit, /data-en="stations: CityMETER Transit/);
+  assert.match(credit, /^ · <span data-en="map © OpenStreetMap contributors">แผนที่ © ผู้ร่วมสร้าง OpenStreetMap<\/span>$/);
+  // the day of the extract and the source of the stations are in the folded method (0.10.1, D-9)
+  assert.match(method, /Geofabrik \d+ [^ ]+ \d{4}[\s\S]*CityMETER Transit/);
   assert.match(method, /^<span data-en="Lines on the map: [^"]+">เส้นบนแผนที่: /);
   // in the residents block: the key under the map, the credit in the data line, the method folded
   const html = renderLocaleResidents(row, {meta, facts: shard('facts', CENTRALWORLD), residentsMeta: rmeta, residents: rec, residentsState: 'ready', residentsMap: ov});
@@ -708,8 +723,10 @@ test('lines over the residents map: ink and paper of the map labels, never a dat
   assert.ok(!html.replace(folded, '').includes('ไม่ใช่โครงข่าย'), 'its caveat only inside the fold');
   // without the file: the same map without lines, labels, credit or method; the key names the center pin only (0.9.4)
   const without = renderLocaleResidents(row, {meta, facts: shard('facts', CENTRALWORLD), residentsMeta: rmeta, residents: rec, residentsState: 'ready'});
-  assert.doesNotMatch(without, /res-overlay|res-lab|res-road|res-rail|res-river|res-station|ถนน ราง และแม่น้ำ|เส้นบนแผนที่/);
-  assert.match(without, /<span class="res-key"><span class="res-key-item"><svg class="res-key-pin"[^]*?ศูนย์นี้<\/span><\/span>/);
+  assert.doesNotMatch(without, /res-overlay|res-lab|res-road|res-rail|res-river|res-station|ถนนสายหลัก|เส้นบนแผนที่/);
+  // the key then names the center pin, a plain cell and the subdistrict line; the map credit stays (the buildings are OpenStreetMap-derived)
+  assert.match(without, /<span class="res-key"><span class="res-key-item"><svg class="res-key-pin"[^]*?ศูนย์นี้<\/span><\/span><span class="res-key-item"><svg class="res-key-cell"[^]*?ไม่มีอาคารที่นับ<\/span><\/span><span class="res-key-item"><svg class="res-key-line"[^]*?ขอบแขวง\/ตำบล<\/span><\/span><\/span>/);
+  assert.match(without, /แผนที่ © ผู้ร่วมสร้าง OpenStreetMap/);
 });
 
 test('the center pin (0.9.4): one pin over the lines in the selected role, its key first, names kept off it', () => {
@@ -853,7 +870,9 @@ test('visitors block: the figure and its rank first, the datasets it comes from,
     assert.match(html, /<span class="res-legend-title"><span data-en="Places per 250 × 250 m cell">สถานที่ต่อช่อง 250 × 250 ม\.<\/span><\/span>/);
     // one line: dataset · source · date · boundary; no caveat on screen (the method is folded)
     const line = /<p class="hint res-evidence">(.*?)<\/p>/s.exec(html)[1];
-    assert.match(line, /สถานที่ที่ผู้มาเยือนใช้ \(อนุมาน\) · รายการที่มีพิกัดของ 15 ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ข้อมูล 21 ต\.ค\. 2569–8 พ\.ย\. 2569 · รัศมีเส้นตรงจากจุดของศูนย์/);
+    assert.match(line, /^<span data-en="15 CityMETER stay, retail and service datasets · 21 Oct–8 Nov 2026 · straight-line radius from the center’s point">15 ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · 21 ต\.ค\.–8 พ\.ย\. 2569 · รัศมีเส้นตรงจากจุดของศูนย์<\/span>/);
+    assert.match(html, /<svg class="res-key-cell"[^>]*><rect class="res-bg"[^>]*\/><\/svg><span data-en="No counted place">ไม่มีสถานที่ที่นับ<\/span>/);
+    assert.doesNotMatch(html.replace(/<details[\s\S]*?<\/details>/g, ''), /สีเทียบช่อง/);
     const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
     assert.doesNotMatch(visible, /ไม่ใช่/, 'no caveat outside the folded method');
     assert.match(html, /<details class="locale-details" data-locale-open="vis">[\s\S]*ไม่ใช่จำนวนผู้มาเยือน[\s\S]*ไม่ได้ตัดรายการซ้ำข้ามชุดข้อมูล[\s\S]*DATA_METHOD\.md#visitor-places/);
@@ -966,7 +985,8 @@ test('work and study block: places with their rank, the datasets, the people the
     assert.ok(fills.length && fills.every(([, , f]) => COUNT_SCALE.lut.includes(f)), 'the count LUT, apart from the residents (density) and the visitors (activity)');
     assert.match(svg, new RegExp(`<clipPath id="wrk-${id}-c">`));
     const line = /<p class="hint res-evidence">(.*?)<\/p>/s.exec(html)[1];
-    assert.match(line, /สถานที่ที่คนมาทำงานและเรียน \(อนุมาน\) · รายการที่มีพิกัดของ 7 ชุดข้อมูล CityMETER หมวดที่ทำงาน สถานศึกษา และสถานพยาบาล · ข้อมูล .* · รัศมีเส้นตรงจากจุดของศูนย์/);
+    assert.match(line, /^<span data-en="7 CityMETER work, education and health datasets · [^"]+ · straight-line radius from the center’s point">7 ชุดข้อมูล CityMETER หมวดที่ทำงาน สถานศึกษา และสถานพยาบาล · .+ \d{4} · รัศมีเส้นตรงจากจุดของศูนย์<\/span>/);
+    assert.match(html, /<svg class="res-key-cell"[^>]*><rect class="res-bg"[^>]*\/><\/svg><span data-en="No counted place">ไม่มีสถานที่ที่นับ<\/span>/);
     const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
     assert.doesNotMatch(visible, /ไม่ใช่/, 'no caveat outside the folded method');
     assert.match(html, /data-locale-open="work">[\s\S]*ไม่ใช่จำนวนคน[\s\S]*ไม่นับสถานีราง[\s\S]*ไม่บวกกัน[\s\S]*DATA_METHOD\.md#work-study-places/);

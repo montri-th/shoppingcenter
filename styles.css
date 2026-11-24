@@ -842,6 +842,10 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .res-key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
 .res-key-item { display: inline-flex; align-items: center; gap: 5px; }
 .res-key-line { width: 24px; height: 8px; flex: 0 0 24px; overflow: visible; }
+/* key of a plain cell and of the subdistrict line: the map's own fill and stroke, drawn small (0.10.1, D-9) */
+.res-key-cell { width: 12px; height: 12px; flex: 0 0 12px; }
+.res-key-cell .res-bg { fill: var(--surface-alt); stroke: var(--border-default); stroke-width: 1px; }
+.res-key-line .res-outline { fill: none; stroke: var(--text-secondary); stroke-width: 0.75px; stroke-opacity: 0.65; }
 .res-ring-label { position: absolute; transform: translate(2px, -100%); padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 12px; line-height: 1.35; color: var(--text-secondary); white-space: nowrap; pointer-events: none; }
 .res-ring-label.is-on { color: var(--text-primary); font-weight: 600; }
 .res-north { position: absolute; left: 0; top: 0; padding: 0 4px; border-radius: 6px; background: var(--surface-card); font-size: 12px; line-height: 1.35; color: var(--text-secondary); }

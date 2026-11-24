@@ -333,9 +333,7 @@ export function glanceSourceLine(meta, {residentsMeta = null, visitorsMeta = nul
   const dates = [...(visitorsMeta?.datasets || []), ...(workMeta?.datasets || [])].map(d => d.date).concat(meta?.ring?.shopping?.date).filter(Boolean).sort();
   // kept short on purpose: the year once when both ends share it; the tile already says “แบบจำลอง”, the star and
   // its note say which counts take only records with a point, and every block keeps its own full line
-  const a = dates[0], b = dates.at(-1), sameYear = a && b && a.slice(0, 4) === b.slice(0, 4);
-  const span = dates.length ? (a === b ? [thaiDay(a), englishDay(a)]
-    : [`${sameYear ? thaiDay(a).replace(/ \d{4}$/, '') : thaiDay(a)}–${thaiDay(b)}`, `${sameYear ? englishDay(a).replace(/ \d{4}$/, '') : englishDay(a)}–${englishDay(b)}`]) : null;
+  const span = dates.length ? daySpan(dates[0], dates.at(-1)) : null;
   const pm = residentsMeta?.populationMonth;
   const th = [pm ? `คนอยู่ใกล้: ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)}` : '', span ? `สถานที่: ชุดข้อมูล CityMETER ${span[0]}` : '', 'รัศมีเส้นตรงจากจุดของศูนย์'].filter(Boolean).join(' · ');
   const en = [pm ? `Living near: registered population, Department of Provincial Administration, ${englishDay(pm)}` : '', span ? `places: CityMETER datasets, ${span[1]}` : '', 'straight-line radius from the center’s point'].filter(Boolean).join(' · ');
@@ -756,13 +754,13 @@ const pips = level => { const n = {low: 1, medium: 2, high: 3}[level] || 0; retu
 /** How many of a group are likely around, in words for people (a prior). */
 const PRESENCE = Object.freeze({high: ['น่าจะมีมาก', 'Likely many'], medium: ['น่าจะมีปานกลาง', 'Likely some'], low: ['น่าจะมีน้อย', 'Likely few'], insufficient: ['ข้อมูลไม่พอ', 'Not enough data']});
 /** Short names of the groups on their tiles; the open card keeps the full name. */
-const SEG_SHORT = Object.freeze({residents: ['ผู้อยู่อาศัย', 'Residents'], students: ['นักเรียนและครอบครัว', 'Students and families'], workers: ['คนทำงาน', 'Workers'], visitors: ['ผู้มาเยือน', 'Visitors']});
+const SEG_SHORT = Object.freeze({residents: ['ผู้อยู่อาศัย', 'Residents'], students: ['นักเรียนและครอบครัว', 'Students and families'], workers: ['คนทำงาน', 'Workers'], visitors: ['นักท่องเที่ยวและผู้มาเยือน', 'Tourists and visitors']});
 const baht = n => `<span class="baht" aria-hidden="true">${[1, 2, 3].map(i => `<i${i <= n ? ' class="on"' : ''}>฿</i>`).join('')}</span>`;
-/** Spending power read from observed prices as three ฿ marks and its words (a prior, never income or willingness to pay). */
+/** Prices of what is around the center as three ฿ marks and its words (a prior, never income or willingness to pay). Owner 2026-11-25 01:30: “ราคาแถวนี้”. */
 function spendMeter(P, sp) {
   const n = sp && sp[0] !== 'insufficient' ? {low: 1, medium: 2, high: 3}[sp[0]] || 0 : 0;
   const w = n ? P.levels[sp[0]] : ['ยังไม่ประเมิน', 'Not rated'];
-  return `<span class="spend-meter${n ? '' : ' is-none'}">${baht(n)}${say(`ระดับราคารอบศูนย์ ${w[0]}`, `Price level around: ${String(w[1]).toLowerCase()}`)}</span>`;
+  return `<span class="spend-meter${n ? '' : ' is-none'}">${baht(n)}${say(`ราคาแถวนี้ ${w[0]}`, `Prices nearby: ${String(w[1]).toLowerCase()}`)}</span>`;
 }
 /** Groups by how many are likely around, most first. */
 const segOrder = (P, pr) => (P.segments || []).map(s => s[0]).filter(s => pr.seg?.[s]).sort((a, b) => (pr.seg[b][1] ?? -1) - (pr.seg[a][1] ?? -1));
@@ -792,7 +790,7 @@ function personaHTML(meta, pr, sg, facts, row, seg) {
   const bPresence = basis(s[3]), bSpend = sp && sp[0] !== 'insufficient' ? basis(sp[3]) : [];
   // workers: the two strongest clusters set the level (an office district or a factory belt are alternatives)
   const top2 = s[4] === 'top2' ? [' (ใช้สองค่าที่สูงที่สุด เพราะงานแต่ละแบบแทนกันได้)', ' (the two highest count, since one kind of work stands in for another)'] : ['', ''];
-  const spendNote = sp?.[4] === 'factory_led' ? `<p class="hint persona-basis">${say('ระดับราคารอบศูนย์: ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน ใช้แทนงานโรงงานไม่ได้', 'Price level around: not rated; the prices on hand are office rents and areas, which do not speak for factory work')}</p>` : '';
+  const spendNote = sp?.[4] === 'factory_led' ? `<p class="hint persona-basis">${say('ราคาแถวนี้: ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน ใช้แทนงานโรงงานไม่ได้', 'Prices nearby: not rated; the prices on hand are office rents and areas, which do not speak for factory work')}</p>` : '';
   const facts_ = factLines(meta, sg, facts, row, seg);
   const formats = formatChips(P, say_.pmf);
   const readRow = (ic, th, en, body) => `<li class="read">${icon(ic)}<span class="read-body"><b class="read-label">${say(th, en)}</b> ${body}</span></li>`;
@@ -810,7 +808,7 @@ function personaHTML(meta, pr, sg, facts, row, seg) {
       ${facts_.length ? `<h6 class="persona-h">${say('ข้อมูลที่เห็น', 'What the data shows')}</h6><ul class="sig-list">${facts_.join('')}</ul>` : ''}
       <h6 class="persona-h">${say('อ่านว่า', 'Reading')} <span class="prior-badge">${say('สมมติฐาน', 'Hypothesis')}</span></h6>
       <ul class="read-list">${read}</ul>
-      ${bPresence.length || bSpend.length ? `<p class="hint persona-basis">${bPresence.length ? say(`ระดับ${lv[0]} อิงจาก ${pairText(bPresence)[0]}${top2[0]}`, `${lv[1]} level, based on ${pairText(bPresence)[1]}${top2[1]}`) : ''}${bSpend.length && plv ? `<br>${say(`ระดับราคารอบศูนย์ อิงจาก ${pairText(bSpend)[0]} · ไม่ใช่รายได้หรือยอดใช้จ่ายที่วัดได้`, `Price level around, based on ${pairText(bSpend)[1]} · not measured income or spending`)}` : ''}</p>` : ''}${spendNote}
+      ${bPresence.length || bSpend.length ? `<p class="hint persona-basis">${bPresence.length ? say(`ระดับ${lv[0]} อิงจาก ${pairText(bPresence)[0]}${top2[0]}`, `${lv[1]} level, based on ${pairText(bPresence)[1]}${top2[1]}`) : ''}${bSpend.length && plv ? `<br>${say(`ราคาแถวนี้ อิงจาก ${pairText(bSpend)[0]} · ไม่ใช่รายได้หรือยอดใช้จ่ายที่วัดได้`, `Prices nearby, based on ${pairText(bSpend)[1]} · not measured income or spending`)}` : ''}</p>` : ''}${spendNote}
       ${cardDataLine(meta, seg)}
     </div></details>`;
 }
@@ -821,7 +819,7 @@ function whoBlock(meta, pr, sg, facts, row) {
   if (!order.length) return '';
   return `<div class="locale-block who-block"><h4 class="locale-sub">${icon('segment')}${say('ใครน่าจะอยู่รอบศูนย์', 'Who is likely around')}<span class="prior-badge">${say('สมมติฐานจากกฎ', 'Rule-based hypothesis')}</span></h4>
     <div class="who-grid">${order.map(seg => personaHTML(meta, pr, sg, facts, row, seg)).join('')}</div>
-    <ul class="hint who-key"><li>${pips('high')}${say('จำนวนที่น่าจะอยู่', 'How many, likely')}</li><li>${baht(3)}${say('ระดับราคารอบศูนย์', 'Price level around')}</li><li>${icon('touch')}${say('กดเพื่อดูข้อมูล', 'Open for the data')}</li></ul>
+    <ul class="hint who-key"><li>${pips('high')}${say('จำนวนที่น่าจะอยู่', 'How many, likely')}</li><li>${baht(3)}${say('ราคาแถวนี้', 'Prices nearby')}</li><li>${icon('touch')}${say('กดเพื่อดูข้อมูล', 'Open for the data')}</li></ul>
   </div>`;
 }
 
@@ -929,7 +927,7 @@ function fitBlock(meta, pr, sg, row = {}) {
     ${any ? `<ul class="fit-list">${found.map(rowHTML).join('')}${listed.map(listedHTML).join('')}${checkRow}${nodataRow}</ul>
     <ul class="hint fit-key"><li>${icon('fit')}${say('อยู่ในรายชื่อร้านของศูนย์ นับทั้งหมวด', 'In the center’s shop list, the whole category')}</li>${check.length && hasList ? `<li>${icon('notyet')}${say('ตรวจรายชื่อแล้วยังไม่เห็น', 'Checked the list, not seen')}</li>` : ''}${nodata.length || (check.length && !hasList) ? `<li>${icon('info')}${say('ยังเทียบไม่ได้', 'Cannot be compared yet')}</li>` : ''}<li><span class="pmf" aria-hidden="true"></span>${say('หมวดที่น่าจะเข้ากัน (สมมติฐาน)', 'Formats that would likely fit (hypotheses)')}</li></ul>` : ''}
     ${center.length ? `<h5 class="locale-mini">${icon('venue')}${say('ศูนย์นี้มีอะไรแล้ว', 'What the center already has')}</h5><ul class="sig-list">${center.join('')}</ul>` : ''}
-    <p class="hint persona-data">${say(`ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center${roster ? ` ตรวจถึง ${thaiDay(roster)}` : ''} ไม่ใช่การสำรวจครบทุกร้าน${lux ? ` · CityMETER Luxury Brands ตรวจ ${thaiDay(lux)}` : ''} · ขอบเขต: ร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้`, `Data: CityMETER Shopping Center shop lists of the center${roster ? `, checked to ${roster}` : ''}, not a census of every shop${lux ? ` · CityMETER Luxury Brands checked ${lux}` : ''} · Boundary: shops a source places in this center`)}</p>
+    <p class="hint persona-data">${say(`รายชื่อร้านของ CityMETER Shopping Center${roster ? ` ตรวจถึง ${thaiDay(roster)}` : ''}${lux ? ` · Luxury Brands ${thaiDay(lux)}` : ''} · เฉพาะร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้`, `CityMETER Shopping Center shop lists${roster ? `, checked to ${englishDay(roster)}` : ''}${lux ? ` · Luxury Brands, ${englishDay(lux)}` : ''} · only shops a source places in this center`)}</p>
   </div>`;
 }
 
@@ -1066,6 +1064,15 @@ export function englishDay(iso) {
   if (!m) return String(iso || '');
   return `${m[3] ? `${Number(m[3])} ` : ''}${MONTHS_EN[Number(m[2]) - 1]} ${m[1]}`;
 }
+
+/** A span of two days in both languages; the year is written once when both ends share it (“21 ต.ค.–17 พ.ย. 2569”). */
+export function daySpan(a, b) {
+  if (!a && !b) return ['', ''];
+  if (!a || !b || a === b) return [thaiDay(a || b), englishDay(a || b)];
+  const same = a.slice(0, 4) === b.slice(0, 4);
+  const cut = s => (same ? s.replace(/ \d{4}$/, '') : s);
+  return [`${cut(thaiDay(a))}–${thaiDay(b)}`, `${cut(englishDay(a))}–${englishDay(b)}`];
+}
 const kmEn = r => `${num(r / 1000)} km`;
 
 /** A modelled number of people to the nearest 10, 100 or 1,000 by size (“223,000”); null under 10. */
@@ -1144,21 +1151,22 @@ export function residentsOverlayLabels(ov, at, {unit = 25, m = 250} = {}) {
 /** The key item of the center pin. */
 export const venuePinKey = () => `<span class="res-key-item"><svg class="res-key-pin" viewBox="-1 -2.55 2 2.75" aria-hidden="true">${VENUE_PIN}</svg>${say('ศูนย์นี้', 'This center')}</span>`;
 
-export function residentsOverlayKey({lines = true} = {}) {
+export function residentsOverlayKey({lines = true, empty = null, outline = false} = {}) {
   const sw = (cls, extra = '') => `<svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="${cls}-case${extra}" d="M2 4h20"/><path class="${cls}${extra}" d="M2 4h20"/></svg>`;
-  if (!lines) return `<span class="res-key">${venuePinKey()}</span>`;
+  // what a plain cell and a thin line are, as two key items instead of a sentence under the map (owner 2026-11-25, D-9)
+  const cell = empty ? `<span class="res-key-item"><svg class="res-key-cell" viewBox="0 0 12 12" aria-hidden="true"><rect class="res-bg" x="0.5" y="0.5" width="11" height="11"/></svg>${say(empty[0], empty[1])}</span>` : '';
+  const edge = outline ? `<span class="res-key-item"><svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="res-outline" d="M2 4h20"/></svg>${say('ขอบแขวง/ตำบล', 'Subdistrict boundary')}</span>` : '';
+  if (!lines) return `<span class="res-key">${venuePinKey()}${cell}${edge}</span>`;
   return `<span class="res-key">${venuePinKey()}`
     + `<span class="res-key-item">${sw('res-road', ' c2')}${say('ถนนสายหลัก', 'Major roads')}</span>`
     + `<span class="res-key-item">${sw('res-rail')}${say('รถไฟฟ้าและรถไฟ', 'Rail lines')}</span>`
     + `<span class="res-key-item"><svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><circle class="res-station" cx="12" cy="4" r="3"/></svg>${say('สถานี', 'Stations')}</span>`
-    + `<span class="res-key-item">${sw('res-river')}${say('แม่น้ำ', 'Rivers')}</span></span>`;
+    + `<span class="res-key-item">${sw('res-river')}${say('แม่น้ำ', 'Rivers')}</span>${cell}${edge}</span>`;
 }
 
-/** Credit of the lines in the data line (ODbL asks for it where the map is shown). */
-export function residentsOverlayCredit(mm) {
-  const st = mm?.source?.stations?.asOf;
-  return ` · ${say(`ถนน ราง และแม่น้ำ © ผู้ร่วมสร้าง OpenStreetMap ${mm?.asOf ? thaiDay(mm.asOf) : ''}`.trim(), `roads, rail and rivers © OpenStreetMap contributors ${mm?.asOf ? englishDay(mm.asOf) : ''}`.trim())}`
-    + (st ? ` · ${say(`สถานีจาก CityMETER Transit ${thaiDay(st)}`, `stations: CityMETER Transit ${englishDay(st)}`)}` : '');
+/** Credit of the map lines in the data line (ODbL asks for it where the map is shown); dates and sources are in the folded method. */
+export function residentsOverlayCredit() {
+  return ` · ${say('แผนที่ © ผู้ร่วมสร้าง OpenStreetMap', 'map © OpenStreetMap contributors')}`;
 }
 
 /** The method of the lines (folded with the residents method). */
@@ -1367,8 +1375,8 @@ export const PLACES = Object.freeze({
     failed: ['โหลดสถานที่ที่ผู้มาเยือนใช้ไม่สำเร็จ', 'Could not load the places visitors use'],
     mapTitle: ['สถานที่ที่ผู้มาเยือนใช้ (ที่พัก ร้านอาหาร ร้านค้า และบริการ) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
       'Places visitors use (stays, restaurants, shops and services) per 250 × 250 m cell within 5 km of the center, north up'],
-    line: (n, span) => [`สถานที่ที่ผู้มาเยือนใช้ (อนุมาน) · รายการที่มีพิกัดของ ${num(n)} ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ข้อมูล ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
-      `Places visitors use (inferred) · located records of ${num(n)} CityMETER stay, retail and service datasets · data ${span[1]} · straight-line radius from the center’s point`],
+    line: (n, span) => [`${num(n)} ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
+      `${num(n)} CityMETER stay, retail and service datasets · ${span[1]} · straight-line radius from the center’s point`],
     summary: ['วิธีคิดและข้อจำกัดของสถานที่ที่ผู้มาเยือนใช้', 'How the places visitors use are counted, and the limits'],
     what: ['ตัวเลขนี้คือจำนวนสถานที่ที่คนมาพัก กิน ซื้อ และใช้บริการ ซึ่งชุดข้อมูลของ CityMETER ระบุไว้ ไม่ใช่จำนวนผู้มาเยือน จำนวนครั้งที่มา คนเดิน หรือยอดขาย · การอ่านว่าที่ไหนผู้มาเยือนน่าจะไปเป็นการอนุมานจากสถานที่เหล่านี้',
       'These are the places where people come to stay, eat, shop and use services, as CityMETER’s datasets list them: not visitors, visits, footfall or sales · reading where visitors are likely to go is an inference from these places'],
@@ -1387,8 +1395,8 @@ export const PLACES = Object.freeze({
     failed: ['โหลดสถานที่ทำงานและสถานศึกษาไม่สำเร็จ', 'Could not load the places of work and study'],
     mapTitle: ['สถานที่ที่คนมาทำงานและเรียน (สำนักงาน หน่วยงานรัฐ โรงงาน มหาวิทยาลัย สถานพยาบาล และสถานศึกษา) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
       'Places people come to work and study (offices, government offices, factories, universities, health facilities and schools) per 250 × 250 m cell within 5 km of the center, north up'],
-    line: (n, span) => [`สถานที่ที่คนมาทำงานและเรียน (อนุมาน) · รายการที่มีพิกัดของ ${num(n)} ชุดข้อมูล CityMETER หมวดที่ทำงาน สถานศึกษา และสถานพยาบาล · ข้อมูล ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
-      `Places people come to work and study (inferred) · located records of ${num(n)} CityMETER work, education and health datasets · data ${span[1]} · straight-line radius from the center’s point`],
+    line: (n, span) => [`${num(n)} ชุดข้อมูล CityMETER หมวดที่ทำงาน สถานศึกษา และสถานพยาบาล · ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
+      `${num(n)} CityMETER work, education and health datasets · ${span[1]} · straight-line radius from the center’s point`],
     summary: ['วิธีคิดและข้อจำกัดของสถานที่ทำงานและสถานศึกษา', 'How the places of work and study are counted, and the limits'],
     what: ['ตัวเลขนี้คือจำนวนสถานที่ที่คนเดินทางมาทำงาน เรียน หรือรับบริการของรัฐและสถานพยาบาล ซึ่งชุดข้อมูลของ CityMETER ระบุไว้ ไม่ใช่จำนวนคน จำนวนเที่ยว หรือการจ้างงาน · การอ่านว่าที่ไหนคนมาทำงานและเรียนมากเป็นการอนุมานจากสถานที่เหล่านี้',
       'These are the places where people come to work, study or for public and health services, as CityMETER’s datasets list them: not people, trips or jobs · reading where people come to work and study is an inference from these places'],
@@ -1448,17 +1456,14 @@ function placesBlock(cfg, meta, row, pmeta, rec, state, {facts = null, residents
   const model = placesMapModel(rec, pmeta, cfg.scale), {ramp} = model;
   const figure = `<figure class="res-figure">${placesMapHTML(cfg, row, rec, pmeta, r, model, {overlay: residentsMap, outline: residents?.o || null, outlineUnit: residentsMeta?.outline?.unit_m || 25})}
     <figcaption class="res-legend"><span class="res-legend-title">${say('สถานที่ต่อช่อง 250 × 250 ม.', 'Places per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'สถานที่ต่อช่อง 250 × 250 ม.'})}
-    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec)})}
-    <span class="hint">${residents?.o
-    ? say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีสถานที่ในชุดข้อมูลที่นับ · เส้นบางคือขอบแขวง/ตำบล', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells hold no place of the datasets counted · thin lines are subdistrict boundaries')
-    : say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีสถานที่ในชุดข้อมูลที่นับ', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells hold no place of the datasets counted')}</span></figcaption></figure>`;
+    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีสถานที่ที่นับ', 'No counted place'], outline: Boolean(residents?.o)})}</figcaption></figure>`;
   const dates = datasets.map(d => d.date).filter(Boolean).sort();
-  const span = dates.length ? (dates[0] === dates.at(-1) ? [thaiDay(dates[0]), englishDay(dates[0])] : [`${thaiDay(dates[0])}–${thaiDay(dates.at(-1))}`, `${englishDay(dates[0])}–${englishDay(dates.at(-1))}`]) : ['', ''];
+  const span = dates.length ? daySpan(dates[0], dates.at(-1)) : ['', ''];
   const nSets = datasets.length;
   // where each dataset comes from: a CityMETER demo web, or the CityMETER research registry (meta.ring[id].source)
   const fromRegistry = datasets.filter(d => meta.ring?.[d.id]?.source?.[0] === REGISTRY_SOURCE);
   const fromDemos = datasets.filter(d => meta.ring?.[d.id]?.source && meta.ring[d.id].source[0] !== REGISTRY_SOURCE);
-  const line = `<p class="hint res-evidence">${say(...cfg.line(nSets, span))}${residentsMap?.rec ? residentsOverlayCredit(residentsMap.meta) : ''}</p>`;
+  const line = `<p class="hint res-evidence">${say(...cfg.line(nSets, span))}${residentsMap?.rec ? residentsOverlayCredit() : ''}</p>`;
   const partial = datasets.filter(d => d.eligible && d.located != null && d.located < 0.9 * d.eligible).map(d => {
     const m = meta.ring?.[d.id] || d;
     return [`${m.short?.[0] || m.th} มีพิกัด ${num(d.located)} จาก ${num(d.eligible)}`, `${usSpelling(m.short?.[1] || m.en)}: ${num(d.located)} of ${num(d.eligible)} have a point`];
@@ -1594,8 +1599,8 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
   const list = items ? `<details class="locale-details cmp-near-fold" data-locale-open="cmpnear"${openAttr('cmpnear')}><summary>${say('ศูนย์ที่ระดับใกล้กันที่สุด 5 แห่ง', 'The five centers with the closest levels')}</summary><p class="cmp-near-head"><span class="res-sub">${say('ศูนย์ที่อันดับใกล้กันที่สุด', 'Centers with the closest ranks')}</span><span class="cmp-near-key">${icon('residents')}${say('คนอยู่ใกล้', 'living')} ${icon('office')}${say('คนทำงานใกล้', 'working')}</span></p><ol class="cmp-near-list">${items}</ol></details>` : '';
   const pm = rmeta?.populationMonth, asOf = meta.asOf;
   const line = `<p class="hint res-evidence cmp-evidence">${say(
-    `อันดับเทียบกับ${uniTh}ในชุดอ้างอิง · คนอยู่ใกล้: คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) กรมการปกครอง ${thaiDay(pm)} ผ่าน CityMETER production · คนทำงานใกล้: ระดับคนทำงานและผู้เดินทางจากกฎของรอบศูนย์นี้ ทะเบียนวิจัย CityMETER ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์`,
-    `Ranks against the ${uniEn} of the reference set · living nearby: registered residents (modelled), Department of Provincial Administration, ${englishDay(pm)}, through CityMETER production · working nearby: the workers and commuters level from the rules of this section, CityMETER research registry, ${englishDay(asOf)} · straight-line radius from the center’s point`)}</p>`;
+    `อันดับเทียบกับ${uniTh}ในชุดอ้างอิง · คนอยู่ใกล้ (แบบจำลอง): กรมการปกครอง ${thaiDay(pm)} · คนทำงานใกล้ (สมมติฐาน): ทะเบียนวิจัย CityMETER ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์`,
+    `Ranks against the ${uniEn} of the reference set · living nearby (modelled): Department of Provincial Administration, ${englishDay(pm)} · working nearby (hypothesis): CityMETER research registry, ${englishDay(asOf)} · straight-line radius from the center’s point`)}</p>`;
   const method = `<details class="locale-details" data-locale-open="cmp"${openAttr('cmp')}><summary>${icon('evidence')}${say('วิธีอ่านกราฟเทียบและข้อจำกัด', 'How to read the comparison, and the limits')}</summary>
     <ul class="locale-method">
       <li>${say(`แนวนอนคืออันดับ (เปอร์เซ็นไทล์แบบ mid-rank) ของคนที่มีชื่อในทะเบียนบ้านใน ${km(radius)} เทียบกับ${uniTh} เหมือนอันดับด้านบน เปลี่ยนตามรัศมีและกลุ่มที่เลือก`, `Across: the rank (mid-rank percentile) of the registered residents within ${kmEn(radius)} among ${uniEn}, as the rank above; it follows the radius and the comparison chosen`)}</li>
@@ -1646,12 +1651,11 @@ function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareSt
   const model = residentsMapModel(rec, rmeta), {ramp} = model;
   const figure = `<figure class="res-figure">${residentsMapHTML(row, rec, rmeta, r, model, residentsMap)}
     <figcaption class="res-legend"><span class="res-legend-title">${say('คนต่อช่อง 250 × 250 ม.', 'People per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'คนต่อช่อง 250 × 250 ม.'})}
-    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec)})}
-    <span class="hint">${say('สีเทียบช่อง 250 ม. ในวง 5 กม. ของศูนย์นี้เท่านั้น · ช่องสีพื้นไม่มีอาคารที่นับได้ · เส้นบางคือขอบแขวง/ตำบล', 'Colours compare the 250 m cells within this center’s 5 km only · plain cells have no counted building · thin lines are subdistrict boundaries')}</span></figcaption></figure>`;
+    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีอาคารที่นับ', 'No counted building'], outline: true})}</figcaption></figure>`;
   const pm = rmeta.populationMonth, asOf = rmeta.asOf;
   const line = `<p class="hint res-evidence">${say(
-    `คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) · ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)} ผ่าน CityMETER production · อาคาร Building V4 (3D-GloBFP, Open Buildings, © ผู้ร่วมสร้าง OpenStreetMap) · คิด ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์ แขวง/ตำบลตาม CityMETER production`,
-    `Registered residents (modelled) · registered population, Department of Provincial Administration, ${englishDay(pm)}, through CityMETER production · buildings: Building V4 (3D-GloBFP, Open Buildings, © OpenStreetMap contributors) · computed ${englishDay(asOf)} · straight-line radius from the center’s point, subdistricts as in CityMETER production`)}${residentsMap?.rec ? residentsOverlayCredit(residentsMap.meta) : ''}</p>`;
+    `ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)} · อาคาร Building V4 · รัศมีเส้นตรงจากจุดของศูนย์`,
+    `Registered population, Department of Provincial Administration, ${englishDay(pm)} · buildings: Building V4 · straight-line radius from the center’s point`)}${residentsOverlayCredit()}</p>`;
   const own = rec.own ? (() => {
     const w = peopleWords(rec.own[1]);
     return ` ${say(`อาคารของศูนย์นี้ ${num(rec.own[0])} หลังได้รับ${w[0]}`, `this center’s own ${rec.own[0] === 1 ? 'building gets' : `${num(rec.own[0])} buildings get`} ${w[1]}`)}`;
@@ -1667,6 +1671,7 @@ function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareSt
       ${referenceLine(meta)}
       <li>${say('แผนที่: สีของช่อง 250 × 250 ม. เรียงตามจำนวนคนในช่องในวง 5 กม. ของศูนย์นี้ (LDS density 41 ระดับ ตัวหารคือพื้นที่ของช่อง 1/16 ตร.กม. ทุกช่องเท่ากัน ลำดับจึงเท่ากับลำดับของคนต่อ ตร.กม.) ใช้เทียบช่องในวงนี้ ไม่ใช้เทียบสีข้ามศูนย์ · ตัวเลขใต้แถบสีปัดเหลือ 2 หลัก · ช่องที่ขอบวงนับเฉพาะอาคารในรัศมี · ช่องที่มีอาคารแต่คนไม่ถึง 0.05 คนใช้สีต่ำสุด · เส้นบางคือขอบแขวง/ตำบลของ production ที่ปรับให้เรียบเพื่ออ่านแผนที่ ไม่ใช่เส้นสำหรับวัด', 'Map: each 250 × 250 m cell takes its rank of residents within this center’s 5 km (LDS density, 41 steps; the denominator is the cell’s area, 1/16 km², the same for every cell, so the order is that of people per km²), to compare the cells of this map, not colours across centers · the figures under the colour bar are rounded to two digits · cells on the edge count only the buildings inside the radius · cells with buildings but under 0.05 residents take the lowest step · thin lines are production’s subdistrict boundaries, smoothed to read the map by, not to measure on')}</li>
       ${residentsMap?.rec ? `<li>${residentsOverlayMethod(residentsMap.meta)}</li>` : ''}
+      <li>${say('อาคาร Building V4 ของ CityMETER production มาจาก 3D-GloBFP, Open Buildings และ © ผู้ร่วมสร้าง OpenStreetMap · แขวง/ตำบลตาม CityMETER production', 'Building V4 of CityMETER production draws on 3D-GloBFP, Open Buildings and © OpenStreetMap contributors · subdistricts as in CityMETER production')}</li>
       <li>${say(`รุ่นข้อมูล ${rmeta.release} คิดจาก API ของ CityMETER production ${thaiDay(asOf)}`, `Release ${rmeta.release}, computed from the CityMETER production API on ${englishDay(asOf)}`)} · <a href="DATA_METHOD.md#registered-residents" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
     </ul></details>`;
   return wrap(`${head}
@@ -1695,8 +1700,8 @@ function methodBlock(meta, uni) {
       ${referenceLine(meta)}
       <li>ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย</li>
       <li>ชุดที่ยังมีพิกัดไม่ครบนับเฉพาะรายการที่มีพิกัด และติดดาวไว้ในตาราง</li>
-      <li>${say('กลุ่มคน ช่วงเวลา และหมวดร้านเป็นสมมติฐานจากกฎ ไม่ใช่จำนวนคน ยอดขาย รายได้ หรือความเต็มใจจ่ายที่วัดได้ · ระดับราคารอบศูนย์อ่านจากราคาที่สังเกตได้ ไม่ใช่รายได้', 'The groups, the hours and the formats are rule-based hypotheses, not people counts, sales, income or measured willingness to pay · the price level around the center is read from observed prices, not income')}</li>
-      <li>${say('หมวดที่อยู่ในรายชื่อของศูนย์คือสิ่งที่ศูนย์เผยแพร่ ณ วันที่ตรวจ ยังไม่ได้ตรวจหน้างาน · หมวดที่ยังไม่มีชุดข้อมูลให้เทียบแสดงแยกจากหมวดที่ตรวจรายชื่อแล้วยังไม่เห็น', 'A format in the center’s own list is what the center published on the check date, not yet verified on site · a format with no dataset to compare with is shown apart from one checked against the list and not seen')}</li>
+      <li>${say('กลุ่มคน ช่วงเวลา และหมวดร้านเป็นสมมติฐานจากกฎ ไม่ใช่จำนวนคน ยอดขาย รายได้ หรือความเต็มใจจ่ายที่วัดได้ · ราคาแถวนี้ (฿) อ่านจากราคาที่สังเกตได้รอบศูนย์ (ที่พัก ที่อยู่อาศัย ค่าเทอม ค่าเช่าสำนักงาน) และจำนวนแบรนด์หรู โรงเรียนเอกชนและนานาชาติ และสำนักงานใหญ่ ไม่ใช่รายได้ของคน · สิ่งที่ใช้กับแต่ละกลุ่มอยู่ในการ์ดของกลุ่มนั้น', 'The groups, the hours and the formats are rule-based hypotheses, not people counts, sales, income or measured willingness to pay · prices nearby (฿) are read from prices observed around the center (stays, homes, school fees, office rents) and from counts of luxury brands, private and international schools and head offices, not people’s income · each group’s card lists what was used')}</li>
+      <li>${say('หมวดที่อยู่ในรายชื่อของศูนย์คือสิ่งที่ศูนย์เผยแพร่ ณ วันที่ตรวจ ยังไม่ได้ตรวจหน้างาน และรายชื่อร้านไม่ใช่การสำรวจครบทุกร้าน · หมวดที่ยังไม่มีชุดข้อมูลให้เทียบแสดงแยกจากหมวดที่ตรวจรายชื่อแล้วยังไม่เห็น', 'A format in the center’s own list is what the center published on the check date, not yet verified on site, and the shop lists are not a census of every shop · a format with no dataset to compare with is shown apart from one checked against the list and not seen')}</li>
       ${notCounted.length ? `<li>ยังนับไม่ได้ในรุ่นนี้: ${esc(notCounted.join(' · '))}</li>` : ''}
       <li>คอนโดนับตามแขวง/ตำบลของฐานราคาประเมินตามนโยบายของชุดข้อมูล ไม่นับจุดบนแผนที่ในรัศมี</li>
       <li>ตัวอย่างสถานที่รอบศูนย์มาจากเดโม CityMETER ของแต่ละชุด กดชื่อเพื่อเปิดในเดโมนั้น · ระยะปัดเป็น 100 ม.</li>
@@ -1708,7 +1713,10 @@ function methodBlock(meta, uni) {
 /** Data line of the section: dataset · source · date · boundary. */
 export function localeDataLine(meta) {
   const rings = Object.values(meta?.ring || {}).filter(m => m.placed).length, areas = Object.keys(meta?.area || {}).length;
-  return `<p class="hint panel-foot">รอบศูนย์นี้ · ทะเบียนวิจัย CityMETER ${num(rings)} ชุด และ CityMETER production ${num(areas)} ชุด · ข้อมูล ${esc(dateRange(meta))} · รัศมีเส้นตรงจากจุดของศูนย์ และขอบเขตพื้นที่ตาม CityMETER production · <a href="DATA_METHOD.md#venue-locale-insight" target="_blank" rel="noopener">ที่มาและวิธี</a></p>`;
+  const ds = Object.values(meta?.ring || {}).map(m => m.date).filter(Boolean).sort();
+  const span = daySpan(ds[0] || meta?.asOf, meta?.asOf || ds[0]);
+  return `<p class="hint panel-foot">${say(`ทะเบียนวิจัย CityMETER ${num(rings)} ชุด · production ${num(areas)} ชุด · ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์ และพื้นที่ตาม production`,
+    `CityMETER research registry, ${num(rings)} datasets · production, ${num(areas)} · ${span[1]} · straight-line radius from the center’s point; areas as in production`)} · <a href="DATA_METHOD.md#venue-locale-insight" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></p>`;
 }
 
 /**
