@@ -325,6 +325,19 @@ export function glanceModel(meta, row, facts, {residents = null, residentsMeta =
   ];
 }
 
+/**
+ * One compact provenance line for the glance — dataset · source · date · boundary (the radius is in the lead above the
+ * tiles; every block keeps its own full line). Built from the files that have arrived, so a part appears with its file.
+ */
+export function glanceSourceLine(meta, {residentsMeta = null, visitorsMeta = null, workMeta = null} = {}) {
+  const dates = [...(visitorsMeta?.datasets || []), ...(workMeta?.datasets || [])].map(d => d.date).concat(meta?.ring?.shopping?.date).filter(Boolean).sort();
+  const span = dates.length ? (dates[0] === dates.at(-1) ? [thaiDay(dates[0]), englishDay(dates[0])] : [`${thaiDay(dates[0])}–${thaiDay(dates.at(-1))}`, `${englishDay(dates[0])}–${englishDay(dates.at(-1))}`]) : null;
+  const pm = residentsMeta?.populationMonth;
+  const th = [pm ? `คนอยู่ใกล้: แบบจำลองจากประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)}` : '', span ? `สถานที่: รายการที่มีพิกัดในชุดข้อมูล CityMETER ${span[0]}` : '', 'รัศมีเส้นตรงจากจุดของศูนย์'].filter(Boolean).join(' · ');
+  const en = [pm ? `Living near: modelled from the registered population, Department of Provincial Administration, ${englishDay(pm)}` : '', span ? `places: located records of CityMETER datasets, ${span[1]}` : '', 'straight-line radius from the center’s point'].filter(Boolean).join(' · ');
+  return `<p class="hint glance-source">${say(th, en)}</p>`;
+}
+
 /** The glance as four tiles (pictogram, figure, five-step level); each tile jumps to its block. `where`: 'section' | 'head'. */
 export function glanceHTML(meta, row, facts, args = {}, {where = 'section'} = {}) {
   if (!meta || !facts || facts.located === false) return '';
@@ -343,7 +356,7 @@ export function glanceHTML(meta, row, facts, args = {}, {where = 'section'} = {}
   const starred = tiles.some(t => t.state === 'ready' && t.star);
   const key = `<p class="hint glance-key">${levelMeter(3)}<span>${say(`ระดับเทียบ${group} · น้อย → มาก`, `Level among ${uniEn} · low → high`)}</span>${starred ? `<span>${say('* นับเฉพาะรายการที่มีพิกัด จึงไม่จัดระดับ', '* counted only where a record has a point, so no level')}</span>` : ''}</p>`;
   const lead = where === 'head' ? `<p class="glance-lead">${icon('area')}${say(`รอบศูนย์ใน ${km(options.radius)}`, `Within ${kmEn(options.radius)} of the center`)}</p>` : '';
-  return `<div class="locale-glance${where === 'head' ? ' in-head' : ''}" id="locale-glance${where === 'head' ? '-head' : ''}" data-venue="${esc(row.id)}">${lead}<ul class="glance-grid" aria-label="${where === 'head' ? 'รอบศูนย์นี้' : `ใน ${esc(km(options.radius))} รอบศูนย์`}">${tiles.map(tile).join('')}</ul>${key}</div>`;
+  return `<div class="locale-glance${where === 'head' ? ' in-head' : ''}" id="locale-glance${where === 'head' ? '-head' : ''}" data-venue="${esc(row.id)}">${lead}<ul class="glance-grid" aria-label="${where === 'head' ? 'รอบศูนย์นี้' : `ใน ${esc(km(options.radius))} รอบศูนย์`}">${tiles.map(tile).join('')}</ul>${key}${glanceSourceLine(meta, args)}</div>`;
 }
 
 /** Datasets of the registry that list records here but have no accepted points: name and this province's count. */

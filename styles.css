@@ -1052,6 +1052,8 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .glance-fig b { font-size: 20px; font-weight: 600; color: var(--text-primary); }
 .glance-wait { font-size: 12px; color: var(--text-metadata); }
 .glance-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; }
+/* the glance's own provenance line: dataset · source · date · boundary, as under every panel with numbers */
+.glance-source { margin: 0; font-size: 12px; line-height: 1.4; }
 .level-meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
 .level-meter i { box-sizing: border-box; width: 7px; border: 1px solid var(--text-secondary); border-radius: 1px; }
 .level-meter i:nth-child(1) { height: 5px; }
