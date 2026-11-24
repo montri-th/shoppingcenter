@@ -55,6 +55,19 @@ TITLES = {
     'pharmacy': 'CityMETER Pharmacy Thailand — logo library web manifest 2026-11-09',
 }
 OK_STATUS = {'collected', 'ได้ไฟล์โลโก้'}
+# Owner 2026-11-24 16:48, VERBATIM: “Tsuruha, True Shop, OPPO, Vivo, iStudio, Nintendo, LEGO ใช้โลโก้ที่มีไปเลย ผมยกเว้นให้”.
+# These brands' recorded file is a shared chain banner or a shared wordmark; the owner allows it as their logo. Only these
+# ids, only those two roles; every other rule (status, bytes, shop lists) still applies.
+OWNER_ROLE_EXCEPTIONS = {
+    'research.TH.miscellaneous|BR-MISC-af7ce357d04848826916': 'True Shop',
+    'research.TH.miscellaneous|BR-MISC-e06cd5d02e4d5bd608f5': 'OPPO',
+    'research.TH.miscellaneous|BR-MISC-067f7ec28aba6b7ea80c': 'Vivo',
+    'research.TH.miscellaneous|BR-MISC-cfa6e54419128e437774': 'iStudio',
+    'research.TH.hobby|HOB-BR-0030': 'Nintendo Authorized Store',
+    'research.TH.hobby|HOB-BR-0074': 'LEGO Certified Store',
+    'research.TH.pharmacy|PHB-b96442c37e0896c5': 'Tsuruha',
+}
+SHARED_ROLES = ('shared_chain_banner', 'shared_brand_wordmark')
 ROLES = ('brand_primary', 'shared_chain_banner', 'shared_brand_wordmark', 'shared_mark', 'parent_complex', 'context')
 EXT = {'image/svg+xml': 'svg', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif'}
 PRIVATE = re.compile(r'(^|\.)(drive\.google\.com|docs\.google\.com|drive\.usercontent\.google\.com|googleusercontent\.com|localhost)$')
@@ -192,10 +205,13 @@ def main():
             if str(r.get('logo_status') or '').strip() not in OK_STATUS:
                 counts['heldStatus'] += 1
                 continue
-            if role_of(r) != 'brand_primary':
+            key = f'{dataset}|{brand}'
+            excepted = key in OWNER_ROLE_EXCEPTIONS and role_of(r) in SHARED_ROLES
+            if role_of(r) != 'brand_primary' and not excepted:
                 counts['heldRole'] += 1
                 continue
-            key = f'{dataset}|{brand}'
+            if excepted:
+                counts['ownerRoleException'] += 1
             if key in manifest:
                 # An entry this script wrote earlier for the same bytes is kept as written and counted again (its
                 # backing checked the same way), so a rerun gives the same receipt; anything else is left alone.

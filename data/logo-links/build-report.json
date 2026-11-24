@@ -9,13 +9,13 @@
  "inputs": {
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "directorySha256": "340f52fc0b2eb57106a15010b79a9b7e15006dfe8892528c8ea4ae4bb442ad0a",
-  "logoManifestSha256": "434082caa4cbdf55d96faa536b9c4a3f9e05d2594a1754560cf62c8faf5e0bca"
+  "logoManifestSha256": "6aa3ebad43f762c92c4bf68238a08973069b879c6a0de85e3691d6f54adf4475"
  },
  "pool": {
   "kit": "citymeter-logos 1.1.0",
-  "files": 1496,
-  "entities": 1587,
-  "names": 1608,
+  "files": 1502,
+  "entities": 1593,
+  "names": 1616,
   "sources": {
    "restaurant": {
     "commit": "8ed9b4b5cb1854ce943130c6232489cab393a22e",
@@ -60,9 +60,9 @@
     "issues": 0
    },
    "shoppingcenter": {
-    "commit": "4a7ca6010f1b923457e578e2368460cc4922e19e",
-    "files": 456,
-    "entities": 491,
+    "commit": "688d6f7c36abafe192e7462e37c1443bd4c34377",
+    "files": 462,
+    "entities": 497,
     "issues": 0
    }
   },
@@ -70,12 +70,12 @@
  },
  "items": 26683,
  "withLogoBefore": 5182,
- "added": 5307,
- "withLogoAfter": 10489,
+ "added": 5510,
+ "withLogoAfter": 10692,
  "byBasis": {
-  "own": 3414,
+  "own": 3596,
   "same-id": 2,
-  "label": 1635,
+  "label": 1656,
   "bilingual": 62,
   "legal": 3,
   "descriptor": 163,
@@ -84,7 +84,7 @@
  "notAttached": {
   "suppressed": 8,
   "ambiguous": 1,
-  "none": 16185
+  "none": 15982
  },
  "byDataset": {
   "research.MLA.PARC": {
@@ -134,8 +134,7 @@
    "own": 21
   },
   "research.TH.hobby": {
-   "none": 5,
-   "own": 217
+   "own": 222
   },
   "research.TH.hospital": {
    "none": 1
@@ -150,8 +149,8 @@
    "none": 7
   },
   "research.TH.miscellaneous": {
-   "none": 202,
-   "own": 727
+   "none": 25,
+   "own": 904
   },
   "research.TH.nail": {
    "already": 19,
@@ -192,16 +191,16 @@
    "bank": 28,
    "bilingual": 62,
    "descriptor": 159,
-   "label": 1604,
+   "label": 1625,
    "legal": 3,
-   "none": 15171
+   "none": 15150
   },
   "research.TH.sport": {
    "already": 310,
    "none": 73
   }
  },
- "files": 520,
+ "files": 526,
  "filesCopied": 0,
  "ambiguousNames": [
   [
@@ -632,20 +631,6 @@
     1
    ]
   ],
-  "research.TH.hobby": [
-   [
-    "LEGO CERTIFIED STORE",
-    3
-   ],
-   [
-    "Nintendo Authorized Store by SYNNEX",
-    1
-   ],
-   [
-    "LEGO Certified Store",
-    1
-   ]
-  ],
   "research.TH.hospital": [
    [
     "About Tooth Dental Clinic",
@@ -676,22 +661,6 @@
   ],
   "research.TH.miscellaneous": [
    [
-    "True Shop",
-    84
-   ],
-   [
-    "OPPO",
-    40
-   ],
-   [
-    "Vivo",
-    31
-   ],
-   [
-    "iStudio",
-    18
-   ],
-   [
     "J&T Express",
     4
    ],
@@ -712,10 +681,6 @@
     3
    ],
    [
-    "TRUE",
-    2
-   ],
-   [
     "Flash Express",
     2
    ],
@@ -725,14 +690,6 @@
    ],
    [
     "K IT STORE",
-    1
-   ],
-   [
-    "OPPO SERVICE",
-    1
-   ],
-   [
-    "VIVO",
     1
    ],
    [
