@@ -3972,6 +3972,76 @@
       "bytes": 7303
     },
     {
+      "path": "assets/venue-logos-family/11befc263edb79a6ac64.png",
+      "sha256": "11befc263edb79a6ac64e7e15f207fb9ec51e2c291f995bd999f3f712ec948c9",
+      "bytes": 18792
+    },
+    {
+      "path": "assets/venue-logos-family/5e4716d582687257c83f.svg",
+      "sha256": "5e4716d582687257c83f134ed4e771b15b1315dc2b394daa7660c5126f767496",
+      "bytes": 9583
+    },
+    {
+      "path": "assets/venue-logos-family/71a27a89e22d97613552.png",
+      "sha256": "71a27a89e22d9761355278fc48e844a5d7a512551fbfac11fbf3ac5d12ed00c1",
+      "bytes": 56740
+    },
+    {
+      "path": "assets/venue-logos-family/88c9bfd02d75ea889881.svg",
+      "sha256": "88c9bfd02d75ea889881e7664a6271431079360a516a92538e985ecf98a909a7",
+      "bytes": 3416
+    },
+    {
+      "path": "assets/venue-logos-family/9470ddb5eb888f04584a.png",
+      "sha256": "9470ddb5eb888f04584a7f54f99773db0ff1b080c5f41ca6f041b62e951488f0",
+      "bytes": 28599
+    },
+    {
+      "path": "assets/venue-logos-family/9928001dcd4d35930c5c.png",
+      "sha256": "9928001dcd4d35930c5c38b8697444d2b985220c165f0175f43fbe4156f40f06",
+      "bytes": 7525
+    },
+    {
+      "path": "assets/venue-logos-family/aca01da96ad2787b6e0c.png",
+      "sha256": "aca01da96ad2787b6e0c6b3de91fe47fc701ca144508c5ea077489e69be740cb",
+      "bytes": 11921
+    },
+    {
+      "path": "assets/venue-logos-family/b4f1270b38aecf50021f.svg",
+      "sha256": "b4f1270b38aecf50021fabe53808aadbe1edb0caff92aca4037400c11be79ee6",
+      "bytes": 9777
+    },
+    {
+      "path": "assets/venue-logos-family/bf56403c653a14f82c29.png",
+      "sha256": "bf56403c653a14f82c29d60026129c2be38f075085ac864fd5d0b157de2ac7d9",
+      "bytes": 7543
+    },
+    {
+      "path": "assets/venue-logos-family/c0fe21aa204df66c78ca.png",
+      "sha256": "c0fe21aa204df66c78ca786ccdf639a87979556d87b50391a3654461b84ed61d",
+      "bytes": 1407
+    },
+    {
+      "path": "assets/venue-logos-family/c1f03476f818f63ac134.png",
+      "sha256": "c1f03476f818f63ac134f47d8e66975fac014a44777aebb639bebe491789ab9b",
+      "bytes": 3041
+    },
+    {
+      "path": "assets/venue-logos-family/dcebd3735d6a3d0e5e3b.png",
+      "sha256": "dcebd3735d6a3d0e5e3bab11c8afdc3aa431d7be63cfca2b3137ac05bcdb6e94",
+      "bytes": 11254
+    },
+    {
+      "path": "assets/venue-logos-family/dd9c95604293dff78e16.png",
+      "sha256": "dd9c95604293dff78e1607dd180771dcc5765c50bf469d231e954a5d02d114d9",
+      "bytes": 10040
+    },
+    {
+      "path": "assets/venue-logos-family/e3e5f7bc9461c59d4476.svg",
+      "sha256": "e3e5f7bc9461c59d44768dd7584117625cf10e7c1a49c0f3f4dbbb89a6d33645",
+      "bytes": 7844
+    },
+    {
       "path": "assets/venue-logos-manifest.json",
       "sha256": "8b05dd59ea0befdf2b06a027dd0900905b61ce587c571df2afc66f325461748d",
       "bytes": 29767
@@ -4550,6 +4620,11 @@
       "path": "data/provinces.geojson",
       "sha256": "16f4a422c76bfe74285ec1e5069782817ea66f58af3e22a53a124950b573fe97",
       "bytes": 148905
+    },
+    {
+      "path": "data/venue-logo-links.json",
+      "sha256": "6b2c9c1af429019db5325f7d41cf89da7ca62645851a4e3d97b43413691cefdb",
+      "bytes": 13628
     },
     {
       "path": "data/venue-logos.json",

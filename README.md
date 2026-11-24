@@ -171,6 +171,14 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.9.8 - โลโก้ศูนย์จากเดโมอื่นของ CityMETER (`20261124-r2`)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน”
+
+- **โลโก้ศูนย์ (D65):** ศูนย์ที่ทะเบียน 10_VENUE_LOGOS ยังไม่มีโลโก้ แต่ CityMETER · Camera Shops มีโลโก้ของรหัสสถานที่เดียวกัน แสดงโลโก้นั้นแล้ว: 112 → 157 จาก 6,266 สถานที่ (+45: โรบินสัน ไลฟ์สไตล์ 21 · โลตัส 12 · ซีคอนสแควร์ ศรีนครินทร์ · ฟิวเจอร์พาร์ค และ สเปลล์ · เซ็นทรัล ศรีราชา · เซ็นทรัล ขอนแก่น แคมปัส …) · หลักฐานรายช่องบอกว่าโลโก้มาจากชุดไหน
+- **ชุดกลาง 1.1.0:** `VenuePool` ใน `scripts/logo-kit/` ผูกโลโก้ศูนย์ด้วยรหัสสถานที่เท่านั้น งานศิลป์เดียว บทบาทเดียว ไม่ใช้ชื่อหรือระยะ · `scripts/attach-family-venue-logos.py` → `data/venue-logo-links.json` + `assets/venue-logos-family/` (14 ไฟล์) · ทะเบียนเดิมไม่เปลี่ยน
+- **ตรวจเดโมอื่น:** Fitness 14 · Luxury Brands 14 ไฟล์ที่รอโอน (ไบต์ตรง SHA-256 ของชีต) ปิดได้ด้วยกฎเดียวกันในรอบถัดไป — `DATA_METHOD.md#family-venue-logos`
+
 ## 0.9.7 - โลโก้ร้านจากชุดข้อมูลอื่นของ CityMETER (`20261124-r1`)
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน”

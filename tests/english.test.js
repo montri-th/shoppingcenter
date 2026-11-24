@@ -22,6 +22,7 @@ import {rampLegendHTML} from '../js/scales.js';
 import {buildBreadcrumb} from '../js/breadcrumb.js';
 import {buildingHeightLabel} from '../js/buildings.js';
 import {PRODUCT_TITLE, SUBJECT} from '../js/panel.js';
+import {configureVenueLogos, withFamilyVenueLogos} from '../js/venue-logos.js';
 import {groupLabel, GROUP_SETS} from '../js/model.js';
 
 const ROOT = new URL('../', import.meta.url);
@@ -177,7 +178,10 @@ test('English: district views, rank rows and their map cards', () => {
 test('English: venue panels with their details, shop lists, nearby centers and Google links', async () => {
   const missing = new Set();
   const ids = ['SC-001245', 'SC-000067', 'SC-000034', 'SC-000218', 'SC-000652', 'SC-C0840', 'SC-001223', 'SC-000001', 'SC-000256', 'SC-000788', 'SC-SM-03840',
-    'SC-000620', 'SC-001118', 'SC-002049', 'SC-000698', 'VN-6d4211fb2ef4fb', 'VN-5523fa4482b213', 'SC-C0015', '002e4de9-09f5-491d-8bb1-a8e0d337bb9d', 'SC-001783'];
+    'SC-000620', 'SC-001118', 'SC-002049', 'SC-000698', 'VN-6d4211fb2ef4fb', 'VN-5523fa4482b213', 'SC-C0015', '002e4de9-09f5-491d-8bb1-a8e0d337bb9d', 'SC-001783', 'SC-001360', 'SC-003800'];
+  // D65: venue logos as the page configures them, so a logo from another demo shows its evidence note.
+  const json = path => JSON.parse(readFileSync(new URL(`../${path}`, import.meta.url), 'utf8'));
+  configureVenueLogos(withFamilyVenueLogos(json('data/venue-logos.json'), json('data/venue-logo-links.json')));
   for (const id of ids) {
     const row = byId.get(id);
     if (!row) continue;

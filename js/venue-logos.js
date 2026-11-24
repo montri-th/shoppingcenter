@@ -8,11 +8,13 @@
  * Parent-complex and shared chain/department-store marks keep their role label.
  * Collecting the files is not a trademark licence.
  */
-const FILE_PATTERN = /^assets\/venue-logos\/[A-Za-z0-9._-]+\.(svg|png|jpe?g|webp)$/;
+const FILE_PATTERN = /^assets\/venue-logos(-family)?\/[A-Za-z0-9._-]+\.(svg|png|jpe?g|webp)$/;
 const MIME_TYPES = new Set(['image/svg+xml', 'image/png', 'image/jpeg', 'image/webp']);
 export const ROLE_LABELS = Object.freeze({
   venue_specific: '', parent_complex: 'โลโก้โครงการแม่', shared_department_store_banner: 'โลโก้ห้างสรรพสินค้าในเครือ', shared_chain_banner: 'โลโก้เครือ',
 });
+// D65: demos whose venue logos data/venue-logo-links.json may carry (kit citymeter-logos, VenuePool).
+export const FAMILY_DEMOS = Object.freeze({camera: 'Camera Shops', luxurybrands: 'Luxury Brands', fitness: 'Fitness'});
 let assets = new Map(), byVenue = new Map(), meta = {}, configured = false;
 
 function approvedAsset(item) {
@@ -32,11 +34,26 @@ export function configureVenueLogos(catalog) {
   if (!Array.isArray(catalog?.assets)) issues.push({reason: 'invalid_catalog'});
   for (const item of catalog?.assets || []) { const a = approvedAsset(item); if (a) assets.set(a.key, a); else issues.push({reason: 'invalid_asset', key: item?.key}); }
   for (const v of catalog?.venues || []) {
-    if (typeof v?.id === 'string' && v.id && assets.has(v.key) && !byVenue.has(v.id)) byVenue.set(v.id, {key: v.key, role: v.role || 'venue_specific'});
+    if (typeof v?.id === 'string' && v.id && assets.has(v.key) && !byVenue.has(v.id)) {
+      byVenue.set(v.id, {key: v.key, role: v.role || 'venue_specific', from: FAMILY_DEMOS[v.from] ? v.from : ''});
+    }
   }
   meta = catalog?.meta && typeof catalog.meta === 'object' ? catalog.meta : {};
   configured = true;
   return {assets: assets.size, venues: byVenue.size, issues, complete: issues.length === 0 && !(meta.pending || []).length};
+}
+
+/**
+ * D65: add the family's links (data/venue-logo-links.json) to the registry. They fill only venues the registry leaves
+ * without a logo — the registry's own links come first and the first link of a venue wins in configureVenueLogos.
+ */
+export function withFamilyVenueLogos(catalog, links) {
+  if (!links || !Array.isArray(links.venues) || !Array.isArray(links.assets)) return catalog;
+  const base = catalog && Array.isArray(catalog.assets) ? catalog : {assets: [], venues: []};
+  const keys = new Set(base.assets.map(a => a?.key));
+  const own = new Set((base.venues || []).filter(v => keys.has(v?.key)).map(v => v.id));
+  return {...base, assets: [...base.assets, ...links.assets.filter(a => !keys.has(a?.key))],
+    venues: [...(base.venues || []), ...links.venues.filter(v => v && FAMILY_DEMOS[v.from] && !own.has(v.id))]};
 }
 
 /** The logo for a venue id, or null. */
@@ -44,7 +61,8 @@ export function getVenueLogo(id, name = '') {
   if (!configured || !id) return null;
   const link = byVenue.get(id);
   const asset = link && assets.get(link.key);
-  return asset ? {...asset, role: link.role, roleLabel: ROLE_LABELS[link.role] ?? '', alt: `โลโก้ ${name}`.trim()} : null;
+  return asset ? {...asset, role: link.role, roleLabel: ROLE_LABELS[link.role] ?? '', alt: `โลโก้ ${name}`.trim(),
+    from: link.from, fromName: FAMILY_DEMOS[link.from] || ''} : null;
 }
 
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));

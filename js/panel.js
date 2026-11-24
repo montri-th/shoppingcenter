@@ -396,6 +396,9 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
     const fromFamily = shopItems.filter(x => x.logo && x.logoBasis).length;
     if (shopItems.length) note('โลโก้ร้าน', `${num(withLogo)} จาก ${num(shopItems.length)} ร้านในรายชื่อนี้มีโลโก้${fromFamily ? ` · ${num(fromFamily)} โลโก้มาจากชุดข้อมูลอื่นของ CityMETER ที่รู้จักแบรนด์เดียวกัน` : ''} · จับคู่ด้วยรหัสแบรนด์เดียวกัน หรือชื่อเดียวกับที่ทีมวิจัยยืนยันแล้ว ไม่ใช้ชื่อที่แค่คล้ายกัน · ไฟล์ตรวจ SHA-256 ตรงกับชุดที่เผยแพร่ · โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับร้าน และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า`);
   }
+  // D65: a venue logo another CityMETER demo verified for the same venue id.
+  const venueLogo = getVenueLogo(row.id, row.name);
+  if (venueLogo?.fromName) note('โลโก้ศูนย์', `โลโก้นี้มาจากชุด ${esc(venueLogo.fromName)} ของ CityMETER ซึ่งใช้รหัสสถานที่เดียวกัน (${esc(row.id)}) · ไฟล์ตรวจ SHA-256 ตรงกับชุดที่เผยแพร่ · ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับ และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า`);
   if (ev.research?.urls?.length) rowsHtml.push(`<li><span class="ev-label">ค้นเพิ่ม</span><span class="ev-text">แหล่งทางการที่ใช้เติมข้อมูล${ev.research.checkedOn ? ` · ${esc(thaiDate(ev.research.checkedOn))}` : ''}</span><span class="ev-links">${ev.research.urls.slice(0, 4).map((u, i) => link(u, `${i + 1}`)).join(' ')}</span></li>`);
   return rowsHtml.join('');
 }

@@ -52,7 +52,7 @@ import {installPinBuildings} from './pin-buildings.js';
 import {siteExclusions} from './site-guard.js';
 import {createVenueModels} from './venue-models.js';
 import {installVenueXray} from './venue-xray.js';
-import {configureVenueLogos, venueLogoMarkup} from './venue-logos.js';
+import {configureVenueLogos, venueLogoMarkup, withFamilyVenueLogos} from './venue-logos.js';
 import {installDistrictLayers, installAreaLabels, buildDistrictModel, featureBounds, FILL_MAX_ZOOM} from './map-layers.js';
 import {installProvinceLayers, buildProvinceModel, provinceBounds, PROVINCE_FILL_MAX_ZOOM, PROVINCE_LABEL_MAX_ZOOM} from './provinces.js';
 import {createDistrictDetail, provincesAtPoints, DETAIL_MIN_ZOOM} from './district-detail.js';
@@ -1954,6 +1954,7 @@ const PARTIAL = {
   'units': ['รูปอาคารของ CityMETER', 'อาคารบางจังหวัดแสดงจากแผนที่ฐานแทนชุดอาคารของ CityMETER', 'CityMETER building shapes', 'Buildings in some provinces come from the basemap instead of the CityMETER set'],
   'basemap': ['แผนที่ฐาน', 'ถนน แหล่งน้ำ และอาคารพื้นหลังอาจไม่แสดง ข้อมูลในแผงและตารางยังใช้ได้', 'Basemap', 'Roads, water and background buildings may be missing; the panel and the table still work'],
   'data/venue-logos.json': ['โลโก้สถานที่', 'แสดงชื่อแทนโลโก้', 'Venue logos', 'Names are shown instead of logos'],
+  'data/venue-logo-links.json': ['โลโก้ศูนย์จากชุดข้อมูลอื่น', 'ศูนย์ที่โลโก้มาจากชุดข้อมูลอื่นแสดงชื่ออย่างเดียว', 'Centre logos from other datasets', 'Centres whose logo comes from another dataset are shown by name only'],
   'data/logo-links': ['โลโก้ร้านจากชุดข้อมูลอื่น', 'ร้านที่โลโก้มาจากชุดข้อมูลอื่นแสดงสัญลักษณ์ร้านแทนโลโก้', 'Shop logos from other datasets', 'Shops whose logo comes from another dataset show the shop symbol instead'],
   'data/venue-buildings.geojson': ['อาคารของศูนย์การค้า', 'ศูนย์การค้าไม่แสดงเป็นอาคารบนแผนที่', 'Venue buildings', 'Venues are not drawn as buildings on the map'],
   'data/districts.geojson': ['ขอบเขตเขต/อำเภอ', 'ผลไม่ได้แบ่งตามเขต/อำเภอ มุมมองเริ่มต้นจึงต่างจากปกติ', 'District outlines', 'Results are not divided by district, so the opening view differs'],
@@ -1973,7 +1974,7 @@ function partial(key) {
 
 async function init() {
   try {
-    const resources = ['data/venues.json', 'data/districts.geojson', 'data/provinces.geojson', 'data/venue-buildings.geojson', 'data/venue-logos.json', 'data/stations.json'];
+    const resources = ['data/venues.json', 'data/districts.geojson', 'data/provinces.geojson', 'data/venue-buildings.geojson', 'data/venue-logos.json', 'data/stations.json', 'data/venue-logo-links.json'];
     const results = await Promise.allSettled(resources.map(r => fetchJSON(r)));
     if (results[0].status === 'rejected') throw results[0].reason;
     state.data = results[0].value;
@@ -2000,7 +2001,8 @@ async function init() {
     state.buildingUnits.loadIndex();
     state.provinceGeo = results[2].status === 'fulfilled' ? results[2].value : {type: 'FeatureCollection', features: []};
     state.buildingData = results[3].status === 'fulfilled' ? results[3].value : {type: 'FeatureCollection', features: []};
-    const logos = configureVenueLogos(results[4].status === 'fulfilled' ? results[4].value : {assets: []});
+    // D65: venue logos other demos verified for the same venue id fill the venues the registry leaves without one.
+    const logos = configureVenueLogos(withFamilyVenueLogos(results[4].status === 'fulfilled' ? results[4].value : {assets: []}, results[6].status === 'fulfilled' ? results[6].value : null));
     if (!logos.complete) console.info('Venue logo registry', logos);
     // Operating rail stations (CityMETER · Transit, D33): the nearest one of each located venue, the station layer and
     // view. Without the file the page reads as before: no rail line, no station layer.
