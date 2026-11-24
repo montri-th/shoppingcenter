@@ -679,3 +679,11 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - contact sheet ของ 52 รายการบนพื้นสว่างและพื้นมืด: ทุกโลโก้อ่านได้บนพื้นรองของมัน (Studio7 พื้นสว่าง · SLC พื้นเข้มตามชีต · Gangnam และ V Square พื้นเข้มตามภาพ)
 - `python3 -I scripts/attach-family-logos.py --family /home/claude --checked-on 2026-11-24`: 9,856 จาก 26,683 รายการมีโลโก้ (เดิม 8,411) · ลิงก์เดิม 3,229 รายการใช้ไฟล์เดิมทั้งหมด
 - หน้าเว็บ local (Chrome headless, 1440 px): เซ็นทรัล เวสต์เกต `SC-006426` หลักฐาน “โลโก้ร้าน” อ่าน 201 จาก 662 ร้าน · `?lang=en` อ่าน “201 of 662 shops in this list have a logo … against the record of its source dataset or of the research team's logo library” · เทอร์มินอล21 อโศก `SC-001783` 79 จาก 400 · รูปที่โหลดไม่เสีย · ไม่มี page error
+
+## 0.9.9 — live (24 พ.ย. 2569)
+
+- merge PR #40 → `0118208` · GitHub Pages deployment สำเร็จ (แท็ก `20261124-r3` บน `index.html` หลังราว 50 วินาที)
+- `npm run handoff:manifest` (assets 973 ไฟล์) · `npm run verify:live`: 2,295 ok · 1 ไม่ตรงคือ `assets/manifest.json` เอง (ฉบับใหม่ที่นับไฟล์โลโก้ 48 ไฟล์ อยู่ใน commit นี้)
+- citymeter.pages.dev: dispatch ครั้งแรก (run 45328578721) อ่าน GitHub Pages ก่อน deployment ใหม่เสร็จ จึงตอบว่า production มีรุ่นนี้แล้วและไม่ deploy · dispatch ใหม่หลัง deployment สำเร็จ (run 45329008150): 114 ไฟล์ของรุ่นและลิงก์ HTML 522 ลิงก์ผ่าน · ตรวจ live ที่ https://citymeter.pages.dev ได้ shoppingcenter commit `0118208` key OK
+- หน้าเว็บจริงบน GitHub Pages (Chrome headless): เซ็นทรัล เวสต์เกต “โลโก้ร้าน” 201 จาก 662 (TH และ `?lang=en`) · ตัวกรอง “แว่นตา” แสดงโลโก้ Eye Class · Lenskart · OWNDAYS · THE NEXT · Better Vision · KT OPTIC และ “เทคโนโลยีและอุปกรณ์” แสดง Advice · BaNANA · Huawei · iCare · IT City · Jaymart · JIB ครบทุกไฟล์ · เทอร์มินอล21 อโศก 79 จาก 400 · เมกาบางนาที่ 390 px 266 จาก 637 · ไม่มีรูปเสีย ไม่มี page error
+- Chrome ของเจ้าของ: ส่วนขยาย Claude in Chrome ไม่ได้เชื่อมต่อ (เจ้าของใช้มือถือ) จึงยังไม่ได้ดูบน citymeter.pages.dev ด้วยตา — หลักฐานของ citymeter.pages.dev คือการตรวจ live ของ deploy run ข้างบน
