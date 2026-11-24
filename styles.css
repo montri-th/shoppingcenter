@@ -1038,6 +1038,10 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .glance-lead .pictogram { width: 18px; height: 18px; font-size: 18px; }
 .glance-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .glance-tile { width: 100%; height: 100%; min-height: 44px; display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 10px; row-gap: 3px; align-content: start; text-align: left; padding: 10px 12px; border: 0; border-radius: var(--radius-sm); background: var(--surface-alt); color: var(--text-primary); font: inherit; cursor: pointer; }
+/* a tile is a button, and buttons do not wrap here: the label and the unit must wrap inside a 177 px tile (English at
+   390 px: “Other centers and markets”, “about 223,000 people”); the figure itself stays in one piece */
+.glance-tile { white-space: normal; overflow-wrap: break-word; }
+.glance-tile .data-number, .glance-tile .glance-tag { white-space: nowrap; }
 .glance-tile:hover { box-shadow: inset 0 0 0 1px var(--border-default); }
 .glance-tile:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
 .glance-tile > .pictogram { grid-row: 1 / span 3; width: 28px; height: 28px; font-size: 28px; color: var(--text-primary); }

@@ -335,7 +335,7 @@ export function glanceHTML(meta, row, facts, args = {}, {where = 'section'} = {}
   const tile = t => {
     const ready = t.state === 'ready', level = ready && !t.star && (t.p != null || t.count === 0) ? levelOf(t.p, t.count) : null;
     const figure = ready
-      ? `<span class="glance-fig">${t.about ? `<small>${say('ราว', 'about')}</small> ` : ''}<b class="data-number">${esc(t.value)}</b> <span class="glance-unit">${say(t.unit[0], t.unit[1])}${t.star ? '<sup>*</sup>' : ''}</span></span>`
+      ? `<span class="glance-fig">${t.about ? `<small>${say('ราว', 'about')}</small> ` : ''}<b class="data-number">${esc(t.value)}</b> <span class="glance-unit">${say(t.unit[0], t.unit[1])}${t.star ? `<sup aria-hidden="true">*</sup><span class="sr-only">${say('นับเฉพาะรายการที่มีพิกัด จึงไม่จัดระดับ', 'counted only where a record has a point, so no level')}</span>` : ''}</span></span>`
       : `<span class="glance-wait">${t.state === 'loading' ? say('กำลังโหลด…', 'Loading…') : say('ยังไม่มีข้อมูล', 'No data yet')}</span>`;
     const meter = level == null ? '' : `${levelMeter(level, t.count > 0 ? t.p : null)}<span class="sr-only">${say(`${LEVEL_WORDS[level][0]} ระดับ ${num(level)} จาก 5 เทียบ${group}`, `${LEVEL_WORDS[level][1]}, level ${num(level)} of 5 among ${uniEn}`)}</span>`;
     return `<li><button type="button" class="glance-tile" data-action="locale-jump" data-target="${t.target}" data-glance="${t.key}">${icon(t.icon)}<span class="glance-label">${say(t.th, t.en)}${t.tag ? ` <span class="glance-tag">${say(t.tag[0], t.tag[1])}</span>` : ''}</span>${figure}${meter}</button></li>`;
