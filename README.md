@@ -175,7 +175,7 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 16:48 “Tsuruha, True Shop, OPPO, Vivo, iStudio, Nintendo, LEGO ใช้โลโก้ที่มีไปเลย ผมยกเว้นให้”
 
-- True Shop · OPPO · Vivo · iStudio · Nintendo Authorized Store · LEGO Certified Store ใช้ไฟล์ที่ชีตบันทึก (ป้ายเครือร่วม/wordmark ร่วม) เฉพาะ 7 รหัสแบรนด์นี้ (`OWNER_ROLE_EXCEPTIONS`) · ร้านที่มีโลโก้ 10,489 → 10,692 จาก 26,683 · Tsuruha ขึ้นในเดโมร้านยา
+- True Shop · OPPO · Vivo · iStudio · Nintendo Authorized Store · LEGO Certified Store ใช้ไฟล์ที่ชีตบันทึก (ป้ายเครือร่วม/wordmark ร่วม) เฉพาะ 7 รหัสแบรนด์นี้ (`OWNER_ROLE_EXCEPTIONS`) · ร้านที่มีโลโก้ 10,489 → 10,692 จาก 26,683 · Tsuruha ขึ้นในเดโมร้านยา ส่วนในศูนย์การค้ารอทีมวิจัยผูกชื่อในไดเรกทอรีของ 5 ศูนย์กับรหัสแบรนด์
 
 ## 0.9.11 - โลโก้ของแบรนด์ที่ไดเรกทอรีผูกไว้ และเครือร้านยา (`20261124-r5`)
 

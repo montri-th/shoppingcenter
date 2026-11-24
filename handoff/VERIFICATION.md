@@ -722,3 +722,10 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - ดาวน์โหลด 7 ไฟล์ผ่าน Google Drive connector: 6 ไฟล์ตรง SHA-256 ของชีต (True Shop · OPPO · Vivo · iStudio · Nintendo · LEGO) · Tsuruha ตรง manifest ของคลัง Pharmacy
 - `add-library-logos.py`: Miscellaneous 36 (ยกเว้น 4) · Hobby 28 (ยกเว้น 2) · บทบาทอื่นที่ถูกกัน 0 · contact sheet 6 โลโก้ใหม่อ่านได้บนพื้นรอง
 - `attach-family-logos.py`: 10,692 จาก 26,683 รายการมีโลโก้ (0.9.11: 10,489)
+
+## 0.9.12 — live (24 พ.ย. 2569)
+
+- merge PR #46 → `ce8ecb6` (พร้อม Pharmacy PR #20 → `80e91a0`) · deploy run 45370853586 ล้มที่ขั้นดึง snapshot: GitHub Pages ของ governmentoffice ตอบ HTTP 503 ชั่วคราว · dispatch ซ้ำ run 45371005759: 114/114 live checks · shoppingcenter และ pharmacy key OK
+- `npm run handoff:manifest` (2,516 ไฟล์) · `npm run verify:live`: 2,399 ok · 3 ไฟล์ที่ได้ 503 ชั่วคราวดึงซ้ำได้ 200 ไบต์ตรง · ไม่ตรงคือ `assets/manifest.json` เอง (อยู่ใน commit นี้)
+- citymeter.pages.dev ในเบราว์เซอร์ในแอป Claude: แท็ก `20261124-r6` · สยามพารากอน (`SC-001244`) โลโก้โหลดครบ: Nintendo Authorized Store by SYNNEX (3F, พื้นเข้ม) · TRUE (4F 466B, พื้นขาว) · VIVO (3F 308, พื้นเข้ม) · iStudio (2F 218, พื้นสว่าง) · ภาพหน้าจออ่าน TRUE และ VIVO ได้
+- แก้ข้อความในเอกสาร (PRODUCT_STATEMENT §30 · DATA_METHOD §29 · AGENTS · README · llms.txt): Tsuruha อยู่ในไดเรกทอรีของ 5 ศูนย์ (เทอร์มินอล21 อโศก · วัน แบงค็อก (TSURUHA) · แฟชั่นไอส์แลนด์ · เจ-พาร์ค ศรีราชา · เทอร์มินอล 21 พัทยา) แต่ยังไม่ผูกรหัสแบรนด์ — ไม่ใช่ “ไม่อยู่ในรายชื่อร้าน” · ข้อยกเว้นในศูนย์การค้าใช้จริง 6 แบรนด์ +203 รายการ (True Shop 91 · OPPO 48 · Vivo 38 · iStudio 21 · LEGO 4 · Nintendo 1) · ไดเรกทอรีที่ยังไม่ผูกและยังไม่มีโลโก้ 15,151 รายการ (เดิมเขียน 15,213 ซึ่งเป็นตัวเลขของรุ่น 0.9.10; นับซ้ำจาก git: 0.9.9 15,248 · 0.9.10 15,213 · 0.9.11 15,172 · 0.9.12 15,151)
