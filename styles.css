@@ -1074,3 +1074,6 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 /* highlights as compact rows: symbol, name and count, the level meter at the end */
 .locale-aha.is-high li { grid-template-columns: 24px minmax(0, 1fr); padding: 8px 12px; }
 .locale-aha .aha-body:has(> .level-meter) { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 10px; }
+/* an empty step of the meter is a low stub, so the level reads by shape whatever the data colour is on the theme
+   (LDS DATAVIZ-03: the dark samples of high ranks sit close to a dark tile; the colour is never changed) */
+.level-meter i:not(.on) { height: 3px; border-color: var(--text-metadata); }

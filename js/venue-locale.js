@@ -328,7 +328,8 @@ export function glanceModel(meta, row, facts, {residents = null, residentsMeta =
 export function glanceHTML(meta, row, facts, args = {}, {where = 'section'} = {}) {
   if (!meta || !facts || facts.located === false) return '';
   const tiles = glanceModel(meta, row, facts, args), uni = universeOf(meta, row);
-  const uniEn = usSpelling(meta.universes?.[uni.key === 'type' ? row.group : 'all']?.en || '');
+  // the group with its size in both languages: “488 ศูนย์” / “488 centers”, “ศูนย์การค้า 288 แห่ง” / “288 shopping centers”
+  const uniEn = `${num(uni.n)} ${uni.key === 'type' && GROUP_WORDS[row.group] ? `${GROUP_WORDS[row.group][1].toLowerCase()}s` : 'centers'}`;
   const group = uni.key === 'all' ? ` ${uni.short}` : uni.short;
   const tile = t => {
     const ready = t.state === 'ready', level = ready && !t.star && (t.p != null || t.count === 0) ? levelOf(t.p, t.count) : null;
