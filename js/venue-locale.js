@@ -989,7 +989,9 @@ function busyBlock(meta, pr, sg) {
   const used = parsed ? `<span${rawTitle}>${esc(parsed[en ? 1 : 0])}</span>` : !en && hrs?.text ? `<span>${esc(hrs.text)}</span>` : '';
   const hoursLine = used || basis ? `<p class="hint">${used ? `${say('เวลาเปิดที่ใช้:', 'Opening hours used:')} ${used}` : ''}${used && basis ? ' · ' : ''}${basis ? say(basis[0], basis[1]) : ''}</p>` : '';
   const basisKey = hrs?.basis || pr.hb || '';
-  const basisChip = basisKey ? `<p class="busy-basis"><span class="basis-chip">${icon('hours')}${/type_default$/.test(basisKey) ? say('เวลาเปิดตามประเภทศูนย์', 'Opening hours by center type') : say('เวลาเปิดของศูนย์', 'The center’s own opening hours')}</span></p>` : '';
+  // only where the grid does not stand on hours published for this center (the usual hours of its type): the one
+  // basis that changes how the grid reads; published hours keep their line in the fold (review v2, decision D-8)
+  const basisChip = /type_default$/.test(basisKey) ? `<p class="busy-basis"><span class="basis-chip">${icon('hours')}${say('เวลาเปิดตามประเภทศูนย์', 'Opening hours by center type')}</span></p>` : '';
   const strength = st => (st >= 0.66 ? ['แรง', 'strong'] : st >= 0.33 ? ['ปานกลาง', 'moderate'] : ['เล็กน้อย', 'slight']);
   const rules = (pr.rules || []).map(([id, st]) => {
     const r = P.rules?.[id];

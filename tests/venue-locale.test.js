@@ -1230,7 +1230,8 @@ test('short fact labels: the basis of the opening hours on the face, the period 
     const ph = priorsHTML(meta, pr, sg, r, shard('facts', r.id));
     const busy = ph.slice(ph.indexOf('class="locale-block busy-block"'), ph.indexOf('<details class="locale-details dp-why"'));
     const basis = sg?.attr?.hours?.basis || pr.hb || '';
-    if (/type_default$/.test(basis)) { byType += 1; assert.match(busy, /class="basis-chip">.*เวลาเปิดตามประเภทศูนย์/, r.id); } else if (basis) { own += 1; assert.match(busy, /class="basis-chip">.*เวลาเปิดของศูนย์/, r.id); }
+    // the label only where the grid stands on the usual hours of the center's type; published hours stay in the fold
+    if (/type_default$/.test(basis)) { byType += 1; assert.match(busy, /class="basis-chip">.*เวลาเปิดตามประเภทศูนย์/, r.id); } else if (basis) { own += 1; assert.doesNotMatch(busy, /basis-chip/, r.id); }
   }
   assert.ok(own > 0 && byType > 0);
   const row = byId.get(CENTRALWORLD), facts = shard('facts', CENTRALWORLD);
