@@ -687,3 +687,11 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - citymeter.pages.dev: dispatch ครั้งแรก (run 45328578721) อ่าน GitHub Pages ก่อน deployment ใหม่เสร็จ จึงตอบว่า production มีรุ่นนี้แล้วและไม่ deploy · dispatch ใหม่หลัง deployment สำเร็จ (run 45329008150): 114 ไฟล์ของรุ่นและลิงก์ HTML 522 ลิงก์ผ่าน · ตรวจ live ที่ https://citymeter.pages.dev ได้ shoppingcenter commit `0118208` key OK
 - หน้าเว็บจริงบน GitHub Pages (Chrome headless): เซ็นทรัล เวสต์เกต “โลโก้ร้าน” 201 จาก 662 (TH และ `?lang=en`) · ตัวกรอง “แว่นตา” แสดงโลโก้ Eye Class · Lenskart · OWNDAYS · THE NEXT · Better Vision · KT OPTIC และ “เทคโนโลยีและอุปกรณ์” แสดง Advice · BaNANA · Huawei · iCare · IT City · Jaymart · JIB ครบทุกไฟล์ · เทอร์มินอล21 อโศก 79 จาก 400 · เมกาบางนาที่ 390 px 266 จาก 637 · ไม่มีรูปเสีย ไม่มี page error
 - Chrome ของเจ้าของ: ส่วนขยาย Claude in Chrome ไม่ได้เชื่อมต่อ (เจ้าของใช้มือถือ) จึงยังไม่ได้ดูบน citymeter.pages.dev ด้วยตา — หลักฐานของ citymeter.pages.dev คือการตรวจ live ของ deploy run ข้างบน
+
+## 0.9.10 — โลโก้ร้านจากคลังโลโก้ของชีตวิจัย ครบทุกแบรนด์ (`20261124-r4`, D66) — local verification
+
+- ดาวน์โหลด 66 ไฟล์ที่เหลือผ่าน Google Drive connector (รวม Romrawin Clinic ที่รอบแรกเรียกด้วยรหัสไฟล์ที่พิมพ์ผิด): 66 จาก 66 ไฟล์ SHA-256 ตรงชีต
+- `python3 -I scripts/add-library-logos.py` จากทะเบียนก่อนมีรายการของคลัง (`2f05dce`): เพิ่ม 118 รายการ (Optical 27 · Miscellaneous 29 · Hobby 12 · Beauty Clinic 50) · ยังไม่มีไฟล์ 0 · พื้นขัดกับชีต 9 · รันซ้ำบนทะเบียนที่เขียนแล้ว และรันใหม่จาก `2f05dce` ได้ใบรับ (`f148deec…`) และทะเบียนไบต์เดิม
+- contact sheet ของ 66 ไฟล์ใหม่บนพื้นมืด: ทุกโลโก้อ่านได้บนพื้นรองของมัน (โลโก้สีขาวบนพื้นโปร่ง เช่น The Skin Doctors · La Grace · Dermatige · Chartier · Medisci ได้พื้นเข้ม)
+- `python3 -I scripts/attach-family-logos.py --family /home/claude --checked-on 2026-11-24`: 10,292 จาก 26,683 รายการมีโลโก้ (0.9.9: 9,856) · สถานที่ที่มีร้านแสดงโลโก้ 616 จาก 704 · เทอร์มินอล21 อโศก 82 จาก 400 · เซ็นทรัล เวสต์เกต 216 จาก 662 · เมกาบางนา 277 จาก 637
+- `npm test`: 357 ผ่าน 0 ไม่ผ่าน

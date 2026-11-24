@@ -171,6 +171,14 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.9.10 - โลโก้ร้านจากคลังโลโก้ของชีตวิจัย ครบทุกแบรนด์ (`20261124-r4`)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 13:02 “คลัง logo น่าจะอยู่ใน drive พี่ไปหาเลย” · “google drive”
+
+- **รอบสอง (D66):** อีก 66 ไฟล์จากคลังโลโก้บน Google Drive ทุกไฟล์ SHA-256 ตรงชีต — ครบ 118 จาก 118 แบรนด์ที่เข้าเกณฑ์ · ร้านที่มีโลโก้ 9,856 → 10,292 จาก 26,683 รายการ
+- **สคริปต์รันซ้ำได้ไบต์เดิม:** `add-library-logos.py` นับรายการที่เขียนไว้แล้วซ้ำพร้อมตรวจพื้นรอง · ใบรับมี `sharedFile`
+- **ให้ทีมวิจัยตรวจ:** 9 ไฟล์ Beauty Clinic ที่ชีตระบุพื้นสว่างแต่ภาพจะจางหาย จึงใช้พื้นเข้มตามภาพ
+
 ## 0.9.9 - โลโก้ร้านจากคลังโลโก้ของชีตวิจัย (`20261124-r3`)
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน” · 11:11 “เริ่มเลย”
