@@ -710,3 +710,9 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - contact sheet ของ 38 รายการใหม่: อ่านได้บนพื้นรองทุกรายการ
 - `attach-family-logos.py`: 10,489 จาก 26,683 รายการมีโลโก้ (0.9.10: 10,292) · สถานที่ที่มีร้านแสดงโลโก้ 624 จาก 704 · เทอร์มินอล21 อโศก 87 จาก 400 · เซ็นทรัล เวสต์เกต 223 จาก 662
 - คลัง Restaurants: ไม่มีไฟล์ในโฟลเดอร์คลังที่แก้ไขหลัง 30 ต.ค. 2569 (ค้นด้วย Drive connector)
+
+## 0.9.11 — live (24 พ.ย. 2569)
+
+- merge PR #44 → `d4c1730` (พร้อม Pharmacy PR #18 → `c8b6bf3`) · deploy run 45352962191: 114/114 live checks · shoppingcenter และ pharmacy key OK
+- `npm run handoff:manifest` (2,510 ไฟล์) · `npm run verify:live`: 2,394 ok · ไฟล์ที่ได้ 503 ชั่วคราวดึงซ้ำได้ 200 ไบต์ตรง · ไม่ตรงคือ `assets/manifest.json` เอง (อยู่ใน commit นี้)
+- citymeter.pages.dev ในเบราว์เซอร์ในแอป Claude: แท็ก `20261124-r5` · เซ็นทรัล เวสต์เกต “โลโก้ร้าน” 223 จาก 662 · ตัวกรอง “ยาและสุขภาพ” แสดงโลโก้ Boots และ Tops Care ครบ
