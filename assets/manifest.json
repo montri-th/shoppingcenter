@@ -153,8 +153,8 @@
     },
     {
       "path": "assets/tenant-logos-manifest.json",
-      "sha256": "979350fa9bef7eca5650c0b717d5ffd1149ea98d16ea22737439a39a0677fb36",
-      "bytes": 265750
+      "sha256": "19d2b65a7b5dd5160036e01253f7a5c7bf7fb7cfa2d1ca33b8816331885c9611",
+      "bytes": 297331
     },
     {
       "path": "assets/tenant-logos/00aa5d5879f656438de7.png",
@@ -192,6 +192,11 @@
       "bytes": 24780
     },
     {
+      "path": "assets/tenant-logos/02a709a5f711ef8d0aae.png",
+      "sha256": "02a709a5f711ef8d0aae67851856bfacf8f3e84310b093bf9eb6d68c07e292a6",
+      "bytes": 7196
+    },
+    {
       "path": "assets/tenant-logos/03e76cd2ad2cd007598c.jpg",
       "sha256": "03e76cd2ad2cd007598cd4f7d3b2b77ced7762a7cc23da2e56d7b139157fb64d",
       "bytes": 195963
@@ -220,6 +225,11 @@
       "path": "assets/tenant-logos/0599da873cea9930a48a.jpg",
       "sha256": "0599da873cea9930a48a7c9c9bf71ea7b8e8c685939b46659e55e74951295ca6",
       "bytes": 35444
+    },
+    {
+      "path": "assets/tenant-logos/05f5e3b40a75d1ffe242.png",
+      "sha256": "05f5e3b40a75d1ffe242d394a83c33a00ac74cf63b3a3333b9ec7f6cea9dc339",
+      "bytes": 7005
     },
     {
       "path": "assets/tenant-logos/06863a78d6657e82f0a3.svg",
@@ -260,6 +270,11 @@
       "path": "assets/tenant-logos/088413fda255bec6498f.png",
       "sha256": "088413fda255bec6498ff945e43c1c54410f61a16b76f16ebb08046fc2dcc5b3",
       "bytes": 11284
+    },
+    {
+      "path": "assets/tenant-logos/08c22d903bbdc0a35257.svg",
+      "sha256": "08c22d903bbdc0a3525762ea8d0f0f197269227f67cddf8912f796066ebbadc6",
+      "bytes": 1054
     },
     {
       "path": "assets/tenant-logos/08c2334b0d9d11d9c15b.webp",
@@ -305,6 +320,11 @@
       "path": "assets/tenant-logos/0b06fdd5d4d749f205fe.png",
       "sha256": "0b06fdd5d4d749f205fe48420f7f00b59e3095e6beb9405e4171255d4096fd6f",
       "bytes": 24285
+    },
+    {
+      "path": "assets/tenant-logos/0b1ff7443bf2fc894cc1.svg",
+      "sha256": "0b1ff7443bf2fc894cc12f437b27a3e2b70dae137eabac5d737601ebd73be11f",
+      "bytes": 1543
     },
     {
       "path": "assets/tenant-logos/0bbc4a49872a8ed78c24.png",
@@ -445,6 +465,11 @@
       "path": "assets/tenant-logos/14348ce9da8ebfbf6bf3.png",
       "sha256": "14348ce9da8ebfbf6bf3cbdbdad1c9498b65323cf5bbfd033a83349f8491dc9d",
       "bytes": 19892
+    },
+    {
+      "path": "assets/tenant-logos/14906647ba1fc2f1e8db.webp",
+      "sha256": "14906647ba1fc2f1e8db0ab6ec4a89ab8a7be8d51b9df219eb621bf89a382531",
+      "bytes": 6750
     },
     {
       "path": "assets/tenant-logos/14ab3a2278b752199809.png",
@@ -630,6 +655,11 @@
       "path": "assets/tenant-logos/20314504edfc42cfb42b.png",
       "sha256": "20314504edfc42cfb42bcaa5a45ed7b3a1a2e77fe4790a1e0012016a1284017e",
       "bytes": 102877
+    },
+    {
+      "path": "assets/tenant-logos/20aeaeef82c4c1040c21.webp",
+      "sha256": "20aeaeef82c4c1040c2165898d06735c7cb6fe8adb6880e506191cc32ad24e9e",
+      "bytes": 66152
     },
     {
       "path": "assets/tenant-logos/2183c5997f2eff8e5d89.jpg",
@@ -822,6 +852,11 @@
       "bytes": 24770
     },
     {
+      "path": "assets/tenant-logos/2c779a66372caa4f8c8f.svg",
+      "sha256": "2c779a66372caa4f8c8fbeb9b3c5bb1045cc7d28a50268cac5cb0270ab6b272d",
+      "bytes": 5484
+    },
+    {
       "path": "assets/tenant-logos/2c91f351970b65fe6ed8.png",
       "sha256": "2c91f351970b65fe6ed8b6d6c40c03b4177b147b83f12a42e73b86051fe2f78e",
       "bytes": 12305
@@ -845,6 +880,11 @@
       "path": "assets/tenant-logos/2de77efc5ee2545a9a8d.png",
       "sha256": "2de77efc5ee2545a9a8d159b35b92b490688d82096b8562c792a94e0cde12132",
       "bytes": 71403
+    },
+    {
+      "path": "assets/tenant-logos/2e2d9c4c40646e9ade87.png",
+      "sha256": "2e2d9c4c40646e9ade8755a977049a1a55108682a8bf04f28e842608566cbe82",
+      "bytes": 2114
     },
     {
       "path": "assets/tenant-logos/2e5f13158466e8390bf0.jpg",
@@ -950,6 +990,11 @@
       "path": "assets/tenant-logos/34bb0ce19cef6918cc59.svg",
       "sha256": "34bb0ce19cef6918cc590c4591be6f5b6acac1f752d5b57403b1b0a103c319ed",
       "bytes": 3123
+    },
+    {
+      "path": "assets/tenant-logos/3559ddfc61f5b93a44e6.svg",
+      "sha256": "3559ddfc61f5b93a44e65fd769367a4d23437efb5069768274ec31bef19966a1",
+      "bytes": 1801
     },
     {
       "path": "assets/tenant-logos/360e5e9ac91e115012af.png",
@@ -1082,6 +1127,11 @@
       "bytes": 4089
     },
     {
+      "path": "assets/tenant-logos/3cfc352edbbefd3e803d.png",
+      "sha256": "3cfc352edbbefd3e803d2aea9d9a7660728aec0bfd3b08e1eb2c54f7f1ac6989",
+      "bytes": 8666
+    },
+    {
       "path": "assets/tenant-logos/3d28940cb6654d7bfdae.gif",
       "sha256": "3d28940cb6654d7bfdae9bcd4987d48a78d5166bb8bdee836f32ffc832f9f571",
       "bytes": 13600
@@ -1132,6 +1182,11 @@
       "bytes": 10430
     },
     {
+      "path": "assets/tenant-logos/408d82747967ce9b5ae4.svg",
+      "sha256": "408d82747967ce9b5ae4126f06cb71b3d1017acc5e287536086bdc4492b59edf",
+      "bytes": 10027
+    },
+    {
       "path": "assets/tenant-logos/4177ff4826a37bd00778.png",
       "sha256": "4177ff4826a37bd00778fae0aaf566e39f4ee8dce49c0a64a522f196098f51a7",
       "bytes": 3542
@@ -1172,6 +1227,11 @@
       "bytes": 2804
     },
     {
+      "path": "assets/tenant-logos/42f77077897b2e3876c9.svg",
+      "sha256": "42f77077897b2e3876c94eac83974e6b54604303f45e94ce9e0254ddba63eacc",
+      "bytes": 1626
+    },
+    {
       "path": "assets/tenant-logos/43d62051c9dc927610eb.png",
       "sha256": "43d62051c9dc927610eb06d5ef35e02308d4b7ff57f139ed0a226a428f0ea19a",
       "bytes": 20108
@@ -1185,6 +1245,21 @@
       "path": "assets/tenant-logos/44f249b714b7ee9d455b.gif",
       "sha256": "44f249b714b7ee9d455b1c9c6bf3f2861d2f731ac23e1ac302ce7494ae273543",
       "bytes": 23344
+    },
+    {
+      "path": "assets/tenant-logos/44fa29e534af8e81954a.png",
+      "sha256": "44fa29e534af8e81954a25a66800c0adbce313493cbd555086f37148a08fe1f7",
+      "bytes": 14920
+    },
+    {
+      "path": "assets/tenant-logos/44fcc65a375d135e6d91.png",
+      "sha256": "44fcc65a375d135e6d91bf2eae2057d34481f72d222c6dc7e45a594f2d106ac6",
+      "bytes": 59588
+    },
+    {
+      "path": "assets/tenant-logos/459196ba90d0e94990c5.webp",
+      "sha256": "459196ba90d0e94990c56e319e09285b347d2662fe73ec7d7c7bb1448abd43f8",
+      "bytes": 8400
     },
     {
       "path": "assets/tenant-logos/45aa52e7af5afcdb532c.svg",
@@ -1250,6 +1325,11 @@
       "path": "assets/tenant-logos/4a0d44c1861f0a167e5b.png",
       "sha256": "4a0d44c1861f0a167e5b6a8fcc1ca0fe283e37eb818216ebc488df06b0afa050",
       "bytes": 14493
+    },
+    {
+      "path": "assets/tenant-logos/4a7424c57a5d8bb0cccb.svg",
+      "sha256": "4a7424c57a5d8bb0cccbaa38f27738451ca9c4aeedaaee840c348106e86a1fbf",
+      "bytes": 6892
     },
     {
       "path": "assets/tenant-logos/4a7f506be994d1b9bf04.png",
@@ -1350,6 +1430,11 @@
       "path": "assets/tenant-logos/4fbb4a4ef6f8974db4eb.jpg",
       "sha256": "4fbb4a4ef6f8974db4ebff52cc7dfabebdf911906970fb33ccbfd23268e7db3f",
       "bytes": 6091
+    },
+    {
+      "path": "assets/tenant-logos/4feb5763b671fa9cbb67.jpg",
+      "sha256": "4feb5763b671fa9cbb67efb97d7ce6400ed3fd5c4b4ad06947247c8e7bec9e4b",
+      "bytes": 11479
     },
     {
       "path": "assets/tenant-logos/501e53dc49d9cbd2a638.svg",
@@ -1477,6 +1562,11 @@
       "bytes": 12603
     },
     {
+      "path": "assets/tenant-logos/58552a2c5efa65d2644f.png",
+      "sha256": "58552a2c5efa65d2644fd0edc7e03d628b98b79cccef1db1182b847f1fded328",
+      "bytes": 5930
+    },
+    {
       "path": "assets/tenant-logos/587386f70f3e6c514cfd.webp",
       "sha256": "587386f70f3e6c514cfdd18dab6538d7bc0dfef17c5adaabfccd9f3a876d9dfa",
       "bytes": 3106
@@ -1595,6 +1685,11 @@
       "path": "assets/tenant-logos/6034573aeac73ceca946.svg",
       "sha256": "6034573aeac73ceca946e6d8366a201e524a2ff4f8cbb4544eb916a00d150c88",
       "bytes": 6999
+    },
+    {
+      "path": "assets/tenant-logos/61130448640931d94b1a.png",
+      "sha256": "61130448640931d94b1a6f1b9c65b12a560cb3912074a4185bfd2191fa94efb2",
+      "bytes": 2930
     },
     {
       "path": "assets/tenant-logos/615caaa112169f53f455.jpg",
@@ -1772,6 +1867,11 @@
       "bytes": 7616
     },
     {
+      "path": "assets/tenant-logos/6edffbe815012688f0a0.webp",
+      "sha256": "6edffbe815012688f0a0a861b48fde3c16ebface1a70b2a91da8ce20bacacf4b",
+      "bytes": 48172
+    },
+    {
       "path": "assets/tenant-logos/6fa141611eb5807e3a37.jpg",
       "sha256": "6fa141611eb5807e3a375db322b9fba87796610fbcff49d42aa14dbb6aa523f3",
       "bytes": 5427
@@ -1902,6 +2002,11 @@
       "bytes": 25055
     },
     {
+      "path": "assets/tenant-logos/77da5e520a09b1cf5d24.svg",
+      "sha256": "77da5e520a09b1cf5d24240cd0245e35cb3982d65d38906f6f7dba49babb0931",
+      "bytes": 11143
+    },
+    {
       "path": "assets/tenant-logos/77e8b3d5b0977bef6dcb.jpg",
       "sha256": "77e8b3d5b0977bef6dcb26b0e511cb3ca9f7b68e4773ecfa6df039020bb3da1a",
       "bytes": 5826
@@ -1992,6 +2097,11 @@
       "bytes": 10563
     },
     {
+      "path": "assets/tenant-logos/7db879a8189ca4ba0f56.svg",
+      "sha256": "7db879a8189ca4ba0f5670e0be9500be79162189f264d2f81e6aed7131ffa88c",
+      "bytes": 3282
+    },
+    {
       "path": "assets/tenant-logos/7e277ebbc1171ae98d12.svg",
       "sha256": "7e277ebbc1171ae98d1256f460f97832c4df45c44bbabeea410ae465afb25c0d",
       "bytes": 4996
@@ -2047,6 +2157,11 @@
       "bytes": 3978
     },
     {
+      "path": "assets/tenant-logos/810a45b3664df9f969e4.svg",
+      "sha256": "810a45b3664df9f969e4dd2fa7da6151ae319a7b72d26baa1f8c63cb9db89b47",
+      "bytes": 9590
+    },
+    {
       "path": "assets/tenant-logos/8117cb48c75d9268d940.svg",
       "sha256": "8117cb48c75d9268d9405384f8af50f5af15c66069451e7f0abf96cdda956064",
       "bytes": 39194
@@ -2082,6 +2197,11 @@
       "bytes": 2206
     },
     {
+      "path": "assets/tenant-logos/82a695129454c393f991.png",
+      "sha256": "82a695129454c393f99138158ee83d3437b5e2d91f383ea956aa33ae8c508792",
+      "bytes": 2638
+    },
+    {
       "path": "assets/tenant-logos/82d2a9541330e74fb73a.png",
       "sha256": "82d2a9541330e74fb73a3c8a1fe0b674892678d45119172688e1263af5fb79ae",
       "bytes": 7048
@@ -2115,6 +2235,11 @@
       "path": "assets/tenant-logos/839adceaf5c54cb76292.jpg",
       "sha256": "839adceaf5c54cb762928108a5b4250f11c3412897961e9302a9f4317a8b8e70",
       "bytes": 6328
+    },
+    {
+      "path": "assets/tenant-logos/83a35461347708bee444.png",
+      "sha256": "83a35461347708bee4440d3fb7ca4fb725a89c0312e74054cffd162b439f1ced",
+      "bytes": 14740
     },
     {
       "path": "assets/tenant-logos/83a701a4486c1ba8487c.jpg",
@@ -2230,6 +2355,11 @@
       "path": "assets/tenant-logos/89aa9caf82869325d1ca.svg",
       "sha256": "89aa9caf82869325d1ca345523747950b4b188b2009fba4cddfb0eaab64eea74",
       "bytes": 3932
+    },
+    {
+      "path": "assets/tenant-logos/89c522b67dbd7521af71.jpg",
+      "sha256": "89c522b67dbd7521af71bbf7eb32f7751c0dd18d62c855688a7f193faddf542e",
+      "bytes": 4588
     },
     {
       "path": "assets/tenant-logos/89cce538cb0614e861df.webp",
@@ -2457,6 +2587,11 @@
       "bytes": 6681
     },
     {
+      "path": "assets/tenant-logos/98adb2cb663056b36549.png",
+      "sha256": "98adb2cb663056b3654968b195b1437713f5820e41d58fb444e81808290964fe",
+      "bytes": 20759
+    },
+    {
       "path": "assets/tenant-logos/98d5cd2618fba43ac90f.png",
       "sha256": "98d5cd2618fba43ac90fdda7a233ecce08ccfdce8708e80d844f66a276506b47",
       "bytes": 2424
@@ -2672,6 +2807,11 @@
       "bytes": 10314
     },
     {
+      "path": "assets/tenant-logos/a5f678659661bbefba58.svg",
+      "sha256": "a5f678659661bbefba58d624fafa3d36c79ab2de9c4026740e12b284139ba769",
+      "bytes": 3400
+    },
+    {
       "path": "assets/tenant-logos/a6fc5308a997a87b05f5.png",
       "sha256": "a6fc5308a997a87b05f5b0b840ec20f8ec92667d753e1906b0c76f5bd9353538",
       "bytes": 11047
@@ -2790,6 +2930,11 @@
       "path": "assets/tenant-logos/af61c6a9fa8a2704b916.jpg",
       "sha256": "af61c6a9fa8a2704b916d995c3cc6037248e9528321cccceb0321dee26bc1896",
       "bytes": 89667
+    },
+    {
+      "path": "assets/tenant-logos/af77ad5e5310697920b0.webp",
+      "sha256": "af77ad5e5310697920b0ecfa02bb2c11213b332ead60df165e23bd106ab52374",
+      "bytes": 9560
     },
     {
       "path": "assets/tenant-logos/afbdd909913b592b7714.svg",
@@ -2957,6 +3102,11 @@
       "bytes": 20357
     },
     {
+      "path": "assets/tenant-logos/babd3b1f36c6f5f045b0.png",
+      "sha256": "babd3b1f36c6f5f045b0cad576de9ca1f5a5356c891bcc19347380152fa893ea",
+      "bytes": 8725
+    },
+    {
       "path": "assets/tenant-logos/bb06f316aeb3f72fc431.jpg",
       "sha256": "bb06f316aeb3f72fc431c4a86daf21f3a2be172fe2282fc69ecda04abc91c02c",
       "bytes": 1776
@@ -2975,6 +3125,11 @@
       "path": "assets/tenant-logos/bd3bc0f9fe63136866b9.svg",
       "sha256": "bd3bc0f9fe63136866b941219a1b2915a214a3af567f3ee1bd69859b9953c123",
       "bytes": 3891
+    },
+    {
+      "path": "assets/tenant-logos/bd543c81124dfd7a6652.webp",
+      "sha256": "bd543c81124dfd7a6652d39d3533473cf42ac565d77de2d8d635a01fa5afc255",
+      "bytes": 7126
     },
     {
       "path": "assets/tenant-logos/be0032680dcc41ea24b5.jpg",
@@ -3067,6 +3222,11 @@
       "bytes": 19667
     },
     {
+      "path": "assets/tenant-logos/c5459bc68e4eb68a6189.webp",
+      "sha256": "c5459bc68e4eb68a6189e884905e7a3bc49d2901cd2726c418626819f6df4a2d",
+      "bytes": 17754
+    },
+    {
       "path": "assets/tenant-logos/c56fc5456dcc3a13123d.jpg",
       "sha256": "c56fc5456dcc3a13123d90bbbf9d12dceea65439c9797f80a23bd0e499c9c410",
       "bytes": 19559
@@ -3132,6 +3292,11 @@
       "bytes": 18213
     },
     {
+      "path": "assets/tenant-logos/c95c36fda7b1349fa407.png",
+      "sha256": "c95c36fda7b1349fa407c801f2e1cda396d64e3dd6dee21fc58989bccce992a7",
+      "bytes": 33385
+    },
+    {
       "path": "assets/tenant-logos/ca1a73ffda34cd0978d6.svg",
       "sha256": "ca1a73ffda34cd0978d6be705edd9e585f161ca76e7e71ded38c3699cae2297c",
       "bytes": 9759
@@ -3167,6 +3332,11 @@
       "bytes": 2031
     },
     {
+      "path": "assets/tenant-logos/cbd7602e878c987180cb.png",
+      "sha256": "cbd7602e878c987180cbb14e86aa241541e3523e85362e1ac0bc7b896f93ea65",
+      "bytes": 4594
+    },
+    {
       "path": "assets/tenant-logos/cc10014ae7e8972ca01c.png",
       "sha256": "cc10014ae7e8972ca01c10e8d1867d5998ad733f6052a2539fc5ff4fccb92b1d",
       "bytes": 49052
@@ -3187,6 +3357,11 @@
       "bytes": 31531
     },
     {
+      "path": "assets/tenant-logos/cc911ba41c32ecdbe969.png",
+      "sha256": "cc911ba41c32ecdbe969c522e89e1651a92701d0abc0f3f86c3cd57c83af6523",
+      "bytes": 3943
+    },
+    {
       "path": "assets/tenant-logos/ccd1c0ec4ae9562b119b.png",
       "sha256": "ccd1c0ec4ae9562b119b7c94f8390fb1eee7eadf923c75665ee282c7eb9e0a49",
       "bytes": 10053
@@ -3200,6 +3375,11 @@
       "path": "assets/tenant-logos/cd10d571502b37557ffa.jpg",
       "sha256": "cd10d571502b37557ffac90cf2ec49ac90e29b511cfb4f8c81b834dd97a0d88a",
       "bytes": 10862
+    },
+    {
+      "path": "assets/tenant-logos/cd2b453880a9b7393fc6.svg",
+      "sha256": "cd2b453880a9b7393fc6227d906c41352c371c1c59e6c0cf9ec7630f8c7a7a92",
+      "bytes": 7645
     },
     {
       "path": "assets/tenant-logos/cd33ff8376b501cac378.jpg",
@@ -3372,6 +3552,11 @@
       "bytes": 25455
     },
     {
+      "path": "assets/tenant-logos/d99021bdd6f4a4ac78c8.svg",
+      "sha256": "d99021bdd6f4a4ac78c88e27a9dfc74537a2e16d4c1cf9fb29b559f39ee18e0e",
+      "bytes": 2156
+    },
+    {
       "path": "assets/tenant-logos/d9a5c1a69d25655ddabd.svg",
       "sha256": "d9a5c1a69d25655ddabd353883e0c0798f75cb45e3a1811fb340862b15bbaee5",
       "bytes": 7663
@@ -3385,6 +3570,16 @@
       "path": "assets/tenant-logos/da90a140f199aefef576.png",
       "sha256": "da90a140f199aefef57632515024d4f79a72bce92729d5c710521ee58f69e857",
       "bytes": 34152
+    },
+    {
+      "path": "assets/tenant-logos/db2311321e6ee10c95df.png",
+      "sha256": "db2311321e6ee10c95df52a57334726d99b984d2ba8e1c8ffcdcb23293fd7798",
+      "bytes": 31163
+    },
+    {
+      "path": "assets/tenant-logos/db4ed8bbd97d452d0df6.svg",
+      "sha256": "db4ed8bbd97d452d0df6af236d881c3d2de9297142dadb5df50764ef82ce346f",
+      "bytes": 3808
     },
     {
       "path": "assets/tenant-logos/db63d9564a888787515c.svg",
@@ -3412,9 +3607,19 @@
       "bytes": 11869
     },
     {
+      "path": "assets/tenant-logos/dbe657ab44eeb02e09fe.png",
+      "sha256": "dbe657ab44eeb02e09fe43d0546252308c5f17063e31017ffecbaff05279cc6f",
+      "bytes": 11448
+    },
+    {
       "path": "assets/tenant-logos/dc3d8dac02885849e436.png",
       "sha256": "dc3d8dac02885849e436daaf4015d6fe0f4a253b42b85edc1e8308361a1895dd",
       "bytes": 23920
+    },
+    {
+      "path": "assets/tenant-logos/dc59460eaefd56fef0fc.jpg",
+      "sha256": "dc59460eaefd56fef0fc1a5abdeda86916564f6072e3348604a17b8ebba54b5e",
+      "bytes": 33227
     },
     {
       "path": "assets/tenant-logos/dc605e50529b0ee6235a.jpg",
@@ -3537,9 +3742,19 @@
       "bytes": 2417
     },
     {
+      "path": "assets/tenant-logos/e3844c7b98dfdc8684c4.svg",
+      "sha256": "e3844c7b98dfdc8684c4a01024e4d2d12940f5437cd62dbab9b51639dc67ee1a",
+      "bytes": 1127
+    },
+    {
       "path": "assets/tenant-logos/e3ac688c7844bf2a94c3.webp",
       "sha256": "e3ac688c7844bf2a94c3a43a4955bd980d2a1f2477523794570b77552eaa309d",
       "bytes": 2848
+    },
+    {
+      "path": "assets/tenant-logos/e3acfa25ace0b3c96a82.png",
+      "sha256": "e3acfa25ace0b3c96a82c5071a98b601fbd92aba32d5f56582d71730880472e1",
+      "bytes": 162251
     },
     {
       "path": "assets/tenant-logos/e4162a35f5f77c5a67ed.png",
@@ -3560,6 +3775,11 @@
       "path": "assets/tenant-logos/e5265172be4bd543a15d.svg",
       "sha256": "e5265172be4bd543a15d5dc45995fbaaae314e64400a1104f7b643af3655aca6",
       "bytes": 5868
+    },
+    {
+      "path": "assets/tenant-logos/e53066084fd6e9597b4a.svg",
+      "sha256": "e53066084fd6e9597b4ab878fc6ac43c6e847c044e09d589657f3c79d41a21e4",
+      "bytes": 5225
     },
     {
       "path": "assets/tenant-logos/e53ae035bc593828b4c5.svg",
@@ -3702,6 +3922,11 @@
       "bytes": 7552
     },
     {
+      "path": "assets/tenant-logos/ec9b078de27dea66a3ff.svg",
+      "sha256": "ec9b078de27dea66a3ff057ff8b10828960188b79b1a3a83a7a0ad0c28c8462b",
+      "bytes": 28127
+    },
+    {
       "path": "assets/tenant-logos/ed3af073ab88748bba36.jpeg",
       "sha256": "ed3af073ab88748bba3684699e5318470410f0ddcd34b4c9d10ef9d598f6b908",
       "bytes": 10986
@@ -3760,6 +3985,16 @@
       "path": "assets/tenant-logos/efb241a5c6059089a2aa.jpg",
       "sha256": "efb241a5c6059089a2aa77ed6962278fd7123baed58aa62c37c09fa1ad5ef576",
       "bytes": 2669
+    },
+    {
+      "path": "assets/tenant-logos/efeeda37508694649d45.png",
+      "sha256": "efeeda37508694649d4570dd3c048ec78ea6f3afeb1eb582aa9e8731744a0265",
+      "bytes": 845
+    },
+    {
+      "path": "assets/tenant-logos/f102bf5a126c9fbb937a.webp",
+      "sha256": "f102bf5a126c9fbb937a0162a58f4069e85f6c51e46298082b7b56b84307daee",
+      "bytes": 43794
     },
     {
       "path": "assets/tenant-logos/f10fa0ad7692ab01eb16.png",
@@ -3890,6 +4125,11 @@
       "path": "assets/tenant-logos/fa9d7c1b81a062389e71.jpg",
       "sha256": "fa9d7c1b81a062389e714e204710e99e6ce8529b00806edabc2fbb9b237ced1e",
       "bytes": 7081
+    },
+    {
+      "path": "assets/tenant-logos/fab9f883d795fd0d4612.png",
+      "sha256": "fab9f883d795fd0d46124e3e6211e9674bc5324b50f69d4af9df2823d49caeb1",
+      "bytes": 10513
     },
     {
       "path": "assets/tenant-logos/fb5b0a0b8c85837f569e.png",
