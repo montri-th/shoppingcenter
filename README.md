@@ -171,6 +171,11 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.10.2 - ชื่อกลุ่มบนจอแคบตัดบรรทัดระหว่างคำ (`20261125-r2`)
+
+- พบบนหน้าเว็บจริงของ 0.10.1 ในกรอบกว้าง 386 px: ชื่อ “นักท่องเที่ยวและผู้มาเยือน” ตัดบรรทัดกลางคำ “ผู้มาเยือน” · แก้ให้สองบรรทัดยาวใกล้กัน จึงอ่านว่า “นักท่องเที่ยว / และผู้มาเยือน” ที่ 360 และ 390 px และอยู่บรรทัดเดียวตั้งแต่ 430 px
+- แก้เฉพาะการจัดบรรทัด (`.who-name { text-wrap: balance; }`) ไม่เปลี่ยนคำ ตัวเลข หรือข้อมูล
+
 ## 0.10.1 - รอบศูนย์นี้: คำตัดสินของเจ้าของ และข้อความที่สั้นลง (`20261125-r1`)
 
 เจ้าของ (VERBATIM) 25 พ.ย. 2569: 01:10 “เห็นด้วยทั้งสองข้อ” และ “และพี่จัดการให้เรียบร้อยแล้ว อัพเดทเวบเดโมได้เลย” (สองข้อคือ D-1 และ D-9 ของรายงานฉบับที่ 2) · ราว 01:16 เลือก “ป้ายสั้นบนหน้า (Recommended)” สำหรับ D-8 · 01:26 “ผมว่าคำที่พี่เลือกใช้มันงง อ่านแล้วก็ยังงงๆครับ” · 01:30 “D-3 เลือกแบบ 3: ราคาแถวนี้” · 01:32 “ผู้มาเยือนหมายถึงอะไร ภาษาอังกฤษคืออะไร ทำ TH/EN ไปเลยทีเดียวนะ” · 01:34 “ปรับแล้วดีขึ้นนะ”

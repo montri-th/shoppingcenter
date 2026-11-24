@@ -1217,6 +1217,8 @@ test('the glance: four fixed readings, a five-step level in the chart colour, th
   assert.match(readFileSync(new URL('styles.css', ROOT), 'utf8'), /\.locale-section sup, \.locale-glance sup \{ font-size: 12px;/);
   // a tile wraps its label and unit (a button does not wrap by itself on this page), so English fits a narrow tile
   assert.match(readFileSync(new URL('styles.css', ROOT), 'utf8'), /\.glance-tile \{ white-space: normal; overflow-wrap: break-word; \}/);
+  // a group name of two lines balances them, so it breaks between words: “นักท่องเที่ยว / และผู้มาเยือน”, never inside “ผู้มาเยือน” (0.10.2)
+  assert.match(readFileSync(new URL('styles.css', ROOT), 'utf8'), /\.who-name \{[^}]*text-wrap: balance;/);
 });
 
 test('formats block: seen in the list, in the center’s own list by role, checked and not seen, nothing to compare with', () => {
