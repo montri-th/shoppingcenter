@@ -331,10 +331,14 @@ export function glanceModel(meta, row, facts, {residents = null, residentsMeta =
  */
 export function glanceSourceLine(meta, {residentsMeta = null, visitorsMeta = null, workMeta = null} = {}) {
   const dates = [...(visitorsMeta?.datasets || []), ...(workMeta?.datasets || [])].map(d => d.date).concat(meta?.ring?.shopping?.date).filter(Boolean).sort();
-  const span = dates.length ? (dates[0] === dates.at(-1) ? [thaiDay(dates[0]), englishDay(dates[0])] : [`${thaiDay(dates[0])}–${thaiDay(dates.at(-1))}`, `${englishDay(dates[0])}–${englishDay(dates.at(-1))}`]) : null;
+  // kept short on purpose: the year once when both ends share it; the tile already says “แบบจำลอง”, the star and
+  // its note say which counts take only records with a point, and every block keeps its own full line
+  const a = dates[0], b = dates.at(-1), sameYear = a && b && a.slice(0, 4) === b.slice(0, 4);
+  const span = dates.length ? (a === b ? [thaiDay(a), englishDay(a)]
+    : [`${sameYear ? thaiDay(a).replace(/ \d{4}$/, '') : thaiDay(a)}–${thaiDay(b)}`, `${sameYear ? englishDay(a).replace(/ \d{4}$/, '') : englishDay(a)}–${englishDay(b)}`]) : null;
   const pm = residentsMeta?.populationMonth;
-  const th = [pm ? `คนอยู่ใกล้: แบบจำลองจากประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)}` : '', span ? `สถานที่: รายการที่มีพิกัดในชุดข้อมูล CityMETER ${span[0]}` : '', 'รัศมีเส้นตรงจากจุดของศูนย์'].filter(Boolean).join(' · ');
-  const en = [pm ? `Living near: modelled from the registered population, Department of Provincial Administration, ${englishDay(pm)}` : '', span ? `places: located records of CityMETER datasets, ${span[1]}` : '', 'straight-line radius from the center’s point'].filter(Boolean).join(' · ');
+  const th = [pm ? `คนอยู่ใกล้: ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)}` : '', span ? `สถานที่: ชุดข้อมูล CityMETER ${span[0]}` : '', 'รัศมีเส้นตรงจากจุดของศูนย์'].filter(Boolean).join(' · ');
+  const en = [pm ? `Living near: registered population, Department of Provincial Administration, ${englishDay(pm)}` : '', span ? `places: CityMETER datasets, ${span[1]}` : '', 'straight-line radius from the center’s point'].filter(Boolean).join(' · ');
   return `<p class="hint glance-source">${say(th, en)}</p>`;
 }
 

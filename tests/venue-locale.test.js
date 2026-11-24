@@ -1180,8 +1180,9 @@ test('the glance: four fixed readings, a five-step level in the chart colour, th
     // one provenance line under the four figures, in the section and in the head: dataset · source · date · boundary
     for (const where of ['section', 'head']) {
       const line = /<p class="hint glance-source">(.*?)<\/p>/.exec(glanceHTML(meta, row, facts, args, {where}))?.[1] || '';
-      assert.match(line, /คนอยู่ใกล้: แบบจำลองจากประชากรตามทะเบียน กรมการปกครอง ต\.ค\. 2569 · สถานที่: รายการที่มีพิกัดในชุดข้อมูล CityMETER \d+ [ก-๙.]+ 2569–\d+ [ก-๙.]+ 2569 · รัศมีเส้นตรงจากจุดของศูนย์/, `${id} ${where}`);
-      assert.match(line, /data-en="Living near: modelled from the registered population, Department of Provincial Administration, Oct 2026 · places: located records of CityMETER datasets, [^"]+ · straight-line radius from the center’s point"/);
+      assert.match(line, /คนอยู่ใกล้: ประชากรตามทะเบียน กรมการปกครอง ต\.ค\. 2569 · สถานที่: ชุดข้อมูล CityMETER \d+ [ก-๙.]+–\d+ [ก-๙.]+ 2569 · รัศมีเส้นตรงจากจุดของศูนย์/, `${id} ${where}`);
+      assert.match(line, /data-en="Living near: registered population, Department of Provincial Administration, Oct 2026 · places: CityMETER datasets, \d+ [A-Z][a-z]+–\d+ [A-Z][a-z]+ 2026 · straight-line radius from the center’s point"/);
+      assert.ok(line.replace(/<[^>]+>/g, '').length <= 140, 'a compact line');
     }
     // the section holds the targets the tiles jump to
     const section = renderLocale(row, {meta, facts, metaState: 'ready', factsState: 'ready', ...args});
