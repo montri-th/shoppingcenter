@@ -1,7 +1,7 @@
 {
  "meta": {
   "schemaVersion": "1",
-  "kit": "citymeter-logos 1.0.0",
+  "kit": "citymeter-logos 1.1.0",
   "checkedOn": "2026-11-24",
   "shards": 32,
   "rule": "D64: own id → same id in another dataset → a name the research sheets confirmed → one fixed rewrite; two different files give none; a shop that has a logo keeps it"
@@ -9,13 +9,13 @@
  "inputs": {
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "directorySha256": "340f52fc0b2eb57106a15010b79a9b7e15006dfe8892528c8ea4ae4bb442ad0a",
-  "logoManifestSha256": "979350fa9bef7eca5650c0b717d5ffd1149ea98d16ea22737439a39a0677fb36"
+  "logoManifestSha256": "19d2b65a7b5dd5160036e01253f7a5c7bf7fb7cfa2d1ca33b8816331885c9611"
  },
  "pool": {
-  "kit": "citymeter-logos 1.0.0",
-  "files": 1347,
-  "entities": 1431,
-  "names": 1434,
+  "kit": "citymeter-logos 1.1.0",
+  "files": 1395,
+  "entities": 1483,
+  "names": 1495,
   "sources": {
    "restaurant": {
     "commit": "8ed9b4b5cb1854ce943130c6232489cab393a22e",
@@ -24,7 +24,7 @@
     "issues": 0
    },
    "fitness": {
-    "commit": "e82a7dff859c4b87fa8825b331c7a41cee9ec5e7",
+    "commit": "281ef22499a93e2cca9a916b2bf9ee4ed4614fee",
     "files": 126,
     "entities": 126,
     "issues": 0
@@ -42,7 +42,7 @@
     "issues": 0
    },
    "luxurybrands": {
-    "commit": "1496b942e8453c6de44019591672bcf8890dcb92",
+    "commit": "22052c8623c3786fef3f63af25bd8d915b8a0a69",
     "files": 168,
     "entities": 168,
     "issues": 0
@@ -60,9 +60,9 @@
     "issues": 0
    },
    "shoppingcenter": {
-    "commit": "e66af02a423abb327af9550bcf9e8ce90cc1b6ae",
-    "files": 307,
-    "entities": 335,
+    "commit": "2f05dce064056b67648a40f56fe0a86f2cbbddb8",
+    "files": 355,
+    "entities": 387,
     "issues": 0
    }
   },
@@ -70,21 +70,21 @@
  },
  "items": 26683,
  "withLogoBefore": 5182,
- "added": 3229,
- "withLogoAfter": 8411,
+ "added": 4674,
+ "withLogoAfter": 9856,
  "byBasis": {
-  "own": 1333,
-  "same-id": 195,
-  "label": 1459,
-  "bilingual": 60,
+  "own": 2788,
+  "same-id": 70,
+  "label": 1561,
+  "bilingual": 62,
   "legal": 3,
-  "descriptor": 151,
+  "descriptor": 162,
   "bank": 28
  },
  "notAttached": {
   "suppressed": 8,
   "ambiguous": 0,
-  "none": 18264
+  "none": 16819
  },
  "byDataset": {
   "research.MLA.PARC": {
@@ -106,7 +106,8 @@
    "none": 34
   },
   "research.TH.beauty_clinic": {
-   "none": 509
+   "none": 198,
+   "own": 311
   },
   "research.TH.camera": {
    "already": 183,
@@ -134,7 +135,8 @@
    "own": 21
   },
   "research.TH.hobby": {
-   "none": 222
+   "none": 174,
+   "own": 48
   },
   "research.TH.hospital": {
    "none": 1
@@ -149,23 +151,24 @@
    "none": 7
   },
   "research.TH.miscellaneous": {
-   "none": 804,
-   "same-id": 125
+   "none": 261,
+   "own": 668
   },
   "research.TH.nail": {
    "already": 19,
    "none": 11
   },
   "research.TH.optical": {
-   "label": 2,
-   "none": 547
+   "none": 121,
+   "own": 428
   },
   "research.TH.pet": {
    "already": 45,
    "none": 16
   },
   "research.TH.pharmacy": {
-   "none": 57,
+   "label": 2,
+   "none": 55,
    "same-id": 68
   },
   "research.TH.playground": {
@@ -189,18 +192,18 @@
   "research.TH.shopping_directory": {
    "already": 808,
    "bank": 28,
-   "bilingual": 60,
-   "descriptor": 147,
-   "label": 1427,
+   "bilingual": 62,
+   "descriptor": 158,
+   "label": 1529,
    "legal": 3,
-   "none": 15363
+   "none": 15248
   },
   "research.TH.sport": {
    "already": 310,
    "none": 73
   }
  },
- "files": 371,
+ "files": 419,
  "filesCopied": 0,
  "ambiguousNames": [],
  "withoutLogoTop": {
@@ -466,56 +469,12 @@
   ],
   "research.TH.beauty_clinic": [
    [
-    "Nitipon Clinic / นิติพลคลินิก",
-    49
-   ],
-   [
-    "APEX Clinic / APEX Medical Center",
-    44
-   ],
-   [
-    "Gangnam Clinic / กังนัมคลินิก",
-    35
-   ],
-   [
-    "The Klinique",
-    28
-   ],
-   [
-    "Pornkasem Clinic / พรเกษมคลินิก",
-    28
-   ],
-   [
-    "V Square Clinic",
-    23
-   ],
-   [
     "Romrawin Clinic / รมย์รวินท์คลินิก",
     22
    ],
    [
-    "SLC Clinic / Siam Laser Clinic",
-    20
-   ],
-   [
-    "L.A.B.X Clinic",
-    17
-   ],
-   [
-    "THE KLINIQUE",
-    17
-   ],
-   [
-    "Sparsha / Sparsha Slimming Center",
-    16
-   ],
-   [
     "INFINITY MEDICAL CLINIC",
     13
-   ],
-   [
-    "AES CLASS Clinic",
-    12
    ],
    [
     "The Touch Clinic",
@@ -527,10 +486,6 @@
    ],
    [
     "PAN Clinic / แพนคลินิก",
-    11
-   ],
-   [
-    "Dr. Tattof",
     11
    ],
    [
@@ -564,6 +519,54 @@
    [
     "Seoul Society Clinic",
     4
+   ],
+   [
+    "Makalin Clinic / มคลินทร์คลินิก",
+    4
+   ],
+   [
+    "L'CLINIC",
+    4
+   ],
+   [
+    "ROMRAWIN CLINIC",
+    4
+   ],
+   [
+    "The Clover Clinic",
+    4
+   ],
+   [
+    "Cher Clinic / เฌอคลินิก",
+    4
+   ],
+   [
+    "Infinity Medical Clinic",
+    4
+   ],
+   [
+    "Luxury Clinic",
+    4
+   ],
+   [
+    "LBC Clinic",
+    4
+   ],
+   [
+    "Pruksa Clinic / พฤกษาคลินิก",
+    4
+   ],
+   [
+    "Bonita Luxe Clinic",
+    3
+   ],
+   [
+    "Dermatige Aesthetics / เดอร์มาทีจ",
+    3
+   ],
+   [
+    "DSK Clinic / ดีเอสเคคลินิก",
+    3
    ]
   ],
   "research.TH.camera": [
@@ -734,10 +737,6 @@
     32
    ],
    [
-    "MOSHI MOSHI",
-    31
-   ],
-   [
     "LEMONY",
     31
    ],
@@ -754,10 +753,6 @@
     12
    ],
    [
-    "Moshi Moshi",
-    10
-   ],
-   [
     "ASIA BOOKS",
     9
    ],
@@ -772,10 +767,6 @@
    [
     "TEDDY HOUSE",
     4
-   ],
-   [
-    "TOYS R US",
-    3
    ],
    [
     "Miniso",
@@ -828,6 +819,18 @@
    [
     "BKK BRICK LUXURY",
     1
+   ],
+   [
+    "Jakarade",
+    1
+   ],
+   [
+    "Minna by AsiaStationery / Asia Stationery",
+    1
+   ],
+   [
+    "ECOTOPIA",
+    1
    ]
   ],
   "research.TH.hospital": [
@@ -864,91 +867,19 @@
     84
    ],
    [
-    "AIS",
-    78
-   ],
-   [
-    "Samsung",
-    51
-   ],
-   [
-    "Huawei",
-    49
-   ],
-   [
-    "JIB",
-    43
-   ],
-   [
     "OPPO",
     40
-   ],
-   [
-    "Jaymart",
-    38
-   ],
-   [
-    "Xiaomi",
-    36
-   ],
-   [
-    "IT City",
-    33
    ],
    [
     "Vivo",
     31
    ],
    [
-    "TG Fone",
-    30
-   ],
-   [
-    "Telewiz",
-    27
-   ],
-   [
-    "dtac",
-    24
-   ],
-   [
-    "Advice",
-    20
-   ],
-   [
-    "itgo",
-    20
-   ],
-   [
-    "Thailand Post",
-    19
-   ],
-   [
     "iStudio",
     18
    ],
    [
-    "iCare",
-    17
-   ],
-   [
-    ".LIFE",
-    13
-   ],
-   [
-    "425 Degree",
-    12
-   ],
-   [
-    "ASUS",
-    11
-   ],
-   [
     "REMAX",
-    10
-   ],
-   [
-    "HONOR",
     10
    ],
    [
@@ -958,6 +889,78 @@
    [
     "True Sphere",
     9
+   ],
+   [
+    "HI-SHIELD",
+    8
+   ],
+   [
+    "Apple Sheep",
+    6
+   ],
+   [
+    "DHL Express",
+    5
+   ],
+   [
+    "OTTERI WASH & DRY",
+    5
+   ],
+   [
+    "J&T Express",
+    4
+   ],
+   [
+    "Keychron",
+    4
+   ],
+   [
+    "3BB",
+    4
+   ],
+   [
+    "National Telecom",
+    3
+   ],
+   [
+    "GIZMO",
+    3
+   ],
+   [
+    "CLEANMATE",
+    2
+   ],
+   [
+    "TRUE",
+    2
+   ],
+   [
+    "Flash Express",
+    2
+   ],
+   [
+    "MOFT",
+    1
+   ],
+   [
+    "K IT STORE",
+    1
+   ],
+   [
+    "Cleanmate",
+    1
+   ],
+   [
+    "OPPO SERVICE",
+    1
+   ],
+   [
+    "VIVO",
+    1
+   ],
+   [
+    "Apple",
+    1
    ]
   ],
   "research.TH.nail": [
@@ -996,67 +999,11 @@
   ],
   "research.TH.optical": [
    [
-    "Top Charoen",
-    126
-   ],
-   [
-    "KT OPTIC",
-    56
-   ],
-   [
-    "OWNDAYS",
-    52
-   ],
-   [
-    "Better Vision",
-    29
-   ],
-   [
-    "THE NEXT Optical",
-    28
-   ],
-   [
-    "BETTER VISION",
-    22
-   ],
-   [
-    "Eye Class",
-    15
-   ],
-   [
-    "Beautiful Optic",
-    13
-   ],
-   [
-    "EYE CLASS",
-    13
-   ],
-   [
-    "Sunglass Hut",
-    11
-   ],
-   [
     "OPTIC SQUARE",
     10
    ],
    [
-    "Luxoptic",
-    10
-   ],
-   [
-    "Monde Eyewear",
-    10
-   ],
-   [
-    "Lenskart",
-    9
-   ],
-   [
     "EYELAB EXCLUSIVE",
-    9
-   ],
-   [
-    "LUXOPTIC",
     9
    ],
    [
@@ -1084,16 +1031,72 @@
     5
    ],
    [
-    "Eye Sport",
-    4
-   ],
-   [
     "PARIS MIKI",
     4
    ],
    [
     "EYELAB",
     4
+   ],
+   [
+    "GLASSIQ",
+    3
+   ],
+   [
+    "Opticana",
+    3
+   ],
+   [
+    "Mattaya Vision Center",
+    3
+   ],
+   [
+    "GLASSAHOLIC",
+    3
+   ],
+   [
+    "Tokyo Optic Chiang Mai",
+    2
+   ],
+   [
+    "Infinite Gallery",
+    2
+   ],
+   [
+    "WALTZ",
+    2
+   ],
+   [
+    "โกลเด้นออพติค",
+    2
+   ],
+   [
+    "Taifa Optic",
+    2
+   ],
+   [
+    "แว่นตาโดมินิค",
+    1
+   ],
+   [
+    "แว่นตาราชดำริ",
+    1
+   ],
+   [
+    "คีพลุค ออปติคอล",
+    1
+   ],
+   [
+    "EYE BRIGHT",
+    1
+   ],
+   [
+    "Bridders Optical",
+    1
+   ],
+   [
+    "Goodr",
+    1
    ]
   ],
   "research.TH.pet": [
@@ -1142,10 +1145,6 @@
    [
     "HEALTH UP",
     3
-   ],
-   [
-    "iCare",
-    2
    ],
    [
     "Fascino",

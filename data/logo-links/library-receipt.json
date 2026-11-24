@@ -1,0 +1,54 @@
+{
+ "meta": {
+  "kit": "citymeter-logos 1.1.0",
+  "exportedOn": "2026-11-24",
+  "rule": "a research master logo file is added only when its bytes equal the sheet logo_sha256 of a brand the shop lists name, status collected, role brand_primary; an existing manifest entry is never replaced; backing as scripts/collect-research-logos.py",
+  "manifestSha256": "19d2b65a7b5dd5160036e01253f7a5c7bf7fb7cfa2d1ca33b8816331885c9611"
+ },
+ "masters": {
+  "research.TH.optical": {
+   "title": "CityMETER Optical Shops Thailand — Research Master 2026-10-23",
+   "tab": "01_BRANDS",
+   "exportSha256": "be42e50f60a348abaf857aa799102ddee48ace3c51760faa97a56d355e1ae192",
+   "exportedOn": "2026-11-24",
+   "added": 13,
+   "addedFromShippedFile": 1,
+   "fileNotSupplied": 14,
+   "notInShopLists": 30,
+   "records": 57
+  },
+  "research.TH.miscellaneous": {
+   "title": "CityMETER Miscellaneous Thailand — Research Master",
+   "tab": "01_BRANDS",
+   "exportSha256": "0e291721d76754e5d57bea8d5ef8a6759f1c42e554501334d57061ddb3e8bf1c",
+   "exportedOn": "2026-11-24",
+   "added": 23,
+   "addedFromShippedFile": 1,
+   "fileNotSupplied": 6,
+   "heldRole": 4,
+   "notInShopLists": 3,
+   "records": 36
+  },
+  "research.TH.hobby": {
+   "title": "CityMETER Hobby Stores Thailand — Research Master 2026-11-05",
+   "tab": "01_BRANDS",
+   "exportSha256": "380d390d9166f5441d6014c67077c8bd2ad65da7b9354aeb73a35aacbfd57709",
+   "exportedOn": "2026-11-24",
+   "added": 3,
+   "fileNotSupplied": 9,
+   "notInShopLists": 73,
+   "records": 85
+  },
+  "research.TH.beauty_clinic": {
+   "title": "CityMETER Beauty Clinic Thailand — Research Master 2026-11-03",
+   "tab": "17_BRAND_LOGOS",
+   "exportSha256": "18660e182a1119a4f3490804c640e846f7c0f6fbf27f8563b6f92994fa6aac25",
+   "exportedOn": "2026-11-24",
+   "added": 13,
+   "fileNotSupplied": 37,
+   "notInShopLists": 125,
+   "records": 175,
+   "surfaceConflict": 2
+  }
+ }
+}

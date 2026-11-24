@@ -671,3 +671,11 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - citymeter.pages.dev: montri-th/citymeter-pages-deploy run 45318129145 (workflow_dispatch, publish) สำเร็จ “114 / 114 live checks passed”
 - Headless Chrome บน GitHub Pages (แผนที่ฐานถูก proxy ของตู้ทำงานกั้น ตรวจแผงและการ์ด): ซีคอนสแควร์ ศรีนครินทร์ 1,440 px — หัวแผง `assets/venue-logos-family/5e4716d582687257c83f.svg` และหลักฐาน “โลโก้ศูนย์ … ชุด Camera Shops ของ CityMETER … (SC-001360)” · โรบินสัน ไลฟ์สไตล์ ชลบุรี 390 px `?lang=en` — โลโก้ `aca01da96ad2787b6e0c.png` และ “Center logo: This logo comes from CityMETER Camera Shops …” · `__citymeterI18n.missing` 0
 - ยังไม่ได้ตรวจด้วยตาใน Chrome ของเจ้าของบน citymeter.pages.dev: ส่วนขยาย Claude in Chrome ไม่ได้เชื่อมต่อระหว่างตรวจ (ไบต์บน citymeter.pages.dev ยืนยันด้วยการตรวจ 114 จุดของ deploy run)
+
+## 0.9.9 — โลโก้ร้านจากคลังโลโก้ของชีตวิจัย (`20261124-r3`, D66) — local verification
+
+- `python3 -I scripts/add-library-logos.py` กับ export 24 พ.ย. 2569 ของ Optical · Miscellaneous · Hobby (`01_BRANDS`) และ Beauty Clinic (`17_BRAND_LOGOS`) · ไฟล์ 51 ไฟล์ที่ดาวน์โหลดจากคลังโลโก้ผ่าน Drive connector และตรวจ SHA-256 ตรงชีตทุกไฟล์ · SVG 19 ไฟล์วาดด้วย `scripts/render-svg-logos.cjs`: เพิ่ม 52 รายการ (Optical 13 · Miscellaneous 23 · Hobby 3 · Beauty Clinic 13) · ไฟล์ใหม่ 48 · พื้นขัดกับชีต 2 (Gangnam Clinic · V Square Clinic) · ยังไม่มีไฟล์ 66
+- รอบแรกใช้ `plate_for` ของชุดกลางอย่างเดียว: Studio7 (SVG) ได้พื้นเข้มใต้ wordmark สีดำ และไม่ได้อ่านพื้นที่ชีตระบุ → แก้ให้ใช้กฎของ `collect-research-logos.py` (พื้นที่ชีตระบุ · ภาพ SVG ที่วาด) แล้วรันใหม่จากทะเบียนเดิม
+- contact sheet ของ 52 รายการบนพื้นสว่างและพื้นมืด: ทุกโลโก้อ่านได้บนพื้นรองของมัน (Studio7 พื้นสว่าง · SLC พื้นเข้มตามชีต · Gangnam และ V Square พื้นเข้มตามภาพ)
+- `python3 -I scripts/attach-family-logos.py --family /home/claude --checked-on 2026-11-24`: 9,856 จาก 26,683 รายการมีโลโก้ (เดิม 8,411) · ลิงก์เดิม 3,229 รายการใช้ไฟล์เดิมทั้งหมด
+- หน้าเว็บ local (Chrome headless, 1440 px): เซ็นทรัล เวสต์เกต `SC-006426` หลักฐาน “โลโก้ร้าน” อ่าน 201 จาก 662 ร้าน · `?lang=en` อ่าน “201 of 662 shops in this list have a logo … against the record of its source dataset or of the research team's logo library” · เทอร์มินอล21 อโศก `SC-001783` 79 จาก 400 · รูปที่โหลดไม่เสีย · ไม่มี page error
