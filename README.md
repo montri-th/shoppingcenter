@@ -171,6 +171,12 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.9.12 - ข้อยกเว้นของเจ้าของ: ป้ายเครือร่วม 7 แบรนด์ (`20261124-r6`)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 16:48 “Tsuruha, True Shop, OPPO, Vivo, iStudio, Nintendo, LEGO ใช้โลโก้ที่มีไปเลย ผมยกเว้นให้”
+
+- True Shop · OPPO · Vivo · iStudio · Nintendo Authorized Store · LEGO Certified Store ใช้ไฟล์ที่ชีตบันทึก (ป้ายเครือร่วม/wordmark ร่วม) เฉพาะ 7 รหัสแบรนด์นี้ (`OWNER_ROLE_EXCEPTIONS`) · ร้านที่มีโลโก้ 10,489 → 10,692 จาก 26,683 · Tsuruha ขึ้นในเดโมร้านยา
+
 ## 0.9.11 - โลโก้ของแบรนด์ที่ไดเรกทอรีผูกไว้ และเครือร้านยา (`20261124-r5`)
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 14:47 “ต่อครับ”

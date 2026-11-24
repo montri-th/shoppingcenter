@@ -7737,5 +7737,77 @@
   "assetUrl": "https://www.aestimaclinic.com/wp-content/uploads/2023/01/logo-Aestima-1.png",
   "checkedOn": "2026-11-09",
   "origin": "CityMETER Beauty Clinic Thailand — Research Master 2026-11-03 · 17_BRAND_LOGOS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
+ },
+ "research.TH.miscellaneous|BR-MISC-af7ce357d04848826916": {
+  "file": "assets/tenant-logos/235db005d3f744afc261.jpg",
+  "sha256": "235db005d3f744afc2614a00cd4f4d09bacbae462fbb958005cd5109475bbd7c",
+  "mime": "image/jpeg",
+  "width": 300,
+  "height": 130,
+  "background": "#FFFFFF",
+  "sourceUrl": "https://www.comseven.com/th/true-shop/",
+  "assetUrl": "https://www.comseven.com/wp-content/uploads/2023/03/true-logo.jpeg",
+  "checkedOn": "2026-11-09",
+  "origin": "CityMETER Miscellaneous Thailand — Research Master · 01_BRANDS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
+ },
+ "research.TH.miscellaneous|BR-MISC-e06cd5d02e4d5bd608f5": {
+  "file": "assets/tenant-logos/297c469a60d6be652328.svg",
+  "sha256": "297c469a60d6be652328c2624ef9b61b0d95ba901e294bd464a857696d1682a0",
+  "mime": "image/svg+xml",
+  "width": 85.0,
+  "height": 22.0,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.oppo.com/th/shops/",
+  "assetUrl": "https://www.oppo.com/th/shops/",
+  "checkedOn": "2026-11-09",
+  "origin": "CityMETER Miscellaneous Thailand — Research Master · 01_BRANDS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
+ },
+ "research.TH.miscellaneous|BR-MISC-067f7ec28aba6b7ea80c": {
+  "file": "assets/tenant-logos/914910f2736442561fc9.svg",
+  "sha256": "914910f2736442561fc9e3253d408aa109b2fc5088ea7f85a1b08e899ff56bfb",
+  "mime": "image/svg+xml",
+  "width": 104.0,
+  "height": 28.0,
+  "background": "#182327",
+  "sourceUrl": "https://www.vivo.com/th/where-to-buy",
+  "assetUrl": "https://www.vivo.com/th/where-to-buy",
+  "checkedOn": "2026-11-09",
+  "origin": "CityMETER Miscellaneous Thailand — Research Master · 01_BRANDS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
+ },
+ "research.TH.miscellaneous|BR-MISC-cfa6e54419128e437774": {
+  "file": "assets/tenant-logos/722d0c1eb5dfd8b86ef6.png",
+  "sha256": "722d0c1eb5dfd8b86ef6efc6e2432c3a1c4c1cec63a2e280f21d1686f9ba2e86",
+  "mime": "image/png",
+  "width": 690,
+  "height": 193,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://store.uficon.com/stores/",
+  "assetUrl": "https://store.uficon.com/app/uploads/2026/02/logo_iStudioUFicon-1400x249.png",
+  "checkedOn": "2026-11-09",
+  "origin": "CityMETER Miscellaneous Thailand — Research Master · 01_BRANDS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
+ },
+ "research.TH.hobby|HOB-BR-0030": {
+  "file": "assets/tenant-logos/be697084800a5ae658d8.png",
+  "sha256": "be697084800a5ae658d8e0f230852895e9865056b50b93a75d3abdda6f5e2b13",
+  "mime": "image/png",
+  "width": 1200,
+  "height": 630,
+  "background": "#182327",
+  "sourceUrl": "https://www.nintendo.com/th/index.html",
+  "assetUrl": "https://www.nintendo.com/common-a/img/og_nintendo.png",
+  "checkedOn": "2026-11-09",
+  "origin": "CityMETER Hobby Stores Thailand — Research Master 2026-11-05 · 01_BRANDS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
+ },
+ "research.TH.hobby|HOB-BR-0074": {
+  "file": "assets/tenant-logos/e692c130a90f4e348fc4.svg",
+  "sha256": "e692c130a90f4e348fc484cce8e13d43e5275fef4cec1a3878b8e3d96071a6e0",
+  "mime": "image/svg+xml",
+  "width": 180.0,
+  "height": 180.0,
+  "background": "#E5E9E6",
+  "sourceUrl": "https://www.lego.com/en-gb/stores/store/lcs-centralworld",
+  "assetUrl": "https://assets.lego.com/logos/v4.10.0/brand-lego.svg",
+  "checkedOn": "2026-11-09",
+  "origin": "CityMETER Hobby Stores Thailand — Research Master 2026-11-05 · 01_BRANDS export 2026-11-24 · logo library file, SHA-256 equal to the sheet"
  }
 }

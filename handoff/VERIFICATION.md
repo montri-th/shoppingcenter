@@ -716,3 +716,9 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - merge PR #44 → `d4c1730` (พร้อม Pharmacy PR #18 → `c8b6bf3`) · deploy run 45352962191: 114/114 live checks · shoppingcenter และ pharmacy key OK
 - `npm run handoff:manifest` (2,510 ไฟล์) · `npm run verify:live`: 2,394 ok · ไฟล์ที่ได้ 503 ชั่วคราวดึงซ้ำได้ 200 ไบต์ตรง · ไม่ตรงคือ `assets/manifest.json` เอง (อยู่ใน commit นี้)
 - citymeter.pages.dev ในเบราว์เซอร์ในแอป Claude: แท็ก `20261124-r5` · เซ็นทรัล เวสต์เกต “โลโก้ร้าน” 223 จาก 662 · ตัวกรอง “ยาและสุขภาพ” แสดงโลโก้ Boots และ Tops Care ครบ
+
+## 0.9.12 — ข้อยกเว้นของเจ้าของ: ป้ายเครือร่วม 7 แบรนด์ (`20261124-r6`) — local verification
+
+- ดาวน์โหลด 7 ไฟล์ผ่าน Google Drive connector: 6 ไฟล์ตรง SHA-256 ของชีต (True Shop · OPPO · Vivo · iStudio · Nintendo · LEGO) · Tsuruha ตรง manifest ของคลัง Pharmacy
+- `add-library-logos.py`: Miscellaneous 36 (ยกเว้น 4) · Hobby 28 (ยกเว้น 2) · บทบาทอื่นที่ถูกกัน 0 · contact sheet 6 โลโก้ใหม่อ่านได้บนพื้นรอง
+- `attach-family-logos.py`: 10,692 จาก 26,683 รายการมีโลโก้ (0.9.11: 10,489)

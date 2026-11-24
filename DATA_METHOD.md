@@ -904,20 +904,20 @@ The regression fixture reproduces the duplicated main footprint before the corre
 - **เดโมอื่น (ตรวจด้วยคลังเดียวกัน, ยังไม่แก้ในรุ่นนี้):** Fitness 71 สถานที่ไม่มีโลโก้ — 14 มีโลโก้ของรหัสเดียวกันใน Camera Shops · Luxury Brands 10 ศูนย์ไม่มีโลโก้ — 8 มีใน Shopping Center; 17 ไฟล์ “รอโอน” — 14 ไฟล์มีไบต์ตรง SHA-256 ที่ชีตบันทึกในเดโมอื่น (`by_sha`) · Camera Shops 2 สถานที่ไม่มีโลโก้ ไม่มีในเดโมใด
 - **ข้อจำกัด:** โลโก้เครือ (โรบินสัน ไลฟ์สไตล์ โลตัส คิง เพาเวอร์) เป็นโลโก้ร่วมของเครือ หน้าเว็บบอกบทบาท “โลโก้เครือ” · ไม่ใช่ใบอนุญาตเครื่องหมายการค้า · ไม่เปลี่ยนการนับหรือข้อมูลศูนย์
 
-## 29. โลโก้ร้านจากคลังโลโก้ของชีตวิจัย (0.9.9–0.9.11, 24 พ.ย. 2569 · D66) {#library-logos}
+## 29. โลโก้ร้านจากคลังโลโก้ของชีตวิจัย (0.9.9–0.9.12, 24 พ.ย. 2569 · D66) {#library-logos}
 
 - **ที่มา (Owner-stated, VERBATIM):** 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน” · 11:11 “เริ่มเลย”
 - **ข้อมูลเข้า:** export ของชีตวิจัยวันที่ 24 พ.ย. 2569 (เก็บนอก repo; SHA-256 อยู่ใน `data/logo-links/library-receipt.json#masters.*.exportSha256`) — Optical · Miscellaneous · Hobby แท็บ `01_BRANDS` และ Beauty Clinic แท็บ `17_BRAND_LOGOS` (แท็บที่มี `brand_id` กับ `logo_sha256`) · โฟลเดอร์ไฟล์ที่ดาวน์โหลดจากคลังโลโก้ของชีต (Drive connector) · ภาพ SVG ที่ `scripts/render-svg-logos.cjs` วาด
 - **กฎ (`scripts/add-library-logos.py`):** (1) แบรนด์อยู่ในรายชื่อร้าน (`data/tenants/`, `data/directory/`: `dataset` + `brandId`; รายการไดเรกทอรีที่ชีตผูกรหัสแบรนด์ไว้ `<dataset>:<brand id>` นับด้วยตั้งแต่ 0.9.11) (2) `logo_status` เก็บแล้ว (`collected`, `ได้ไฟล์โลโก้`) (3) บทบาท `brand_primary` (คอลัมน์ `logo_role` หรือคำแรกของ `logo_notes`) (4) ไฟล์ที่ไบต์ตรง `logo_sha256` เท่านั้น ค้นด้วย SHA-256 ไม่ใช้ชื่อไฟล์ ไฟล์ที่ทะเบียนมีอยู่แล้วนับด้วย (5) SVG ที่มี script หรือ event handler ไม่ใช้ (6) ไม่ทับรายการเดิมในทะเบียน · พื้นรองตาม `collect-research-logos.py`: พื้นที่ชีตระบุ (`recommended_surface` ของ 17_BRAND_LOGOS หรือ `logo_notes`) ชนะ เว้นแต่ขอบภาพหนึ่งในห้าจะต่ำกว่า 2:1 บนพื้นนั้น (นับ `surfaceConflict`) · SVG อ่านจากภาพที่วาด · URL เก็บเฉพาะ https สาธารณะ
 - **เขียน:** ไฟล์ `assets/tenant-logos/<sha20>.<ext>` (ไบต์เดิม) · รายการ `research.TH.<dataset>|<brandId>` ใน `assets/tenant-logos-manifest.json` (`origin` บอกชีต แท็บ และวันที่ export) · ใบรับ `data/logo-links/library-receipt.json` (ต่อชีต: แท็บ SHA-256 ของ export จำนวนแต่ละเหตุผล · SHA-256 ของทะเบียนที่เขียนเสร็จ) · แล้วรัน `scripts/attach-family-logos.py` (§27, ผูกด้วยรหัสแบรนด์ของร้าน basis `own` หรือชื่อที่ทีมวิจัยยืนยัน)
 - **ลำดับ:** `collect-research-logos.py` เขียนรายการของชุดใน ADAPTERS ใหม่ทั้งหมด (Beauty Clinic อยู่ในนั้น) จึงต้องรัน `add-library-logos.py` หลังสคริปต์นั้นเสมอ แล้วจึงรัน `attach-family-logos.py` · `tests/library-logos.test.js` ไม่ผ่านเมื่อทะเบียนเปลี่ยนหลังใบรับ หรือไฟล์ไม่ตรง SHA-256 · `LIBRARY_ARGS="…" npm run data:refresh` รันให้
-- **ผล 24 พ.ย. 2569 (Observed fact, หลังรอบสาม 0.9.11):**
+- **ผล 24 พ.ย. 2569 (Observed fact, หลังข้อยกเว้น 0.9.12):**
 
 | ชีต | แถวที่มี SHA-256 | ไม่อยู่ในรายชื่อร้าน | บทบาทอื่น | ยังไม่มีไฟล์ | เพิ่ม |
 |---|---:|---:|---:|---:|---:|
 | Optical | 57 | 28 | 0 | 0 | 29 (ไฟล์เดียวกับรายการอื่นในทะเบียน 1: Gentle Monster) |
-| Miscellaneous | 36 | 0 | 4 | 0 | 32 (ไฟล์เดียวกับรายการอื่นในทะเบียน 1) |
-| Hobby | 85 | 57 | 2 | 0 | 26 |
+| Miscellaneous | 36 | 0 | 0 (เจ้าของยกเว้น 4) | 0 | 36 (ไฟล์เดียวกับรายการอื่นในทะเบียน 1) |
+| Hobby | 85 | 57 | 0 (เจ้าของยกเว้น 2) | 0 | 28 |
 | Beauty Clinic | 175 | 122 | 0 | 0 | 53 (พื้นขัดกับชีต 9) |
 | Pharmacy (manifest ของคลัง 9 พ.ย. 2569) | 32 | 16 | 0 | 0 | 16 (ไฟล์เดียวกับรายการอื่นในทะเบียน 3) |
 
@@ -926,6 +926,8 @@ The regression fixture reproduces the duplicated main footprint before the corre
   รอบสอง (0.9.10, อีก 66 แบรนด์ ดาวน์โหลดผ่าน Drive connector หลังเจ้าของ 24 พ.ย. 2569 13:02 “คลัง logo น่าจะอยู่ใน drive พี่ไปหาเลย” · “google drive”): ร้านที่มีโลโก้ 9,856 → 10,292 (Beauty Clinic +189 · Hobby +94 · Optical +70 · Miscellaneous +48 · ไดเรกทอรี +35; basis own 2,788 → 3,189 · label 1,561 → 1,595 · descriptor 162 → 163) · สถานที่ที่มีลิงก์โลโก้ 336 → 347 · มีร้านแสดงโลโก้อย่างน้อยหนึ่งร้าน 614 → 616 จาก 704 · ไฟล์ใหม่ 66 · รันซ้ำจากทะเบียนที่มีรายการของคลังแล้วได้ใบรับและทะเบียนไบต์เดิม (รายการที่สคริปต์เขียนไว้นับเป็น `added` และตรวจพื้นรองซ้ำ; `sharedFile` นับรายการที่ใช้ไฟล์เดียวกับรายการอื่น)
 
   รอบสาม (0.9.11, เจ้าของ 24 พ.ย. 2569 14:47 “ต่อครับ”): แบรนด์ที่ไดเรกทอรีผูกไว้อีก 22 (ไฟล์ SHA-256 ตรงชีต) และ Pharmacy 16 เครือจาก `--manifest pharmacy=<manifest ของคลัง>` (ชีต Pharmacy ใหญ่เกินกว่า Drive จะส่งออก; manifest ของคลัง 9 พ.ย. 2569 อ้าง `sheet_row` ของชีต — ใบรับบอก `record: library manifest` และ `origin` ของรายการบอกว่าเทียบ SHA-256 กับ manifest ไม่ใช่ชีต) · ร้านที่มีโลโก้ 10,292 → 10,489 (Hobby +75 · Pharmacy +55 · ไดเรกทอรี +41 · Miscellaneous +11 · Beauty Clinic +9 · Optical +5 · PARC +1) · สถานที่ที่มีร้านแสดงโลโก้ 616 → 624 จาก 704 · คลัง Restaurants (`Restaurants_Brand_Logos_Web`) ไม่มีไฟล์ใหม่หลัง 30 ต.ค. 2569 และเดโม Restaurants ใช้ไฟล์ของคลังแล้ว (563 ไฟล์) แบรนด์ร้านอาหาร 129 แบรนด์ 322 รายการยังไม่มีไฟล์
+
+  ข้อยกเว้นของเจ้าของ (0.9.12, 24 พ.ย. 2569 16:48 “Tsuruha, True Shop, OPPO, Vivo, iStudio, Nintendo, LEGO ใช้โลโก้ที่มีไปเลย ผมยกเว้นให้”): ไฟล์ป้ายเครือร่วม (`shared_chain_banner`) หรือ wordmark ร่วม (`shared_brand_wordmark`) ใช้ได้เฉพาะรหัสแบรนด์ใน `OWNER_ROLE_EXCEPTIONS` (นับ `ownerRoleException` ในใบรับ) · True Shop · OPPO · Vivo · iStudio · Nintendo Authorized Store · LEGO Certified Store ไฟล์ตรง SHA-256 ของชีต · ร้านที่มีโลโก้ 10,489 → 10,692 · Tsuruha (Pharmacy) ไม่อยู่ในรายชื่อร้าน — ขึ้นในเดโมร้านยา
 - **ยังไม่ได้ทำ:** โลโก้ของแบรนด์ร้านอาหาร 129 แบรนด์ที่คลังยังไม่มีไฟล์ · ไดเรกทอรี 15,213 รายการที่ยังไม่ผูกแบรนด์ (งานของทีมวิจัย) · 9 ไฟล์ Beauty Clinic ที่พื้นขัดกับชีต (Aura Bangkok · Dii Wellness Med Spa · Gangnam · LBC · Rajdhevee · SoWon · The Clover · The Touch · V Square) ให้ทีมวิจัยตรวจ
 - **ข้อจำกัด:** ชีตเป็นผู้บันทึก SHA-256 ไฟล์จึงพิสูจน์ได้ว่าตรงกับที่ทีมวิจัยเก็บ ไม่ได้พิสูจน์ว่าเป็นโลโก้ปัจจุบันของแบรนด์ · โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับ และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า
 
