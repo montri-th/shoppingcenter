@@ -904,6 +904,26 @@ The regression fixture reproduces the duplicated main footprint before the corre
 - **เดโมอื่น (ตรวจด้วยคลังเดียวกัน, ยังไม่แก้ในรุ่นนี้):** Fitness 71 สถานที่ไม่มีโลโก้ — 14 มีโลโก้ของรหัสเดียวกันใน Camera Shops · Luxury Brands 10 ศูนย์ไม่มีโลโก้ — 8 มีใน Shopping Center; 17 ไฟล์ “รอโอน” — 14 ไฟล์มีไบต์ตรง SHA-256 ที่ชีตบันทึกในเดโมอื่น (`by_sha`) · Camera Shops 2 สถานที่ไม่มีโลโก้ ไม่มีในเดโมใด
 - **ข้อจำกัด:** โลโก้เครือ (โรบินสัน ไลฟ์สไตล์ โลตัส คิง เพาเวอร์) เป็นโลโก้ร่วมของเครือ หน้าเว็บบอกบทบาท “โลโก้เครือ” · ไม่ใช่ใบอนุญาตเครื่องหมายการค้า · ไม่เปลี่ยนการนับหรือข้อมูลศูนย์
 
+## 29. โลโก้ร้านจากคลังโลโก้ของชีตวิจัย (0.9.9, 24 พ.ย. 2569 · D66) {#library-logos}
+
+- **ที่มา (Owner-stated, VERBATIM):** 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน” · 11:11 “เริ่มเลย”
+- **ข้อมูลเข้า:** export ของชีตวิจัยวันที่ 24 พ.ย. 2569 (เก็บนอก repo; SHA-256 อยู่ใน `data/logo-links/library-receipt.json#masters.*.exportSha256`) — Optical · Miscellaneous · Hobby แท็บ `01_BRANDS` และ Beauty Clinic แท็บ `17_BRAND_LOGOS` (แท็บที่มี `brand_id` กับ `logo_sha256`) · โฟลเดอร์ไฟล์ที่ดาวน์โหลดจากคลังโลโก้ของชีต (Drive connector) · ภาพ SVG ที่ `scripts/render-svg-logos.cjs` วาด
+- **กฎ (`scripts/add-library-logos.py`):** (1) แบรนด์อยู่ในรายชื่อร้าน (`data/tenants/`, `data/directory/`: `dataset` + `brandId`) (2) `logo_status` เก็บแล้ว (`collected`, `ได้ไฟล์โลโก้`) (3) บทบาท `brand_primary` (คอลัมน์ `logo_role` หรือคำแรกของ `logo_notes`) (4) ไฟล์ที่ไบต์ตรง `logo_sha256` เท่านั้น ค้นด้วย SHA-256 ไม่ใช้ชื่อไฟล์ ไฟล์ที่ทะเบียนมีอยู่แล้วนับด้วย (5) SVG ที่มี script หรือ event handler ไม่ใช้ (6) ไม่ทับรายการเดิมในทะเบียน · พื้นรองตาม `collect-research-logos.py`: พื้นที่ชีตระบุ (`recommended_surface` ของ 17_BRAND_LOGOS หรือ `logo_notes`) ชนะ เว้นแต่ขอบภาพหนึ่งในห้าจะต่ำกว่า 2:1 บนพื้นนั้น (นับ `surfaceConflict`) · SVG อ่านจากภาพที่วาด · URL เก็บเฉพาะ https สาธารณะ
+- **เขียน:** ไฟล์ `assets/tenant-logos/<sha20>.<ext>` (ไบต์เดิม) · รายการ `research.TH.<dataset>|<brandId>` ใน `assets/tenant-logos-manifest.json` (`origin` บอกชีต แท็บ และวันที่ export) · ใบรับ `data/logo-links/library-receipt.json` (ต่อชีต: แท็บ SHA-256 ของ export จำนวนแต่ละเหตุผล · SHA-256 ของทะเบียนที่เขียนเสร็จ) · แล้วรัน `scripts/attach-family-logos.py` (§27, ผูกด้วยรหัสแบรนด์ของร้าน basis `own` หรือชื่อที่ทีมวิจัยยืนยัน)
+- **ลำดับ:** `collect-research-logos.py` เขียนรายการของชุดใน ADAPTERS ใหม่ทั้งหมด (Beauty Clinic อยู่ในนั้น) จึงต้องรัน `add-library-logos.py` หลังสคริปต์นั้นเสมอ แล้วจึงรัน `attach-family-logos.py` · `tests/library-logos.test.js` ไม่ผ่านเมื่อทะเบียนเปลี่ยนหลังใบรับ หรือไฟล์ไม่ตรง SHA-256 · `LIBRARY_ARGS="…" npm run data:refresh` รันให้
+- **ผล 24 พ.ย. 2569 (Observed fact):**
+
+| ชีต | แถวที่มี SHA-256 | ไม่อยู่ในรายชื่อร้าน | บทบาทอื่น | ยังไม่มีไฟล์ | เพิ่ม |
+|---|---:|---:|---:|---:|---:|
+| Optical | 57 | 30 | 0 | 14 | 13 (ไฟล์ที่ทะเบียนมีอยู่แล้ว 1: Gentle Monster) |
+| Miscellaneous | 36 | 3 | 4 | 6 | 23 |
+| Hobby | 85 | 73 | 0 | 9 | 3 |
+| Beauty Clinic | 175 | 125 | 0 | 37 | 13 (พื้นขัดกับชีต 2) |
+
+  ร้านที่มีโลโก้ 8,411 → 9,856 จาก 26,683 (basis own 1,333 → 2,788 · label 1,459 → 1,561 · descriptor 151 → 162 · bilingual 60 → 62 · same-id 195 → 70: ร้าน Miscellaneous 125 ร้านที่เคยได้โลโก้จากรหัสเดียวกันในชุดอื่น ตอนนี้ได้จากแบรนด์ของตัวเอง ไฟล์เดิม) · สถานที่ที่มีลิงก์โลโก้ 212 → 336 · มีร้านแสดงโลโก้อย่างน้อยหนึ่งร้าน 586 → 614 จาก 704 · ไฟล์ใหม่ 48 ไฟล์ · ลิงก์เดิม 3,229 รายการใช้ไฟล์เดิมทั้งหมด
+- **ยังไม่ได้ทำ:** 66 แบรนด์ยังไม่มีไฟล์ (ราว 264 รายการ) — 65 ไฟล์รอโอนผ่าน Google Drive บนเครื่องเจ้าของ (ดาวน์โหลดภาพผ่าน connector ทีละไฟล์แสดงภาพลงบทสนทนา) และ Romrawin Clinic ที่ Drive หาไฟล์ตามลิงก์ในชีตไม่พบ · คลังของ Pharmacy (export ใหญ่เกิน) และ Restaurants · ไดเรกทอรี 15,248 รายการที่ยังไม่ผูกแบรนด์
+- **ข้อจำกัด:** ชีตเป็นผู้บันทึก SHA-256 ไฟล์จึงพิสูจน์ได้ว่าตรงกับที่ทีมวิจัยเก็บ ไม่ได้พิสูจน์ว่าเป็นโลโก้ปัจจุบันของแบรนด์ · โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับ และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า
+
 ## Additional dated MLA membership evidence — 26 October 2026
 
 The PARC MLA crosswalk covers the project and15 competitors. Original venue/store source populations remain separate from this additional dated evidence. New venue identities are exact named project matches, never a nearest retailer or market. Current selected points win over older MLA alternatives; the newly selected Bangkok Mall point is a project-site reference, not an entrance or footprint. Dadfa’s leased-retail project supports historical definition with current operation unconfirmed. JAS has primary corporate portfolio and exact component-address evidence; approximately19,850sqm is reported leasable area, not surveyed area. PADDIO remains a future project: construction year, Zone1/2 area and floors do not become an actual opening date or whole-site GFA.

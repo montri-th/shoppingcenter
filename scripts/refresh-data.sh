@@ -59,6 +59,14 @@ for title, items in (('status values read by the fallback rule', fallback),
             print('  ', i)
 PY
 
+# D66: brand logos from the research masters' logo libraries (scripts/add-library-logos.py), after
+# scripts/collect-research-logos.py and before the family links:
+# LIBRARY_ARGS="--master optical=<xlsx> … --files <dir> --exported-on <date> --svg-renders <dir>".
+if [ -n "${LIBRARY_ARGS:-}" ]; then
+  # shellcheck disable=SC2086
+  python3 -I scripts/add-library-logos.py $LIBRARY_ARGS
+fi
+
 # D64 / D65: shop and centre logos the CityMETER demo family already verified (scripts/attach-family-logos.py,
 # scripts/attach-family-venue-logos.py). They read the demo checkouts
 # side by side: FAMILY_DIR=<folder holding shoppingcenter/, restaurant/, fitness/, …>. Without it the logo links stay as

@@ -751,6 +751,8 @@ export default {
     [re(`${N} โลโก้มาจากชุดข้อมูลอื่นของ CityMETER ที่รู้จักแบรนด์เดียวกัน`), m => `${m[1]} ${one(m[1]) ? 'logo comes' : 'logos come'} from another CityMETER dataset that knows the same brand`],
     [re('จับคู่ด้วยรหัสแบรนด์เดียวกัน หรือชื่อเดียวกับที่ทีมวิจัยยืนยันแล้ว ไม่ใช้ชื่อที่แค่คล้ายกัน'), 'matched by the same brand id or a name the research team confirmed, never by a name that only looks alike'],
     [re('ไฟล์ตรวจ SHA-256 ตรงกับชุดที่เผยแพร่'), 'every file checked by SHA-256 against the dataset that published it'],
+    // D66: logos from the research masters' logo libraries are checked against the sheet's record.
+    [re('ไฟล์ตรวจ SHA-256 ตรงกับที่ชุดข้อมูลต้นทางหรือคลังโลโก้ของทีมวิจัยบันทึกไว้'), 'every file checked by SHA-256 against the record of its source dataset or of the research team\'s logo library'],
     // D65: the centre-logo note of the evidence list.
     [re('โลโก้นี้มาจากชุด (.+) ของ CityMETER ซึ่งใช้รหัสสถานที่เดียวกัน \\(([A-Za-z0-9-]+)\\)'), m => `This logo comes from CityMETER ${m[1]}, which gives the venue the same id (${m[2]})`],
     [re('ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับ และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า'), 'the logo identifies a name on screen and changes no count; collecting the file is not a trademark licence'],

@@ -171,6 +171,14 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.9.9 - โลโก้ร้านจากคลังโลโก้ของชีตวิจัย (`20261124-r3`)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน” · 11:11 “เริ่มเลย”
+
+- **โลโก้จากคลังของชีตวิจัย (D66):** แบรนด์ของ Optical · Miscellaneous · Hobby · Beauty Clinic ที่ชีตวิจัยเก็บโลโก้พร้อม SHA-256 ไว้แสดงโลโก้นั้น — `scripts/add-library-logos.py` ใช้ไฟล์เฉพาะที่ไบต์ตรงชีต สถานะเก็บแล้ว บทบาท brand_primary และแบรนด์อยู่ในรายชื่อร้าน ไม่ทับรายการเดิม · ชุดกลางผูกกับร้านด้วยรหัสแบรนด์ (D64) · ร้านที่มีโลโก้ 8,411 → 9,856 จาก 26,683 รายการ
+- **ใบรับ:** `data/logo-links/library-receipt.json` (SHA-256 ของ export แต่ละชีต จำนวนแต่ละเหตุผล และ SHA-256 ของทะเบียนโลโก้) · `tests/library-logos.test.js`
+- **ยังไม่ครบ:** 66 จาก 118 แบรนด์ยังไม่มีไฟล์ — 65 ไฟล์รอโอนผ่านเครื่องเจ้าของ · Romrawin Clinic หาไฟล์ใน Drive ไม่พบ
+
 ## 0.9.8 - โลโก้ศูนย์จากเดโมอื่นของ CityMETER (`20261124-r2`)
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 07:53 “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน”

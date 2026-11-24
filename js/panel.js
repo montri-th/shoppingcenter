@@ -394,7 +394,7 @@ function evidenceRows(row, d, {buildingNote = '', addressNote = '', tenants = nu
     const shopItems = tenants.roster.items || [];
     const withLogo = shopItems.filter(x => x.logo).length;
     const fromFamily = shopItems.filter(x => x.logo && x.logoBasis).length;
-    if (shopItems.length) note('โลโก้ร้าน', `${num(withLogo)} จาก ${num(shopItems.length)} ร้านในรายชื่อนี้มีโลโก้${fromFamily ? ` · ${num(fromFamily)} โลโก้มาจากชุดข้อมูลอื่นของ CityMETER ที่รู้จักแบรนด์เดียวกัน` : ''} · จับคู่ด้วยรหัสแบรนด์เดียวกัน หรือชื่อเดียวกับที่ทีมวิจัยยืนยันแล้ว ไม่ใช้ชื่อที่แค่คล้ายกัน · ไฟล์ตรวจ SHA-256 ตรงกับชุดที่เผยแพร่ · โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับร้าน และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า`);
+    if (shopItems.length) note('โลโก้ร้าน', `${num(withLogo)} จาก ${num(shopItems.length)} ร้านในรายชื่อนี้มีโลโก้${fromFamily ? ` · ${num(fromFamily)} โลโก้มาจากชุดข้อมูลอื่นของ CityMETER ที่รู้จักแบรนด์เดียวกัน` : ''} · จับคู่ด้วยรหัสแบรนด์เดียวกัน หรือชื่อเดียวกับที่ทีมวิจัยยืนยันแล้ว ไม่ใช้ชื่อที่แค่คล้ายกัน · ไฟล์ตรวจ SHA-256 ตรงกับที่ชุดข้อมูลต้นทางหรือคลังโลโก้ของทีมวิจัยบันทึกไว้ · โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับร้าน และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า`);
   }
   // D65: a venue logo another CityMETER demo verified for the same venue id.
   const venueLogo = getVenueLogo(row.id, row.name);
