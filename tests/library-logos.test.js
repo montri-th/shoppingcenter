@@ -14,7 +14,7 @@ const read = path => JSON.parse(bytes(path).toString('utf8'));
 const sha = buf => createHash('sha256').update(buf).digest('hex');
 const receipt = read('data/logo-links/library-receipt.json');
 const manifest = read('assets/tenant-logos-manifest.json');
-const library = Object.entries(manifest).filter(([, v]) => /logo library file, SHA-256 equal to the sheet/.test(v.origin || ''));
+const library = Object.entries(manifest).filter(([, v]) => /logo library file, SHA-256 equal to the (sheet|library manifest)/.test(v.origin || ''));
 
 test('the receipt names the manifest it left (run scripts/add-library-logos.py after any change to the manifest)', () => {
   assert.equal(receipt.meta.manifestSha256, sha(bytes('assets/tenant-logos-manifest.json')));
