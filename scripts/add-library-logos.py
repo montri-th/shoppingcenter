@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Brand logos from the research masters' logo libraries, byte for byte as the sheets recorded them (D66, owner 2026-11-24).
 
-  python3 -I scripts/add-library-logos.py --master optical=<xlsx> [--master …] --files <dir> --exported-on YYYY-MM-DD \
-      [--svg-renders <dir of scripts/render-svg-logos.cjs output>]
+  python3 -I scripts/add-library-logos.py --master optical=<xlsx> [--master …] [--manifest pharmacy=<json>] --files <dir> \
+      --exported-on YYYY-MM-DD [--svg-renders <dir of scripts/render-svg-logos.cjs output>]
 
 Owner 2026-11-24 07:53, VERBATIM: “ทำไมหลายร้านในศูนย์การค้าเราควรจะมี logo แล้ว แต่เวบเดโมไม่แสดงโลโก้ แก้ให้ครบทุก venue
 และตรวจใน dataset อื่นๆด้วยในเคสนี้หาวิธีแก้ที่แก้ได้ทุกที่เหมือนกัน”; 11:11 “เริ่มเลย” (bring in the research masters'
@@ -52,6 +52,7 @@ TITLES = {
     'miscellaneous': 'CityMETER Miscellaneous Thailand — Research Master',
     'hobby': 'CityMETER Hobby Stores Thailand — Research Master 2026-11-05',
     'beauty_clinic': 'CityMETER Beauty Clinic Thailand — Research Master 2026-11-03',
+    'pharmacy': 'CityMETER Pharmacy Thailand — logo library web manifest 2026-11-09',
 }
 OK_STATUS = {'collected', 'ได้ไฟล์โลโก้'}
 ROLES = ('brand_primary', 'shared_chain_banner', 'shared_brand_wordmark', 'shared_mark', 'parent_complex', 'context')
@@ -110,6 +111,21 @@ def backing_of(raw, mime, sha, renders, surface, counts):
     return width, height, backing
 
 
+def manifest_rows(path):
+    """A logo library's web manifest (mappings + assets, as the research team wrote it beside the files): one row per
+    mapping in the sheet's own words, so the same rule applies. Used where the master is too large to export."""
+    d = json.loads(Path(path).read_text(encoding='utf-8'))
+    assets = {x['asset_id']: x for x in d.get('assets', [])}
+    rows = []
+    for m in d.get('mappings', []):
+        x = assets.get(m.get('asset_id'), {})
+        rows.append({'brand_id': m.get('entity_id'), 'logo_sha256': x.get('sha256'), 'logo_status': m.get('result'),
+                     'logo_role': m.get('logo_role'), 'recommended_surface': x.get('recommended_surface'),
+                     'logo_source_url': x.get('source_page_url'), 'logo_asset_url': x.get('source_asset_url'),
+                     'logo_checked_on': d.get('checked_on')})
+    return 'mappings', rows
+
+
 def master_rows(path):
     import openpyxl
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
@@ -124,7 +140,8 @@ def master_rows(path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--master', action='append', required=True, help='<dataset folder>=<xlsx export>')
+    ap.add_argument('--master', action='append', default=[], help='<dataset folder>=<xlsx export>')
+    ap.add_argument('--manifest', action='append', default=[], help='<dataset folder>=<logo library web manifest json> (a master too large to export)')
     ap.add_argument('--files', required=True)
     ap.add_argument('--exported-on', required=True)
     ap.add_argument('--svg-renders', help='PNG renders of the SVG files (scripts/render-svg-logos.cjs): the backing is read from what they paint')
@@ -146,15 +163,23 @@ def main():
         for n in range(32):
             for venue in json.loads((ROOT / 'data' / folder / f'{n:02d}.json').read_text(encoding='utf-8')).get('venues', {}).values():
                 for item in venue.get('items', []):
-                    if item.get('brandId') and item.get('dataset'):
-                        named[item['dataset']].add(item['brandId'])
+                    brand = item.get('brandId') or ''
+                    if ':' in brand:
+                        # A directory entry the research sheet linked to a brand of another dataset: "<dataset>:<brand id>".
+                        dataset, _, entity = brand.partition(':')
+                        named[dataset].add(entity)
+                    elif brand and item.get('dataset'):
+                        named[item['dataset']].add(brand)
     receipt = {}
-    for spec in a.master:
+    inputs = [(spec, master_rows, 'sheet') for spec in a.master] + [(spec, manifest_rows, 'library manifest') for spec in a.manifest]
+    if not inputs:
+        sys.exit('give at least one --master or --manifest')
+    for spec, reader, record in inputs:
         folder, _, path = spec.partition('=')
         if folder not in TITLES:
             sys.exit(f'unknown master {folder}')
         dataset = f'research.TH.{folder}'
-        tab, rows = master_rows(path)
+        tab, rows = reader(path)
         counts = collections.Counter()
         for r in rows:
             brand, sha = str(r.get('brand_id') or '').strip(), str(r.get('logo_sha256') or '').strip().lower()
@@ -206,10 +231,10 @@ def main():
             entry = {'file': file, 'sha256': sha, 'mime': mime, 'width': width, 'height': height, 'background': background,
                      'sourceUrl': public_url(r.get('logo_source_url')), 'assetUrl': public_url(r.get('logo_asset_url')),
                      'checkedOn': checked if re.fullmatch(r'\d{4}-\d{2}-\d{2}', checked) else None,
-                     'origin': f'{TITLES[folder]} · {tab} export {a.exported_on} · logo library file, SHA-256 equal to the sheet'}
+                     'origin': f'{TITLES[folder]} · {tab} export {a.exported_on} · logo library file, SHA-256 equal to the {record}'}
             manifest[key] = {k: v for k, v in entry.items() if v is not None}
             counts['added'] += 1
-        receipt[dataset] = {'title': TITLES[folder], 'tab': tab, 'exportSha256': kit.sha256_file(path), 'exportedOn': a.exported_on,
+        receipt[dataset] = {'title': TITLES[folder], 'tab': tab, 'record': record, 'exportSha256': kit.sha256_file(path), 'exportedOn': a.exported_on,
                             **dict(sorted(counts.items()))}
     # Library entries whose file another manifest entry also uses (the same bytes, e.g. a brand another dataset brought in).
     users = collections.Counter(v['sha256'] for v in manifest.values())

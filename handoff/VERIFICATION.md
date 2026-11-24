@@ -701,3 +701,12 @@ Owner request 30 Oct 2026 06:23 (“map fitness กับ venue ตาม https:
 - merge PR #42 → `3fb65c4` · GitHub Pages build ช้ากว่าปกติ (ราว 12 นาที) จึง dispatch แรก (run 45340020656) เห็นรุ่นเดิมและไม่ deploy · dispatch ใหม่หลัง Pages deployment สำเร็จ (run 45340310854): 114 ไฟล์ของรุ่น · 522 ลิงก์ · 114/114 live checks · shoppingcenter `3fb65c4` key OK
 - `npm run handoff:manifest` (2,475 ไฟล์) · `npm run verify:live`: 2,361 ok · 1 ไม่ตรงคือ `assets/manifest.json` เอง (ฉบับใหม่นับไฟล์โลโก้อีก 66 ไฟล์ อยู่ใน commit นี้)
 - citymeter.pages.dev ในเบราว์เซอร์ในแอป Claude บนเครื่องเจ้าของ: แท็ก `20261124-r4` · เซ็นทรัล เวสต์เกต “โลโก้ร้าน” 216 จาก 662 · ตัวกรอง “คลินิกความงาม” แสดงโลโก้ APEX · Aura Bangkok · Bonita Luxe · Doctor Life · Gangnam · L.A.B.X · Makalin ครบ · ไม่มีรูปเสีย
+
+## 0.9.11 — โลโก้ของแบรนด์ที่ไดเรกทอรีผูกไว้ และเครือร้านยา (`20261124-r5`, D66) — local verification
+
+- รายการไดเรกทอรีที่ผูกรหัสแบรนด์ไว้ (`<dataset>:<brand id>`) นับเป็นแบรนด์ในรายชื่อร้าน: อีก 22 ไฟล์ดาวน์โหลดผ่าน Google Drive connector ตรง SHA-256 ของชีตทุกไฟล์ (6 แบรนด์ที่บทบาทเป็นป้ายเครือร่วมไม่ใช้)
+- Pharmacy: manifest ของคลังโลโก้ (ตรวจ 9 พ.ย. 2569) · 27 ไฟล์ brand_primary ที่เดโม Pharmacy ยังไม่มี ดาวน์โหลดแล้วตรง SHA-256 ของ manifest ทุกไฟล์ · ศูนย์การค้าใช้ 16 เครือที่รายชื่อร้านมี
+- `add-library-logos.py`: Optical 29 · Miscellaneous 32 · Hobby 26 · Beauty Clinic 53 · Pharmacy 16 · ยังไม่มีไฟล์ 0 · รันซ้ำได้ใบรับเดิม
+- contact sheet ของ 38 รายการใหม่: อ่านได้บนพื้นรองทุกรายการ
+- `attach-family-logos.py`: 10,489 จาก 26,683 รายการมีโลโก้ (0.9.10: 10,292) · สถานที่ที่มีร้านแสดงโลโก้ 624 จาก 704 · เทอร์มินอล21 อโศก 87 จาก 400 · เซ็นทรัล เวสต์เกต 223 จาก 662
+- คลัง Restaurants: ไม่มีไฟล์ในโฟลเดอร์คลังที่แก้ไขหลัง 30 ต.ค. 2569 (ค้นด้วย Drive connector)

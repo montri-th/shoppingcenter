@@ -9,13 +9,13 @@
  "inputs": {
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "directorySha256": "340f52fc0b2eb57106a15010b79a9b7e15006dfe8892528c8ea4ae4bb442ad0a",
-  "logoManifestSha256": "0c0c827ad041268613b0e75fa6b07eeb17d6ac55dc25cdd4ec1c0a862739615a"
+  "logoManifestSha256": "434082caa4cbdf55d96faa536b9c4a3f9e05d2594a1754560cf62c8faf5e0bca"
  },
  "pool": {
   "kit": "citymeter-logos 1.1.0",
-  "files": 1461,
-  "entities": 1549,
-  "names": 1568,
+  "files": 1496,
+  "entities": 1587,
+  "names": 1608,
   "sources": {
    "restaurant": {
     "commit": "8ed9b4b5cb1854ce943130c6232489cab393a22e",
@@ -60,9 +60,9 @@
     "issues": 0
    },
    "shoppingcenter": {
-    "commit": "8fac5f55fcdcaee5500b56b8eda70e8f544d09e8",
-    "files": 421,
-    "entities": 453,
+    "commit": "4a7ca6010f1b923457e578e2368460cc4922e19e",
+    "files": 456,
+    "entities": 491,
     "issues": 0
    }
   },
@@ -70,12 +70,12 @@
  },
  "items": 26683,
  "withLogoBefore": 5182,
- "added": 5110,
- "withLogoAfter": 10292,
+ "added": 5307,
+ "withLogoAfter": 10489,
  "byBasis": {
-  "own": 3189,
-  "same-id": 70,
-  "label": 1595,
+  "own": 3414,
+  "same-id": 2,
+  "label": 1635,
   "bilingual": 62,
   "legal": 3,
   "descriptor": 163,
@@ -83,14 +83,14 @@
  },
  "notAttached": {
   "suppressed": 8,
-  "ambiguous": 0,
-  "none": 16383
+  "ambiguous": 1,
+  "none": 16185
  },
  "byDataset": {
   "research.MLA.PARC": {
    "already": 15,
-   "label": 16,
-   "none": 61
+   "label": 17,
+   "none": 60
   },
   "research.TH.apparel": {
    "already": 691,
@@ -106,8 +106,7 @@
    "none": 34
   },
   "research.TH.beauty_clinic": {
-   "none": 9,
-   "own": 500
+   "own": 509
   },
   "research.TH.camera": {
    "already": 183,
@@ -135,8 +134,8 @@
    "own": 21
   },
   "research.TH.hobby": {
-   "none": 80,
-   "own": 142
+   "none": 5,
+   "own": 217
   },
   "research.TH.hospital": {
    "none": 1
@@ -151,25 +150,23 @@
    "none": 7
   },
   "research.TH.miscellaneous": {
-   "none": 213,
-   "own": 716
+   "none": 202,
+   "own": 727
   },
   "research.TH.nail": {
    "already": 19,
    "none": 11
   },
   "research.TH.optical": {
-   "none": 51,
-   "own": 498
+   "none": 46,
+   "own": 503
   },
   "research.TH.pet": {
    "already": 45,
    "none": 16
   },
   "research.TH.pharmacy": {
-   "label": 2,
-   "none": 55,
-   "same-id": 68
+   "own": 125
   },
   "research.TH.playground": {
    "already": 94,
@@ -191,21 +188,27 @@
   },
   "research.TH.shopping_directory": {
    "already": 808,
+   "ambiguous": 1,
    "bank": 28,
    "bilingual": 62,
    "descriptor": 159,
-   "label": 1563,
+   "label": 1604,
    "legal": 3,
-   "none": 15213
+   "none": 15171
   },
   "research.TH.sport": {
    "already": 310,
    "none": 73
   }
  },
- "files": 485,
+ "files": 520,
  "filesCopied": 0,
- "ambiguousNames": [],
+ "ambiguousNames": [
+  [
+   "iCare",
+   1
+  ]
+ ],
  "withoutLogoTop": {
   "research.MLA.PARC": [
    [
@@ -467,28 +470,6 @@
     1
    ]
   ],
-  "research.TH.beauty_clinic": [
-   [
-    "L'CLINIC",
-    4
-   ],
-   [
-    "L'Clinic",
-    2
-   ],
-   [
-    "AESTIMA CLINIC",
-    1
-   ],
-   [
-    "แอท เมดิคอล คลินิก บายหมอไก่",
-    1
-   ],
-   [
-    "แอลล์ คลินิก",
-    1
-   ]
-  ],
   "research.TH.camera": [
    [
     "Camera Exchange",
@@ -653,95 +634,11 @@
   ],
   "research.TH.hobby": [
    [
-    "LEMONY",
-    31
-   ],
-   [
-    "YUMEYA",
-    12
-   ],
-   [
-    "Yumeya",
-    6
-   ],
-   [
-    "TEDDY HOUSE",
-    4
-   ],
-   [
-    "B2S",
-    3
-   ],
-   [
     "LEGO CERTIFIED STORE",
     3
    ],
    [
-    "52TOYS",
-    2
-   ],
-   [
-    "Flying Tiger Copenhagen",
-    2
-   ],
-   [
-    "Lemony",
-    2
-   ],
-   [
-    "ANOTHER STORY",
-    1
-   ],
-   [
-    "BKK BRICK LUXURY",
-    1
-   ],
-   [
-    "Jakarade",
-    1
-   ],
-   [
-    "ECOTOPIA",
-    1
-   ],
-   [
     "Nintendo Authorized Store by SYNNEX",
-    1
-   ],
-   [
-    "Kinokuniya",
-    1
-   ],
-   [
-    "TOP TOY",
-    1
-   ],
-   [
-    "52Toys",
-    1
-   ],
-   [
-    "Ecotopia",
-    1
-   ],
-   [
-    "At first",
-    1
-   ],
-   [
-    "GARLIC",
-    1
-   ],
-   [
-    "ฟลายอิง ไทเกอร์ โคเปนเฮเกน",
-    1
-   ],
-   [
-    "มินิโซ",
-    1
-   ],
-   [
-    "At First",
     1
    ],
    [
@@ -795,10 +692,6 @@
     18
    ],
    [
-    "OTTERI WASH & DRY",
-    5
-   ],
-   [
     "J&T Express",
     4
    ],
@@ -819,10 +712,6 @@
     3
    ],
    [
-    "CLEANMATE",
-    2
-   ],
-   [
     "TRUE",
     2
    ],
@@ -839,10 +728,6 @@
     1
    ],
    [
-    "Cleanmate",
-    1
-   ],
-   [
     "OPPO SERVICE",
     1
    ],
@@ -855,19 +740,7 @@
     1
    ],
    [
-    "U-STORE BY COPPER WIRED",
-    1
-   ],
-   [
     "Apple Store",
-    1
-   ],
-   [
-    "CLEAN MATE",
-    1
-   ],
-   [
-    "Otteri",
     1
    ],
    [
@@ -917,10 +790,6 @@
    [
     "CAROLINA LEMKE",
     5
-   ],
-   [
-    "GLASSAHOLIC",
-    3
    ],
    [
     "Tokyo Optic Chiang Mai",
@@ -975,10 +844,6 @@
     1
    ],
    [
-    "Glassaholic",
-    1
-   ],
-   [
     "Dr. Ouise Eye Specialist",
     1
    ],
@@ -999,15 +864,23 @@
     1
    ],
    [
-    "SEVEN DAYS OPTIC",
-    1
-   ],
-   [
     "BANANA VISION",
     1
    ],
    [
     "MYKITA",
+    1
+   ],
+   [
+    "RIETI",
+    1
+   ],
+   [
+    "SUNNIES STUDIOS",
+    1
+   ],
+   [
+    "People Vision",
     1
    ]
   ],
@@ -1030,72 +903,6 @@
    ],
    [
     "Peta Pet Shop",
-    1
-   ]
-  ],
-  "research.TH.pharmacy": [
-   [
-    "Tops Care",
-    12
-   ],
-   [
-    "Pharmax",
-    9
-   ],
-   [
-    "P&F",
-    7
-   ],
-   [
-    "SAVE DRUG",
-    7
-   ],
-   [
-    "eXta Plus",
-    5
-   ],
-   [
-    "HEALTH UP",
-    3
-   ],
-   [
-    "Fascino",
-    2
-   ],
-   [
-    "Super Save",
-    2
-   ],
-   [
-    "Bangkok Drugstore",
-    1
-   ],
-   [
-    "PURE PHARMACY",
-    1
-   ],
-   [
-    "HEALTH PLUS",
-    1
-   ],
-   [
-    "Dr.Pharma",
-    1
-   ],
-   [
-    "พีแอนด์เอฟ สมูทไลฟ์",
-    1
-   ],
-   [
-    "Health up",
-    1
-   ],
-   [
-    "Save Drug",
-    1
-   ],
-   [
-    "Health Up",
     1
    ]
   ],
@@ -1401,10 +1208,6 @@
     34
    ],
    [
-    "B2S",
-    33
-   ],
-   [
     "G-SHOCK CASIO",
     31
    ],
@@ -1455,6 +1258,10 @@
    [
     "ก๋วยเตี๋ยวเรือพระนคร",
     23
+   ],
+   [
+    "TPARTNER",
+    22
    ]
   ],
   "research.TH.sport": [

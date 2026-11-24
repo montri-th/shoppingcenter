@@ -171,6 +171,14 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.9.11 - โลโก้ของแบรนด์ที่ไดเรกทอรีผูกไว้ และเครือร้านยา (`20261124-r5`)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 14:47 “ต่อครับ”
+
+- **แบรนด์ที่ไดเรกทอรีผูกไว้:** นับเป็นแบรนด์ในรายชื่อร้านด้วย — อีก 22 แบรนด์ ไฟล์ SHA-256 ตรงชีต
+- **เครือร้านยา:** 16 เครือจาก manifest ของคลังโลโก้ Pharmacy (ชีตใหญ่เกินกว่าจะส่งออก) — ร้านยาในรายชื่อร้านมีโลโก้ครบ
+- **ผล:** ร้านที่มีโลโก้ 10,292 → 10,489 จาก 26,683 รายการ · คลัง Restaurants ไม่มีไฟล์ใหม่ แบรนด์ร้านอาหาร 129 แบรนด์รอทีมวิจัยเก็บโลโก้
+
 ## 0.9.10 - โลโก้ร้านจากคลังโลโก้ของชีตวิจัย ครบทุกแบรนด์ (`20261124-r4`)
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 13:02 “คลัง logo น่าจะอยู่ใน drive พี่ไปหาเลย” · “google drive”
