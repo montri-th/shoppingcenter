@@ -635,7 +635,7 @@ export function lookBar(links = []) {
  * `locale` is the “รอบศูนย์นี้” section (js/venue-locale.js#renderLocale), rendered by the app and placed after the
  * nearby centres: what is around the venue, the area it sits in, and the generated priors kept apart.
  */
-export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null, look = [], locale = ''} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null, look = [], locale = '', glance = ''} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -678,6 +678,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
       <p class="store-status">${statusPill(r)}${hierarchy ? `<span class="status-pill tone-neutral">${esc(hierarchy)}</span>` : ''}${logo?.roleLabel ? `<span class="venue-logo-role">${esc(logo.roleLabel)}</span>` : ''}</p>
       ${parent}
       ${tiles.length ? `<div class="metrics compact venue-metrics">${tiles.join('')}</div>` : ''}
+      ${glance}
       ${links.length ? `<p class="venue-links">${links.join('')}</p>` : ''}
       ${lookBar(look)}
       <dl class="facts">

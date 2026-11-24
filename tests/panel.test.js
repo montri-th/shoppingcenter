@@ -254,6 +254,11 @@ test('venue panel: name and logo first, key figures from reported values, contac
   const at = needle => html.indexOf(needle);
   assert.ok(at('detail-venue-logo') > -1 && at('detail-venue-logo') < at('<h2>'), 'logo before the name');
   assert.ok(at('<h2>') < at('venue-metrics') && at('venue-metrics') < at('<dl class="facts">'), 'name → key figures → facts');
+  // owner 2026-11-25 01:10 (D-1): the four figures around the center follow the key figures, before the contact chips
+  const withGlance = renderVenue(buildVenueProfile({row: branded, detail: d, byId, districts}), {asOf, glance: '<div class="locale-glance in-head" id="locale-glance-head"></div>'});
+  const pos = needle => { const i = withGlance.indexOf(needle); assert.ok(i >= 0, needle); return i; };
+  assert.ok(pos('venue-metrics') < pos('id="locale-glance-head"') && pos('id="locale-glance-head"') < pos('<dl class="facts">'), 'key figures → around the center → facts');
+  if (withGlance.includes('class="venue-links"')) assert.ok(pos('id="locale-glance-head"') < pos('class="venue-links"'), 'before the contact chips');
   assert.ok(!html.includes('data-action="back"'), 'the back button lives in the panel top row, not in the view');
   assert.ok(html.includes(`>${branded.shopCount.toLocaleString('th-TH')}<`) && html.includes('ร้านข้างใน'), 'D22: the shop-list count, not the older link count');
   // A legacy estimate is never a key figure: tiles carry reported values only.
