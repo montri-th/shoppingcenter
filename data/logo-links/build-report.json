@@ -9,13 +9,13 @@
  "inputs": {
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
   "directorySha256": "340f52fc0b2eb57106a15010b79a9b7e15006dfe8892528c8ea4ae4bb442ad0a",
-  "logoManifestSha256": "19d2b65a7b5dd5160036e01253f7a5c7bf7fb7cfa2d1ca33b8816331885c9611"
+  "logoManifestSha256": "0c0c827ad041268613b0e75fa6b07eeb17d6ac55dc25cdd4ec1c0a862739615a"
  },
  "pool": {
   "kit": "citymeter-logos 1.1.0",
-  "files": 1395,
-  "entities": 1483,
-  "names": 1495,
+  "files": 1461,
+  "entities": 1549,
+  "names": 1568,
   "sources": {
    "restaurant": {
     "commit": "8ed9b4b5cb1854ce943130c6232489cab393a22e",
@@ -60,9 +60,9 @@
     "issues": 0
    },
    "shoppingcenter": {
-    "commit": "2f05dce064056b67648a40f56fe0a86f2cbbddb8",
-    "files": 355,
-    "entities": 387,
+    "commit": "8fac5f55fcdcaee5500b56b8eda70e8f544d09e8",
+    "files": 421,
+    "entities": 453,
     "issues": 0
    }
   },
@@ -70,21 +70,21 @@
  },
  "items": 26683,
  "withLogoBefore": 5182,
- "added": 4674,
- "withLogoAfter": 9856,
+ "added": 5110,
+ "withLogoAfter": 10292,
  "byBasis": {
-  "own": 2788,
+  "own": 3189,
   "same-id": 70,
-  "label": 1561,
+  "label": 1595,
   "bilingual": 62,
   "legal": 3,
-  "descriptor": 162,
+  "descriptor": 163,
   "bank": 28
  },
  "notAttached": {
   "suppressed": 8,
   "ambiguous": 0,
-  "none": 16819
+  "none": 16383
  },
  "byDataset": {
   "research.MLA.PARC": {
@@ -106,8 +106,8 @@
    "none": 34
   },
   "research.TH.beauty_clinic": {
-   "none": 198,
-   "own": 311
+   "none": 9,
+   "own": 500
   },
   "research.TH.camera": {
    "already": 183,
@@ -135,8 +135,8 @@
    "own": 21
   },
   "research.TH.hobby": {
-   "none": 174,
-   "own": 48
+   "none": 80,
+   "own": 142
   },
   "research.TH.hospital": {
    "none": 1
@@ -151,16 +151,16 @@
    "none": 7
   },
   "research.TH.miscellaneous": {
-   "none": 261,
-   "own": 668
+   "none": 213,
+   "own": 716
   },
   "research.TH.nail": {
    "already": 19,
    "none": 11
   },
   "research.TH.optical": {
-   "none": 121,
-   "own": 428
+   "none": 51,
+   "own": 498
   },
   "research.TH.pet": {
    "already": 45,
@@ -193,17 +193,17 @@
    "already": 808,
    "bank": 28,
    "bilingual": 62,
-   "descriptor": 158,
-   "label": 1529,
+   "descriptor": 159,
+   "label": 1563,
    "legal": 3,
-   "none": 15248
+   "none": 15213
   },
   "research.TH.sport": {
    "already": 310,
    "none": 73
   }
  },
- "files": 419,
+ "files": 485,
  "filesCopied": 0,
  "ambiguousNames": [],
  "withoutLogoTop": {
@@ -469,104 +469,24 @@
   ],
   "research.TH.beauty_clinic": [
    [
-    "Romrawin Clinic / รมย์รวินท์คลินิก",
-    22
-   ],
-   [
-    "INFINITY MEDICAL CLINIC",
-    13
-   ],
-   [
-    "The Touch Clinic",
-    11
-   ],
-   [
-    "The Skin Doctors",
-    11
-   ],
-   [
-    "PAN Clinic / แพนคลินิก",
-    11
-   ],
-   [
-    "Doctor Life Clinic",
-    10
-   ],
-   [
-    "Aura Bangkok Clinic",
-    9
-   ],
-   [
-    "La Grace Clinic / ลา กราซ",
-    7
-   ],
-   [
-    "The Ritz Clinic",
-    7
-   ],
-   [
-    "The Venisia Clinic",
-    5
-   ],
-   [
-    "Immagini Clinic / อิมเมจินี่คลินิก",
-    5
-   ],
-   [
-    "Destiny Clinic",
-    5
-   ],
-   [
-    "Seoul Society Clinic",
-    4
-   ],
-   [
-    "Makalin Clinic / มคลินทร์คลินิก",
-    4
-   ],
-   [
     "L'CLINIC",
     4
    ],
    [
-    "ROMRAWIN CLINIC",
-    4
+    "L'Clinic",
+    2
    ],
    [
-    "The Clover Clinic",
-    4
+    "AESTIMA CLINIC",
+    1
    ],
    [
-    "Cher Clinic / เฌอคลินิก",
-    4
+    "แอท เมดิคอล คลินิก บายหมอไก่",
+    1
    ],
    [
-    "Infinity Medical Clinic",
-    4
-   ],
-   [
-    "Luxury Clinic",
-    4
-   ],
-   [
-    "LBC Clinic",
-    4
-   ],
-   [
-    "Pruksa Clinic / พฤกษาคลินิก",
-    4
-   ],
-   [
-    "Bonita Luxe Clinic",
-    3
-   ],
-   [
-    "Dermatige Aesthetics / เดอร์มาทีจ",
-    3
-   ],
-   [
-    "DSK Clinic / ดีเอสเคคลินิก",
-    3
+    "แอลล์ คลินิก",
+    1
    ]
   ],
   "research.TH.camera": [
@@ -733,55 +653,23 @@
   ],
   "research.TH.hobby": [
    [
-    "DAISO",
-    32
-   ],
-   [
     "LEMONY",
     31
-   ],
-   [
-    "MINISO",
-    16
-   ],
-   [
-    "POP MART",
-    13
    ],
    [
     "YUMEYA",
     12
    ],
    [
-    "ASIA BOOKS",
-    9
-   ],
-   [
     "Yumeya",
     6
-   ],
-   [
-    "Daiso",
-    4
    ],
    [
     "TEDDY HOUSE",
     4
    ],
    [
-    "Miniso",
-    3
-   ],
-   [
     "B2S",
-    3
-   ],
-   [
-    "LOFT",
-    3
-   ],
-   [
-    "Asia Books",
     3
    ],
    [
@@ -793,23 +681,11 @@
     2
    ],
    [
-    "Pop Mart",
-    2
-   ],
-   [
-    "KKV",
-    2
-   ],
-   [
     "Flying Tiger Copenhagen",
     2
    ],
    [
     "Lemony",
-    2
-   ],
-   [
-    "Elephant Parade",
     2
    ],
    [
@@ -825,11 +701,51 @@
     1
    ],
    [
-    "Minna by AsiaStationery / Asia Stationery",
+    "ECOTOPIA",
     1
    ],
    [
-    "ECOTOPIA",
+    "Nintendo Authorized Store by SYNNEX",
+    1
+   ],
+   [
+    "Kinokuniya",
+    1
+   ],
+   [
+    "TOP TOY",
+    1
+   ],
+   [
+    "52Toys",
+    1
+   ],
+   [
+    "Ecotopia",
+    1
+   ],
+   [
+    "At first",
+    1
+   ],
+   [
+    "GARLIC",
+    1
+   ],
+   [
+    "ฟลายอิง ไทเกอร์ โคเปนเฮเกน",
+    1
+   ],
+   [
+    "มินิโซ",
+    1
+   ],
+   [
+    "At First",
+    1
+   ],
+   [
+    "LEGO Certified Store",
     1
    ]
   ],
@@ -877,30 +793,6 @@
    [
     "iStudio",
     18
-   ],
-   [
-    "REMAX",
-    10
-   ],
-   [
-    "Jaymart IoT",
-    10
-   ],
-   [
-    "True Sphere",
-    9
-   ],
-   [
-    "HI-SHIELD",
-    8
-   ],
-   [
-    "Apple Sheep",
-    6
-   ],
-   [
-    "DHL Express",
-    5
    ],
    [
     "OTTERI WASH & DRY",
@@ -961,6 +853,26 @@
    [
     "Apple",
     1
+   ],
+   [
+    "U-STORE BY COPPER WIRED",
+    1
+   ],
+   [
+    "Apple Store",
+    1
+   ],
+   [
+    "CLEAN MATE",
+    1
+   ],
+   [
+    "Otteri",
+    1
+   ],
+   [
+    "iServe",
+    1
    ]
   ],
   "research.TH.nail": [
@@ -999,56 +911,12 @@
   ],
   "research.TH.optical": [
    [
-    "OPTIC SQUARE",
-    10
-   ],
-   [
     "EYELAB EXCLUSIVE",
     9
    ],
    [
-    "OPTICAL 88",
-    8
-   ],
-   [
-    "Optic Square",
-    7
-   ],
-   [
-    "OPTICAL88",
-    7
-   ],
-   [
-    "Modern Optical",
-    6
-   ],
-   [
-    "Oakley Store",
-    6
-   ],
-   [
     "CAROLINA LEMKE",
     5
-   ],
-   [
-    "PARIS MIKI",
-    4
-   ],
-   [
-    "EYELAB",
-    4
-   ],
-   [
-    "GLASSIQ",
-    3
-   ],
-   [
-    "Opticana",
-    3
-   ],
-   [
-    "Mattaya Vision Center",
-    3
    ],
    [
     "GLASSAHOLIC",
@@ -1063,15 +931,7 @@
     2
    ],
    [
-    "WALTZ",
-    2
-   ],
-   [
     "โกลเด้นออพติค",
-    2
-   ],
-   [
-    "Taifa Optic",
     2
    ],
    [
@@ -1091,11 +951,63 @@
     1
    ],
    [
-    "Bridders Optical",
+    "Goodr",
     1
    ],
    [
-    "Goodr",
+    "Ic! Berlin",
+    1
+   ],
+   [
+    "Moshi Optic",
+    1
+   ],
+   [
+    "ยัวร์ ออพติคัล",
+    1
+   ],
+   [
+    "Mac Optical",
+    1
+   ],
+   [
+    "YOURS OPTICAL",
+    1
+   ],
+   [
+    "Glassaholic",
+    1
+   ],
+   [
+    "Dr. Ouise Eye Specialist",
+    1
+   ],
+   [
+    "Diwa Eyewear",
+    1
+   ],
+   [
+    "Dlight Optic",
+    1
+   ],
+   [
+    "ROAV",
+    1
+   ],
+   [
+    "VANTA TJ",
+    1
+   ],
+   [
+    "SEVEN DAYS OPTIC",
+    1
+   ],
+   [
+    "BANANA VISION",
+    1
+   ],
+   [
+    "MYKITA",
     1
    ]
   ],

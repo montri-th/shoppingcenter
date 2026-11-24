@@ -172,7 +172,17 @@ def main():
                 continue
             key = f'{dataset}|{brand}'
             if key in manifest:
-                counts['alreadyInManifest'] += 1
+                # An entry this script wrote earlier for the same bytes is kept as written and counted again (its
+                # backing checked the same way), so a rerun gives the same receipt; anything else is left alone.
+                mine = 'logo library file' in (manifest[key].get('origin') or '') and manifest[key].get('sha256') == sha
+                if mine and files.get(sha) is not None:
+                    raw = files[sha].read_bytes()
+                    _, _, background = backing_of(raw, collect.sniff(raw), sha, a.svg_renders, stated(r), counts)
+                    if background != manifest[key].get('background'):
+                        sys.exit(f'{key}: backing {background} differs from the manifest; rebuild from a manifest without library entries')
+                    counts['added'] += 1
+                else:
+                    counts['alreadyInManifest'] += 1
                 continue
             src = files.get(sha)
             if src is None:
@@ -199,10 +209,14 @@ def main():
                      'origin': f'{TITLES[folder]} · {tab} export {a.exported_on} · logo library file, SHA-256 equal to the sheet'}
             manifest[key] = {k: v for k, v in entry.items() if v is not None}
             counts['added'] += 1
-            if sha in shipped:
-                counts['addedFromShippedFile'] += 1
         receipt[dataset] = {'title': TITLES[folder], 'tab': tab, 'exportSha256': kit.sha256_file(path), 'exportedOn': a.exported_on,
                             **dict(sorted(counts.items()))}
+    # Library entries whose file another manifest entry also uses (the same bytes, e.g. a brand another dataset brought in).
+    users = collections.Counter(v['sha256'] for v in manifest.values())
+    for dataset, rec in receipt.items():
+        shared = sum(1 for k, v in manifest.items() if k.startswith(dataset + '|') and 'logo library file' in (v.get('origin') or '') and users[v['sha256']] > 1)
+        if shared:
+            rec['sharedFile'] = shared
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     body = {'meta': {'kit': f'{kit.KIT} {kit.VERSION}', 'exportedOn': a.exported_on,
                      'rule': 'a research master logo file is added only when its bytes equal the sheet logo_sha256 of a brand the shop lists name, '
