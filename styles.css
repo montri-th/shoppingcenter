@@ -1026,3 +1026,51 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
   .area-row { grid-template-columns: 1fr; }
   .dot-row { grid-template-columns: minmax(72px, 96px) minmax(0, 1fr) 46px; }
 }
+
+/* “รอบศูนย์นี้” picture first (owner 2026-11-24 23:07; review v2 R-03, R-04, R-05, R-13, R-15).
+   The glance: four fixed readings as tiles (pictogram, figure, five-step level); data colours come from the LDS count
+   LUT through the inline style of a filled bar and are the same on both themes; every bar has an outline, so the
+   level reads by the number of filled bars without the colour. */
+.locale-glance { display: grid; gap: 6px; }
+.locale-glance[hidden] { display: none; }
+.locale-glance.in-head { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-hairline); }
+.glance-lead { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; }
+.glance-lead .pictogram { width: 18px; height: 18px; font-size: 18px; }
+.glance-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.glance-tile { width: 100%; height: 100%; min-height: 44px; display: grid; grid-template-columns: 28px minmax(0, 1fr); column-gap: 10px; row-gap: 3px; align-content: start; text-align: left; padding: 10px 12px; border: 0; border-radius: var(--radius-sm); background: var(--surface-alt); color: var(--text-primary); font: inherit; cursor: pointer; }
+.glance-tile:hover { box-shadow: inset 0 0 0 1px var(--border-default); }
+.glance-tile:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+.glance-tile > .pictogram { grid-row: 1 / span 3; width: 28px; height: 28px; font-size: 28px; color: var(--text-primary); }
+.glance-tile > :not(.pictogram) { grid-column: 2; }
+.glance-label { font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
+.glance-tag { display: inline-block; padding: 0 6px; border: 1px dashed var(--border-default); border-radius: 999px; white-space: nowrap; }
+.glance-fig { font-size: 12px; line-height: 1.25; color: var(--text-secondary); }
+.glance-fig b { font-size: 20px; font-weight: 600; color: var(--text-primary); }
+.glance-wait { font-size: 12px; color: var(--text-metadata); }
+.glance-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; }
+.level-meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
+.level-meter i { box-sizing: border-box; width: 7px; border: 1px solid var(--text-secondary); border-radius: 1px; }
+.level-meter i:nth-child(1) { height: 5px; }
+.level-meter i:nth-child(2) { height: 7px; }
+.level-meter i:nth-child(3) { height: 9px; }
+.level-meter i:nth-child(4) { height: 11px; }
+.level-meter i:nth-child(5) { height: 14px; }
+.level-meter i.on { border-color: var(--text-primary); background: var(--text-primary); }
+.locale-aha .level-meter { justify-self: start; }
+.aha-lead { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text-secondary); }
+.aha-lead .pictogram { width: 16px; height: 16px; font-size: 16px; }
+/* the trial-release label beside the heading: a small label whose touch area is 44 px (LDS CTRL-01) */
+.rc-badge { position: relative; background: transparent; font-family: inherit; cursor: pointer; }
+.rc-badge::after { content: ""; position: absolute; inset: -12px -8px; }
+.rc-badge:focus-visible { outline: 3px solid var(--interaction-focus-ring); outline-offset: 2px; }
+/* rank bars keep their data colour and gain an edge that reads on both themes (LDS DATAVIZ-03; review F-11) */
+.locale-aha .aha-track b, .res-head .aha-track b { box-shadow: 0 0 0 1px var(--text-secondary); }
+/* short fact labels in place of sentences */
+.busy-basis { margin: 0; }
+.basis-chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border: 1px solid var(--border-default); border-radius: 999px; font-size: 12px; color: var(--text-secondary); }
+.basis-chip .pictogram { width: 16px; height: 16px; font-size: 16px; }
+.area-period { margin-left: 4px; padding: 0 6px; border: 1px solid var(--border-hairline); border-radius: 999px; font-size: 12px; font-weight: 400; color: var(--text-metadata); white-space: nowrap; }
+.fit-src { font-size: 12px; font-weight: 400; color: var(--text-metadata); }
+/* highlights as compact rows: symbol, name and count, the level meter at the end */
+.locale-aha.is-high li { grid-template-columns: 24px minmax(0, 1fr); padding: 8px 12px; }
+.locale-aha .aha-body:has(> .level-meter) { grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 10px; }

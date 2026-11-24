@@ -635,7 +635,7 @@ export function lookBar(links = []) {
  * `locale` is the “รอบศูนย์นี้” section (js/venue-locale.js#renderLocale), rendered by the app and placed after the
  * nearby centres: what is around the venue, the area it sits in, and the generated priors kept apart.
  */
-export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null, look = [], locale = ''} = {}) {
+export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinState, detailError = false, tenants = null, peers = null, site = null, model = null, transit = null, look = [], locale = '', glance = ''} = {}) {
   if (!p) return '';
   const r = p.row, d = p.detail, g = p.group;
   const logo = getVenueLogo(r.id, r.name);
@@ -690,6 +690,7 @@ export function renderVenue(p, {asOf = '', shops = null, buildings = [], pinStat
         ${fact('checked', 'สัตว์เลี้ยง', amenityFacts(r._amenities))}
       </dl>
       ${!d && !detailError ? '<p class="hint">กำลังโหลดรายละเอียด…</p>' : ''}${detailError ? '<p class="hint">โหลดรายละเอียดไม่สำเร็จ ลองเปิดใหม่อีกครั้ง</p>' : ''}
+      ${glance}
     </section>
     ${storeBlock}
     ${renderPeers(peers, r)}

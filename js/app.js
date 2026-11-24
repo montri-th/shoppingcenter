@@ -69,12 +69,12 @@ import {createCodec, createNavigator} from './shell/url.js';
 import {mapBudget, budgetPixelRatio, reloadOnContextLoss} from './shell/maplibre-guard.js';
 import {pageTitle} from './shell/title.js';
 import {loadDetail, cachedDetail} from './details.js';
-import {createTenantSelection, createTenantLoader, createDirectoryLoader, createLogoLinkLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS} from './tenants.js';
+import {createTenantSelection, createTenantLoader, createDirectoryLoader, createLogoLinkLoader, subAreasOf, rollUpSubAreas, loadTenantIndex, comparePeers, brandPresence, searchBrands, roleVenueCounts, buildAmenities, AMENITY_LABELS, TENANT_ROLE_LABELS, tenantRole} from './tenants.js';
 import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, renderLocaleResidents, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors, renderLocaleWork, loadWorkMeta, cachedWorkMeta, loadWork, cachedWork} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, renderLocaleGlance, setLocaleShopList, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors, renderLocaleWork, loadWorkMeta, cachedWorkMeta, loadWork, cachedWork} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -391,7 +391,7 @@ function renderPanel() {
     const tenants = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
     const peers = state.tenantIndex ? comparePeers(state.tenantIndex, v, state.byId) : null;
     html = renderVenue(profile, {asOf, shops: shopMeta(), buildings: venueHostFeatures(), pinState: state.pinBuildings?.stateOf(v?.id), detailError: state.detailError, tenants, peers, site: state.sites.get(v?.id) || null, model: state.models?.entry(v?.id) || null, transit: state.stationMeta,
-      look: lookLinks(profile, state.look.id === v?.id ? state.look.view : null), locale: localeHTML(v)});
+      look: lookLinks(profile, state.look.id === v?.id ? state.look.view : null), locale: localeHTML(v), glance: localeGlanceHead(v)});
     cardHtml = mapCardVenue(profile, {tenants}); cardLabel = 'สถานที่ที่เลือก';
   } else if (mode === 'pending') {
     const c = pendingCard();
@@ -592,8 +592,43 @@ function ensureLocaleVisitors(id, {focus = ''} = {}) {
     .finally(() => { if (localeOpen(id)) refreshLocaleVisitors({focus}); });
 }
 
+/** What the glance reads for a venue: the facts and the three optional files as far as they are loaded. */
+function glanceArgs(v) {
+  const meta = cachedLocaleMeta(), L = state.locale, rmeta = cachedResidentsMeta(), vm = cachedVisitorsMeta(), wm = cachedWorkMeta();
+  return {meta, facts: meta ? cachedLocaleFacts(v.id, meta.shards || 64) : null,
+    residentsMeta: rmeta, residents: rmeta ? cachedResidents(v.id, rmeta.shards) : null, residentsState: L.resId === v.id ? L.resState : 'idle',
+    visitorsMeta: vm, visitors: vm ? cachedVisitors(v.id, vm.shards) : null, visitorsState: L.visId === v.id ? L.visState : 'idle',
+    workMeta: wm, work: wm ? cachedWork(v.id, wm.shards) : null, workState: L.workId === v.id ? L.workState : 'idle'};
+}
+
+/** The glance in the venue head: its four tiles once the facts are there, else an empty holder the redraw fills. */
+function localeGlanceHead(v) {
+  if (!inLocaleSet(v) || !v.located) return '';
+  return renderLocaleGlance(v, glanceArgs(v), {where: 'head'}) || `<div class="locale-glance in-head" id="locale-glance-head" data-venue="${v.id}" hidden></div>`;
+}
+
+/** Replace the glance where it is drawn (the section and the venue head); the rest stays as it is. */
+function refreshLocaleGlance() {
+  const v = currentVenue();
+  if (!v || !inLocaleSet(v)) return;
+  const args = glanceArgs(v);
+  const inSection = $('locale-glance'), inHead = $('locale-glance-head');
+  if (inSection && inSection.dataset.venue === v.id) { const html = renderLocaleGlance(v, args); if (html) inSection.outerHTML = html; }
+  if (inHead && inHead.dataset.venue === v.id) { const html = renderLocaleGlance(v, args, {where: 'head'}); if (html) inHead.outerHTML = html; }
+}
+
+/** The shops of the list the panel shows, by role, for the formats block ({roles, total}); null until the list loads. */
+function shopRolesOf(v) {
+  const t = tenantSelection.state.id === v?.id ? tenantSelection.state : null;
+  if (!t?.roster) return null;
+  const roles = {};
+  for (const item of t.roster.items || []) { const r = tenantRole(item); roles[r] = (roles[r] || 0) + 1; }
+  return {roles, total: (t.roster.items || []).length};
+}
+
 /** Replace only the visitors zone (the rest of the section stays as it is). */
 function refreshLocaleVisitors({focus = ''} = {}) {
+  refreshLocaleGlance();
   const v = currentVenue(), section = $('venue-locale'), el = $('locale-visitors'), meta = cachedLocaleMeta();
   if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
   const vm = cachedVisitorsMeta(), rmeta = cachedResidentsMeta(), L = state.locale;
@@ -621,6 +656,7 @@ function ensureLocaleWork(id, {focus = ''} = {}) {
 
 /** Replace only the work-and-study zone (the rest of the section stays as it is). */
 function refreshLocaleWork({focus = ''} = {}) {
+  refreshLocaleGlance();
   const v = currentVenue(), section = $('venue-locale'), el = $('locale-work'), meta = cachedLocaleMeta();
   if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
   const wm = cachedWorkMeta(), rmeta = cachedResidentsMeta(), L = state.locale;
@@ -670,6 +706,7 @@ const venueOf = id => state.byId.get(id) || null;
 
 /** Replace only the residents zone when its file arrives (the chart and the rest of the section stay as they are). */
 function refreshLocaleResidents({focus = ''} = {}) {
+  refreshLocaleGlance();
   const v = currentVenue(), section = $('venue-locale'), el = $('locale-residents'), meta = cachedLocaleMeta();
   if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
   const rmeta = cachedResidentsMeta(), L = state.locale;
@@ -698,6 +735,7 @@ function refreshLocalePriors({focus = ''} = {}) {
   if (!v || !meta || !section || section.dataset.venue !== v.id || !el) return;
   const shards = meta.shards || 64, L = state.locale;
   registerLocaleSignalNames(cachedLocaleSignals(v.id, shards));
+  setLocaleShopList(v.id, shopRolesOf(v));
   el.outerHTML = renderLocalePriors(v, {meta, facts: cachedLocaleFacts(v.id, shards), priors: cachedLocalePriors(v.id, shards), signals: cachedLocaleSignals(v.id, shards), priorsState: L.priorsId === v.id ? L.priorsState : 'idle'});
   if (focus) $('locale-priors')?.querySelector(focus)?.focus({preventScroll: true});
 }
@@ -709,6 +747,7 @@ function localeHTML(v) {
   const shards = meta?.shards || 64;
   if (meta) { registerLocaleDictionary(meta); registerLocaleNames(cachedLocaleFacts(v.id, shards)); registerLocaleSignalNames(cachedLocaleSignals(v.id, shards)); }
   const rmeta = cachedResidentsMeta();
+  setLocaleShopList(v.id, shopRolesOf(v));
   return renderLocale(v, {
     meta, facts: meta ? cachedLocaleFacts(v.id, shards) : null, priors: meta ? cachedLocalePriors(v.id, shards) : null, signals: meta ? cachedLocaleSignals(v.id, shards) : null,
     metaState: L.metaState, factsState: L.factsId === v.id ? L.factsState : 'idle', priorsState: L.priorsId === v.id ? L.priorsState : 'idle',
@@ -739,6 +778,7 @@ function refreshLocale({focus = ''} = {}) {
   disposeLocaleChart();
   el.outerHTML = localeHTML(v);
   mountLocale();
+  refreshLocaleGlance();
   if (focus) $('venue-locale')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
@@ -1102,6 +1142,15 @@ function onPanelAction(event) {
     case 'crumb-site': selectVenue(id); break;
     case 'crumb-expand': { const ol = target.closest('.crumbs'); ol.classList.add('is-expanded'); target.setAttribute('aria-expanded', 'true'); ol.querySelector('.crumb:not(.crumb-more)')?.focus({preventScroll: true}); break; }
     case 'toggle-pending': togglePending(); break;
+    case 'locale-jump': {
+      // a tile of the glance, or the trial-release label: go to that block of the section and put the focus on it
+      const to = $(target.dataset.target || '');
+      if (!to) break;
+      if (to instanceof HTMLDetailsElement && !to.open) to.open = true;
+      to.scrollIntoView({block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+      (to instanceof HTMLDetailsElement ? to.querySelector('summary') : to).focus?.({preventScroll: true});
+      break;
+    }
     case 'locale-radius': case 'locale-universe': case 'locale-level': case 'locale-bench': {
       const key = action.slice(7), value = target.dataset[key];
       if (setLocaleOption(key, key === 'radius' ? Number(value) : value)) {

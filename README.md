@@ -171,6 +171,17 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.10.0 - รอบศูนย์นี้: ภาพก่อนคำ (`20261124-r7` · อยู่บน preview เท่านั้น รอเจ้าของอนุมัติ)
+
+เจ้าของ (VERBATIM): 24 พ.ย. 2569 22:44 “และลงมือปรับ https://preview.citymeter.pages.dev/shoppingcenter/?d=shoppingCenter&focus=all ตามแผนในรายงาน” และ 23:07 “เพิ่มเติม ขอให้ใช้ visualization รูปแบบต่างๆทั้ง icon, symbol, ระบบสี, รูปภาพ, อื่นๆตาม LDS เพื่อลดช้อความยาวๆให้กระชับ เน้นสื่อสารให้ user เข้าใจได้ง่าย ได้เร็วที่สุด ตรง intent บนพื้นฐานของ user benefit ตาม project brief”
+
+- **แถวสี่ช่อง:** คนอยู่ใกล้ ที่ทำงานและที่เรียน ที่ผู้มาเยือนใช้ ศูนย์และตลาดอื่น เป็นสัญลักษณ์ ตัวเลข และมาตรวัด 5 ขั้น อยู่บนสุดของส่วนและในส่วนหัวของศูนย์ กดช่องใดไปที่บล็อกนั้น
+- **คำบอกอันดับ:** “ระดับเทียบ N/100” แทน “มากกว่า N%” เพราะศูนย์ที่ได้ค่าเท่ากันถูกนับครึ่งหนึ่ง
+- **จุดเด่น:** แสดงเฉพาะชุดที่ระดับเทียบ 90 ขึ้นไป ไม่มีก็ไม่แสดง
+- **ร้านที่น่าจะเข้ากัน:** แยกสถานะ อยู่ในรายชื่อ · อยู่ในรายชื่อของศูนย์ตามกลุ่มร้าน · ตรวจแล้วยังไม่เห็น · ยังไม่มีชุดข้อมูลให้เทียบ
+- **ป้ายสั้น:** ฐานเวลาเปิด รุ่นทดลอง เดือนของข้อมูลในบล็อกพื้นที่ ประเภทของศูนย์ในรายการเทียบ และ “ระดับราคารอบศูนย์”
+- **ยังไม่ได้ทำ:** ส่วนที่ต้องออกรุ่นข้อมูลใหม่ (ระดับผู้อยู่อาศัยจากคนใน 3 กม. สัดส่วนจริงของอันดับ พิกัดของชุดที่ติดดาว) และรอบ 3 ของรายงาน
+
 ## 0.9.12 - ข้อยกเว้นของเจ้าของ: ป้ายเครือร่วม 7 แบรนด์ (`20261124-r6`)
 
 เจ้าของ (VERBATIM): 24 พ.ย. 2569 16:48 “Tsuruha, True Shop, OPPO, Vivo, iStudio, Nintendo, LEGO ใช้โลโก้ที่มีไปเลย ผมยกเว้นให้”

@@ -225,7 +225,7 @@ export function ringRows(meta, facts, row, {radius = options.radius, universe = 
       const p = rec.p?.[u]?.[i] ?? rec.p?.[0]?.[i] ?? null;
       const coverage = m.eligible && m.located != null ? m.located / m.eligible : 1;
       out.push({
-        id, group: g.id, groupLabel: g.th, label: m.short?.[0] || m.th, labelEn: m.short?.[1] || m.en, name: m.th, nameEn: m.en, unit: m.unit?.[0] || '', unitEn: m.unit?.[1] || '', count, p,
+        id, group: g.id, groupLabel: g.th, label: m.short?.[0] || m.th, labelEn: m.short?.[1] || m.en, name: m.th, nameEn: id === 'shopping' ? 'Other shopping centers and markets' : m.en, unit: m.unit?.[0] || '', unitEn: m.unit?.[1] || '', count, p,
         zeroShare: count === 0 && p != null ? Math.min(100, Math.round(p * 2)) : null,
         near: rec.near ?? null, sub: rec.sub ? m.subgroups.map((s, k) => ({id: s[0], th: s[1], count: rec.sub[i][k]})).filter(s => s.count > 0) : [],
         measure: m.measure && rec.m ? {th: m.measure[1], value: rec.m[i], note: m.measure[3]} : null,
@@ -238,16 +238,18 @@ export function ringRows(meta, facts, row, {radius = options.radius, universe = 
 }
 
 /**
- * Rank words for a mid-rank percentile of a value above zero: “มากกว่า 96% ของ …”; the top and the bottom percent read
- * “สูงสุด 1% ของ …” / “ต่ำสุด 1% ของ …” (a mid-rank never reaches 0 or 100, so it is never written as either).
+ * Rank words for a mid-rank percentile of a value above zero: “ระดับเทียบ 96/100 ใน …”; the top and the bottom percent
+ * read “สูงสุด 1% ของ …” / “ต่ำสุด 1% ของ …” (a mid-rank never reaches 0 or 100, so it is never written as either).
+ * A mid-rank counts centers with the same value as half, so it is never written as “more than N%” (review of
+ * 2026-11-24, F-13: with ties that sentence overstated the share of centers below in 919 of 1,476 cards).
  */
 export function rankWords(p, group) {
   if (p >= 99.5) return `อยู่ในกลุ่มสูงสุด 1% ของ${group}`;
   if (p < 0.5) return `อยู่ในกลุ่มต่ำสุด 1% ของ${group}`;
-  return `มากกว่า ${num(Math.round(p))}% ของ${group}`;
+  return `ระดับเทียบ ${num(Math.round(p))}/100 ใน${group}`;
 }
 
-/** “มากกว่า 96% ของ 488 ศูนย์” / for a zero: “ไม่พบ เหมือน 64% ของ 488 ศูนย์”. */
+/** “ระดับเทียบ 96/100 ใน 488 ศูนย์” / for a zero: “ไม่พบ เหมือน 64% ของ 488 ศูนย์” (an exact share). */
 export function pctPhrase(r, uni) {
   if (r.count === 0) return r.zeroShare != null ? `ไม่พบ เหมือน ${num(r.zeroShare)}% ของ${uni.key === 'all' ? ' ' : ''}${uni.short}` : 'ไม่พบในรัศมีนี้';
   if (r.p == null) return '';
@@ -266,6 +268,80 @@ export function ahaRows(rows, {limit = 3} = {}) {
   for (const r of ranked) { if (picked.length < limit && !groups.has(r.group)) { picked.push(r); groups.add(r.group); } }
   for (const r of ranked) { if (picked.length < limit && !picked.includes(r)) picked.push(r); }
   return picked;
+}
+
+/* ---------- the glance: four fixed readings, picture first (owner 2026-11-24 23:07; review v2 R-03, R-13, R-15) ---------- */
+
+/** Highlights under the glance: complete datasets, the centers-and-markets row aside, at level 90 or more; at most three. */
+export const HIGHLIGHT_MIN = 90;
+export const highlightRows = (rows, {limit = 3} = {}) => ahaRows(rows.filter(r => r.id !== 'shopping' && r.p >= HIGHLIGHT_MIN), {limit});
+
+/** Level 1–5 of a rank, fifths of the reference from low to high; 0 for a measured zero or no rank. */
+export const levelOf = (p, count = 1) => (count > 0 && p != null ? Math.min(5, Math.floor(p / 20) + 1) : 0);
+export const LEVEL_WORDS = Object.freeze([['ไม่พบ', 'none found'], ['น้อยมาก', 'very low'], ['น้อย', 'low'], ['ปานกลาง', 'middle'], ['มาก', 'high'], ['มากที่สุด', 'very high']]);
+/**
+ * Five bars from low to high; the filled ones take the LDS count sample of the rank itself (pctFill, the chart's
+ * colour, the same HEX on both themes) and every bar has an outline, so the level reads without the colour.
+ */
+export function levelMeter(level, p = null) {
+  const fill = p == null ? '' : ` style="background:${pctFill(p)}"`;
+  return `<span class="level-meter" data-level="${level}" aria-hidden="true">${[1, 2, 3, 4, 5].map(i => `<i${i <= level ? ` class="on"${fill}` : ''}></i>`).join('')}</span>`;
+}
+
+/** Share of a places figure that comes from datasets with points for under 90% of their records, at one radius. */
+export function partialShare(facts, pmeta, i) {
+  let all = 0, part = 0;
+  for (const d of pmeta?.datasets || []) {
+    const n = facts?.ring?.[d.id]?.n?.[i] ?? 0;
+    all += n;
+    if (d.eligible && d.located != null && d.located / d.eligible < 0.9) part += n;
+  }
+  return all ? part / all : 0;
+}
+
+/**
+ * The four readings every located center has: people living near (modelled), places to work and study, places
+ * visitors use, other centers and markets. A figure that comes mostly from datasets without full points carries the
+ * star and no level (Dataset Registry rule P06, owner-approved 2026-11-22: partial coverage is context, not ranked).
+ */
+export function glanceModel(meta, row, facts, {residents = null, residentsMeta = null, residentsState = 'idle', visitors = null, visitorsMeta = null, visitorsState = 'idle', work = null, workMeta = null, workState = 'idle'} = {}) {
+  const i = RI[options.radius] ?? 1, u = options.universe === 'type' && meta?.universes?.[row?.group] ? 1 : 0;
+  const stateOf = (rec, m, st) => (rec && m ? 'ready' : st === 'error' ? 'error' : st === 'empty' ? 'none' : 'loading');
+  const shop = ringRows(meta, facts, row).find(r => r.id === 'shopping') || null;
+  const place = (key, ic, target, th, en, rec, pmeta, st) => {
+    const count = rec?.n?.[i] ?? null, star = rec ? partialShare(facts, pmeta, i) >= 0.5 : false;
+    return {key, icon: ic, target, th, en, state: stateOf(rec, pmeta, st), value: count == null ? '' : num(count), unit: ['แห่ง', 'places'], count, star,
+      p: !star && count > 0 ? rec.p?.[u]?.[i] ?? null : null};
+  };
+  return [
+    {key: 'residents', icon: 'residents', target: 'locale-res-title', th: 'คนอยู่ใกล้', en: 'Living near', tag: ['แบบจำลอง', 'modelled'], state: stateOf(residents, residentsMeta, residentsState),
+      value: residents ? aboutPeople(residents.n[i]) || '<10' : '', about: Boolean(residents && aboutPeople(residents.n[i])), unit: ['คน', 'people'], count: residents?.n?.[i] ?? null, star: false,
+      p: residents ? residents.p?.[u]?.[i] ?? null : null},
+    place('work', 'workers', 'locale-work-title', 'ที่ทำงานและที่เรียน', 'Work and study', work, workMeta, workState),
+    place('visitors', 'visitors', 'locale-vis-title', 'ที่ผู้มาเยือนใช้', 'Places visitors use', visitors, visitorsMeta, visitorsState),
+    {key: 'shopping', icon: 'venue', target: 'locale-chart-title', th: 'ศูนย์และตลาดอื่น', en: 'Other centers and markets', state: shop ? 'ready' : 'none',
+      value: shop ? num(shop.count) : '', unit: ['แห่ง', 'places'], count: shop?.count ?? null, star: false, p: shop && shop.count > 0 ? shop.p : null},
+  ];
+}
+
+/** The glance as four tiles (pictogram, figure, five-step level); each tile jumps to its block. `where`: 'section' | 'head'. */
+export function glanceHTML(meta, row, facts, args = {}, {where = 'section'} = {}) {
+  if (!meta || !facts || facts.located === false) return '';
+  const tiles = glanceModel(meta, row, facts, args), uni = universeOf(meta, row);
+  const uniEn = usSpelling(meta.universes?.[uni.key === 'type' ? row.group : 'all']?.en || '');
+  const group = uni.key === 'all' ? ` ${uni.short}` : uni.short;
+  const tile = t => {
+    const ready = t.state === 'ready', level = ready && !t.star && (t.p != null || t.count === 0) ? levelOf(t.p, t.count) : null;
+    const figure = ready
+      ? `<span class="glance-fig">${t.about ? `<small>${say('ราว', 'about')}</small> ` : ''}<b class="data-number">${esc(t.value)}</b> <span class="glance-unit">${say(t.unit[0], t.unit[1])}${t.star ? '<sup>*</sup>' : ''}</span></span>`
+      : `<span class="glance-wait">${t.state === 'loading' ? say('กำลังโหลด…', 'Loading…') : say('ยังไม่มีข้อมูล', 'No data yet')}</span>`;
+    const meter = level == null ? '' : `${levelMeter(level, t.count > 0 ? t.p : null)}<span class="sr-only">${say(`${LEVEL_WORDS[level][0]} ระดับ ${num(level)} จาก 5 เทียบ${group}`, `${LEVEL_WORDS[level][1]}, level ${num(level)} of 5 among ${uniEn}`)}</span>`;
+    return `<li><button type="button" class="glance-tile" data-action="locale-jump" data-target="${t.target}" data-glance="${t.key}">${icon(t.icon)}<span class="glance-label">${say(t.th, t.en)}${t.tag ? ` <span class="glance-tag">${say(t.tag[0], t.tag[1])}</span>` : ''}</span>${figure}${meter}</button></li>`;
+  };
+  const starred = tiles.some(t => t.state === 'ready' && t.star);
+  const key = `<p class="hint glance-key">${levelMeter(3)}<span>${say(`ระดับเทียบ${group} · น้อย → มาก`, `Level among ${uniEn} · low → high`)}</span>${starred ? `<span>${say('* นับเฉพาะรายการที่มีพิกัด จึงไม่จัดระดับ', '* counted only where a record has a point, so no level')}</span>` : ''}</p>`;
+  const lead = where === 'head' ? `<p class="glance-lead">${icon('area')}${say(`รอบศูนย์ใน ${km(options.radius)}`, `Within ${kmEn(options.radius)} of the center`)}</p>` : '';
+  return `<div class="locale-glance${where === 'head' ? ' in-head' : ''}" id="locale-glance${where === 'head' ? '-head' : ''}" data-venue="${esc(row.id)}">${lead}<ul class="glance-grid" aria-label="${where === 'head' ? 'รอบศูนย์นี้' : `ใน ${esc(km(options.radius))} รอบศูนย์`}">${tiles.map(tile).join('')}</ul>${key}</div>`;
 }
 
 /** Datasets of the registry that list records here but have no accepted points: name and this province's count. */
@@ -329,14 +405,14 @@ export function formatValue(v, unit = '') {
   return Math.abs(v) >= 100 || Number.isInteger(v) ? num(v) : DECIMAL.format(v);
 }
 
-/** “ต่อ ตร.กม. มากกว่า 39% ของย่านในกรุงเทพฯ (832)”. */
+/** “ต่อ ตร.กม. ระดับเทียบ 39/100 ในย่านในกรุงเทพฯ (832)”. */
 export function areaPhrase(r, {level, bench, provinceCode}) {
   if (r.p == null || r.n == null) return '';
   const word = levelWord(level, provinceCode);
   const group = bench === 'peer' ? `${word}ที่มีศูนย์ชุดอ้างอิง` : `${word}ใน${provinceWord(provinceCode)}`;
   if (r.value === 0 && r.zeroShare != null) return `ไม่มีในข้อมูล เหมือน ${num(r.zeroShare)}% ของ${group} (${num(r.n)})`;
   const words = rankWords(r.p, `${group} (${num(r.n)})`);
-  return r.basis === 'per_sqkm' ? `ต่อ ตร.กม. ${words}` : words.replace(/^มากกว่า/, 'สูงกว่า');
+  return r.basis === 'per_sqkm' ? `ต่อ ตร.กม. ${words}` : words;
 }
 
 /**
@@ -384,13 +460,13 @@ function ringTable(meta, facts, row, uni) {
     const extra = [r.near != null ? nearWords(r.near) : '',
       r.partial ? `มีพิกัด ${num(r.located)} จาก ${num(r.eligible)}` : '', r.brands ? `เฉพาะ ${r.brands}` : ''].filter(Boolean).join(' · ');
     const sub = [extra, r.source, r.date ? thaiDay(r.date) : ''].filter(Boolean).join(' · ');
-    return `<tr><th scope="row">${say(r.name, r.nameEn)}${r.partial ? '<sup>*</sup>' : ''}<small>${esc(sub)}</small></th>${cells}<td class="data-number">${rows[1][k].count === 0 ? '–' : `${num(rows[1][k].p)}%`}</td></tr>`;
+    return `<tr><th scope="row">${say(r.name, r.nameEn)}${r.partial ? '<sup>*</sup>' : ''}<small>${esc(sub)}</small></th>${cells}<td class="data-number">${rows[1][k].count === 0 ? say('ไม่พบ', 'none') : rows[1][k].p == null ? say('ยังไม่มี', 'not yet') : `${num(Math.round(rows[1][k].p))}`}</td></tr>`;
   }).join('');
   return `<details class="locale-details" data-locale-open="table"${openAttr('table')}><summary>${icon('table')}ตัวเลขทุกรัศมี</summary>
-    <div class="table-wrap locale-table-wrap"><table class="locale-table"><caption class="sr-only">จำนวนในรัศมี 1, 3 และ 5 กม. และอันดับที่ 3 กม.</caption>
-    <thead><tr><th scope="col">ชุดข้อมูล</th><th scope="col">1 กม.</th><th scope="col">3 กม.</th><th scope="col">5 กม.</th><th scope="col">อันดับ 3 กม.</th></tr></thead>
+    <div class="table-wrap locale-table-wrap"><table class="locale-table"><caption class="sr-only">จำนวนในรัศมี 1, 3 และ 5 กม. และระดับเทียบที่ 3 กม.</caption>
+    <thead><tr><th scope="col">ชุดข้อมูล</th><th scope="col">1 กม.</th><th scope="col">3 กม.</th><th scope="col">5 กม.</th><th scope="col">ระดับเทียบ 3 กม. (0–100)</th></tr></thead>
     <tbody>${body}</tbody></table></div>
-    <p class="hint">อันดับเทียบกับ${esc(uni.th)} ${num(uni.n)} แห่ง${rows[0].some(r => r.partial) ? ' · * นับได้เฉพาะรายการที่มีพิกัด' : ''}</p></details>`;
+    <p class="hint">ระดับเทียบกับ${esc(uni.th)} ${num(uni.n)} แห่ง${rows[0].some(r => r.partial) ? ' · * นับได้เฉพาะรายการที่มีพิกัด' : ''}</p></details>`;
 }
 
 /** Plain list of the same rows as the chart (fallback when amCharts cannot load). */
@@ -399,6 +475,16 @@ export function ringListHTML(rows, uni, radius) {
     const x = r.count === 0 ? 0 : r.p ?? 0;
     return `<li class="dot-row"><span class="dot-label">${say(r.label, r.labelEn)}${r.partial ? '<sup>*</sup>' : ''}</span><span class="dot-track" aria-hidden="true"><i class="dot${r.count === 0 ? ' is-zero' : ''}" style="left:${x}%;background:${pctFill(x)}"></i></span><span class="dot-value"><b class="data-number">${num(r.count)}</b></span><span class="sr-only">${esc(pctPhrase(r, uni))}</span></li>`;
   }).join('')}</ol>`;
+}
+
+/** [th, en] of a period the data states: “2026-10” → “ต.ค. 2569” / “Oct 2026”; a year alone as a year (BE in Thai). */
+export function periodWords(period) {
+  const v = String(period || '');
+  let m = v.match(/^(\d{4})-(\d{2})$/);
+  if (m) return [`${MONTHS[Number(m[2]) - 1]} ${Number(m[1]) + 543}`, `${MONTHS_EN[Number(m[2]) - 1]} ${m[1]}`];
+  m = v.match(/^(\d{4})$/);
+  if (m) { const y = Number(m[1]); return y > 2400 ? [`ปี ${y}`, `${y - 543}`] : [`ปี ${y + 543}`, `${y}`]; }
+  return null;
 }
 
 function areaBlock(meta, facts, row) {
@@ -419,7 +505,9 @@ function areaBlock(meta, facts, row) {
     const phrase = areaPhrase(r, {level, bench: options.bench, provinceCode: code});
     const link = r.m.link.replace('{province}', encodeURIComponent(code)).replace('{district}', encodeURIComponent(row.districtCode));
     const track = r.p != null ? `<span class="pct-track" aria-hidden="true"><i style="left:${r.value === 0 ? 0 : r.p}%"></i></span>` : '';
-    return `<div class="area-row"><dt>${extLink(link, r.label, 'area-link', r.labelEn)}</dt><dd><span class="area-value"><b class="data-number"${enAttr(r.textEn)}>${esc(r.text)}</b>${r.unit && r.basis !== 'category' ? ` <span class="area-unit"${enAttr(r.unitEn)}>${esc(r.unit)}</span>` : ''}</span>${phrase ? `<span class="area-pct">${esc(phrase)}</span>` : ''}${track}</dd></div>`;
+    const short = phrase.replace(/(ระดับเทียบ [\d,]+\/100) ใน.+ (\([\d,]+\))$/, '$1 $2');
+    const pw = periodWords(r.period), period = pw ? ` <span class="area-period">${say(pw[0], pw[1])}</span>` : '';
+    return `<div class="area-row"><dt>${extLink(link, r.label, 'area-link', r.labelEn)}</dt><dd><span class="area-value"><b class="data-number"${enAttr(r.textEn)}>${esc(r.text)}</b>${r.unit && r.basis !== 'category' ? ` <span class="area-unit"${enAttr(r.unitEn)}>${esc(r.unit)}</span>` : ''}${period}</span>${phrase ? (short !== phrase ? `<span class="area-pct" aria-hidden="true">${esc(short)}</span><span class="sr-only">${esc(phrase)}</span>` : `<span class="area-pct">${esc(phrase)}</span>`) : ''}${track}</dd></div>`;
   };
   const first = rows.slice(0, AREA_FIRST).map(rowHTML).join('');
   const rest = rows.slice(AREA_FIRST);
@@ -430,6 +518,7 @@ function areaBlock(meta, facts, row) {
     ${hasPct ? `<div class="chart-controls locale-controls" role="group" aria-label="เทียบกับ"><span class="chart-note">เทียบกับ</span>${chip('locale-bench', 'bench', 'province', options.bench === 'province', `ใน${provinceWord(code)}`)}${chip('locale-bench', 'bench', 'peer', options.bench === 'peer', 'ที่มีศูนย์ทั่วประเทศ')}</div>` : ''}
     ${rows.length ? `<dl class="locale-area">${first}</dl>${rest.length ? `<details class="locale-details" data-locale-open="more"${openAttr('more')}><summary>ดูอีก ${num(rest.length)} รายการ</summary><dl class="locale-area">${rest.map(rowHTML).join('')}</dl></details>` : ''}`
       : '<p class="hint">ยังไม่มีข้อมูลของพื้นที่ระดับนี้</p>'}
+    ${rows.some(r => periodWords(r.period)) && rows.some(r => !periodWords(r.period)) ? `<p class="hint area-period-note">${say('ป้ายเดือนหรือปีคือช่วงของข้อมูลที่แหล่งระบุ แถวที่ไม่มีป้าย แหล่งยังไม่ระบุช่วง', 'A month or year label is the period the source states; a row without one has no stated period')}</p>` : ''}
   </div>`;
 }
 
@@ -450,13 +539,12 @@ export function distanceWords(m) {
   return m < 1000 ? [`${num(m)} ม.`, `${num(m)} m`] : [`${DECIMAL.format(m / 1000)} กม.`, `${DECIMAL.format(m / 1000)} km`];
 }
 
-/** [th, en] rank words of a mid-rank percentile; values read “สูงกว่า”, counts “มากกว่า”; top and bottom 1% as such. */
-export function rankPair(p, groupTh, groupEn, {count = false} = {}) {
+/** [th, en] rank words of a mid-rank percentile, as rankWords: “ระดับเทียบ 61/100 ใน …”; top and bottom 1% as such. */
+export function rankPair(p, groupTh, groupEn) {
   if (p == null) return null;
   if (p >= 99.5) return [`อยู่ในกลุ่มสูงสุด 1% ของ${groupTh}`, `in the top 1% of ${groupEn}`];
   if (p < 0.5) return [`อยู่ในกลุ่มต่ำสุด 1% ของ${groupTh}`, `in the bottom 1% of ${groupEn}`];
-  const w = count ? ['มากกว่า', 'more than'] : ['สูงกว่า', 'higher than'];
-  return [`${w[0]} ${num(Math.round(p))}% ของ${groupTh}`, `${w[1]} ${num(Math.round(p))}% of ${groupEn}`];
+  return [`ระดับเทียบ ${num(Math.round(p))}/100 ใน${groupTh}`, `level ${num(Math.round(p))}/100 among ${String(groupEn).trim()}`];
 }
 /** Rank of an observed context signal among the located venues (or those that have the value). */
 function ctxRank(meta, sg, key, opts) {
@@ -655,7 +743,7 @@ const baht = n => `<span class="baht" aria-hidden="true">${[1, 2, 3].map(i => `<
 function spendMeter(P, sp) {
   const n = sp && sp[0] !== 'insufficient' ? {low: 1, medium: 2, high: 3}[sp[0]] || 0 : 0;
   const w = n ? P.levels[sp[0]] : ['ยังไม่ประเมิน', 'Not rated'];
-  return `<span class="spend-meter${n ? '' : ' is-none'}">${baht(n)}${say(`กำลังซื้อจากราคา ${w[0]}`, `Spending power from prices: ${String(w[1]).toLowerCase()}`)}</span>`;
+  return `<span class="spend-meter${n ? '' : ' is-none'}">${baht(n)}${say(`ระดับราคารอบศูนย์ ${w[0]}`, `Price level around: ${String(w[1]).toLowerCase()}`)}</span>`;
 }
 /** Groups by how many are likely around, most first. */
 const segOrder = (P, pr) => (P.segments || []).map(s => s[0]).filter(s => pr.seg?.[s]).sort((a, b) => (pr.seg[b][1] ?? -1) - (pr.seg[a][1] ?? -1));
@@ -685,7 +773,7 @@ function personaHTML(meta, pr, sg, facts, row, seg) {
   const bPresence = basis(s[3]), bSpend = sp && sp[0] !== 'insufficient' ? basis(sp[3]) : [];
   // workers: the two strongest clusters set the level (an office district or a factory belt are alternatives)
   const top2 = s[4] === 'top2' ? [' (ใช้สองค่าที่สูงที่สุด เพราะงานแต่ละแบบแทนกันได้)', ' (the two highest count, since one kind of work stands in for another)'] : ['', ''];
-  const spendNote = sp?.[4] === 'factory_led' ? `<p class="hint persona-basis">${say('กำลังซื้อจากราคา: ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน ใช้แทนงานโรงงานไม่ได้', 'Spending power from prices: not rated; the prices on hand are office rents and areas, which do not speak for factory work')}</p>` : '';
+  const spendNote = sp?.[4] === 'factory_led' ? `<p class="hint persona-basis">${say('ระดับราคารอบศูนย์: ยังไม่ประเมิน ราคาที่มีเป็นค่าเช่าและพื้นที่สำนักงาน ใช้แทนงานโรงงานไม่ได้', 'Price level around: not rated; the prices on hand are office rents and areas, which do not speak for factory work')}</p>` : '';
   const facts_ = factLines(meta, sg, facts, row, seg);
   const formats = formatChips(P, say_.pmf);
   const readRow = (ic, th, en, body) => `<li class="read">${icon(ic)}<span class="read-body"><b class="read-label">${say(th, en)}</b> ${body}</span></li>`;
@@ -703,7 +791,7 @@ function personaHTML(meta, pr, sg, facts, row, seg) {
       ${facts_.length ? `<h6 class="persona-h">${say('ข้อมูลที่เห็น', 'What the data shows')}</h6><ul class="sig-list">${facts_.join('')}</ul>` : ''}
       <h6 class="persona-h">${say('อ่านว่า', 'Reading')} <span class="prior-badge">${say('สมมติฐาน', 'Hypothesis')}</span></h6>
       <ul class="read-list">${read}</ul>
-      ${bPresence.length || bSpend.length ? `<p class="hint persona-basis">${bPresence.length ? say(`ระดับ${lv[0]} อิงจาก ${pairText(bPresence)[0]}${top2[0]}`, `${lv[1]} level, based on ${pairText(bPresence)[1]}${top2[1]}`) : ''}${bSpend.length && plv ? `<br>${say(`กำลังซื้อจากราคา อิงจาก ${pairText(bSpend)[0]} · ไม่ใช่รายได้หรือยอดใช้จ่ายที่วัดได้`, `Spending power from prices, based on ${pairText(bSpend)[1]} · not measured income or spending`)}` : ''}</p>` : ''}${spendNote}
+      ${bPresence.length || bSpend.length ? `<p class="hint persona-basis">${bPresence.length ? say(`ระดับ${lv[0]} อิงจาก ${pairText(bPresence)[0]}${top2[0]}`, `${lv[1]} level, based on ${pairText(bPresence)[1]}${top2[1]}`) : ''}${bSpend.length && plv ? `<br>${say(`ระดับราคารอบศูนย์ อิงจาก ${pairText(bSpend)[0]} · ไม่ใช่รายได้หรือยอดใช้จ่ายที่วัดได้`, `Price level around, based on ${pairText(bSpend)[1]} · not measured income or spending`)}` : ''}</p>` : ''}${spendNote}
       ${cardDataLine(meta, seg)}
     </div></details>`;
 }
@@ -714,7 +802,7 @@ function whoBlock(meta, pr, sg, facts, row) {
   if (!order.length) return '';
   return `<div class="locale-block who-block"><h4 class="locale-sub">${icon('segment')}${say('ใครน่าจะอยู่รอบศูนย์', 'Who is likely around')}<span class="prior-badge">${say('สมมติฐานจากกฎ', 'Rule-based hypothesis')}</span></h4>
     <div class="who-grid">${order.map(seg => personaHTML(meta, pr, sg, facts, row, seg)).join('')}</div>
-    <ul class="hint who-key"><li>${pips('high')}${say('จำนวนที่น่าจะอยู่รอบศูนย์', 'How many are likely around')}</li><li>${baht(3)}${say('กำลังซื้ออ่านจากราคาที่สังเกตได้ ไม่ใช่รายได้', 'Spending power read from observed prices, not income')}</li><li>${icon('touch')}${say('กดที่กลุ่มเพื่อดูข้อมูลและตัวอย่างสถานที่', 'Open a group for its data and places')}</li></ul>
+    <ul class="hint who-key"><li>${pips('high')}${say('จำนวนที่น่าจะอยู่', 'How many, likely')}</li><li>${baht(3)}${say('ระดับราคารอบศูนย์', 'Price level around')}</li><li>${icon('touch')}${say('กดเพื่อดูข้อมูล', 'Open for the data')}</li></ul>
   </div>`;
 }
 
@@ -740,7 +828,7 @@ function centreLines(meta, sg, shown = new Set()) {
  * checked shop list that it maps to and that the list has (observed, by category, never by format). A format the list
  * does not show is something to check on site — the list is not a census of every shop, so it never reads as absent.
  */
-export function fitRows(meta, pr, sg) {
+export function fitRows(meta, pr, sg, {roles = null} = {}) {
   const P = meta.priors, ten = sg?.ten || {};
   const ids = [];
   for (const seg of segOrder(P, pr).filter(x => ['high', 'medium'].includes(pr.seg[x][0]))) {
@@ -748,34 +836,81 @@ export function fitRows(meta, pr, sg) {
   }
   // formats whose categories overlap share one row, so a category is never shown twice
   let rows = [];
-  const check = [];
+  const check = [], nodata = [], viaList = [];
   for (const id of ids) {
-    const sets = (P.pmf[id][2] || []).filter(ds => P.tenantDatasets?.[ds] && ten[ds] > 0);
-    if (!sets.length) { check.push(id); continue; }
+    const known = (P.pmf[id][2] || []).filter(ds => P.tenantDatasets?.[ds]);
+    const sets = known.filter(ds => ten[ds] > 0);
+    if (!sets.length) {
+      // no dataset to compare with is its own state; a shop of the same role in the list the panel shows settles the rest
+      const hit = roles ? [...new Set(known.flatMap(ds => FORMAT_ROLES[ds.replace(/^research\.TH\./, '')] || []))].filter(r => roles[r] > 0) : [];
+      if (!known.length) nodata.push(id); else if (hit.length) viaList.push({id, roles: hit}); else check.push(id);
+      continue;
+    }
     const hit = rows.filter(r => r.sets.some(ds => sets.includes(ds)));
     rows = rows.filter(r => !hit.includes(r));
     rows.push({sets: [...new Set([...hit.flatMap(r => r.sets), ...sets])], ids: [...hit.flatMap(r => r.ids), id]});
   }
   const found = rows.map(r => ({sets: r.sets.map(ds => [ds, ten[ds]]), n: r.sets.reduce((sum, ds) => sum + ten[ds], 0), ids: r.ids}));
-  return {found: found.sort((a, b) => b.n - a.n), check};
+  // formats settled by the same roles share one row, as the dataset rows do
+  let listed = [];
+  for (const v of viaList) {
+    const hit = listed.filter(r => r.roles.some(x => v.roles.includes(x)));
+    listed = listed.filter(r => !hit.includes(r));
+    listed.push({roles: [...new Set([...hit.flatMap(r => r.roles), ...v.roles])], ids: [...hit.flatMap(r => r.ids), v.id]});
+  }
+  listed = listed.map(r => ({roles: r.roles.map(x => [x, roles[x]]), n: r.roles.reduce((sum, x) => sum + roles[x], 0), ids: r.ids}));
+  return {found: found.sort((a, b) => b.n - a.n), listed: listed.sort((a, b) => b.n - a.n), check, nodata};
 }
 
-function fitBlock(meta, pr, sg) {
+/**
+ * Shop roles of the list the panel shows (js/tenants.js#tenantRole) that stand for a format's datasets. A format the
+ * dataset links do not show is “in the center's list” when the list has a shop of such a role (review of 2026-11-24,
+ * F-04: 284 “not seen” entries at 101 centers had one). Books and stationery has no role of its own.
+ */
+export const FORMAT_ROLES = Object.freeze({grocery: ['grocery'], restaurants: ['dining', 'food', 'cafe'], beauty_clinic: ['clinic'], beauty: ['beauty'], massage_spa: ['spa'], pharmacy: ['pharmacy'],
+  playground: ['family'], bank: ['bank'], fitness: ['fitness'], apparel: ['apparel'], sport: ['sport'], luxury: ['destination'], gold: ['gold'], optical: ['optical']});
+const ROLE_WORDS = Object.freeze({grocery: ['ซูเปอร์มาร์เก็ตและของใช้', 'Supermarkets and daily goods'], dining: ['ร้านอาหาร', 'Restaurants'], food: ['อาหารและเครื่องดื่ม', 'Food and drink'], cafe: ['คาเฟ่และเครื่องดื่ม', 'Cafés and drinks'],
+  clinic: ['คลินิกความงาม', 'Beauty clinics'], beauty: ['ความงาม', 'Beauty'], spa: ['นวดและสปา', 'Massage and spa'], pharmacy: ['ยาและสุขภาพ', 'Pharmacy and health'], family: ['เครื่องเล่นและครอบครัว', 'Play and family'],
+  bank: ['บริการธนาคาร', 'Banking'], fitness: ['ฟิตเนสและสตูดิโอ', 'Fitness and studios'], apparel: ['เสื้อผ้าและแฟชั่น', 'Apparel and fashion'], sport: ['กีฬาและเอาท์ดอร์', 'Sport and outdoor'],
+  destination: ['แฟชั่นและแบรนด์หรู', 'Fashion and luxury brands'], gold: ['ทองและเครื่องประดับ', 'Gold and jewellery'], optical: ['แว่นตา', 'Eyewear']});
+
+/** The shop list the panel shows for a venue, by role ({roles: {role: n}, total}); the app sets it when the list loads. */
+const shopLists = new Map();
+export function setLocaleShopList(id, list) { if (!id) return; if (list) shopLists.set(id, list); else shopLists.delete(id); }
+export const localeShopList = id => shopLists.get(id) || null;
+
+function fitBlock(meta, pr, sg, row = {}) {
   const P = meta.priors, C = meta.context || {};
-  const {found, check} = fitRows(meta, pr, sg);
+  const list = localeShopList(row?.id);
+  const {found, listed, check, nodata} = fitRows(meta, pr, sg, {roles: list?.roles || null});
   const center = centreLines(meta, sg, new Set(found.flatMap(f => f.sets.map(x => x[0]))));
-  if (!found.length && !check.length && !center.length) return '';
+  if (!found.length && !listed.length && !check.length && !nodata.length && !center.length) return '';
   const catText = sets => [sets.map(([ds, n]) => `${P.tenantDatasets[ds][0]} ${num(n)}`).join(' · '), sets.map(([ds, n]) => `${P.tenantDatasets[ds][1]} ${num(n)}`).join(' · ')];
+  const roleText = roles => [roles.map(([r, n]) => `${ROLE_WORDS[r][0]} ${num(n)}`).join(' · '), roles.map(([r, n]) => `${ROLE_WORDS[r][1]} ${num(n)}`).join(' · ')];
   const rowHTML = f => {
     const [th, en] = catText(f.sets);
     return `<li class="fit-row">${icon('fit')}<span class="fit-body"><span class="fit-have">${say(th, en)}<span class="sr-only">${say(' ร้านในรายชื่อที่ตรวจแล้ว', ' in the checked shop list')}</span></span><span class="pmf-chips">${formatChips(P, f.ids)}</span></span></li>`;
   };
+  const listedHTML = f => {
+    const [th, en] = roleText(f.roles);
+    return `<li class="fit-row is-listed">${icon('fit')}<span class="fit-body"><span class="fit-have">${say(th, en)} <span class="fit-src">${say('ตามรายชื่อของศูนย์', 'in the center’s own list')}</span></span><span class="pmf-chips">${formatChips(P, f.ids)}</span></span></li>`;
+  };
+  // three states, each its own symbol: seen in the list · checked and not seen · nothing to compare with
+  const linked = Object.entries(sg?.ten || {}).filter(([ds, n]) => n > 0 && P.tenantDatasets?.[ds]).reduce((sum, [, n]) => sum + n, 0);
+  const compared = list?.total || linked;
+  const hasList = compared > 0;
+  const stateRow = (cls, ic, th, en, ids) => (ids.length ? `<li class="fit-row ${cls}">${icon(ic)}<span class="fit-body"><span class="fit-have">${say(th, en)}</span><span class="pmf-chips">${formatChips(P, ids)}</span></span></li>` : '');
+  const checkRow = hasList
+    ? stateRow('is-check', 'notyet', `ยังไม่เห็นในรายชื่อ ${num(compared)} ร้าน ควรตรวจหน้างาน`, `Not seen among the ${num(compared)} shops listed: check on site`, check)
+    : stateRow('is-nolist', 'info', 'ศูนย์นี้ยังไม่มีรายชื่อร้านในข้อมูล จึงยังบอกไม่ได้ว่ามีหมวดใดแล้ว', 'No shop list for this center in the data yet, so it cannot say which formats are already here', check);
+  const nodataRow = stateRow('is-nodata', 'info', 'ยังไม่มีชุดข้อมูลให้เทียบ', 'No dataset to compare with yet', nodata);
   const roster = C.dates?.tenant_roster, lux = sg?.attr?.luxIn?.n ? C.dates?.luxury : null;
+  const any = found.length || listed.length || check.length || nodata.length;
   return `<div class="locale-block fit-block"><h4 class="locale-sub">${icon('store')}${say('ร้านแบบไหนน่าจะเข้ากับคนรอบศูนย์', 'Which formats would likely fit')}<span class="prior-badge">${say('สมมติฐาน', 'Hypothesis')}</span></h4>
-    ${found.length || check.length ? `<ul class="fit-list">${found.map(rowHTML).join('')}${check.length ? `<li class="fit-row is-check">${icon('notyet')}<span class="fit-body"><span class="fit-have">${say('ยังไม่เห็นในรายชื่อร้านที่ตรวจแล้ว ควรตรวจหน้างาน', 'Not seen in the checked shop list yet: check on site')}</span><span class="pmf-chips">${formatChips(P, check)}</span></span></li>` : ''}</ul>
-    <ul class="hint fit-key"><li>${icon('fit')}${say('หมวดร้านและจำนวนในรายชื่อร้านที่ตรวจแล้วของศูนย์ นับทั้งหมวด ไม่แยกระดับราคา', 'Shop category and count in the center’s checked shop list, the whole category, not split by price')}</li><li><span class="pmf" aria-hidden="true"></span>${say('ป้ายเส้นประคือหมวดที่น่าจะเข้ากับคนรอบศูนย์ (สมมติฐาน)', 'Dashed chips are formats that would likely fit (hypotheses)')}</li></ul>` : ''}
+    ${any ? `<ul class="fit-list">${found.map(rowHTML).join('')}${listed.map(listedHTML).join('')}${checkRow}${nodataRow}</ul>
+    <ul class="hint fit-key"><li>${icon('fit')}${say('อยู่ในรายชื่อร้านของศูนย์ นับทั้งหมวด', 'In the center’s shop list, the whole category')}</li>${check.length && hasList ? `<li>${icon('notyet')}${say('ตรวจรายชื่อแล้วยังไม่เห็น', 'Checked the list, not seen')}</li>` : ''}${nodata.length || (check.length && !hasList) ? `<li>${icon('info')}${say('ยังเทียบไม่ได้', 'Cannot be compared yet')}</li>` : ''}<li><span class="pmf" aria-hidden="true"></span>${say('หมวดที่น่าจะเข้ากัน (สมมติฐาน)', 'Formats that would likely fit (hypotheses)')}</li></ul>` : ''}
     ${center.length ? `<h5 class="locale-mini">${icon('venue')}${say('ศูนย์นี้มีอะไรแล้ว', 'What the center already has')}</h5><ul class="sig-list">${center.join('')}</ul>` : ''}
-    <p class="hint persona-data">${say(`ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center${roster ? ` ตรวจถึง ${thaiDay(roster)}` : ''} ไม่ใช่การสำรวจครบทุกร้าน${lux ? ` · CityMETER Luxury Brands ตรวจ ${thaiDay(lux)}` : ''} · ขอบเขต: ร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้ · หมวดที่น่าจะเข้ากันเป็นสมมติฐานจากกฎ`, `Data: CityMETER Shopping Center shop lists of the center${roster ? `, checked to ${roster}` : ''}, not a census of every shop${lux ? ` · CityMETER Luxury Brands checked ${lux}` : ''} · Boundary: shops a source places in this center · Formats that would likely fit are rule-based hypotheses`)}</p>
+    <p class="hint persona-data">${say(`ข้อมูล: รายชื่อร้านในศูนย์ของ CityMETER Shopping Center${roster ? ` ตรวจถึง ${thaiDay(roster)}` : ''} ไม่ใช่การสำรวจครบทุกร้าน${lux ? ` · CityMETER Luxury Brands ตรวจ ${thaiDay(lux)}` : ''} · ขอบเขต: ร้านที่แหล่งระบุว่าอยู่ในศูนย์นี้`, `Data: CityMETER Shopping Center shop lists of the center${roster ? `, checked to ${roster}` : ''}, not a census of every shop${lux ? ` · CityMETER Luxury Brands checked ${lux}` : ''} · Boundary: shops a source places in this center`)}</p>
   </div>`;
 }
 
@@ -851,6 +986,8 @@ function busyBlock(meta, pr, sg) {
   const rawTitle = hrs?.text ? ` title="${esc(hrs.text)}"` : '';
   const used = parsed ? `<span${rawTitle}>${esc(parsed[en ? 1 : 0])}</span>` : !en && hrs?.text ? `<span>${esc(hrs.text)}</span>` : '';
   const hoursLine = used || basis ? `<p class="hint">${used ? `${say('เวลาเปิดที่ใช้:', 'Opening hours used:')} ${used}` : ''}${used && basis ? ' · ' : ''}${basis ? say(basis[0], basis[1]) : ''}</p>` : '';
+  const basisKey = hrs?.basis || pr.hb || '';
+  const basisChip = basisKey ? `<p class="busy-basis"><span class="basis-chip">${icon('hours')}${/type_default$/.test(basisKey) ? say('เวลาเปิดตามประเภทศูนย์', 'Opening hours by center type') : say('เวลาเปิดของศูนย์', 'The center’s own opening hours')}</span></p>` : '';
   const strength = st => (st >= 0.66 ? ['แรง', 'strong'] : st >= 0.33 ? ['ปานกลาง', 'moderate'] : ['เล็กน้อย', 'slight']);
   const rules = (pr.rules || []).map(([id, st]) => {
     const r = P.rules?.[id];
@@ -860,6 +997,7 @@ function busyBlock(meta, pr, sg) {
   }).join('');
   const targets = (pr.targets || []).map(t => P.check?.[t]).filter(Boolean);
   return `<div class="locale-block busy-block"><h4 class="locale-sub">${icon('hours')}${say('ช่วงไหนน่าจะคึก', 'When it is likely busy')}<span class="prior-badge">${say('สมมติฐาน', 'Hypothesis')}</span></h4>
+    ${basisChip}
     ${best.length ? `<p class="busy-peak">${say(`คึกที่สุดของสัปดาห์ ${bestTh}`, `Busiest of the week: ${bestEn}`)}</p>` : ''}
     <div class="dp-wrap"><table class="dp-grid" aria-hidden="true"><thead>${head}</thead><tbody>${body}</tbody></table></div>
     ${legend}
@@ -878,10 +1016,10 @@ function busyBlock(meta, pr, sg) {
  * open into cards), when it is likely busy (the grid), which formats would likely fit. Neutral tones only.
  */
 export function priorsHTML(meta, pr, sg = null, row = {}, facts = null) {
-  return `<p class="prior-note">${icon('idea')}${say('ต่อจากนี้เป็นสมมติฐานจากกฎ ใช้เลือกสิ่งที่จะไปตรวจ ไม่ใช่จำนวนคน ยอดขาย รายได้ หรือความเต็มใจจ่ายที่วัดได้', 'From here on: rule-based hypotheses for choosing what to check — not people counts, sales, income or measured willingness to pay')}</p>
+  return `<p class="prior-note">${icon('idea')}${say('ต่อจากนี้เป็นสมมติฐานจากกฎ ใช้เลือกสิ่งที่จะไปตรวจ', 'From here on: rule-based hypotheses for choosing what to check')}</p>
     ${whoBlock(meta, pr, sg, facts, row)}
     ${busyBlock(meta, pr, sg)}
-    ${fitBlock(meta, pr, sg)}`;
+    ${fitBlock(meta, pr, sg, row)}`;
 }
 
 /** The prior zone of the section: drawn with the rest once loaded (a placeholder while it loads; a retry when it fails). */
@@ -1357,6 +1495,7 @@ export const COMPARE_PATH = 'data/compare/residents-workers.json';
 export const loadCompare = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(COMPARE_PATH, fetchImpl);
 export const cachedCompare = () => resolved.get(COMPARE_PATH) || null;
 
+const GROUP_WORDS = Object.freeze({mall: ['ศูนย์การค้า', 'Shopping center'], community: ['คอมมูนิตี้มอลล์', 'Community mall'], outlet: ['เอาท์เล็ต', 'Outlet']});
 export const QUARTERS = Object.freeze({work: ['ย่านงาน', 'Workplace'], mixed: ['ผสม', 'Mixed'], sparse: ['เบาบาง', 'Sparse'], home: ['ย่านบ้าน', 'Residential']});
 /** The quarter of two ranks: both at or above the split read “mixed”, both below “sparse”. */
 export const quarterOf = (x, y, split = 50) => (x >= split ? (y >= split ? 'mixed' : 'home') : (y >= split ? 'work' : 'sparse'));
@@ -1405,7 +1544,6 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
   const uniTh = universe === 'all' ? ` ${num(ref)} ศูนย์` : uni.short, uniEn = universe === 'all' ? `${num(ref)} centers` : `${num(ref)} ${typeEn}`;
   const plotTh = `${universe === 'all' ? 'ศูนย์' : typeWord(meta.universes?.[row.group])}ที่มีพิกัดทั้งหมด ${num(n)} แห่ง`, plotEn = `all ${num(n)} located ${universe === 'all' ? 'centers' : typeEn}`;
   const [qTh, qEn] = QUARTERS[quarter];
-  // people are a count (“มากกว่า”), the workers level is a level (“สูงกว่า”), as the rest of the section
   const xr = rankPair(me.x, uniTh, uniEn, {count: true}), yr = rankPair(me.y, uniTh, uniEn);
   const lead = `<p class="cmp-lead">${say(`ศูนย์นี้อยู่ช่อง “${qTh}”`, `This center is in “${qEn}”`)} <span class="cmp-count">${say(`${num(counts[quarter])} จาก ${num(n)} ศูนย์อยู่ช่องนี้`, `${num(counts[quarter])} of ${num(n)} centers are here`)}</span></p>
     <ul class="cmp-ranks"><li>${icon('residents')}${say(`คนอยู่ใกล้ใน ${km(radius)}: ${xr[0]}`, `People living within ${kmEn(radius)}: ${xr[1]}`)}</li><li>${icon('office')}${say(`คนทำงานใกล้: ${yr[0]}`, `People working nearby: ${yr[1]}`)}</li></ul>`;
@@ -1430,9 +1568,9 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
     const v = venueOf?.(q.id);
     if (!v) return '';
     const [nqTh, nqEn] = QUARTERS[quarterOf(q.x, q.y, model.split)];
-    return `<li><button type="button" class="cmp-near-row" data-action="select-venue" data-id="${esc(q.id)}"><span class="cmp-near-name">${say(v.name, v.nameEn)}<small>${say(provinceWord(v.provinceCode), pEnOf(v.provinceCode))} · ${say(nqTh, nqEn)}</small></span><span class="cmp-near-val">${icon('residents')}<b class="data-number">${num(Math.round(q.x))}%</b>${icon('office')}<b class="data-number">${num(Math.round(q.y))}%</b></span></button></li>`;
+    return `<li><button type="button" class="cmp-near-row" data-action="select-venue" data-id="${esc(q.id)}"><span class="cmp-near-name">${say(v.name, v.nameEn)}<small>${say(provinceWord(v.provinceCode), pEnOf(v.provinceCode))} · ${say(...(GROUP_WORDS[v.group] || ['', '']))} · ${say(nqTh, nqEn)}</small></span><span class="cmp-near-val">${icon('residents')}<b class="data-number">${num(Math.round(q.x))}%</b>${icon('office')}<b class="data-number">${num(Math.round(q.y))}%</b></span></button></li>`;
   }).join('');
-  const list = items ? `<p class="cmp-near-head"><span class="res-sub">${say('ศูนย์ที่อันดับใกล้กันที่สุด', 'Centers with the closest ranks')}</span><span class="cmp-near-key">${icon('residents')}${say('คนอยู่ใกล้', 'living')} ${icon('office')}${say('คนทำงานใกล้', 'working')}</span></p><ol class="cmp-near-list">${items}</ol>` : '';
+  const list = items ? `<details class="locale-details cmp-near-fold" data-locale-open="cmpnear"${openAttr('cmpnear')}><summary>${say('ศูนย์ที่ระดับใกล้กันที่สุด 5 แห่ง', 'The five centers with the closest levels')}</summary><p class="cmp-near-head"><span class="res-sub">${say('ศูนย์ที่อันดับใกล้กันที่สุด', 'Centers with the closest ranks')}</span><span class="cmp-near-key">${icon('residents')}${say('คนอยู่ใกล้', 'living')} ${icon('office')}${say('คนทำงานใกล้', 'working')}</span></p><ol class="cmp-near-list">${items}</ol></details>` : '';
   const pm = rmeta?.populationMonth, asOf = meta.asOf;
   const line = `<p class="hint res-evidence cmp-evidence">${say(
     `อันดับเทียบกับ${uniTh}ในชุดอ้างอิง · คนอยู่ใกล้: คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) กรมการปกครอง ${thaiDay(pm)} ผ่าน CityMETER production · คนทำงานใกล้: ระดับคนทำงานและผู้เดินทางจากกฎของรอบศูนย์นี้ ทะเบียนวิจัย CityMETER ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์`,
@@ -1529,13 +1667,15 @@ export function renderLocaleResidents(row, {meta = null, facts = null, residents
 
 function methodBlock(meta, uni) {
   const notCounted = (meta.notCounted || []).filter(x => x.treatment === 'not_countable_catalog_only' && x.th).map(x => x.th);
-  return `<details class="locale-details" data-locale-open="method"${openAttr('method')}><summary>${icon('evidence')}ที่มาและวิธีของส่วนนี้</summary>
+  return `<details class="locale-details" id="locale-method" data-locale-open="method"${openAttr('method')}><summary>${icon('evidence')}ที่มาและวิธีของส่วนนี้</summary>
     <ul class="locale-method">
       <li>นับรายการที่แหล่งระบุในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ และไม่ใช่จำนวนคนเดิน</li>
-      <li>อันดับเป็นเปอร์เซ็นไทล์แบบ mid-rank เทียบกับ${esc(uni.th)} ${num(uni.n)} แห่ง ค่าที่เท่ากันนับครึ่ง · 0 คือไม่พบรายการในรัศมี ไม่ใช่ไม่มีข้อมูล</li>
+      <li>ระดับเทียบ 0–100 ได้จากการเรียง${esc(uni.th)} ${num(uni.n)} แห่งจากน้อยไปมาก ศูนย์ที่ได้ค่าเท่ากันใช้ระดับกึ่งกลางร่วมกัน · มาตรวัด 5 ขั้นแบ่งระดับนี้ทีละ 20 · 0 คือไม่พบรายการในรัศมี ไม่ใช่ไม่มีข้อมูล</li>
       ${referenceLine(meta)}
       <li>ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย</li>
       <li>ชุดที่ยังมีพิกัดไม่ครบนับเฉพาะรายการที่มีพิกัด และติดดาวไว้ในตาราง</li>
+      <li>${say('กลุ่มคน ช่วงเวลา และหมวดร้านเป็นสมมติฐานจากกฎ ไม่ใช่จำนวนคน ยอดขาย รายได้ หรือความเต็มใจจ่ายที่วัดได้ · ระดับราคารอบศูนย์อ่านจากราคาที่สังเกตได้ ไม่ใช่รายได้', 'The groups, the hours and the formats are rule-based hypotheses, not people counts, sales, income or measured willingness to pay · the price level around the center is read from observed prices, not income')}</li>
+      <li>${say('หมวดที่อยู่ในรายชื่อของศูนย์คือสิ่งที่ศูนย์เผยแพร่ ณ วันที่ตรวจ ยังไม่ได้ตรวจหน้างาน · หมวดที่ยังไม่มีชุดข้อมูลให้เทียบแสดงแยกจากหมวดที่ตรวจรายชื่อแล้วยังไม่เห็น', 'A format in the center’s own list is what the center published on the check date, not yet verified on site · a format with no dataset to compare with is shown apart from one checked against the list and not seen')}</li>
       ${notCounted.length ? `<li>ยังนับไม่ได้ในรุ่นนี้: ${esc(notCounted.join(' · '))}</li>` : ''}
       <li>คอนโดนับตามแขวง/ตำบลของฐานราคาประเมินตามนโยบายของชุดข้อมูล ไม่นับจุดบนแผนที่ในรัศมี</li>
       <li>ตัวอย่างสถานที่รอบศูนย์มาจากเดโม CityMETER ของแต่ละชุด กดชื่อเพื่อเปิดในเดโมนั้น · ระยะปัดเป็น 100 ม.</li>
@@ -1557,29 +1697,33 @@ export function localeDataLine(meta) {
  */
 export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null, residentsMap = null, visitorsMeta = null, visitors = null, visitorsState = 'idle', workMeta = null, work = null, workState = 'idle'} = {}) {
   if (!inLocaleSet(row)) return '';
-  const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}<span class="hint">รัศมีเส้นตรง</span></div>`;
+  const trial = /-rc\d*$/.test(meta?.release?.id || '') ? `<button type="button" class="prior-badge rc-badge" data-action="locale-jump" data-target="locale-method" data-open="method">${say('รุ่นทดลอง', 'Trial release')}</button>` : '';
+  const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}${trial}<span class="hint">รัศมีเส้นตรง</span></div>`;
   const shell = inner => `<section class="panel-section locale-section" id="venue-locale" data-venue="${esc(row.id)}" aria-labelledby="locale-title">${head}${inner}</section>`;
   if (metaState === 'error' || factsState === 'error') return shell('<p class="hint">โหลดข้อมูลรอบศูนย์ไม่สำเร็จ <button type="button" class="link-button" data-action="locale-retry">ลองอีกครั้ง</button></p>');
   if (!meta || (!facts && factsState !== 'empty')) return shell('<p class="hint" role="status">กำลังโหลดข้อมูลรอบศูนย์…</p>');
   if (!facts || facts.located === false) return shell('<p class="hint">ศูนย์นี้ยังไม่มีจุดที่ผ่านเกณฑ์ จึงยังนับสิ่งที่อยู่รอบศูนย์ไม่ได้</p>');
   const uni = universeOf(meta, row);
   const rows = ringRows(meta, facts, row);
-  const aha = ahaRows(rows);
+  const aha = highlightRows(rows);
   const radiusChips = `<div class="chart-controls locale-controls" role="group" aria-label="รัศมี">${RADII.map(r => chip('locale-radius', 'radius', r, r === options.radius, km(r))).join('')}</div>`;
   const typeU = meta.universes?.[row.group];
   const uniChips = typeU ? `<div class="chart-controls locale-controls" role="group" aria-label="เทียบกับ"><span class="chart-note">เทียบกับ</span>${chip('locale-universe', 'universe', 'all', options.universe === 'all', `ทุกประเภท ${num(meta.universes.all.n)} แห่ง`)}${chip('locale-universe', 'universe', 'type', options.universe === 'type', `${typeWord(typeU)} ${num(typeU.n)} แห่ง`)}</div>` : '';
-  const ahaHTML = aha.length ? `<ul class="locale-aha">${aha.map(r => `<li>${icon(ringIcon(r))}<span class="aha-body"><span class="aha-what">${say(r.name, r.nameEn)} <b class="data-number">${num(r.count)}</b> ${say(r.unit, r.unitEn)}</span><span class="dot-track aha-track" aria-hidden="true"><b style="width:${r.p}%;background:${pctFill(r.p)}"></b><i class="dot" style="left:${r.p}%;background:${pctFill(r.p)}"></i></span><span class="aha-how">${esc(pctPhrase(r, uni))}</span></span></li>`).join('')}</ul>`
-    : '<p class="subtle">ในรัศมีนี้ยังไม่พบรายการจากชุดข้อมูลที่นับได้</p>';
+  const ahaHTML = aha.length ? `<ul class="locale-aha">${aha.map(r => `<li>${icon(ringIcon(r))}<span class="aha-body"><span class="aha-what">${say(r.name, r.nameEn)} <b class="data-number">${num(r.count)}</b> ${say(r.unit, r.unitEn)}</span>${levelMeter(levelOf(r.p, r.count), r.p)}<span class="sr-only">${esc(pctPhrase(r, uni))}</span></span></li>`).join('')}</ul>`
+    : rows.some(r => r.count > 0) ? '' : '<p class="subtle">ในรัศมีนี้ยังไม่พบรายการจากชุดข้อมูลที่นับได้</p>';
+  const ahaHead = aha.length ? `<p class="locale-lead aha-lead">${icon('rank')}${say('จุดเด่น · ระดับเทียบ 90 ขึ้นไป', 'Stands out · level 90 or more')}</p>` : '';
+  const glance = glanceHTML(meta, row, facts, {residents, residentsMeta, residentsState, visitors, visitorsMeta, visitorsState, work, workMeta, workState});
   const unplaced = unplacedRows(meta, row);
   const pEn = row.provinceCode === BANGKOK ? 'Bangkok' : provinceByCode(row.provinceCode)?.en || '';
   const unplacedHTML = unplaced.length ? `<p class="hint locale-unplaced"><span data-en="No points to count in the rings yet:">ยังไม่มีพิกัดให้นับในรัศมี:</span> ${unplaced.map(u => say(`${u.th} ใน${provinceWord(row.provinceCode)} ${num(u.count)} ${u.unit}`, u.en && pEn && u.unitEn ? `${u.en} in ${pEn}: ${num(u.count)} ${u.unitEn}` : '')).join(' · ')}</p>` : '';
   return shell(`${radiusChips}
     <p class="locale-lead">ใน ${esc(km(options.radius))} รอบศูนย์</p>
-    ${ahaHTML}
+    ${glance}
+    ${ahaHead}${ahaHTML}
     ${residentsBlock(meta, row, residentsMeta, residents, residentsState, {compare, compareState, venueOf, residentsMap})}
     ${visitorsBlock(meta, row, visitorsMeta, visitors, visitorsState, {facts, residents, residentsMeta, residentsMap})}
     ${workBlock(meta, row, workMeta, work, workState, {facts, residents, residentsMeta, residentsMap})}
-    <h4 class="locale-sub">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centers, every dataset')}</h4>
+    <h4 class="locale-sub" id="locale-chart-title" tabindex="-1">${icon('rank')}${say('เทียบกับศูนย์อื่นทุกชุดข้อมูล', 'Against other centers, every dataset')}</h4>
     ${uniChips}
     <div class="locale-chart" id="locale-chart" data-radius="${options.radius}" data-universe="${esc(uni.key)}">${ringListHTML(rows, uni, options.radius)}</div>
     ${unplacedHTML}
@@ -1589,6 +1733,12 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
     ${liveBlock(meta, row, facts)}
     ${methodBlock(meta, uni)}
     ${localeDataLine(meta)}`);
+}
+
+/** Only the glance (zone #locale-glance, or #locale-glance-head in the venue head), for the app's redraw. */
+export function renderLocaleGlance(row, args = {}, opts = {}) {
+  if (!inLocaleSet(row)) return '';
+  return glanceHTML(args.meta, row, args.facts, args, opts);
 }
 
 /* ---------- amCharts dot plot (lazy; the HTML list stays when the library cannot load) ---------- */

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {readFileSync, readdirSync, existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {
-  inLocaleSet, ringRows, ahaRows, pctPhrase, rankWords, areaRows, areaPhrase, levelsOf, unplacedRows, liveLinks, renderLocale, renderLocalePriors, priorsHTML, fitRows, ringIcon,
+  inLocaleSet, ringRows, ahaRows, highlightRows, levelOf, levelMeter, glanceModel, glanceHTML, partialShare, periodWords, setLocaleShopList, FORMAT_ROLES, pctPhrase, rankWords, areaRows, areaPhrase, levelsOf, unplacedRows, liveLinks, renderLocale, renderLocalePriors, priorsHTML, fitRows, ringIcon,
   pctFill, universeOf, setLocaleOption, localeOptions, localeShardPath, RADII, localeDataLine,
   residentsShardPath, residentsMapModel, residentsMapHTML, renderLocaleResidents, aboutPeople, peopleWords, densityWords, englishDay, thaiDay,
   residentsSectors, DIRECTIONS, compareModel, quarterOf, QUARTERS, COMPARE_PATH,
@@ -118,7 +118,9 @@ test('ring rows: a measured zero is not a rank, partial datasets are flagged, he
 test('rank words never say more than 100% or more than 0%', () => {
   assert.equal(rankWords(99.9, ' 488 ศูนย์'), 'อยู่ในกลุ่มสูงสุด 1% ของ 488 ศูนย์');
   assert.equal(rankWords(0.2, ' 488 ศูนย์'), 'อยู่ในกลุ่มต่ำสุด 1% ของ 488 ศูนย์');
-  assert.equal(rankWords(42.4, ' 488 ศูนย์'), 'มากกว่า 42% ของ 488 ศูนย์');
+  // a mid-rank counts ties as half, so it reads as a level and never as “more than N%” (review of 2026-11-24, F-13)
+  assert.equal(rankWords(42.4, ' 488 ศูนย์'), 'ระดับเทียบ 42/100 ใน 488 ศูนย์');
+  for (const p of [0.6, 20, 50, 96, 99.4]) assert.doesNotMatch(rankWords(p, ' 488 ศูนย์'), /มากกว่า|สูงกว่า/);
   const uni = {key: 'all', n: 488, short: '488 ศูนย์'};
   assert.equal(pctPhrase({count: 0, p: 32, zeroShare: 64}, uni), 'ไม่พบ เหมือน 64% ของ 488 ศูนย์');
 });
@@ -130,7 +132,7 @@ test('area rows: missing stays missing, counts compare per km², the reader pick
   const local = areaRows(meta, facts, row);
   const pop = local.find(r => r.ds === 'population' && r.metric === 'population');
   assert.equal(pop.value, facts.area.population.locale.population[0]);
-  assert.match(areaPhrase(pop, {level: 'locale', bench: 'province', provinceCode: 'BKK'}), /^ต่อ ตร\.กม\. .+ของย่านในกรุงเทพฯ \([\d,]+\)$/);
+  assert.match(areaPhrase(pop, {level: 'locale', bench: 'province', provinceCode: 'BKK'}), /^ต่อ ตร\.กม\. .+(ของ|ใน)ย่านในกรุงเทพฯ \([\d,]+\)$/);
   const peer = areaRows(meta, facts, row, {level: 'district', bench: 'peer'}).find(r => r.ds === 'population');
   assert.equal(peer.p, facts.area.population.district.population[3]);
   // a dataset absent at a level gives no row (never a zero)
@@ -163,14 +165,17 @@ test('section HTML: observed first (Aha, then the full comparison), hypotheses d
   assert.doesNotMatch(html, /undefined|NaN|\bnull\b/);
   // read the measured, then the benchmark, then the interpretation; the evidence and the method after
   const at = k => { const i = html.indexOf(k); assert.ok(i >= 0, k); return i; };
-  const order = ['class="locale-aha"', 'id="locale-residents"', 'id="locale-chart"', 'data-locale-open="table"', 'id="locale-priors"', 'class="who-grid"', 'class="locale-block busy-block"', 'class="locale-block fit-block"', 'locale-area-block', 'data-locale-open="method"', 'class="hint panel-foot"'];
+  const order = ['id="locale-glance"', 'class="locale-aha"', 'id="locale-residents"', 'id="locale-chart"', 'data-locale-open="table"', 'id="locale-priors"', 'class="who-grid"', 'class="locale-block busy-block"', 'class="locale-block fit-block"', 'locale-area-block', 'data-locale-open="method"', 'class="hint panel-foot"'];
   order.reduce((prev, k) => { assert.ok(at(k) > prev, `${k} after the one before`); return at(k); }, -1);
   // Aha cards: a symbol of the dataset, its count, a percentile track in the chart's LUT colour, the rank words
   const aha = html.slice(at('class="locale-aha"'), at('id="locale-chart"'));
-  for (const r of ahaRows(ringRows(meta, facts, row))) {
+  const high = highlightRows(ringRows(meta, facts, row));
+  assert.ok(high.length > 0 && high.length <= 3 && high.every(r => r.p >= 90 && !r.partial && r.id !== 'shopping'), 'highlights: complete datasets at level 90 or more');
+  for (const r of high) {
     assert.match(aha, new RegExp(`pic-${ringIcon(r)}`));
-    assert.ok(aha.includes(`left:${r.p}%;background:${pctFill(r.p)}`), `${r.id} track`);
+    assert.ok(aha.includes(`<span class="level-meter" data-level="${levelOf(r.p, r.count)}"`) && aha.includes(`style="background:${pctFill(r.p)}"`), `${r.id} level meter in the chart's colour`);
   }
+  assert.doesNotMatch(html, /มากกว่า [\d,]+% ของ/, 'no “more than N%” built from a mid-rank');
   // the hypotheses: a note first, four tiles (symbol, how many as dots and words, spending power as ฿ marks and words, the mix)
   const ph = priorsHTML(meta, priors, signals, row, facts);
   assert.match(ph, /^<p class="prior-note">/);
@@ -178,7 +183,8 @@ test('section HTML: observed first (Aha, then the full comparison), hypotheses d
   assert.equal((ph.match(/<summary class="who-tile">/g) || []).length, 4);
   for (const seg of ['residents', 'students', 'workers', 'visitors']) assert.match(ph, new RegExp(`<summary class="who-tile"><i class="pictogram pic-${seg}"`));
   assert.equal((ph.match(/<span class="baht" aria-hidden="true">/g) || []).length, 4 + 1, 'a ฿ meter per tile, and one in the key');
-  assert.match(ph, /กำลังซื้อจากราคา (สูง|กลาง|ต่ำ|ยังไม่ประเมิน)/);
+  assert.match(ph, /ระดับราคารอบศูนย์ (สูง|กลาง|ต่ำ|ยังไม่ประเมิน)/);
+  assert.doesNotMatch(ph, /กำลังซื้อ/, 'the ฿ marks read as a price level, never as spending power (review D-3)');
   assert.doesNotMatch(ph, / open>/, 'every card starts closed');
   // inside a card: what the data shows (symbol rows with rank tracks and places to open), then the reading
   assert.ok(ph.indexOf('ข้อมูลที่เห็น') < ph.indexOf('อ่านว่า'));
@@ -1140,3 +1146,91 @@ test('car service, hobby, pet and nail count every brand the source lists, named
   assert.ok(lines > 10000, `${lines} tooltip lines`);
   reset();
 });
+
+test('the glance: four fixed readings, a five-step level in the chart colour, the star without a level, tiles that jump', () => {
+  reset();
+  const vmeta = read('data/visitors-map/meta.json'), wmeta = read('data/work-study-map/meta.json');
+  const rec = (path, id) => read(path).venues[id] || null;
+  assert.deepEqual([0, 1, 19.9, 20, 59, 80, 99.9].map(p => levelOf(p)), [1, 1, 1, 2, 3, 5, 5]);
+  assert.equal(levelOf(50, 0), 0, 'a measured zero has no level');
+  assert.match(levelMeter(3, 50), /^<span class="level-meter" data-level="3" aria-hidden="true">(<i class="on" style="background:#[0-9A-F]{6}"><\/i>){3}(<i><\/i>){2}<\/span>$/i);
+  let starred = 0, ranked = 0;
+  for (const id of [CENTRALWORLD, 'SC-016089', 'SC-000219', 'SC-001304']) {
+    const row = byId.get(id), facts = shard('facts', id);
+    const args = {residentsMeta: rmeta, residents: residents(id), residentsState: 'ready', visitorsMeta: vmeta, visitors: rec(visitorsShardPath(id, vmeta.shards), id), visitorsState: 'ready',
+      workMeta: wmeta, work: rec(workShardPath(id, wmeta.shards), id), workState: 'ready'};
+    const tiles = glanceModel(meta, row, facts, args);
+    assert.deepEqual(tiles.map(t => t.key), ['residents', 'work', 'visitors', 'shopping']);
+    assert.ok(tiles.every(t => t.state === 'ready'), id);
+    assert.equal(tiles[3].count, facts.ring.shopping.n[1]);
+    assert.equal(tiles[2].count, args.visitors.n[1]);
+    for (const t of tiles) {
+      // Registry rule P06: a figure mostly from datasets without full points is context, so it has the star and no level
+      if (t.star) { starred += 1; assert.equal(t.p, null, `${id} ${t.key}`); } else if (t.p != null) ranked += 1;
+    }
+    assert.ok(Math.abs(partialShare(facts, wmeta, 1) - tiles[1].star * 1) < 1);
+    const html = glanceHTML(meta, row, facts, args);
+    assert.equal((html.match(/data-action="locale-jump"/g) || []).length, 4);
+    for (const target of ['locale-res-title', 'locale-work-title', 'locale-vis-title', 'locale-chart-title']) assert.ok(html.includes(`data-target="${target}"`), target);
+    assert.doesNotMatch(html, /undefined|NaN|\bnull\b|มากกว่า/);
+    for (const t of tiles.filter(x => x.star)) assert.doesNotMatch(html.slice(html.indexOf(`data-glance="${t.key}"`), html.indexOf('</button>', html.indexOf(`data-glance="${t.key}"`))), /level-meter/, 'no level beside a star');
+    assert.match(glanceHTML(meta, row, facts, args, {where: 'head'}), /id="locale-glance-head"/);
+    // the section holds the targets the tiles jump to
+    const section = renderLocale(row, {meta, facts, metaState: 'ready', factsState: 'ready', ...args});
+    for (const target of ['locale-res-title', 'locale-work-title', 'locale-vis-title', 'locale-chart-title', 'locale-method']) assert.ok(section.includes(`id="${target}"`), `${id} ${target}`);
+    assert.match(section, /class="prior-badge rc-badge" data-action="locale-jump" data-target="locale-method"/);
+  }
+  assert.ok(starred >= 4 && ranked >= 8, 'work and study carries the star at these centers; the others are ranked');
+  // while a file loads the tile says so and shows no figure
+  const loading = glanceHTML(meta, byId.get(CENTRALWORLD), shard('facts', CENTRALWORLD), {});
+  assert.equal((loading.match(/class="glance-wait"/g) || []).length, 3);
+});
+
+test('formats block: seen in the list, in the center’s own list by role, checked and not seen, nothing to compare with', () => {
+  reset();
+  const id = 'SC-001304', row = byId.get(id), pr = shard('priors', id), sg = shard('signals', id);
+  const noData = Object.keys(meta.priors.pmf).filter(f => !(meta.priors.pmf[f][2] || []).some(ds => meta.priors.tenantDatasets[ds]));
+  assert.equal(noData.length, 10);
+  for (const ds of Object.keys(FORMAT_ROLES)) assert.ok(meta.priors.tenantDatasets[`research.TH.${ds}`], `${ds} is a shop-list dataset`);
+  const bare = fitRows(meta, pr, sg);
+  assert.ok(bare.check.includes('services_bank') && bare.nodata.includes('tutoring_language') && !bare.listed.length);
+  assert.ok(bare.nodata.every(f => noData.includes(f)) && bare.check.every(f => !noData.includes(f)));
+  // the list the panel shows has a bank: the bank format moves from “not seen” to “in the center’s own list”
+  const withRoles = fitRows(meta, pr, sg, {roles: {bank: 2, shop: 90}});
+  assert.ok(!withRoles.check.includes('services_bank') && withRoles.listed.some(r => r.ids.includes('services_bank') && r.roles[0][0] === 'bank' && r.roles[0][1] === 2));
+  setLocaleShopList(id, {roles: {bank: 2, shop: 90}, total: 166});
+  const html = priorsHTML(meta, pr, sg, row, shard('facts', id));
+  const fit = html.slice(html.indexOf('class="locale-block fit-block"'));
+  assert.match(fit, /class="fit-row is-listed"[\s\S]*?บริการธนาคาร 2[\s\S]*?ตามรายชื่อของศูนย์/);
+  assert.match(fit, /class="fit-row is-check"[\s\S]*?ยังไม่เห็นในรายชื่อ 166 ร้าน ควรตรวจหน้างาน/);
+  assert.match(fit, /class="fit-row is-nodata"[\s\S]*?ยังไม่มีชุดข้อมูลให้เทียบ[\s\S]*?กวดวิชาและสอนภาษา/);
+  setLocaleShopList(id, null);
+  // a center without any shop list never reads “checked”
+  const none = set.filter(x => x.located).find(r => { const g = shard('signals', r.id); return g && !Object.values(g.ten || {}).some(n => n > 0) && fitRows(meta, shard('priors', r.id), g).check.length; });
+  const nh = priorsHTML(meta, shard('priors', none.id), shard('signals', none.id), none, shard('facts', none.id));
+  assert.match(nh, /class="fit-row is-nolist"/);
+  assert.doesNotMatch(nh.slice(nh.indexOf('class="locale-block fit-block"')), /class="fit-row is-check"|ตรวจรายชื่อแล้วยังไม่เห็น/);
+});
+
+test('short fact labels: the basis of the opening hours on the face, the period of an area value, levels in the table', () => {
+  reset();
+  assert.deepEqual(periodWords('2026-10'), ['ต.ค. 2569', 'Oct 2026']);
+  assert.deepEqual(periodWords('2568'), ['ปี 2568', '2025']);
+  assert.equal(periodWords(''), null);
+  let own = 0, byType = 0;
+  for (const r of set.filter(x => x.located).slice(0, 80)) {
+    const pr = shard('priors', r.id), sg = shard('signals', r.id);
+    if (!pr) continue;
+    const ph = priorsHTML(meta, pr, sg, r, shard('facts', r.id));
+    const busy = ph.slice(ph.indexOf('class="locale-block busy-block"'), ph.indexOf('<details class="locale-details dp-why"'));
+    const basis = sg?.attr?.hours?.basis || pr.hb || '';
+    if (/type_default$/.test(basis)) { byType += 1; assert.match(busy, /class="basis-chip">.*เวลาเปิดตามประเภทศูนย์/, r.id); } else if (basis) { own += 1; assert.match(busy, /class="basis-chip">.*เวลาเปิดของศูนย์/, r.id); }
+  }
+  assert.ok(own > 0 && byType > 0);
+  const row = byId.get(CENTRALWORLD), facts = shard('facts', CENTRALWORLD);
+  const html = renderLocale(row, {meta, facts, metaState: 'ready', factsState: 'ready'});
+  assert.match(html, /<span class="area-period"><span data-en="Oct 2026">ต\.ค\. 2569<\/span><\/span>/);
+  assert.match(html, /<th scope="col">ระดับเทียบ 3 กม\. \(0–100\)<\/th>/);
+  assert.doesNotMatch(html.slice(html.indexOf('class="locale-table"'), html.indexOf('</table>', html.indexOf('class="locale-table"'))), />–<|%<\/td>/, 'no bare dash and no percent sign in the level column');
+});
+
