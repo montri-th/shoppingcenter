@@ -34,6 +34,8 @@ const walk = dir => readdirSync(join(root, dir), {withFileTypes: true}).flatMap(
 const assetPaths = [
   'assets/theme.css', ...walk('assets/lds'), ...walk('assets/icons'),
   'data/venue-logos.json', 'assets/venue-logos-manifest.json', ...walk('assets/venue-logos'),
+  // D65: centre logos other demos verified for the same venue id, and their links.
+  'data/venue-logo-links.json', ...(existsSync(join(root, 'assets/venue-logos-family')) ? walk('assets/venue-logos-family') : []),
   'assets/tenant-logos-manifest.json', ...walk('assets/tenant-logos'),
   'data/provinces.geojson', 'data/districts.geojson',
 ].filter(path => existsSync(join(root, path))).sort();

@@ -441,6 +441,7 @@ export default {
     'แบรนด์ในห้างสรรพสินค้า': 'Brands in the department stores',
     'นับร้าน': 'Counting shops',
     'โลโก้ร้าน': 'Shop logos',
+    'โลโก้ศูนย์': 'Center logo',
     'ค้นเพิ่ม': 'Further sources',
     'เป็นคำยืนยันเจ้าของข้อมูล แยกจากการตรวจเว็บไซต์หรือสำรวจหน้างาน': "the data owner's confirmation, separate from website checks or site surveys",
     'เปิดอยู่ตามคำยืนยันเจ้าของข้อมูล': "open, as the data owner confirms",
@@ -750,6 +751,9 @@ export default {
     [re(`${N} โลโก้มาจากชุดข้อมูลอื่นของ CityMETER ที่รู้จักแบรนด์เดียวกัน`), m => `${m[1]} ${one(m[1]) ? 'logo comes' : 'logos come'} from another CityMETER dataset that knows the same brand`],
     [re('จับคู่ด้วยรหัสแบรนด์เดียวกัน หรือชื่อเดียวกับที่ทีมวิจัยยืนยันแล้ว ไม่ใช้ชื่อที่แค่คล้ายกัน'), 'matched by the same brand id or a name the research team confirmed, never by a name that only looks alike'],
     [re('ไฟล์ตรวจ SHA-256 ตรงกับชุดที่เผยแพร่'), 'every file checked by SHA-256 against the dataset that published it'],
+    // D65: the centre-logo note of the evidence list.
+    [re('โลโก้นี้มาจากชุด (.+) ของ CityMETER ซึ่งใช้รหัสสถานที่เดียวกัน \\(([A-Za-z0-9-]+)\\)'), m => `This logo comes from CityMETER ${m[1]}, which gives the venue the same id (${m[2]})`],
+    [re('ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับ และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า'), 'the logo identifies a name on screen and changes no count; collecting the file is not a trademark licence'],
     [re('โลโก้ใช้ระบุชื่อบนจอ ไม่เปลี่ยนการนับร้าน และการรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า'), 'a logo identifies a name on screen; it changes no shop count, and collecting a file is not a trademark licence'],
     [re('แหล่งทางการที่ใช้เติมข้อมูล'), 'Official sources used to fill in the data'],
     [re('หลักฐาน ([^·]+)'), (m, t) => `Source for ${t.name(m[1])}`],
