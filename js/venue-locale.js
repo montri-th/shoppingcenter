@@ -44,6 +44,8 @@ const safeURL = value => { try { const u = new URL(value); return u.protocol ===
 /** Thai text with its English beside it (the shell's [data-en] context reads it on an English page). */
 const enAttr = en => (en ? ` data-en="${esc(usSpelling(en))}"` : '');
 const say = (th, en) => (en ? `<span${enAttr(en)}>${esc(th)}</span>` : esc(th));
+/** A name a source gives only in Thai is a name, not a sentence: it stays Thai on the English page (translate="no"). */
+const sourceName = (th, en) => (en ? say(th, en) : `<span lang="th" translate="no">${esc(th)}</span>`);
 const extLink = (url, label, cls = 'source-link', en = '') => {
   const u = safeURL(url);
   return u ? `<a class="${cls}" href="${esc(u)}" target="_blank" rel="noopener"><span${enAttr(en)}>${esc(label)}</span><span class="sr-only"> (เปิดแท็บใหม่)</span></a>` : say(label, en);
@@ -1142,7 +1144,7 @@ export function residentsOverlayLabels(ov, at, {unit = 25, m = 250} = {}) {
   const k = unit / m;
   return (ov?.L || []).map(([kind, x, y, align, th, en]) => {
     // a name OpenStreetMap gives only in Thai is a name, not a sentence: it stays Thai on the English page
-    const text = en ? say(th, en) : `<span lang="th" translate="no">${esc(th)}</span>`;
+    const text = sourceName(th, en);
     return `<span class="res-lab is-${esc(kind)} at-${esc(align)}" style="left:${at(Number(x) * k)}%;top:${at(Number(y) * k)}%">${text}</span>`;
   }).join('');
 }
@@ -1594,7 +1596,7 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
     const v = venueOf?.(q.id);
     if (!v) return '';
     const [nqTh, nqEn] = QUARTERS[quarterOf(q.x, q.y, model.split)];
-    return `<li><button type="button" class="cmp-near-row" data-action="select-venue" data-id="${esc(q.id)}"><span class="cmp-near-name">${say(v.name, v.nameEn)}<small>${say(provinceWord(v.provinceCode), pEnOf(v.provinceCode))} · ${say(...(GROUP_WORDS[v.group] || ['', '']))} · ${say(nqTh, nqEn)}</small></span><span class="cmp-near-val">${icon('residents')}<b class="data-number">${num(Math.round(q.x))}%</b>${icon('office')}<b class="data-number">${num(Math.round(q.y))}%</b></span></button></li>`;
+    return `<li><button type="button" class="cmp-near-row" data-action="select-venue" data-id="${esc(q.id)}"><span class="cmp-near-name">${sourceName(v.name, v.nameEn)}<small>${say(provinceWord(v.provinceCode), pEnOf(v.provinceCode))} · ${say(...(GROUP_WORDS[v.group] || ['', '']))} · ${say(nqTh, nqEn)}</small></span><span class="cmp-near-val">${icon('residents')}<b class="data-number">${num(Math.round(q.x))}%</b>${icon('office')}<b class="data-number">${num(Math.round(q.y))}%</b></span></button></li>`;
   }).join('');
   const list = items ? `<details class="locale-details cmp-near-fold" data-locale-open="cmpnear"${openAttr('cmpnear')}><summary>${say('ศูนย์ที่ระดับใกล้กันที่สุด 5 แห่ง', 'The five centers with the closest levels')}</summary><p class="cmp-near-head"><span class="res-sub">${say('ศูนย์ที่อันดับใกล้กันที่สุด', 'Centers with the closest ranks')}</span><span class="cmp-near-key">${icon('residents')}${say('คนอยู่ใกล้', 'living')} ${icon('office')}${say('คนทำงานใกล้', 'working')}</span></p><ol class="cmp-near-list">${items}</ol></details>` : '';
   const pm = rmeta?.populationMonth, asOf = meta.asOf;
@@ -1621,6 +1623,13 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
  * people are and the map as a table (folded), one data line, the method and its limits folded, then the comparison with
  * the other centers on two ranks (data/compare, its own data line and method).
  */
+/** The day a center's residents were read from CityMETER production: a center placed later on the day it was added
+ * (`reference.addedOn` of data/residents: day → ids, 0.11.0), the reference centers on `readOn`. */
+export function residentsReadOn(rmeta, id) {
+  for (const [day, ids] of Object.entries(rmeta?.reference?.addedOn || {})) if (Array.isArray(ids) && ids.includes(id)) return day;
+  return rmeta?.readOn || rmeta?.asOf;
+}
+
 function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareState = 'idle', venueOf = null, residentsMap = null} = {}) {
   const titleTh = 'คนที่มีชื่อในทะเบียนบ้านรอบศูนย์ (แบบจำลอง)', titleEn = 'Registered residents around the center (modelled)';
   const wrap = inner => `<div class="locale-block res-block" id="locale-residents" role="group" aria-labelledby="locale-res-title">${inner}</div>`;
@@ -1652,7 +1661,7 @@ function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareSt
   const figure = `<figure class="res-figure">${residentsMapHTML(row, rec, rmeta, r, model, residentsMap)}
     <figcaption class="res-legend"><span class="res-legend-title">${say('คนต่อช่อง 250 × 250 ม.', 'People per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'คนต่อช่อง 250 × 250 ม.'})}
     ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีอาคารที่นับ', 'No counted building'], outline: true})}</figcaption></figure>`;
-  const pm = rmeta.populationMonth, asOf = rmeta.asOf;
+  const pm = rmeta.populationMonth, asOf = residentsReadOn(rmeta, row.id);
   const line = `<p class="hint res-evidence">${say(
     `ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)} · อาคาร Building V4 · รัศมีเส้นตรงจากจุดของศูนย์`,
     `Registered population, Department of Provincial Administration, ${englishDay(pm)} · buildings: Building V4 · straight-line radius from the center’s point`)}${residentsOverlayCredit()}</p>`;

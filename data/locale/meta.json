@@ -1,14 +1,14 @@
 {
  "schema": "citymeter-venue-locale-serving/1",
- "bundleId": "venue-locale-shopping-20261120-v0.2.3-rc1-web",
- "createdAt": "2026-11-20T11:09:54Z",
- "asOf": "2026-11-20",
+ "bundleId": "venue-locale-shopping-20261125-v0.2.4-rc1-web",
+ "createdAt": "2026-11-25T16:39:10Z",
+ "asOf": "2026-11-25",
  "release": {
-  "id": "venue-locale-shopping-20261120-v0.2.3-rc1",
+  "id": "venue-locale-shopping-20261125-v0.2.4-rc1",
   "status": "release_candidate",
-  "manifestSha256": "01f71879d638585cea74dbfbd26ea3425aff753fc6e500576b0cc0822c39676f",
+  "manifestSha256": "921348090376a795e58eb993edc99c860a412f60f5c8ed5245696d2b0458c35e",
   "schema": "venue_locale_schema_v1",
-  "blockingIssues": 12
+  "blockingIssues": 25
  },
  "shards": 64,
  "hash": "FNV-1a 32-bit of the UTF-8 venue id modulo shards, two digits (same function as data/details)",
@@ -18,8 +18,8 @@
   5000
  ],
  "defaultRadius": 3000,
- "venues": 499,
- "located": 492,
+ "venues": 539,
+ "located": 519,
  "universes": {
   "all": {
    "n": 488,
@@ -47,12 +47,75 @@
   "release": "venue-locale-shopping-20261118-v0.2.0-rc1",
   "asOf": "2026-11-18",
   "added": [
+   "SC-001142",
+   "SC-001560",
+   "SC-001787",
    "SC-007245",
+   "SC-007246",
+   "SC-013547",
+   "SC-C2326",
+   "VN-1c297c786a5e91",
+   "VN-1d8328e8ae05f9",
+   "VN-1efe77f9a2804e",
+   "VN-4089b7d2e1a2f8",
+   "VN-41a5a5b1b7128e",
+   "VN-45e17824a92a07",
+   "VN-46f66c8590444b",
+   "VN-47d3dd6e85fb39",
+   "VN-48d70e075c99ea",
+   "VN-6a4b407272c014",
+   "VN-6adcac70ce9604",
+   "VN-76eac912c12818",
+   "VN-7980871440c61b",
    "VN-7bb5b3abd9f811",
+   "VN-84729ea268d764",
+   "VN-8c0476f12c71d7",
    "VN-a263de54d31372",
-   "VN-c87c200db5d079"
+   "VN-b087a1c12376a4",
+   "VN-b3aed6991e2f6e",
+   "VN-c1cf0fe0636237",
+   "VN-c87c200db5d079",
+   "VN-e10d691dcc17e5",
+   "VN-e9325a1c9a40bb",
+   "VN-fd7b9819ea03de"
   ],
-  "addedOn": "2026-11-20",
+  "addedOn": {
+   "2026-11-20": [
+    "SC-007245",
+    "VN-7bb5b3abd9f811",
+    "VN-a263de54d31372",
+    "VN-c87c200db5d079"
+   ],
+   "2026-11-25": [
+    "SC-001142",
+    "SC-001560",
+    "SC-001787",
+    "SC-007246",
+    "SC-013547",
+    "SC-C2326",
+    "VN-1c297c786a5e91",
+    "VN-1d8328e8ae05f9",
+    "VN-1efe77f9a2804e",
+    "VN-4089b7d2e1a2f8",
+    "VN-41a5a5b1b7128e",
+    "VN-45e17824a92a07",
+    "VN-46f66c8590444b",
+    "VN-47d3dd6e85fb39",
+    "VN-48d70e075c99ea",
+    "VN-6a4b407272c014",
+    "VN-6adcac70ce9604",
+    "VN-76eac912c12818",
+    "VN-7980871440c61b",
+    "VN-84729ea268d764",
+    "VN-8c0476f12c71d7",
+    "VN-b087a1c12376a4",
+    "VN-b3aed6991e2f6e",
+    "VN-c1cf0fe0636237",
+    "VN-e10d691dcc17e5",
+    "VN-e9325a1c9a40bb",
+    "VN-fd7b9819ea03de"
+   ]
+  },
   "th": "ชุดอ้างอิงคือศูนย์ที่มีพิกัด 488 แห่งในรุ่น 18 พ.ย. 2569 ศูนย์ที่ได้พิกัดภายหลังเทียบกับชุดนี้ และไม่ทำให้อันดับของศูนย์อื่นเปลี่ยน",
   "en": "The reference set is the 488 centres located in the release of 18 Nov 2026. A centre placed later is ranked against this set and does not move the rank of any other centre."
  },
@@ -2082,19 +2145,19 @@
     "CityMETER Shopping Center",
     "CityMETER Shopping Center"
    ],
-   "sourceRef": "montri-th/shoppingcenter@46b74914f3181e0fde412ed999524ba7037e9a8e:data/venues.json",
+   "sourceRef": "montri-th/shoppingcenter@1b33c4f6c9e58c740961b415f4fd3c8cceaab41f:data/venues.json",
    "sourceKind": "demo",
    "link": "https://citymeter.pages.dev/shoppingcenter/",
-   "date": "2026-11-08",
+   "date": "2026-11-25",
    "scope": [
     "สถานที่ค้าปลีกที่นับได้และแหล่งยังระบุว่าเปิด (ศูนย์การค้า ตลาด ห้าง และสถานีบริการที่มีร้านค้า)",
     "countable retail places the source still lists as operating (malls, markets, stores and fuel stations with shops)"
    ],
    "brands": null,
-   "eligible": 6154,
-   "located": 6146,
+   "eligible": 6537,
+   "located": 6268,
    "unlocatedByProvince": {
-    "_unknown_province": 8
+    "_unknown_province": 269
    },
    "subgroups": [
     [
@@ -3849,7 +3912,7 @@
    "factory": "2026-11-16",
    "hospital": "2026-11-01",
    "transit": "2026-10-31",
-   "production_shopping_center": "2026-11-18",
+   "production_shopping_center": "2026-11-25",
    "tenant_roster": "2026-11-07",
    "operator_description": "2026-10-25"
   },

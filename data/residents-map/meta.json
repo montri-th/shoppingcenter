@@ -2,14 +2,14 @@
  "asOf": "2026-11-12",
  "counts": {
   "labels": {
-   "river": 368,
-   "road": 1742,
-   "station": 681
+   "river": 388,
+   "road": 1843,
+   "station": 712
   },
-  "withRail": 405,
-  "withRiver": 456,
-  "withRoad": 492,
-  "withStations": 273
+  "withRail": 424,
+  "withRiver": 480,
+  "withRoad": 519,
+  "withStations": 285
  },
  "labels": {
   "fittedOnPx": 360,
@@ -21,7 +21,7 @@
  "owner": "2026-11-20 16:35: heatmap วงกลมอันนี้ดี แต่ยังดูยากอยู่ … อย่างน้อยควรแสดงแนวถนน overlay ใน heatmap ด้วย",
  "points": {
   "of": "id,lon,lat of each located center (7 decimals), one line each, sorted by id",
-  "sha256": "a81284c26e694e98b8fff539e88ea7e6a0a391821431b343820e419eb1647c16"
+  "sha256": "2558de43984d1afb45552d458820c2f45a86cfbb6f415b1e60125fffa646c41a"
  },
  "radius_m": 5000,
  "rail": [
@@ -57,9 +57,9 @@
   },
   "venues": {
    "file": "data/venues.json",
-   "sha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9"
+   "sha256": "300f172e24088cdc8d6db5dda5e094ec31c2e542c1847682509d7842769de695"
   }
  },
  "unit_m": 25,
- "venues": 492
+ "venues": 519
 }
