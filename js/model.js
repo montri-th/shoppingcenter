@@ -73,6 +73,7 @@ export const OWNER_RULES = Object.freeze({
   confirmed_managed_retail_component: 'พื้นที่ค้าปลีกที่บริหารร่วม',
   exact_inside_multiple_businesses: 'มีหลายกิจการอยู่ภายในที่เดียวกัน',
   foodland_tooklaedee: 'ฟู้ดแลนด์ที่มีร้านถูกและดี',
+  food_court: 'ศูนย์อาหาร',
 });
 
 /** Short state of a context record (pending.json), as shown next to its name; never counted. */

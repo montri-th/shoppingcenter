@@ -229,7 +229,15 @@ TYPE_GROUP_ADDED_2026_10_25 = {
 # 7 Nov 2026 export: retail areas the team added inside office buildings read as components (as office_retail_podium),
 # so they are counted only under D6 (a component without a qualified parent counts when its group is mall or community).
 TYPE_GROUP_ADDED_2026_11_07 = {'component': {'office_retail_component'}}
-for _added in (TYPE_GROUP_ADDED_2026_10_25, TYPE_GROUP_ADDED_2026_11_07):
+# Food courts (owner 2026-11-24 22:40: they count as places, rule food_court; 23:55: at least 10 vendors, and a food
+# court inside a university, hospital or government agency is shown but not counted). The group is Claude's technical
+# decision under the owner's delegation of 2026-11-20 08:34 (“ให้ยืนยันอะไรผมไม่เข้าใจอยู่แล้ว พี่ตัดสินใจไปเลย”): a
+# food court reads as `other` by its own type, no longer by the keyword fallback. Walking streets stay markets: every
+# walking-street type the registry uses is already in the market set above. Not used: a group of its own (one counted
+# food court in the 25 Nov export; the other 25 are reviewed_definition_unconfirmed), `market` (Yolk counts markets and
+# food courts apart, owner 2026-11-25 01:52) and `community` (it would join the shopping-centre set of “รอบศูนย์นี้”).
+TYPE_GROUP_ADDED_2026_11_25 = {'other': {'food_court'}}
+for _added in (TYPE_GROUP_ADDED_2026_10_25, TYPE_GROUP_ADDED_2026_11_07, TYPE_GROUP_ADDED_2026_11_25):
     for _group, _types in _added.items():
         TYPE_GROUP[_group] |= _types
 TYPE_TO_GROUP = {t: g for g, ts in TYPE_GROUP.items() for t in ts}
