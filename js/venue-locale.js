@@ -59,7 +59,8 @@ export function thaiDay(iso) {
 }
 
 export const LOCALE_PATH = 'data/locale';
-/** The release covers the 499 countable shopping centers, community malls and outlets that the registry lists as supply. */
+/** The release covers the countable shopping centers, community malls and outlets that the registry lists as supply (499 until
+ * 0.10.2, 539 since 0.11.0). */
 export const LOCALE_GROUPS = Object.freeze(['mall', 'community', 'outlet']);
 export const inLocaleSet = row => Boolean(row?.countable) && row?.status === 'supply' && LOCALE_GROUPS.includes(row?.group);
 export const RADII = Object.freeze([1000, 3000, 5000]);
@@ -1731,7 +1732,7 @@ export function localeDataLine(meta) {
 /**
  * The “รอบศูนย์นี้” section of a venue: {meta, facts, priors, signals, residents, state: {meta, facts, priors, residents}}; the
  * registered residents (modelled, 0.8.0) follow the cards of the counted datasets. Returns '' for rows outside
- * the 499-venue set (markets, fuel stations…), which the release does not cover.
+ * the centre set (markets, fuel stations…), which the release does not cover.
  */
 export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null, residentsMap = null, visitorsMeta = null, visitors = null, visitorsState = 'idle', workMeta = null, work = null, workState = 'idle'} = {}) {
   if (!inLocaleSet(row)) return '';
