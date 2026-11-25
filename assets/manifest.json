@@ -4818,8 +4818,8 @@
     },
     {
       "path": "assets/venue-logos-manifest.json",
-      "sha256": "8b05dd59ea0befdf2b06a027dd0900905b61ce587c571df2afc66f325461748d",
-      "bytes": 29767
+      "sha256": "af0533a9cf4ec3f9ee9c530efdc985528bf71401d7e005356bf48e845da9acb4",
+      "bytes": 32133
     },
     {
       "path": "assets/venue-logos/center-one.jpg",
@@ -5398,13 +5398,13 @@
     },
     {
       "path": "data/venue-logo-links.json",
-      "sha256": "6b2c9c1af429019db5325f7d41cf89da7ca62645851a4e3d97b43413691cefdb",
+      "sha256": "761aa945ba980a2083341d021e1ab5f6521b937c0e9cd0d0b272804f09dc4140",
       "bytes": 13628
     },
     {
       "path": "data/venue-logos.json",
-      "sha256": "b69db30253a77eb29f9894bb1567b684f99b2ec3b33927fc1831ea222df6bd7c",
-      "bytes": 57654
+      "sha256": "a05b7637874d5f2bfd915abd9162712ae53a193c3befb0cec7f12ab450f064df",
+      "bytes": 60102
     }
   ]
 }
