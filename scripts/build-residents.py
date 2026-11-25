@@ -8,14 +8,15 @@ Owner 2026-11-20 08:26 (VERBATIM): “1 ขึ้นเลย / 2 พี่ต�
 cells of the center's own 5 km map ranked on the 41 samples of the LDS `density.area` LUT, js/scales.js buildRamp).
 
 Inputs (both outside this repository):
-  --bundle    the extracted bundle 02-CityMETER__venue-locale-residents-492-venues-bundle__v2__2026-11-20 (results/
-              residents_492.json and results/grids_250m.json, checked against its SHA256SUMS): bundle v1 (488 centres,
-              every record unchanged) and the four centres placed on 2026-11-20 (owner 11:57), computed with the same
-              scripts. Method: residents of a
+  --bundle    the extracted bundle 02-CityMETER__venue-locale-residents-519-venues-bundle__v3__2026-11-25 (results/
+              residents_519.json and results/grids_250m.json, checked against its SHA256SUMS): bundle v2 (492 centres,
+              every record unchanged: the 488 of v1 and the four placed on 2026-11-20, owner 11:57) and the 27 centres
+              the export of 25 Nov 2026 locates (owner 2026-11-25 01:11 and 21:57), computed with the same scripts. Method: residents of a
               building = the subdistrict's registered population (Department of Provincial Administration, Oct 2026,
               `t_tot`) × the building's floor area ÷ the subdistrict floor area that CityMETER production caches (the
               production allocation, all buildings); summed over the buildings whose centroid lies within the
-              straight-line radius. Read from the production API (GET only) on 20 Nov 2026.
+              straight-line radius. Read from the production API (GET only) on 20 Nov 2026 (the 27: 25 Nov 2026, the same
+              population month; four published centres recomputed from those reads equal v2).
   --outlines  the subdistricts the 5 km radii touch, with the geometry production serves (base/info/geom): the bundle's
               `inputs/touched_with_geometry.json` (`inputs/touched.json` without geometry, response hashes in
               `inputs/fetch_log.csv`).
@@ -57,9 +58,9 @@ RINGS = ('0-1000', '1000-3000', '3000-5000')
 GROUPS = ('mall', 'community', 'outlet')
 CELL_M, HALF = 250, 20  # cells -20..19 on both axes: 40 × 40 around the center
 OUTLINE_UNIT_M, SNAP_M, SIMPLIFY_M = 25, 40, 60
-RELEASE = 'venue-locale-residents-492-20261120-v2'
-BUNDLE = '02-CityMETER__venue-locale-residents-492-venues-bundle__v2__2026-11-20'
-RESULTS = 'results/residents_492.json'
+RELEASE = 'venue-locale-residents-519-20261125-v3'
+BUNDLE = '02-CityMETER__venue-locale-residents-519-venues-bundle__v3__2026-11-25'
+RESULTS = 'results/residents_519.json'
 
 
 def fail(msg):
@@ -302,7 +303,10 @@ def main():
     meta = {
         'schema': 'shoppingcenter-residents/1',
         'release': RELEASE,
-        'asOf': '2026-11-20',
+        'asOf': '2026-11-25',
+        # the day the 488 centres of bundle v1 were read from production; a centre placed later was read on the day
+        # reference.addedOn names for it (js/venue-locale.js residentsReadOn)
+        'readOn': '2026-11-20',
         'populationMonth': R['meta']['population_month'],
         'method': R['meta']['method'],
         'shards': SHARDS,

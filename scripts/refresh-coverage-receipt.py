@@ -30,8 +30,9 @@ An owner decision to publish the sheet's later venue rows before the next privat
 ชีตมีตอนนี้”, release 0.9.1). --added names venues new to the core: rows the registry gained after the audit's asOf. They
 have no item in the roster (the shards must still hash to publicRosterSha256) and the audit never read them, so they are
 listed under ownerRefresh.added and stay out of the audited counts, which keep the audit's asOf. --changed names existing
-venues whose non-accounting fields changed (NON_ACCOUNTING_FIELDS: the operation group read from operation evidence; it
-counts no source record, host link or published item). The registry's row count before and after is written beside them
+venues whose non-accounting fields changed (NON_ACCOUNTING_FIELDS: the operation group read from operation evidence, and
+since release 0.11.0 the venue's own logo key from 10_VENUE_LOGOS; neither counts a source record, host link or published
+item). The registry's row count before and after is written beside them
 (rows the core leaves out as not qualified are in that count too). Anything else stops, as before.
 """
 import argparse
@@ -43,8 +44,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 POINT_FIELDS = frozenset({'lat', 'lon', 'located', 'provinceCode', 'districtCode'})
 HIERARCHY_FIELDS = frozenset({'parentId', 'children', 'countRole', 'countable', 'countHold', 'countBasis', 'group', 'groupBasis'})
-# fields of the venue core that no part of the coverage accounting reads (source records, host links, published items)
-NON_ACCOUNTING_FIELDS = frozenset({'operationGroup'})
+# fields of the venue core that no part of the coverage accounting reads (source records, host links, published items):
+# the operation group (0.9.1) and the venue's own logo key, a link to 10_VENUE_LOGOS (0.11.0)
+NON_ACCOUNTING_FIELDS = frozenset({'operationGroup', 'logoKey'})
 
 
 def sha256_bytes(raw):

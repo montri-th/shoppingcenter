@@ -526,7 +526,7 @@ function openVenueDetail(id) {
 const localeShards = () => cachedLocaleMeta()?.shards || 64;
 const localeOpen = id => state.panel.mode === 'venue' && state.panel.id === id;
 
-/** Load meta (once) and the facts shard of a venue of the 499-venue set; re-draw the section when they arrive. */
+/** Load meta (once) and the facts shard of a venue of the centre set (inLocaleSet); re-draw the section when they arrive. */
 function ensureLocale(id) {
   const row = state.byId.get(id);
   if (!inLocaleSet(row)) return;
@@ -740,7 +740,7 @@ function refreshLocalePriors({focus = ''} = {}) {
   if (focus) $('locale-priors')?.querySelector(focus)?.focus({preventScroll: true});
 }
 
-/** The section HTML for the venue panel ('' outside the 499-venue set). */
+/** The section HTML for the venue panel ('' outside the centre set). */
 function localeHTML(v) {
   if (!inLocaleSet(v)) return '';
   const L = state.locale, meta = cachedLocaleMeta();

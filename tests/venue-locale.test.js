@@ -41,9 +41,9 @@ const reset = () => { setLocaleOption('radius', 3000); setLocaleOption('universe
 const THAI = /[ก-ฺเ-๎]/;
 const num = n => new Intl.NumberFormat('th-TH', {maximumFractionDigits: 0}).format(n);
 
-test('the release covers the 499 countable shopping centres, community malls and outlets listed as supply', () => {
-  assert.equal(set.length, 499);
-  assert.equal(meta.venues, 499);
+test('the release covers the 539 countable shopping centres, community malls and outlets listed as supply (499 until 0.11.0)', () => {
+  assert.equal(set.length, 539);
+  assert.equal(meta.venues, 539);
   assert.equal(meta.located, set.filter(r => r.located).length);
   // the rank reference (owner 2026-11-20 11:57): the centers located in release 0.2.0; a center placed later ranks against them
   const added = new Set(meta.reference.added), reference = set.filter(r => r.located && !added.has(r.id));
@@ -309,7 +309,7 @@ test('no file of the bundle is referenced that is not shipped', () => {
 test('residents: one record per located center of the set, keyed like the locale shards, tied to the bundle', () => {
   const files = readdirSync(new URL('data/residents/', ROOT)).filter(f => f !== 'meta.json');
   assert.equal(files.length, rmeta.shards);
-  assert.equal(rmeta.release, 'venue-locale-residents-492-20261120-v2');
+  assert.equal(rmeta.release, 'venue-locale-residents-519-20261125-v3');
   assert.deepEqual([...rmeta.reference.added].sort(), [...meta.reference.added].sort(), 'the same rank reference as the locale release');
   assert.equal(rmeta.reference.n, meta.reference.n);
   assert.match(rmeta.input.sha256sums, /^[0-9a-f]{64}$/);
@@ -534,7 +534,13 @@ test('comparison file: every located center once; x copies the residents ranks, 
 });
 
 test('centers placed later (owner 2026-11-20 11:57): ranked against the reference, plotted with every center, the reference folded in each method', () => {
-  assert.deepEqual([...meta.reference.added].sort(), ['SC-007245', 'VN-7bb5b3abd9f811', 'VN-a263de54d31372', 'VN-c87c200db5d079']);
+  // four placed on 2026-11-20 (owner 11:57) and 27 located by the export of 2026-11-25 (owner 01:11 and 21:57)
+  assert.deepEqual([...meta.reference.added].sort(), ['SC-001142', 'SC-001560', 'SC-001787', 'SC-007245', 'SC-007246', 'SC-013547', 'SC-C2326', 'VN-1c297c786a5e91', 'VN-1d8328e8ae05f9', 'VN-1efe77f9a2804e',
+    'VN-4089b7d2e1a2f8', 'VN-41a5a5b1b7128e', 'VN-45e17824a92a07', 'VN-46f66c8590444b', 'VN-47d3dd6e85fb39', 'VN-48d70e075c99ea', 'VN-6a4b407272c014', 'VN-6adcac70ce9604',
+    'VN-76eac912c12818', 'VN-7980871440c61b', 'VN-7bb5b3abd9f811', 'VN-84729ea268d764', 'VN-8c0476f12c71d7', 'VN-a263de54d31372', 'VN-b087a1c12376a4', 'VN-b3aed6991e2f6e',
+    'VN-c1cf0fe0636237', 'VN-c87c200db5d079', 'VN-e10d691dcc17e5', 'VN-e9325a1c9a40bb', 'VN-fd7b9819ea03de']);
+  assert.deepEqual(meta.reference.addedOn['2026-11-20'], ['SC-007245', 'VN-7bb5b3abd9f811', 'VN-a263de54d31372', 'VN-c87c200db5d079']);
+  assert.deepEqual(rmeta.reference.addedOn, meta.reference.addedOn, 'residents and rings name the same days');
   const strip = h => h.replace(/<details[\s\S]*?<\/details>/g, '');
   for (const id of [...meta.reference.added, CENTRALWORLD]) {
     const row = byId.get(id), facts = shard('facts', id), priors = shard('priors', id), signals = shard('signals', id), rec = residents(id);
@@ -760,7 +766,7 @@ test('visitors: one record per located center; the counts are the rings of the r
   const files = readdirSync(new URL(`${VISITORS_MAP_PATH}/`, ROOT)).filter(f => f !== 'meta.json');
   assert.equal(files.length, vmeta.shards);
   assert.equal(vmeta.schema, 'shoppingcenter-visitors-map/1');
-  assert.equal(vmeta.release, 'venue-locale-visitors-492-20261120-v1');
+  assert.equal(vmeta.release, 'venue-locale-visitors-519-20261126-v2');
   assert.equal(vmeta.localeRelease, meta.release.id, 'counted from the point sets of this release');
   const groups = Object.fromEntries(meta.ringGroups.map(g => [g.id, g.datasets]));
   assert.deepEqual(vmeta.uses, ['visit', 'retail']);
@@ -870,7 +876,7 @@ test('visitors block: the figure and its rank first, the datasets it comes from,
     assert.match(html, /<span class="res-legend-title"><span data-en="Places per 250 × 250 m cell">สถานที่ต่อช่อง 250 × 250 ม\.<\/span><\/span>/);
     // one line: dataset · source · date · boundary; no caveat on screen (the method is folded)
     const line = /<p class="hint res-evidence">(.*?)<\/p>/s.exec(html)[1];
-    assert.match(line, /^<span data-en="15 CityMETER stay, retail and service datasets · 21 Oct–8 Nov 2026 · straight-line radius from the center’s point">15 ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · 21 ต\.ค\.–8 พ\.ย\. 2569 · รัศมีเส้นตรงจากจุดของศูนย์<\/span>/);
+    assert.match(line, /^<span data-en="15 CityMETER stay, retail and service datasets · 21 Oct–25 Nov 2026 · straight-line radius from the center’s point">15 ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · 21 ต\.ค\.–25 พ\.ย\. 2569 · รัศมีเส้นตรงจากจุดของศูนย์<\/span>/);
     assert.match(html, /<svg class="res-key-cell"[^>]*><rect class="res-bg"[^>]*\/><\/svg><span data-en="No counted place">ไม่มีสถานที่ที่นับ<\/span>/);
     assert.doesNotMatch(html.replace(/<details[\s\S]*?<\/details>/g, ''), /สีเทียบช่อง/);
     const visible = html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
@@ -916,7 +922,7 @@ test('work and study: the release groups work and live without the rail stations
   const files = readdirSync(new URL(`${WORK_MAP_PATH}/`, ROOT)).filter(f => f !== 'meta.json');
   assert.equal(files.length, wmeta.shards);
   assert.equal(wmeta.schema, 'shoppingcenter-work-study-map/1');
-  assert.equal(wmeta.release, 'venue-locale-work-study-492-20261121-v2');
+  assert.equal(wmeta.release, 'venue-locale-work-study-519-20261126-v3');
   assert.equal(wmeta.localeRelease, meta.release.id);
   const groups = Object.fromEntries(meta.ringGroups.map(g => [g.id, g.datasets]));
   assert.deepEqual(wmeta.uses, ['work', 'live']);

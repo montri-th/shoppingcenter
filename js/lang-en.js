@@ -282,6 +282,7 @@ export default {
     'โลตัสที่มีร้านอาหาร': "Lotus's with restaurants",
     'ร้านหลักที่มีกิจการอื่นอยู่ด้วย': 'Anchor store with another business inside',
     'ฟู้ดแลนด์ที่มีร้านถูกและดี': 'Foodland with Took Lae Dee',
+    'ศูนย์อาหาร': 'Food court',
     'แหล่งข้อมูลโครงการบ่งชี้ผู้บริหารร่วม': 'Project sources point to a common manager',
     'พื้นที่ค้าปลีกที่บริหารร่วม': 'Retail space under common management',
     'มีหลายกิจการอยู่ภายในที่เดียวกัน': 'Several businesses inside one place',

@@ -2,13 +2,13 @@
  "meta": {
   "schemaVersion": "1",
   "kit": "citymeter-logos 1.1.0",
-  "checkedOn": "2026-11-24",
+  "checkedOn": "2026-11-26",
   "shards": 32,
   "rule": "D64: own id → same id in another dataset → a name the research sheets confirmed → one fixed rewrite; two different files give none; a shop that has a logo keeps it"
  },
  "inputs": {
   "rosterSha256": "a420ed65281cc1f8502b1ec3531b8699b949a570400365b38ce2767e677fc36d",
-  "directorySha256": "340f52fc0b2eb57106a15010b79a9b7e15006dfe8892528c8ea4ae4bb442ad0a",
+  "directorySha256": "d00c787c9d297918fab75c3efa1a84d09cad1ce25f4f46a36a48332b814c149e",
   "logoManifestSha256": "6aa3ebad43f762c92c4bf68238a08973069b879c6a0de85e3691d6f54adf4475"
  },
  "pool": {
@@ -60,7 +60,7 @@
     "issues": 0
    },
    "shoppingcenter": {
-    "commit": "688d6f7c36abafe192e7462e37c1443bd4c34377",
+    "commit": "4eb07f0f6e6a12a41a165ffbffa04c7a5ccf9184",
     "files": 462,
     "entities": 497,
     "issues": 0
@@ -68,12 +68,12 @@
   },
   "issues": []
  },
- "items": 26683,
- "withLogoBefore": 5182,
- "added": 5510,
+ "items": 26498,
+ "withLogoBefore": 5611,
+ "added": 5081,
  "withLogoAfter": 10692,
  "byBasis": {
-  "own": 3596,
+  "own": 3167,
   "same-id": 2,
   "label": 1656,
   "bilingual": 62,
@@ -84,7 +84,7 @@
  "notAttached": {
   "suppressed": 8,
   "ambiguous": 1,
-  "none": 15982
+  "none": 15797
  },
  "byDataset": {
   "research.MLA.PARC": {
@@ -106,7 +106,7 @@
    "none": 34
   },
   "research.TH.beauty_clinic": {
-   "own": 509
+   "own": 443
   },
   "research.TH.camera": {
    "already": 183,
@@ -134,7 +134,7 @@
    "own": 21
   },
   "research.TH.hobby": {
-   "own": 222
+   "own": 19
   },
   "research.TH.hospital": {
    "none": 1
@@ -150,7 +150,7 @@
   },
   "research.TH.miscellaneous": {
    "none": 25,
-   "own": 904
+   "own": 884
   },
   "research.TH.nail": {
    "already": 19,
@@ -158,14 +158,14 @@
   },
   "research.TH.optical": {
    "none": 46,
-   "own": 503
+   "own": 390
   },
   "research.TH.pet": {
    "already": 45,
    "none": 16
   },
   "research.TH.pharmacy": {
-   "own": 125
+   "own": 98
   },
   "research.TH.playground": {
    "already": 94,
@@ -186,21 +186,21 @@
    "none": 1
   },
   "research.TH.shopping_directory": {
-   "already": 808,
+   "already": 1237,
    "ambiguous": 1,
    "bank": 28,
    "bilingual": 62,
    "descriptor": 159,
    "label": 1625,
    "legal": 3,
-   "none": 15150
+   "none": 14965
   },
   "research.TH.sport": {
    "already": 310,
    "none": 73
   }
  },
- "files": 526,
+ "files": 503,
  "filesCopied": 0,
  "ambiguousNames": [
   [
@@ -1137,16 +1137,8 @@
     42
    ],
    [
-    "ธนาคารกสิกรไทย",
-    40
-   ],
-   [
     "KRUNG THAI BANK",
     39
-   ],
-   [
-    "ธนาคารทหารไทยธนชาต",
-    38
    ],
    [
     "ฮะจิบัง ราเมน",
@@ -1159,10 +1151,6 @@
    [
     "BOOST JUICE BAR",
     35
-   ],
-   [
-    "CC-OO",
-    34
    ],
    [
     "G-SHOCK CASIO",
@@ -1189,27 +1177,11 @@
     26
    ],
    [
-    "NITIPON CLINIC",
-    25
-   ],
-   [
-    "CPS CHAPS",
-    24
-   ],
-   [
-    "APEX",
-    23
-   ],
-   [
     "GQ",
     23
    ],
    [
     "SEECHA",
-    23
-   ],
-   [
-    "ห้างทองหวังโต๊ะกังเยาวราช",
     23
    ],
    [
@@ -1219,6 +1191,34 @@
    [
     "TPARTNER",
     22
+   ],
+   [
+    "MOTTA",
+    22
+   ],
+   [
+    "CDS",
+    22
+   ],
+   [
+    "ธนาคารทหารไทยธนชาต",
+    21
+   ],
+   [
+    "PRADAP",
+    21
+   ],
+   [
+    "THE NEXT",
+    21
+   ],
+   [
+    "MR.D.I.Y.",
+    21
+   ],
+   [
+    "BANGKOK GOLDS",
+    20
    ]
   ],
   "research.TH.sport": [

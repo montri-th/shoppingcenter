@@ -2,11 +2,93 @@
  "meta": {
   "asOf": "2026-10-23",
   "count": 113,
-  "expected": 113,
+  "expected": 122,
   "folder": "assets/venue-logos/",
   "registry": "CityMETER Shopping Centers & Retail Venues — Research Master, tab 10_VENUE_LOGOS",
-  "status": "complete",
-  "pending": [],
+  "status": "partial: 113 of 122 files verified; 9 pending transfer (venues keep their name, no logo shown)",
+  "pending": [
+   {
+    "file": "commons-thonglor--4d342cdd4af6.svg",
+    "logoKey": "VLOG-4d342cdd4af67149",
+    "reason": "transfer_pending",
+    "sheetSha256": "4d342cdd4af671497597e8b0fc1e6ba7cafe01790e0705f3991f32f8e11da727",
+    "venues": [
+     "SC-001735"
+    ]
+   },
+   {
+    "file": "commons-saladaeng--885076ee7a68.svg",
+    "logoKey": "VLOG-885076ee7a685c6a",
+    "reason": "transfer_pending",
+    "sheetSha256": "885076ee7a685c6af2b5e5c37336a702b9e8a7d2ed1c317f5f5e7afa8b864462",
+    "venues": [
+     "SC-C1872"
+    ]
+   },
+   {
+    "file": "commons-cloud-11--6a0e42a1dbb9.svg",
+    "logoKey": "VLOG-6a0e42a1dbb92925",
+    "reason": "transfer_pending",
+    "sheetSha256": "6a0e42a1dbb92925ec37ed62202c1cf48284f7e6dd59cb822bc8cc322ef83d84",
+    "venues": [
+     "VN-2531f3d1efa955"
+    ]
+   },
+   {
+    "file": "bravo-bkk--86a3a53a250e.png",
+    "logoKey": "VLOG-86a3a53a250ed133",
+    "reason": "transfer_pending",
+    "sheetSha256": "86a3a53a250ed1337fb6a8fe1ae39494a0af632fd6a731e0fe2a6066690180db",
+    "venues": [
+     "SC-C0284"
+    ]
+   },
+   {
+    "file": "singha-complex--57cc893a6f75.png",
+    "logoKey": "VLOG-57cc893a6f75722a",
+    "reason": "transfer_pending",
+    "sheetSha256": "57cc893a6f75722a6e2ba55b44531f881dea23886a5c45c7e9eae234bfdf5775",
+    "venues": [
+     "VN-f26a0d31225b5a"
+    ]
+   },
+   {
+    "file": "market-village-hua-hin--c1f03476f818.png",
+    "logoKey": "VLOG-c1f03476f818f63a",
+    "reason": "transfer_pending",
+    "sheetSha256": "c1f03476f818f63ac134f47d8e66975fac014a44777aebb639bebe491789ab9b",
+    "venues": [
+     "SC-C0316"
+    ]
+   },
+   {
+    "file": "cdc--71a27a89e22d.png",
+    "logoKey": "VLOG-71a27a89e22d9761",
+    "reason": "transfer_pending",
+    "sheetSha256": "71a27a89e22d9761355278fc48e844a5d7a512551fbfac11fbf3ac5d12ed00c1",
+    "venues": [
+     "SC-C0025"
+    ]
+   },
+   {
+    "file": "central-nakhon-si.png",
+    "logoKey": "VLOG-dd9c95604293dff7",
+    "reason": "transfer_pending",
+    "sheetSha256": "dd9c95604293dff78e1607dd180771dcc5765c50bf469d231e954a5d02d114d9",
+    "venues": [
+     "SC-005868"
+    ]
+   },
+   {
+    "file": "BR-f731afa8748e__river-city-bangkok__02577390db5b.jpg",
+    "logoKey": "VLOG-02577390db5b5d95",
+    "reason": "transfer_pending",
+    "sheetSha256": "02577390db5b5d95b0b079664ecf09be66818c066e4c29240a30968e42b73d22",
+    "venues": [
+     "VN-938c7726e93cf8"
+    ]
+   }
+  ],
   "roles": {
    "venue_specific": "โลโก้ของสถานที่โดยตรง",
    "parent_complex": "โลโก้โครงการแม่",
