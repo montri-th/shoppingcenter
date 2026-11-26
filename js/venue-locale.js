@@ -91,7 +91,7 @@ export async function loadLocaleFacts(id, {shards = 64, fetchImpl = (...a) => fe
   const shard = await fetchJSON(localeShardPath('facts', id, shards), fetchImpl);
   return shard?.venues?.[id] || null;
 }
-export const cachedLocaleFacts = (id, shards = 64) => resolved.get(localeShardPath('facts', id, shards))?.venues?.[id] || null;
+export const cachedLocaleFacts = (id, shards = 64) => factsUnderRule(resolved.get(localeShardPath('facts', id, shards))?.venues?.[id] || null, id);
 
 /**
  * The generated priors of one venue — only when the reader opens that block — together with the observed context of
@@ -118,7 +118,7 @@ export async function loadResidents(id, {shards = 128, fetchImpl = (...a) => fet
   const shard = await fetchJSON(residentsShardPath(id, shards), fetchImpl);
   return shard?.venues?.[id] || null;
 }
-export const cachedResidents = (id, shards = 128) => resolved.get(residentsShardPath(id, shards))?.venues?.[id] || null;
+export const cachedResidents = (id, shards = 128) => underRule(resolved.get(residentsShardPath(id, shards))?.venues?.[id] || null, 'res', id);
 
 /**
  * What a reader finds their way by on the 5 km map (owner 2026-11-20 16:35: “อย่างน้อยควรแสดงแนวถนน overlay ใน heatmap
@@ -152,7 +152,7 @@ export async function loadVisitors(id, {shards = 128, fetchImpl = (...a) => fetc
   const shard = await fetchJSON(visitorsShardPath(id, shards), fetchImpl);
   return shard?.venues?.[id] || null;
 }
-export const cachedVisitors = (id, shards = 128) => resolved.get(visitorsShardPath(id, shards))?.venues?.[id] || null;
+export const cachedVisitors = (id, shards = 128) => underRule(resolved.get(visitorsShardPath(id, shards))?.venues?.[id] || null, 'vis', id);
 
 /**
  * Places people come to work and study (0.9.5; owner 2026-11-20 20:33 “นอกจากสถานที่พัก ก็ยังมีสถานศึกษา ที่ทำงาน โรงงาน
@@ -169,11 +169,67 @@ export async function loadWork(id, {shards = 128, fetchImpl = (...a) => fetch(..
   const shard = await fetchJSON(workShardPath(id, shards), fetchImpl);
   return shard?.venues?.[id] || null;
 }
-export const cachedWork = (id, shards = 128) => resolved.get(workShardPath(id, shards))?.venues?.[id] || null;
+export const cachedWork = (id, shards = 128) => underRule(resolved.get(workShardPath(id, shards))?.venues?.[id] || null, 'work', id);
+
+/**
+ * Across a river through the nearest crossing (0.12.0; owner 2026-11-26 14:12, VERBATIM: “รัศมี 1,3,5km ถ้ากรณีคร่อมไป
+ * คนละฝั่งแม่น้ำ หรือมี physical barrier ขวางแบบนี้เราควรนับคน/จุด/context ฝั่งตรงข้ามยังไงครับ ช่วยแนะนำหน่อยแล้วปรับให้ได้ค่าที่มี
+ * คุณภาพสูงขึ้น”; his answer the same afternoon: “อ้อมผ่านทางข้าม (Recommended)”): data/crossing/, written by
+ * scripts/build-crossing.py. One record per located center: the ranks under the rule (`p`, every center), the figures the
+ * rule changes (`res`, `vis`, `work`, `ring`) and, for a center a barrier river comes within 5 km of, what the page says
+ * about the river (`x`). Once a center's record is loaded the cached facts, residents and places records read under the
+ * rule, with the straight-line figures kept in `straight` and `rule: 'crossing'`; without it (the file did not load) they
+ * read straight-line, and every boundary line says which. Optional (PARTIAL['data/crossing']).
+ */
+export const CROSSING_PATH = 'data/crossing';
+export const crossingShardPath = (id, shards = 128) => `${CROSSING_PATH}/${String(shardOf(id, shards)).padStart(3, '0')}.json`;
+export const loadCrossingMeta = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(`${CROSSING_PATH}/meta.json`, fetchImpl);
+export const cachedCrossingMeta = () => resolved.get(`${CROSSING_PATH}/meta.json`) || null;
+export async function loadCrossing(id, {shards = 128, fetchImpl = (...a) => fetch(...a)} = {}) {
+  const shard = await fetchJSON(crossingShardPath(id, shards), fetchImpl);
+  return shard?.venues?.[id] || null;
+}
+/** A center's record of data/crossing once its shard is loaded; null before, or when the file did not load. */
+export function cachedCrossing(id) {
+  const m = cachedCrossingMeta();
+  return m ? resolved.get(crossingShardPath(id, m.shards))?.venues?.[id] || null : null;
+}
+
+const ruled = new WeakMap();
+/** A record of data/residents or of a places map read under the crossing rule (the same object while nothing changes). */
+function underRule(rec, kind, id) {
+  const x = rec ? cachedCrossing(id) : null;
+  if (!rec || !x) return rec;
+  const hit = ruled.get(rec);
+  if (hit && hit.x === x) return hit.out;
+  const keep = ['n', 'p', 'ring', 'age', 'b', 'sd', 'w'].filter(k => rec[k] !== undefined);
+  const out = {...rec, ...(x[kind] || {}), p: x.p?.[kind] || rec.p, rule: 'crossing', cross: x.x || null,
+    straight: Object.fromEntries(keep.map(k => [k, rec[k]]))};
+  ruled.set(rec, {x, out});
+  return out;
+}
+/** The facts of a center with its rings read under the crossing rule (counts, sub-groups, measures, nearest, ranks). */
+function factsUnderRule(facts, id) {
+  const x = facts?.ring ? cachedCrossing(id) : null;
+  if (!facts?.ring || !x) return facts;
+  const hit = ruled.get(facts);
+  if (hit && hit.x === x) return hit.out;
+  const ring = {};
+  for (const [ds, r] of Object.entries(facts.ring)) {
+    ring[ds] = {...r, ...(x.ring?.[ds] || {}), p: x.p?.ring?.[ds] || r.p, straight: {n: r.n, p: r.p, ...(r.near != null ? {near: r.near} : {})}};
+  }
+  const out = {...facts, ring, rule: 'crossing', cross: x.x || null};
+  ruled.set(facts, {x, out});
+  return out;
+}
+/** [th, en] the boundary of the radius: through the nearest crossing across a river when the record reads under the rule. */
+export const radiusWords = rec => (rec?.rule === 'crossing'
+  ? ['รัศมีจากจุดของศูนย์ ข้ามแม่น้ำนับผ่านทางข้าม', 'radius from the center’s point; across a river, through the nearest crossing']
+  : ['รัศมีเส้นตรงจากจุดของศูนย์', 'straight-line radius from the center’s point']);
 
 /* ---------- reader options (kept for the session, like charts.js) ---------- */
 
-const options = {radius: 3000, universe: 'all', level: '', bench: 'province', open: {table: false, more: false, live: false, method: false, res: false, vis: false, vistable: false, work: false, worktable: false}};
+const options = {radius: 3000, universe: 'all', level: '', bench: 'province', open: {table: false, more: false, live: false, method: false, res: false, vis: false, vistable: false, work: false, worktable: false, cross: false}};
 export const localeOptions = () => ({...options, open: {...options.open}});
 export function setLocaleOption(key, value) {
   if (key === 'radius' && RADII.includes(Number(value))) options.radius = Number(value);
@@ -332,15 +388,101 @@ export function glanceModel(meta, row, facts, {residents = null, residentsMeta =
  * One compact provenance line for the glance — dataset · source · date · boundary (the radius is in the lead above the
  * tiles; every block keeps its own full line). Built from the files that have arrived, so a part appears with its file.
  */
-export function glanceSourceLine(meta, {residentsMeta = null, visitorsMeta = null, workMeta = null} = {}) {
+export function glanceSourceLine(meta, {residentsMeta = null, visitorsMeta = null, workMeta = null, facts = null} = {}) {
   const dates = [...(visitorsMeta?.datasets || []), ...(workMeta?.datasets || [])].map(d => d.date).concat(meta?.ring?.shopping?.date).filter(Boolean).sort();
   // kept short on purpose: the year once when both ends share it; the tile already says “แบบจำลอง”, the star and
   // its note say which counts take only records with a point, and every block keeps its own full line
   const span = dates.length ? daySpan(dates[0], dates.at(-1)) : null;
   const pm = residentsMeta?.populationMonth;
-  const th = [pm ? `คนอยู่ใกล้: ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)}` : '', span ? `สถานที่: ชุดข้อมูล CityMETER ${span[0]}` : '', 'รัศมีเส้นตรงจากจุดของศูนย์'].filter(Boolean).join(' · ');
-  const en = [pm ? `Living near: registered population, Department of Provincial Administration, ${englishDay(pm)}` : '', span ? `places: CityMETER datasets, ${span[1]}` : '', 'straight-line radius from the center’s point'].filter(Boolean).join(' · ');
+  const [radTh, radEn] = radiusWords(facts);
+  const th = [pm ? `คนอยู่ใกล้: ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)}` : '', span ? `สถานที่: ชุดข้อมูล CityMETER ${span[0]}` : '', radTh].filter(Boolean).join(' · ');
+  const en = [pm ? `Living near: registered population, Department of Provincial Administration, ${englishDay(pm)}` : '', span ? `places: CityMETER datasets, ${span[1]}` : '', radEn].filter(Boolean).join(' · ');
   return `<p class="hint glance-source">${say(th, en)}</p>`;
+}
+
+/**
+ * A crossing in words ([th, en] parts, the name kept Thai on the English page when the source has no English): a ferry or
+ * a metro line by its own name; a bridge, tunnel or ford by its name, else the road it carries; a footbridge.
+ */
+export function crossingName(c) {
+  const [, , kind, th = '', en = ''] = c || [];
+  const named = (wTh, wEn) => {
+    if (!th) return {th: wTh, en: `a ${wEn}`, keep: false};
+    if (/สะพาน|อุโมงค์/.test(th)) return {th, en: en || '', keep: !en};
+    return {th: `${wTh} ${th}`, en: en ? `the ${wEn} of ${en}` : '', keep: !en, word: [wTh, `the ${wEn} of`]};
+  };
+  if (kind === 'ferry') return th ? {th, en, keep: !en} : {th: 'เรือข้ามฟาก', en: 'a ferry', keep: false};
+  if (kind === 'metro') return th ? {th, en, keep: !en} : {th: 'รถไฟฟ้า', en: 'a metro line', keep: false};
+  if (kind === 'foot') return th ? {th, en, keep: !en} : {th: 'สะพานคนเดิน', en: 'a footbridge', keep: false};
+  if (kind === 'tunnel') return named('อุโมงค์', 'tunnel');
+  if (kind === 'ford') return named('ทางข้ามน้ำตื้น', 'ford');
+  return named('สะพาน', 'bridge');
+}
+/** The crossing name as HTML: Thai with its English, or a source name that stays Thai behind the kind word in English. */
+function crossingNameHTML(c) {
+  const n = crossingName(c);
+  if (!n.keep) return say(n.th, n.en);
+  if (n.word) return `${say(n.word[0], n.word[1])} ${sourceName(n.th.slice(n.word[0].length + 1), '')}`;
+  return sourceName(n.th, '');
+}
+const riverHTML = ([th, en] = []) => (en ? say(th, `the ${en}`) : sourceName(th, ''));
+
+/**
+ * The river under the glance (0.12.0): who lives across it within the radius and the crossing most of them come through —
+ * or the nearest one when none is counted at this radius — and, folded, the four readings under the rule against the
+ * straight line with the rule itself. Only for a center a barrier river comes within 5 km of, once the rule is loaded.
+ */
+export function crossingHTML(meta, row, facts, {residents = null, visitors = null, work = null} = {}) {
+  const x = facts?.rule === 'crossing' ? facts.cross : null;
+  if (!x) return null;
+  const i = RI[options.radius] ?? 1, r = RADII[i];
+  const share = Math.round(x.a?.[i] ?? 0);
+  const rivers = (x.r || []).slice(0, 2);
+  // the shell keeps the Thai text's own spaces around the English, so the English colon sits inside the river words
+  const head = rivers.length && rivers.every(([, en]) => en)
+    ? say(`อีกฝั่ง${rivers.map(([th]) => th).join(' และ')}`, `Across ${rivers.map(([, en]) => `the ${en}`).join(' and ')}:`)
+    : `${say('อีกฝั่ง', 'Across ')}${rivers.map(riverHTML).join(say(' และ', ' and '))}`;
+  const [k] = x.u?.[i] || [-1, 0];
+  const via = k >= 0 ? x.c?.[k] : null, nearest = via || x.c?.[0] || null;
+  let note = '';
+  if (share >= 1 && rivers.length) {
+    const dist = nearest ? distanceWords(nearest[5]) : null;
+    const cross = nearest ? ` · ${say(via ? 'ข้ามที่' : 'ทางข้ามใกล้สุด', via ? 'crossing at ' : 'nearest crossing: ')}${crossingNameHTML(nearest)} <span class="glance-dist">${say(`(${dist[0]})`, `(${dist[1]})`)}</span>` : '';
+    note = `<p class="glance-river">${icon('route')}<span>${head}${say(` ${num(share)}% ของคนใน ${km(r)}`, `${num(share)}% of the people within ${kmEn(r)}`)}${cross}</span></p>`;
+  }
+  const cell = (via, straight, fmt) => {
+    const a = fmt(via), b = fmt(straight);
+    return `<td class="data-number">${a === b ? a : `<b>${a}</b>`}</td><td class="data-number">${b}</td>`;
+  };
+  const people = v => (v == null ? '–' : aboutPeople(v) ?? '&lt;10');
+  const count = v => (v == null ? '–' : num(v));
+  const shop = facts.ring?.shopping;
+  const rows = [
+    residents?.straight ? [['คนอยู่ใกล้ (ราว)', 'Living near (about)'], residents.n?.[i], residents.straight.n?.[i], people] : null,
+    work?.straight ? [['ที่ทำงานและที่เรียน', 'Work and study'], work.n?.[i], work.straight.n?.[i], count] : null,
+    visitors?.straight ? [['ที่ผู้มาเยือนใช้', 'Places visitors use'], visitors.n?.[i], visitors.straight.n?.[i], count] : null,
+    shop?.straight ? [['ศูนย์และตลาดอื่น', 'Other centers and markets'], shop.n?.[i], shop.straight.n?.[i], count] : null,
+  ].filter(Boolean);
+  const cm = cachedCrossingMeta();
+  const osmDay = cm?.osm?.replicationTimestamp?.slice(0, 10);
+  const list = (x.c || []).slice(0, 3).map(c => {
+    const d = distanceWords(c[5]);
+    return `${crossingNameHTML(c)} ${say(`(${d[0]})`, `(${d[1]})`)}`;
+  }).join(' · ');
+  const fold = `<details class="locale-details glance-cross" data-locale-open="cross"${openAttr('cross')}><summary>${icon('route')}${say('ข้ามแม่น้ำ: เทียบกับนับแบบเส้นตรง', 'Across the river: against the straight line')}</summary>
+    ${rows.length ? `<div class="table-wrap locale-table-wrap"><table class="locale-table cross-table"><caption class="sr-only">${say(`ตัวเลขใน ${km(r)} เมื่อนับอีกฝั่งแม่น้ำผ่านทางข้าม และเมื่อนับแบบเส้นตรง`, `Figures within ${kmEn(r)} with the far bank reached through a crossing, and in a straight line`)}</caption>
+    <thead><tr><th scope="col">${say(`ใน ${km(r)}`, `Within ${kmEn(r)}`)}</th><th scope="col">${say('ผ่านทางข้าม', 'Through a crossing')}</th><th scope="col">${say('เส้นตรง', 'Straight line')}</th></tr></thead>
+    <tbody>${rows.map(([[th, en], v, s, fmt]) => `<tr><th scope="row">${say(th, en)}</th>${cell(v, s, fmt)}</tr>`).join('')}</tbody></table></div>` : ''}
+    <ul class="locale-method">
+      <li>${say(`ฝั่งเดียวกับศูนย์วัดเส้นตรงเหมือนเดิม คน อาคาร และสถานที่ที่อยู่อีกฝั่งแม่น้ำนับเมื่อระยะผ่านทางข้ามที่ใกล้ที่สุดอยู่ในรัศมี (ศูนย์ → ทางข้าม → จุด แต่ละช่วงเป็นเส้นตรง) ไม่ใช่เวลาเดินหรือขับรถ`,
+        'On the center’s bank the straight line as before; people, buildings and places across a river count when their distance through the nearest crossing is within the radius (center → crossing → place, each leg a straight line); not walking or driving time')}</li>
+      <li>${say('แม่น้ำ: ทางน้ำที่ OpenStreetMap ตั้งชื่อว่า “แม่น้ำ…” · ทางข้าม: สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน รถไฟฟ้า และเรือข้ามฟาก', 'Rivers: the waterways OpenStreetMap names as a river (Maenam …) · crossings: road bridges and tunnels of every class, footbridges, metro lines and cross-river ferries')}</li>
+      ${list ? `<li>${say('ทางข้ามที่ใกล้ที่สุด: ', 'Nearest crossings: ')}${list}</li>` : ''}
+      <li>${say('อันดับเทียบคิดใหม่ทั้งชุดอ้างอิงด้วยกติกาเดียวกัน ศูนย์ที่ไม่มีแม่น้ำใกล้จึงอาจเลื่อนอันดับเล็กน้อย · คนต่อ ตร.กม. รายวงแหวนยังหารด้วยพื้นที่ทั้งวง · กลุ่มคน ช่วงเวลา และราคาแถวนี้ยังอ่านจากจำนวนแบบเส้นตรงของรุ่นข้อมูลฐาน',
+        'Ranks are recomputed for the whole reference set under the same rule, so a center with no river near may move a little · people per km² of a ring still divide by the whole ring · the groups, the hours and the prices nearby still read the straight-line counts of the base release')}</li>
+      <li>${say(`OpenStreetMap จาก Geofabrik ข้อมูลถึง ${thaiDay(osmDay)} © ผู้ร่วมสร้าง OpenStreetMap · รุ่นข้อมูล ${cm?.release || ''}`, `OpenStreetMap from Geofabrik, data to ${englishDay(osmDay)}, © OpenStreetMap contributors · release ${cm?.release || ''}`)} · <a href="DATA_METHOD.md#river-crossings" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
+    </ul></details>`;
+  return {note, fold};
 }
 
 /** The glance as four tiles (pictogram, figure, five-step level); each tile jumps to its block. `where`: 'section' | 'head'. */
@@ -361,7 +503,8 @@ export function glanceHTML(meta, row, facts, args = {}, {where = 'section'} = {}
   const starred = tiles.some(t => t.state === 'ready' && t.star);
   const key = `<p class="hint glance-key">${levelMeter(3)}<span>${say(`ระดับเทียบ${group} · น้อย → มาก`, `Level among ${uniEn} · low → high`)}</span>${starred ? `<span>${say('* นับเฉพาะรายการที่มีพิกัด จึงไม่จัดระดับ', '* counted only where a record has a point, so no level')}</span>` : ''}</p>`;
   const lead = where === 'head' ? `<p class="glance-lead">${icon('area')}${say(`รอบศูนย์ใน ${km(options.radius)}`, `Within ${kmEn(options.radius)} of the center`)}</p>` : '';
-  return `<div class="locale-glance${where === 'head' ? ' in-head' : ''}" id="locale-glance${where === 'head' ? '-head' : ''}" data-venue="${esc(row.id)}">${lead}<ul class="glance-grid" aria-label="${where === 'head' ? 'รอบศูนย์นี้' : `ใน ${esc(km(options.radius))} รอบศูนย์`}">${tiles.map(tile).join('')}</ul>${key}${glanceSourceLine(meta, args)}</div>`;
+  const river = where === 'head' ? '' : crossingHTML(meta, row, facts, args);
+  return `<div class="locale-glance${where === 'head' ? ' in-head' : ''}" id="locale-glance${where === 'head' ? '-head' : ''}" data-venue="${esc(row.id)}">${lead}<ul class="glance-grid" aria-label="${where === 'head' ? 'รอบศูนย์นี้' : `ใน ${esc(km(options.radius))} รอบศูนย์`}">${tiles.map(tile).join('')}</ul>${key}${river ? river.note : ''}${glanceSourceLine(meta, {...args, facts})}${river ? river.fold : ''}</div>`;
 }
 
 /** Datasets of the registry that list records here but have no accepted points: name and this province's count. */
@@ -1154,17 +1297,21 @@ export function residentsOverlayLabels(ov, at, {unit = 25, m = 250} = {}) {
 /** The key item of the center pin. */
 export const venuePinKey = () => `<span class="res-key-item"><svg class="res-key-pin" viewBox="-1 -2.55 2 2.75" aria-hidden="true">${VENUE_PIN}</svg>${say('ศูนย์นี้', 'This center')}</span>`;
 
-export function residentsOverlayKey({lines = true, empty = null, outline = false} = {}) {
+export function residentsOverlayKey({lines = true, empty = null, outline = false, cross = null, radius = options.radius, kind = 'res', sample = null} = {}) {
   const sw = (cls, extra = '') => `<svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="${cls}-case${extra}" d="M2 4h20"/><path class="${cls}${extra}" d="M2 4h20"/></svg>`;
   // what a plain cell and a thin line are, as two key items instead of a sentence under the map (owner 2026-11-25, D-9)
   const cell = empty ? `<span class="res-key-item"><svg class="res-key-cell" viewBox="0 0 12 12" aria-hidden="true"><rect class="res-bg" x="0.5" y="0.5" width="11" height="11"/></svg>${say(empty[0], empty[1])}</span>` : '';
   const edge = outline ? `<span class="res-key-item"><svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="res-outline" d="M2 4h20"/></svg>${say('ขอบแขวง/ตำบล', 'Subdistrict boundary')}</span>` : '';
-  if (!lines) return `<span class="res-key">${venuePinKey()}${cell}${edge}</span>`;
+  // the crossing rule (0.12.0): what a hatched cell and a diamond are
+  const hatched = cross && crossOutPath(cross, {radius}), marked = cross && crossingMarks(cross);
+  const river = (hatched ? `<span class="res-key-item"><svg class="res-key-cell" viewBox="0 0 12 12" aria-hidden="true"><defs><pattern id="${kind}-key-x" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="res-cross-line" d="M1.5 0V3"/></pattern></defs>${sample ? `<rect x="0" y="0" width="12" height="12" fill="${esc(sample)}"/>` : '<rect class="res-bg" x="0.5" y="0.5" width="11" height="11"/>'}<rect class="res-cross-out" x="0" y="0" width="12" height="12" fill="url(#${kind}-key-x)"/></svg>${say('อีกฝั่งแม่น้ำ เกินรัศมีนี้เมื่อนับผ่านทางข้าม', 'Across the river, beyond this radius through a crossing')}</span>` : '')
+    + (marked ? `<span class="res-key-item"><svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><path class="res-cross" d="M12 0.6l3.4 3.4l-3.4 3.4l-3.4-3.4z"/></svg>${say('ทางข้ามแม่น้ำ', 'River crossing')}</span>` : '');
+  if (!lines) return `<span class="res-key">${venuePinKey()}${cell}${edge}${river}</span>`;
   return `<span class="res-key">${venuePinKey()}`
     + `<span class="res-key-item">${sw('res-road', ' c2')}${say('ถนนสายหลัก', 'Major roads')}</span>`
     + `<span class="res-key-item">${sw('res-rail')}${say('รถไฟฟ้าและรถไฟ', 'Rail lines')}</span>`
     + `<span class="res-key-item"><svg class="res-key-line" viewBox="0 0 24 8" aria-hidden="true"><circle class="res-station" cx="12" cy="4" r="3"/></svg>${say('สถานี', 'Stations')}</span>`
-    + `<span class="res-key-item">${sw('res-river')}${say('แม่น้ำ', 'Rivers')}</span>${cell}${edge}</span>`;
+    + `<span class="res-key-item">${sw('res-river')}${say('แม่น้ำ', 'Rivers')}</span>${cell}${edge}${river}</span>`;
 }
 
 /** Credit of the map lines in the data line (ODbL asks for it where the map is shown); dates and sources are in the folded method. */
@@ -1190,7 +1337,30 @@ export const VENUE_PIN = '<g class="res-venue"><path class="res-venue-pin" d="M0
  * A 5 km map of one center (residents or the places visitors use): one path per LUT sample (runs along each row), the
  * subdistrict lines, the roads and rail to read it by, the rings and the pin. `kind` keeps the two maps' ids apart.
  */
-function circleMapHTML(row, {g, o = null, outlineUnit = 25}, {n, m, ramp}, {radii: rr = RADII, radius = options.radius, overlay = null, title, kind = 'res'}) {
+/**
+ * Under the crossing rule (0.12.0): the cells across a river whose centre lies inside the radius but whose distance through
+ * the nearest crossing does not — hatched in the map's ink over their own colours — and the crossings within 5 km as
+ * small diamonds in the map's ink and paper (never a data colour).
+ */
+export function crossOutPath(cross, {n = 40, m = 250, radius = options.radius} = {}) {
+  if (!cross?.k?.length) return '';
+  const half = n / 2;
+  let d = '';
+  for (const [k, d10] of cross.k) {
+    const row = Math.floor(k / n), col = k % n;
+    if (Math.hypot((col - half + 0.5) * m, (half - 1 - row + 0.5) * m) > radius) continue;
+    if (d10 >= 0 && d10 * 10 <= radius) continue;
+    d += `M${col - half} ${row - half}h1v1h-1z`;
+  }
+  return d;
+}
+function crossingMarks(cross, {m = 250, unit = 25, max = 8} = {}) {
+  const k = unit / m, at = v => Number((v * k).toFixed(2));
+  return (cross?.c || []).filter(c => c[0] != null && Math.hypot(c[0], c[1]) * unit <= 5000).slice(0, max)
+    .map(c => `<path class="res-cross" d="M${at(c[0])} ${at(c[1]) - 0.5}l0.5 0.5l-0.5 0.5l-0.5-0.5z"/>`).join('');
+}
+
+function circleMapHTML(row, {g, o = null, outlineUnit = 25, cross = null}, {n, m, ramp}, {radii: rr = RADII, radius = options.radius, overlay = null, title, kind = 'res'}) {
   const half = n / 2, pad = 0.4, size = n + 2 * pad;
   const cell = g.map(v => (v == null ? null : classify(v, ramp).fill));
   const fills = new Map();
@@ -1213,18 +1383,21 @@ function circleMapHTML(row, {g, o = null, outlineUnit = 25}, {n, m, ramp}, {radi
     const c = (r / m) * Math.SQRT1_2;
     return `<span class="res-ring-label${r === radius ? ' is-on' : ''}" style="left:${at(c)}%;top:${at(-c)}%">${say(km(r), kmEn(r))}</span>`;
   }).join('');
+  const out = crossOutPath(cross, {n, m, radius});
   return `<div class="res-map-wrap"><svg class="res-map" viewBox="${-half - pad} ${-half - pad} ${size} ${size}" role="img" aria-labelledby="${id}-t"><title id="${id}-t"${enAttr(title[1])}>${esc(title[0])}</title>`
-    + `<defs><clipPath id="${id}-c"><circle r="${outer}"/></clipPath></defs><g clip-path="url(#${id}-c)"><circle class="res-bg" r="${outer}"/>`
+    + `<defs><clipPath id="${id}-c"><circle r="${outer}"/></clipPath>${out ? `<pattern id="${id}-x" width="0.42" height="0.42" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path class="res-cross-line" d="M0.21 0V0.42"/></pattern>` : ''}</defs><g clip-path="url(#${id}-c)"><circle class="res-bg" r="${outer}"/>`
     + [...fills].map(([f, d]) => `<path d="${d}" fill="${f}" shape-rendering="crispEdges"${isPaleSample(f) ? ' class="res-pale"' : ''}/>`).join('')
+    + `${out ? `<path class="res-cross-out" d="${out}" fill="url(#${id}-x)"/>` : ''}`
     + `${o ? `<path class="res-outline" d="${esc(o)}" transform="scale(${scale})"/>` : ''}`
-    + `${overlay?.rec ? residentsOverlaySVG(overlay.rec, {unit: overlay.meta?.unit_m || 25, m}) : ''}</g>`
+    + `${overlay?.rec ? residentsOverlaySVG(overlay.rec, {unit: overlay.meta?.unit_m || 25, m}) : ''}`
+    + `${cross ? `<g class="res-crossings">${crossingMarks(cross, {m})}</g>` : ''}</g>`
     + radii.map(r => `<circle class="res-ring${r === radius ? ' is-on' : ''}" r="${r / m}"/>`).join('')
     + `${VENUE_PIN}</svg>${overlay?.rec ? residentsOverlayLabels(overlay.rec, at, {unit: overlay.meta?.unit_m || 25, m}) : ''}${labels}<span class="res-north" aria-hidden="true">↑ ${say('เหนือ', 'N')}</span></div>`;
 }
 
 /** The residents map of one center (people per 250 m cell). */
 export function residentsMapHTML(row, rec, rmeta, radius = options.radius, model = residentsMapModel(rec, rmeta), overlay = null) {
-  return circleMapHTML(row, {g: rec.g, o: rec.o, outlineUnit: rmeta?.outline?.unit_m || 25}, model, {radii: rmeta?.radii, radius, overlay, kind: 'res',
+  return circleMapHTML(row, {g: rec.g, o: rec.o, outlineUnit: rmeta?.outline?.unit_m || 25, cross: rec.rule === 'crossing' ? rec.cross : null}, model, {radii: rmeta?.radii, radius, overlay, kind: 'res',
     title: ['คนที่มีชื่อในทะเบียนบ้าน (แบบจำลอง) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
       'Registered residents (modelled) per 250 × 250 m cell within 5 km of the center, north up']});
 }
@@ -1246,7 +1419,7 @@ export function placesMapModel(rec, pmeta, kind) {
 
 /** A places map of one center (places per 250 m cell), drawn like the residents map with its lines and pin. */
 function placesMapHTML(cfg, row, rec, pmeta, radius, model, {overlay = null, outline = null, outlineUnit = 25} = {}) {
-  return circleMapHTML(row, {g: rec.g, o: outline, outlineUnit}, model, {radii: pmeta?.radii, radius, overlay, kind: cfg.kind, title: cfg.mapTitle});
+  return circleMapHTML(row, {g: rec.g, o: outline, outlineUnit, cross: rec.rule === 'crossing' ? rec.cross : null}, model, {radii: pmeta?.radii, radius, overlay, kind: cfg.kind, title: cfg.mapTitle});
 }
 
 export const visitorsMapModel = (rec, vmeta) => placesMapModel(rec, vmeta, PLACES.visitors.scale);
@@ -1280,12 +1453,16 @@ export function residentsSectors(rec, rmeta) {
   const n = rmeta?.cell?.n || 40, m = rmeta?.cell?.m || 250, half = n / 2;
   const radii = (rmeta?.radii || RADII).map(Number);
   const people = DIRECTIONS.map(() => [0, 0, 0]), built = DIRECTIONS.map(() => [0, 0, 0]);
+  // under the crossing rule (0.12.0) a cell across a river reads its distance through the crossing, and leaves the 5 km
+  // when that distance is longer
+  const across = new Map((rec?.rule === 'crossing' ? rec.cross?.k || [] : []).map(([k, d10]) => [k, d10 < 0 ? Infinity : d10 * 10]));
   (rec?.g || []).forEach((v, k) => {
     if (v == null) return;
     const east = ((k % n) - half + 0.5) * m, north = (half - 1 - Math.floor(k / n) + 0.5) * m;
     const bearing = ((Math.atan2(east, north) * 180) / Math.PI + 360) % 360;
     const s = Math.floor(((bearing + 22.5) % 360) / 45);
-    const d = Math.hypot(east, north);
+    const d = across.has(k) ? across.get(k) : Math.hypot(east, north);
+    if (across.has(k) && d > radii[radii.length - 1]) return;
     const ring = d < radii[0] ? 0 : d < radii[1] ? 1 : 2;
     people[s][ring] += v;
     built[s][ring] += 1;
@@ -1378,8 +1555,8 @@ export const PLACES = Object.freeze({
     failed: ['โหลดสถานที่ที่ผู้มาเยือนใช้ไม่สำเร็จ', 'Could not load the places visitors use'],
     mapTitle: ['สถานที่ที่ผู้มาเยือนใช้ (ที่พัก ร้านอาหาร ร้านค้า และบริการ) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
       'Places visitors use (stays, restaurants, shops and services) per 250 × 250 m cell within 5 km of the center, north up'],
-    line: (n, span) => [`${num(n)} ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
-      `${num(n)} CityMETER stay, retail and service datasets · ${span[1]} · straight-line radius from the center’s point`],
+    line: (n, span, rad) => [`${num(n)} ชุดข้อมูล CityMETER หมวดที่พัก ค้าปลีก และบริการ · ${span[0]} · ${rad[0]}`,
+      `${num(n)} CityMETER stay, retail and service datasets · ${span[1]} · ${rad[1]}`],
     summary: ['วิธีคิดและข้อจำกัดของสถานที่ที่ผู้มาเยือนใช้', 'How the places visitors use are counted, and the limits'],
     what: ['ตัวเลขนี้คือจำนวนสถานที่ที่คนมาพัก กิน ซื้อ และใช้บริการ ซึ่งชุดข้อมูลของ CityMETER ระบุไว้ ไม่ใช่จำนวนผู้มาเยือน จำนวนครั้งที่มา คนเดิน หรือยอดขาย · การอ่านว่าที่ไหนผู้มาเยือนน่าจะไปเป็นการอนุมานจากสถานที่เหล่านี้',
       'These are the places where people come to stay, eat, shop and use services, as CityMETER’s datasets list them: not visitors, visits, footfall or sales · reading where visitors are likely to go is an inference from these places'],
@@ -1398,8 +1575,8 @@ export const PLACES = Object.freeze({
     failed: ['โหลดสถานที่ทำงานและสถานศึกษาไม่สำเร็จ', 'Could not load the places of work and study'],
     mapTitle: ['สถานที่ที่คนมาทำงานและเรียน (สำนักงาน หน่วยงานรัฐ โรงงาน มหาวิทยาลัย สถานพยาบาล และสถานศึกษา) ต่อช่อง 250 × 250 ม. ในรัศมี 5 กม. รอบศูนย์ ทิศเหนืออยู่ด้านบน',
       'Places people come to work and study (offices, government offices, factories, universities, health facilities and schools) per 250 × 250 m cell within 5 km of the center, north up'],
-    line: (n, span) => [`${num(n)} ชุดข้อมูล CityMETER หมวดที่ทำงาน สถานศึกษา และสถานพยาบาล · ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์`,
-      `${num(n)} CityMETER work, education and health datasets · ${span[1]} · straight-line radius from the center’s point`],
+    line: (n, span, rad) => [`${num(n)} ชุดข้อมูล CityMETER หมวดที่ทำงาน สถานศึกษา และสถานพยาบาล · ${span[0]} · ${rad[0]}`,
+      `${num(n)} CityMETER work, education and health datasets · ${span[1]} · ${rad[1]}`],
     summary: ['วิธีคิดและข้อจำกัดของสถานที่ทำงานและสถานศึกษา', 'How the places of work and study are counted, and the limits'],
     what: ['ตัวเลขนี้คือจำนวนสถานที่ที่คนเดินทางมาทำงาน เรียน หรือรับบริการของรัฐและสถานพยาบาล ซึ่งชุดข้อมูลของ CityMETER ระบุไว้ ไม่ใช่จำนวนคน จำนวนเที่ยว หรือการจ้างงาน · การอ่านว่าที่ไหนคนมาทำงานและเรียนมากเป็นการอนุมานจากสถานที่เหล่านี้',
       'These are the places where people come to work, study or for public and health services, as CityMETER’s datasets list them: not people, trips or jobs · reading where people come to work and study is an inference from these places'],
@@ -1459,14 +1636,14 @@ function placesBlock(cfg, meta, row, pmeta, rec, state, {facts = null, residents
   const model = placesMapModel(rec, pmeta, cfg.scale), {ramp} = model;
   const figure = `<figure class="res-figure">${placesMapHTML(cfg, row, rec, pmeta, r, model, {overlay: residentsMap, outline: residents?.o || null, outlineUnit: residentsMeta?.outline?.unit_m || 25})}
     <figcaption class="res-legend"><span class="res-legend-title">${say('สถานที่ต่อช่อง 250 × 250 ม.', 'Places per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'สถานที่ต่อช่อง 250 × 250 ม.'})}
-    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีสถานที่ที่นับ', 'No counted place'], outline: Boolean(residents?.o)})}</figcaption></figure>`;
+    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีสถานที่ที่นับ', 'No counted place'], outline: Boolean(residents?.o), cross: rec.rule === 'crossing' ? rec.cross : null, radius: r, kind: cfg.kind, sample: ramp.lut?.[20]})}</figcaption></figure>`;
   const dates = datasets.map(d => d.date).filter(Boolean).sort();
   const span = dates.length ? daySpan(dates[0], dates.at(-1)) : ['', ''];
   const nSets = datasets.length;
   // where each dataset comes from: a CityMETER demo web, or the CityMETER research registry (meta.ring[id].source)
   const fromRegistry = datasets.filter(d => meta.ring?.[d.id]?.source?.[0] === REGISTRY_SOURCE);
   const fromDemos = datasets.filter(d => meta.ring?.[d.id]?.source && meta.ring[d.id].source[0] !== REGISTRY_SOURCE);
-  const line = `<p class="hint res-evidence">${say(...cfg.line(nSets, span))}${residentsMap?.rec ? residentsOverlayCredit() : ''}</p>`;
+  const line = `<p class="hint res-evidence">${say(...cfg.line(nSets, span, radiusWords(rec)))}${residentsMap?.rec ? residentsOverlayCredit() : ''}</p>`;
   const partial = datasets.filter(d => d.eligible && d.located != null && d.located < 0.9 * d.eligible).map(d => {
     const m = meta.ring?.[d.id] || d;
     return [`${m.short?.[0] || m.th} มีพิกัด ${num(d.located)} จาก ${num(d.eligible)}`, `${usSpelling(m.short?.[1] || m.en)}: ${num(d.located)} of ${num(d.eligible)} have a point`];
@@ -1521,8 +1698,11 @@ export function renderLocaleWork(row, {meta = null, facts = null, workMeta = nul
 /* ---------- other centers on two ranks (method v1 §4 “เทียบหลายศูนย์”; owner 2026-11-20 11:27) ---------- */
 
 export const COMPARE_PATH = 'data/compare/residents-workers.json';
-export const loadCompare = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(COMPARE_PATH, fetchImpl);
-export const cachedCompare = () => resolved.get(COMPARE_PATH) || null;
+/** The comparison under the crossing rule (x = the residents rank under the rule, 0.12.0); the straight-line file when that
+ * one does not load. */
+export const CROSSING_COMPARE_PATH = `${CROSSING_PATH}/compare.json`;
+export const loadCompare = ({fetchImpl = (...a) => fetch(...a)} = {}) => fetchJSON(CROSSING_COMPARE_PATH, fetchImpl).catch(() => fetchJSON(COMPARE_PATH, fetchImpl));
+export const cachedCompare = () => resolved.get(CROSSING_COMPARE_PATH) || resolved.get(COMPARE_PATH) || null;
 
 const GROUP_WORDS = Object.freeze({mall: ['ศูนย์การค้า', 'Shopping center'], community: ['คอมมูนิตี้มอลล์', 'Community mall'], outlet: ['เอาท์เล็ต', 'Outlet']});
 export const QUARTERS = Object.freeze({work: ['ย่านงาน', 'Workplace'], mixed: ['ผสม', 'Mixed'], sparse: ['เบาบาง', 'Sparse'], home: ['ย่านบ้าน', 'Residential']});
@@ -1601,9 +1781,10 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
   }).join('');
   const list = items ? `<details class="locale-details cmp-near-fold" data-locale-open="cmpnear"${openAttr('cmpnear')}><summary>${say('ศูนย์ที่ระดับใกล้กันที่สุด 5 แห่ง', 'The five centers with the closest levels')}</summary><p class="cmp-near-head"><span class="res-sub">${say('ศูนย์ที่อันดับใกล้กันที่สุด', 'Centers with the closest ranks')}</span><span class="cmp-near-key">${icon('residents')}${say('คนอยู่ใกล้', 'living')} ${icon('office')}${say('คนทำงานใกล้', 'working')}</span></p><ol class="cmp-near-list">${items}</ol></details>` : '';
   const pm = rmeta?.populationMonth, asOf = meta.asOf;
+  const cmpRadius = radiusWords(cmp.crossing ? {rule: 'crossing'} : null), cmpFile = cmp.crossing ? CROSSING_COMPARE_PATH : COMPARE_PATH;
   const line = `<p class="hint res-evidence cmp-evidence">${say(
-    `อันดับเทียบกับ${uniTh}ในชุดอ้างอิง · คนอยู่ใกล้ (แบบจำลอง): กรมการปกครอง ${thaiDay(pm)} · คนทำงานใกล้ (สมมติฐาน): ทะเบียนวิจัย CityMETER ${thaiDay(asOf)} · รัศมีเส้นตรงจากจุดของศูนย์`,
-    `Ranks against the ${uniEn} of the reference set · living nearby (modelled): Department of Provincial Administration, ${englishDay(pm)} · working nearby (hypothesis): CityMETER research registry, ${englishDay(asOf)} · straight-line radius from the center’s point`)}</p>`;
+    `อันดับเทียบกับ${uniTh}ในชุดอ้างอิง · คนอยู่ใกล้ (แบบจำลอง): กรมการปกครอง ${thaiDay(pm)} · คนทำงานใกล้ (สมมติฐาน): ทะเบียนวิจัย CityMETER ${thaiDay(asOf)} · ${cmpRadius[0]}`,
+    `Ranks against the ${uniEn} of the reference set · living nearby (modelled): Department of Provincial Administration, ${englishDay(pm)} · working nearby (hypothesis): CityMETER research registry, ${englishDay(asOf)} · ${cmpRadius[1]}`)}</p>`;
   const method = `<details class="locale-details" data-locale-open="cmp"${openAttr('cmp')}><summary>${icon('evidence')}${say('วิธีอ่านกราฟเทียบและข้อจำกัด', 'How to read the comparison, and the limits')}</summary>
     <ul class="locale-method">
       <li>${say(`แนวนอนคืออันดับ (เปอร์เซ็นไทล์แบบ mid-rank) ของคนที่มีชื่อในทะเบียนบ้านใน ${km(radius)} เทียบกับ${uniTh} เหมือนอันดับด้านบน เปลี่ยนตามรัศมีและกลุ่มที่เลือก`, `Across: the rank (mid-rank percentile) of the registered residents within ${kmEn(radius)} among ${uniEn}, as the rank above; it follows the radius and the comparison chosen`)}</li>
@@ -1613,7 +1794,7 @@ function compareBlock(meta, row, rmeta, cmp, state, venueOf) {
         `The quarter names are an interpretation, split at the ${num(model.split)}% rank on both axes: Residential, more people living nearby than half the centers but fewer working · Workplace, the reverse · Mixed, more on both · Sparse, fewer on both`)}</li>
       ${n !== ref ? referenceLine(meta, [`กราฟแสดง${plotTh} วางตามอันดับที่เทียบกับชุดอ้างอิง`, `the chart shows ${plotEn}, placed by their ranks against the reference set`]) : ''}
       <li>${say('ศูนย์ที่อันดับใกล้กันคือ 5 ศูนย์ที่อยู่ใกล้ที่สุดบนกราฟนี้ ไม่ได้แปลว่าทำเล ลูกค้า หรือยอดขายเหมือนกัน และอันดับสูงไม่ได้แปลว่าทำเลดีกว่า', 'The centers with the closest ranks are the five nearest on this chart; that does not make their location, shoppers or sales alike, and a higher rank does not make a better location')}</li>
-      <li>${say(`ไฟล์ ${COMPARE_PATH} สร้างจากไฟล์จำนวนคนและสมมติฐานที่เว็บนี้ใช้อยู่แล้ว`, `File ${COMPARE_PATH}, built from the residents and hypothesis files this page already uses`)} · <a href="DATA_METHOD.md#compare-residents-workers" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
+      <li>${say(`ไฟล์ ${cmpFile} สร้างจากไฟล์จำนวนคนและสมมติฐานที่เว็บนี้ใช้อยู่แล้ว`, `File ${cmpFile}, built from the residents and hypothesis files this page already uses`)} · <a href="DATA_METHOD.md#compare-residents-workers" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></li>
     </ul></details>`;
   return wrap(`${lead}${chart}${list}${line}${method}`);
 }
@@ -1661,11 +1842,11 @@ function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareSt
   const model = residentsMapModel(rec, rmeta), {ramp} = model;
   const figure = `<figure class="res-figure">${residentsMapHTML(row, rec, rmeta, r, model, residentsMap)}
     <figcaption class="res-legend"><span class="res-legend-title">${say('คนต่อช่อง 250 × 250 ม.', 'People per 250 × 250 m cell')}</span>${rampLegendHTML(ramp, {unit: 'คนต่อช่อง 250 × 250 ม.'})}
-    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีอาคารที่นับ', 'No counted building'], outline: true})}</figcaption></figure>`;
+    ${residentsOverlayKey({lines: Boolean(residentsMap?.rec), empty: ['ไม่มีอาคารที่นับ', 'No counted building'], outline: true, cross: rec.rule === 'crossing' ? rec.cross : null, radius: r, kind: 'res', sample: ramp.lut?.[20]})}</figcaption></figure>`;
   const pm = rmeta.populationMonth, asOf = residentsReadOn(rmeta, row.id);
   const line = `<p class="hint res-evidence">${say(
-    `ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)} · อาคาร Building V4 · รัศมีเส้นตรงจากจุดของศูนย์`,
-    `Registered population, Department of Provincial Administration, ${englishDay(pm)} · buildings: Building V4 · straight-line radius from the center’s point`)}${residentsOverlayCredit()}</p>`;
+    `ประชากรตามทะเบียน กรมการปกครอง ${thaiDay(pm)} · อาคาร Building V4 · ${radiusWords(rec)[0]}`,
+    `Registered population, Department of Provincial Administration, ${englishDay(pm)} · buildings: Building V4 · ${radiusWords(rec)[1]}`)}${residentsOverlayCredit()}</p>`;
   const own = rec.own ? (() => {
     const w = peopleWords(rec.own[1]);
     return ` ${say(`อาคารของศูนย์นี้ ${num(rec.own[0])} หลังได้รับ${w[0]}`, `this center’s own ${rec.own[0] === 1 ? 'building gets' : `${num(rec.own[0])} buildings get`} ${w[1]}`)}`;
@@ -1673,7 +1854,9 @@ function residentsBlock(meta, row, rmeta, rec, state, {compare = null, compareSt
   const method = `<details class="locale-details" data-locale-open="res"${openAttr('res')}><summary>${icon('evidence')}${say('วิธีคิดและข้อจำกัดของจำนวนคน', 'How the residents are modelled, and the limits')}</summary>
     <ul class="locale-method">
       <li>${say('จำนวนนี้คือคนที่มีชื่อในทะเบียนบ้านของอาคารรอบศูนย์ตามแบบจำลอง ไม่ใช่คนที่อยู่จริงทั้งหมด ไม่ใช่จำนวนคนที่มาศูนย์ และไม่ใช่รายได้หรือกำลังซื้อ', 'These are the people registered at the buildings around the center, as modelled: not everyone who lives there, not the people who visit the center, and not income or spending power')}</li>
-      <li>${say(`ประชากรตามทะเบียนของแต่ละแขวง/ตำบล (กรมการปกครอง ${thaiDay(pm)}) แบ่งให้อาคาร Building V4 ตามพื้นที่ใช้สอยของอาคาร เทียบกับพื้นที่ใช้สอยรวมที่ CityMETER production ใช้ แล้วรวมอาคารที่จุดกึ่งกลางอยู่ในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ`, `Each subdistrict’s registered population (Department of Provincial Administration, ${englishDay(pm)}) is split over its Building V4 buildings by floor area, against the total floor area CityMETER production uses; the buildings whose centre lies within the straight-line 1 · 3 · 5 km radius of the center’s point are added up, not walking or driving distance`)}</li>
+      <li>${say(`ประชากรตามทะเบียนของแต่ละแขวง/ตำบล (กรมการปกครอง ${thaiDay(pm)}) แบ่งให้อาคาร Building V4 ตามพื้นที่ใช้สอยของอาคาร เทียบกับพื้นที่ใช้สอยรวมที่ CityMETER production ใช้ แล้วรวมอาคารที่จุดกึ่งกลางอยู่ใน${rec.rule === 'crossing' ? 'รัศมี 1 · 3 · 5 กม. จากจุดของศูนย์ (อีกฝั่งแม่น้ำวัดผ่านทางข้ามที่ใกล้ที่สุด)' : 'รัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์'} ไม่ใช่ระยะเดินหรือขับรถ`, `Each subdistrict’s registered population (Department of Provincial Administration, ${englishDay(pm)}) is split over its Building V4 buildings by floor area, against the total floor area CityMETER production uses; the buildings whose centre lies within ${rec.rule === 'crossing' ? 'the 1 · 3 · 5 km radius of the center’s point (across a river, through the nearest crossing)' : 'the straight-line 1 · 3 · 5 km radius of the center’s point'} are added up, not walking or driving distance`)}</li>
+      ${rec.rule === 'crossing' && rec.cross ? `<li>${say(`อาคารที่อยู่อีกฝั่งแม่น้ำนับเมื่อระยะผ่านทางข้ามที่ใกล้ที่สุดอยู่ในรัศมี (ศูนย์ → ทางข้าม → อาคาร แต่ละช่วงเป็นเส้นตรง) ใน ${km(r)} ตามกติกานี้ ${aboutPeople(rec.n[i]) ?? 'ไม่ถึง 10'} คน แบบเส้นตรง ${aboutPeople(rec.straight?.n?.[i]) ?? 'ไม่ถึง 10'} คน · บนแผนที่ ช่องลายเส้นทแยงคืออีกฝั่งแม่น้ำที่เกินรัศมีนี้เมื่อนับผ่านทางข้าม`,
+        `Buildings across a river count when their distance through the nearest crossing is within the radius (center → crossing → building, each leg a straight line): within ${kmEn(r)}, about ${aboutPeople(rec.n[i]) ?? 'fewer than 10'} under this rule, about ${aboutPeople(rec.straight?.n?.[i]) ?? 'fewer than 10'} in a straight line · on the map, hatched cells are across the river and beyond this radius through a crossing`)}</li>` : ''}
       <li>${say('ทุกอาคารได้รับคนตามพื้นที่ใช้สอย รวมอาคารพาณิชย์และอาคารของศูนย์เอง เหมือนใน production ย่านพาณิชย์จึงมีค่าใกล้ศูนย์สูงกว่าคนที่อยู่จริง', 'Every building gets people by its floor area, shops and the center’s own buildings included, as in production, so commercial areas read higher near the center than the people who live there')}${own}</li>
       <li>${say(`ใน ${km(r)} นับอาคาร ${num(rec.b[i])} หลัง ในแขวง/ตำบล ${num(rec.sd[i])} แห่ง`, `Within ${kmEn(r)}: ${num(rec.b[i])} buildings in ${num(rec.sd[i])} subdistricts`)}</li>
       <li>${say('อายุคือโครงสร้างอายุของแขวง/ตำบลที่รัศมีคร่อม ถ่วงตามจำนวนคนในรัศมี ไม่ใช่อายุของคนในแต่ละอาคาร', 'Ages are the age structure of the subdistricts the radius covers, weighted by the people inside it, not the age of the people in each building')}</li>
@@ -1701,11 +1884,12 @@ export function renderLocaleResidents(row, {meta = null, facts = null, residents
   return residentsBlock(meta, row, residentsMeta, residents, residentsState, {compare, compareState, venueOf, residentsMap});
 }
 
-function methodBlock(meta, uni) {
+function methodBlock(meta, uni, facts = null) {
   const notCounted = (meta.notCounted || []).filter(x => x.treatment === 'not_countable_catalog_only' && x.th).map(x => x.th);
   return `<details class="locale-details" id="locale-method" data-locale-open="method"${openAttr('method')}><summary>${icon('evidence')}ที่มาและวิธีของส่วนนี้</summary>
     <ul class="locale-method">
-      <li>นับรายการที่แหล่งระบุในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ และไม่ใช่จำนวนคนเดิน</li>
+      ${facts?.rule === 'crossing' ? `<li>${say('นับรายการที่แหล่งระบุในรัศมี 1 · 3 · 5 กม. จากจุดของศูนย์ ฝั่งเดียวกับศูนย์วัดเส้นตรง อีกฝั่งแม่น้ำวัดระยะผ่านทางข้ามที่ใกล้ที่สุด (สะพานและอุโมงค์ถนนทุกระดับ สะพานคนเดิน รถไฟฟ้า เรือข้ามฟาก จาก OpenStreetMap) ไม่ใช่ระยะเดินหรือขับรถ และไม่ใช่จำนวนคนเดิน',
+        'Counts the records a source lists within 1 · 3 · 5 km of the center’s point: in a straight line on the center’s bank, and across a river through the nearest crossing (road bridges and tunnels of every class, footbridges, metro lines, ferries, from OpenStreetMap) — not walking or driving distance, and not footfall')}</li>` : '<li>นับรายการที่แหล่งระบุในรัศมีเส้นตรง 1 · 3 · 5 กม. จากจุดของศูนย์ ไม่ใช่ระยะเดินหรือขับรถ และไม่ใช่จำนวนคนเดิน</li>'}
       <li>ระดับเทียบ 0–100 ได้จากการเรียง${esc(uni.th)} ${num(uni.n)} แห่งจากน้อยไปมาก ศูนย์ที่ได้ค่าเท่ากันใช้ระดับกึ่งกลางร่วมกัน · มาตรวัด 5 ขั้นแบ่งระดับนี้ทีละ 20 · 0 คือไม่พบรายการในรัศมี ไม่ใช่ไม่มีข้อมูล</li>
       ${referenceLine(meta)}
       <li>ค่าพื้นที่มาจาก CityMETER production ตามหน่วยที่จุดของศูนย์ตั้งอยู่ ตัวเลขที่เป็นจำนวนเทียบกันต่อ ตร.กม. ของหน่วย</li>
@@ -1721,12 +1905,13 @@ function methodBlock(meta, uni) {
 }
 
 /** Data line of the section: dataset · source · date · boundary. */
-export function localeDataLine(meta) {
+export function localeDataLine(meta, facts = null) {
   const rings = Object.values(meta?.ring || {}).filter(m => m.placed).length, areas = Object.keys(meta?.area || {}).length;
   const ds = Object.values(meta?.ring || {}).map(m => m.date).filter(Boolean).sort();
   const span = daySpan(ds[0] || meta?.asOf, meta?.asOf || ds[0]);
-  return `<p class="hint panel-foot">${say(`ทะเบียนวิจัย CityMETER ${num(rings)} ชุด · production ${num(areas)} ชุด · ${span[0]} · รัศมีเส้นตรงจากจุดของศูนย์ และพื้นที่ตาม production`,
-    `CityMETER research registry, ${num(rings)} datasets · production, ${num(areas)} · ${span[1]} · straight-line radius from the center’s point; areas as in production`)} · <a href="DATA_METHOD.md#venue-locale-insight" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></p>`;
+  const [radTh, radEn] = radiusWords(facts);
+  return `<p class="hint panel-foot">${say(`ทะเบียนวิจัย CityMETER ${num(rings)} ชุด · production ${num(areas)} ชุด · ${span[0]} · ${radTh} และพื้นที่ตาม production`,
+    `CityMETER research registry, ${num(rings)} datasets · production, ${num(areas)} · ${span[1]} · ${radEn}; areas as in production`)} · <a href="DATA_METHOD.md#venue-locale-insight" target="_blank" rel="noopener">${say('ที่มาและวิธี', 'Sources and method')}</a></p>`;
 }
 
 /**
@@ -1737,7 +1922,7 @@ export function localeDataLine(meta) {
 export function renderLocale(row, {meta = null, facts = null, priors = null, signals = null, metaState = 'idle', factsState = 'idle', priorsState = 'idle', residentsMeta = null, residents = null, residentsState = 'idle', compare = null, compareState = 'idle', venueOf = null, residentsMap = null, visitorsMeta = null, visitors = null, visitorsState = 'idle', workMeta = null, work = null, workState = 'idle'} = {}) {
   if (!inLocaleSet(row)) return '';
   const trial = /-rc\d*$/.test(meta?.release?.id || '') ? `<button type="button" class="prior-badge rc-badge" data-action="locale-jump" data-target="locale-method" data-open="method">${say('รุ่นทดลอง', 'Trial release')}</button>` : '';
-  const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}${trial}<span class="hint">รัศมีเส้นตรง</span></div>`;
+  const head = `<div class="section-heading">${`<h3 id="locale-title">${icon('area')}รอบศูนย์นี้</h3>`}${trial}<span class="hint">${facts?.rule === 'crossing' ? say('ข้ามแม่น้ำนับผ่านทางข้าม', 'Across rivers via a crossing') : 'รัศมีเส้นตรง'}</span></div>`;
   const shell = inner => `<section class="panel-section locale-section" id="venue-locale" data-venue="${esc(row.id)}" aria-labelledby="locale-title">${head}${inner}</section>`;
   if (metaState === 'error' || factsState === 'error') return shell('<p class="hint">โหลดข้อมูลรอบศูนย์ไม่สำเร็จ <button type="button" class="link-button" data-action="locale-retry">ลองอีกครั้ง</button></p>');
   if (!meta || (!facts && factsState !== 'empty')) return shell('<p class="hint" role="status">กำลังโหลดข้อมูลรอบศูนย์…</p>');
@@ -1770,8 +1955,8 @@ export function renderLocale(row, {meta = null, facts = null, priors = null, sig
     ${priorsBlock(meta, row, priors, priorsState, signals, facts)}
     ${areaBlock(meta, facts, row)}
     ${liveBlock(meta, row, facts)}
-    ${methodBlock(meta, uni)}
-    ${localeDataLine(meta)}`);
+    ${methodBlock(meta, uni, facts)}
+    ${localeDataLine(meta, facts)}`);
 }
 
 /** Only the glance (zone #locale-glance, or #locale-glance-head in the venue head), for the app's redraw. */

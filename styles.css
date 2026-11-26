@@ -835,6 +835,12 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .res-river-case { stroke: var(--area-label-bg); stroke-width: 4.4px; }
 .res-river { stroke: var(--map-active-layer); stroke-width: 2.8px; }
 .res-map .res-station, .res-key-line .res-station { fill: var(--area-label-ink); stroke: var(--area-label-bg); stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
+/* across a river through the nearest crossing (0.12.0): cells the rule leaves out of the radius are hatched in the map's
+   ink over their own colours (the data colour is never changed or faded), and the crossings are small diamonds in the
+   ink and paper of the map's labels */
+.res-cross-line { fill: none; stroke: var(--area-label-ink); stroke-width: 1.1px; vector-effect: non-scaling-stroke; }
+.res-map .res-cross-out, .res-key-cell .res-cross-out { stroke: none; }
+.res-map .res-cross, .res-key-line .res-cross { fill: var(--area-label-bg); stroke: var(--area-label-ink); stroke-width: 1.5px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .res-lab { position: absolute; padding: 0 5px; border-radius: 6px; background: var(--area-label-bg); color: var(--area-label-ink); font: 600 12px/1.45 var(--font-body); white-space: nowrap; pointer-events: none; }
 .res-lab.at-c { transform: translate(-50%, -50%); }
 .res-lab.at-l { transform: translate(6px, -50%); }
@@ -1058,6 +1064,12 @@ td small { display: block; color: var(--text-metadata); font-size: 12px; margin-
 .glance-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0; }
 /* the glance's own provenance line: dataset · source · date · boundary, as under every panel with numbers */
 .glance-source { margin: 0; font-size: 12px; line-height: 1.4; }
+/* the river under the tiles (0.12.0): one line — who lives across it and where most of them cross — and the rule folded */
+.glance-river { display: flex; gap: 6px; align-items: flex-start; margin: 0; font-size: 13px; line-height: 1.45; color: var(--text-primary); }
+.glance-river .glance-dist { white-space: nowrap; }
+.glance-river .pictogram { width: 18px; height: 18px; font-size: 18px; flex: 0 0 18px; color: var(--text-secondary); }
+.glance-cross .cross-table th[scope="row"] { text-align: left; font-weight: 400; white-space: nowrap; }
+.glance-cross .cross-table td b { font-weight: 600; }
 .level-meter { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; }
 .level-meter i { box-sizing: border-box; width: 7px; border: 1px solid var(--text-secondary); border-radius: 1px; }
 .level-meter i:nth-child(1) { height: 5px; }

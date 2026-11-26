@@ -13,6 +13,8 @@ import {
   nearWords, chartTipExtra, VENUE_PIN,
   VISITORS_MAP_PATH, visitorsShardPath, visitorsMapModel, visitorsMapHTML, renderLocaleVisitors,
   WORK_MAP_PATH, workShardPath, workMapModel, workMapHTML, renderLocaleWork, PLACES,
+  CROSSING_PATH, crossingShardPath, loadCrossingMeta, loadCrossing, crossOutPath, crossingName, crossingHTML,
+  loadLocaleFacts, cachedLocaleFacts, loadResidents, cachedResidents, loadVisitors, cachedVisitors, loadWork, cachedWork,
 } from '../js/venue-locale.js';
 import {shardOf} from '../js/details.js';
 import {COUNT_SCALE, DENSITY_SCALE, ACTIVITY_SCALE, buildRamp, classify, isPaleSample, contrastRatio} from '../js/scales.js';
@@ -1276,3 +1278,188 @@ test('short fact labels: the basis of the opening hours on the face, the period 
   assert.doesNotMatch(html.slice(html.indexOf('class="locale-table"'), html.indexOf('</table>', html.indexOf('class="locale-table"'))), />–<|%<\/td>/, 'no bare dash and no percent sign in the level column');
 });
 
+
+/* ---------- across a river through the nearest crossing (0.12.0, data/crossing) ---------- */
+
+const CAVEAT = /caveat|ข้อจำกัด|ไม่ใช่|ไม่นับในจำนวน|ช่องว่างตลาด|ทำเลทอง/;
+const visible = html => html.replace(/<details[\s\S]*?<\/details>/g, '').replace(/<[^>]+>/g, ' ');
+const xmeta = read(`${CROSSING_PATH}/meta.json`);
+const crossingOf = id => read(crossingShardPath(id, xmeta.shards)).venues[id] || null;
+const localFetch = path => Promise.resolve({ok: true, status: 200, json: () => Promise.resolve(read(path))});
+const CHINATOWN = 'SC-001370', ASIATIQUE = 'SC-C0039';
+
+test('crossing: one record per located center; the figures the rule changes never exceed the straight line; ranks recount under the rule', () => {
+  assert.equal(xmeta.schema, 'shoppingcenter-crossing/1');
+  assert.equal(xmeta.release, 'venue-locale-crossing-519-20261126-v1');
+  assert.match(xmeta.rule.th, /ฝั่งเดียวกับศูนย์วัดเส้นตรงเหมือนเดิม/);
+  assert.equal(xmeta.osm.sha256, '62b496bf2383ddd266cfcd3456cd03064db1887399f2a4c869bbf953bfd12d24');
+  assert.equal(xmeta.osm.replicationTimestamp, '2026-11-24T21:21:23Z');
+  assert.match(xmeta.osm.license, /ODbL/);
+  assert.deepEqual(xmeta.reference, {n: rmeta.reference.n, added: [...rmeta.reference.added].sort()});
+  assert.deepEqual(xmeta.releases, {locale: meta.release.id, residents: rmeta.release, visitors: vmeta.release, work: wmeta.release}, 'built on the published files');
+  assert.match(readFileSync(new URL('DATA_METHOD.md', ROOT), 'utf8'), /<a id="river-crossings"><\/a>/, 'the method the page links to');
+  const files = readdirSync(new URL(`${CROSSING_PATH}/`, ROOT)).filter(f => /^\d{3}\.json$/.test(f));
+  assert.equal(files.length, xmeta.shards);
+  const recs = new Map();
+  for (const f of files) for (const [id, rec] of Object.entries(read(`${CROSSING_PATH}/${f}`).venues)) {
+    assert.equal(crossingShardPath(id, xmeta.shards), `${CROSSING_PATH}/${f}`, `${id} in its own shard`);
+    recs.set(id, rec);
+  }
+  const located = set.filter(r => r.located);
+  assert.deepEqual([...recs.keys()].sort(), located.map(r => r.id).sort(), 'every located center once');
+  assert.equal([...recs.values()].filter(r => r.x).length, xmeta.riverCenters);
+  const ringIds = Object.keys(meta.ring).filter(ds => located.some(r => shard('facts', r.id)?.ring?.[ds]));
+  const nRes = new Map(), nVis = new Map(), nWork = new Map();
+  for (const r of located) {
+    const x = recs.get(r.id), res = residents(r.id), vis = visitorsOf(r.id), work = workOf(r.id), facts = shard('facts', r.id);
+    for (const k of ['res', 'vis', 'work']) assert.ok(x.p[k].length === 2 && x.p[k].every(a => a.length === 3 && a.every(v => v >= 0 && v <= 100)), `${r.id} ${k}`);
+    for (const ds of Object.keys(facts.ring)) assert.ok(x.p.ring[ds]?.every(a => a.every(v => Number.isInteger(v) && v >= 0 && v <= 100)), `${r.id} ${ds}`);
+    if (!x.x) assert.ok(!x.res && !x.vis && !x.work && !x.ring, `${r.id}: no river within 5 km, no figure changes`);
+    if (x.res) {
+      for (let i = 0; i < 3; i++) {
+        assert.ok(x.res.n[i] <= res.n[i] + 1e-6 && x.res.b[i] <= res.b[i] && x.res.sd[i] <= res.sd[i], `${r.id} residents ${i}`);
+        assert.ok(Math.abs(x.res.age[i].reduce((a, v) => a + v, 0) - 1) < 1e-4, `${r.id} ages`);
+      }
+      assert.ok(Math.abs(x.res.ring.reduce((a, v) => a + v[0], 0) - x.res.n[2]) < 0.01, `${r.id} rings = 5 km`);
+      assert.ok(Math.abs(x.res.ring[0][0] - x.res.n[0]) < 0.01, `${r.id} first ring = 1 km`);
+    }
+    for (const [k, base] of [['vis', vis], ['work', work]]) if (x[k]) for (let i = 0; i < 3; i++) assert.ok(x[k].n[i] <= base.n[i], `${r.id} ${k}`);
+    if (x.work?.w) assert.ok(work.w, `${r.id}: modelled office workers only where the work map has them`);
+    for (const [ds, rr] of Object.entries(x.ring || {})) {
+      for (let i = 0; i < 3; i++) assert.ok(rr.n[i] <= facts.ring[ds].n[i], `${r.id} ${ds}`);
+      if (rr.near != null && facts.ring[ds].near != null) assert.ok(rr.near >= facts.ring[ds].near, `${r.id} ${ds} nearest`);
+    }
+    if (x.x) {
+      const xx = x.x;
+      assert.ok(xx.a.every(v => v >= 0 && v <= 100) && xx.r.length > 0, r.id);
+      assert.ok(xx.c.every(c => ['bridge', 'road', 'foot', 'ford', 'tunnel', 'metro', 'ferry'].includes(c[2]) && c[5] > 0), `${r.id} crossings`);
+      assert.ok(xx.u.every(([k]) => k >= -1 && k < xx.c.length), `${r.id} crossing index`);
+      assert.ok(xx.k.every(([k, d]) => Number.isInteger(k) && k >= 0 && k < 1600 && (d === -1 || d > 0)), `${r.id} cells`);
+    }
+    nRes.set(r.id, x.res?.n || res.n); nVis.set(r.id, x.vis?.n || vis.n); nWork.set(r.id, x.work?.n || work.n);
+  }
+  // the ranks recount from the figures under the rule, against the same 488
+  const added = new Set(rmeta.reference.added), reference = located.filter(r => !added.has(r.id));
+  const mid = (v, pool) => (100 * (pool.filter(q => q < v).length + 0.5 * pool.filter(q => q === v).length)) / pool.length;
+  for (const [k, figures] of [['res', nRes], ['vis', nVis], ['work', nWork]]) {
+    for (let i = 0; i < 3; i++) {
+      const all = reference.map(r => figures.get(r.id)[i]);
+      for (const r of located) {
+        const same = reference.filter(o => o.group === r.group).map(o => figures.get(o.id)[i]);
+        assert.ok(Math.abs(recs.get(r.id).p[k][0][i] - mid(figures.get(r.id)[i], all)) < 1e-3, `${r.id} ${k} all ${i}`);
+        assert.ok(Math.abs(recs.get(r.id).p[k][1][i] - mid(figures.get(r.id)[i], same)) < 1e-3, `${r.id} ${k} type ${i}`);
+      }
+    }
+  }
+  // ring ranks are whole numbers in the order of the figures under the rule
+  for (const ds of ringIds) for (let i = 0; i < 3; i++) {
+    const pts = located.filter(r => recs.get(r.id).p.ring[ds]).map(r => [(recs.get(r.id).ring?.[ds] || shard('facts', r.id).ring[ds]).n[i], recs.get(r.id).p.ring[ds][0][i]]).sort((a, b) => a[0] - b[0]);
+    for (let j = 1; j < pts.length; j++) assert.ok(pts[j][1] >= pts[j - 1][1] - (pts[j][0] === pts[j - 1][0] ? 0 : 0), `${ds} ${i}: rank follows the count`);
+  }
+  // the comparison under the rule: x is the residents rank under the rule, y unchanged
+  const xcmp = read(`${CROSSING_PATH}/compare.json`);
+  assert.deepEqual(Object.keys(xcmp.venues).sort(), Object.keys(cmp.venues).sort());
+  for (const [id, v] of Object.entries(xcmp.venues)) {
+    assert.ok(v[1].length === 3 && v[1].every((q, j) => Math.abs(q - recs.get(id).p.res[0][j]) <= 0.05 + 1e-9), `${id} x (one decimal, Python rounding)`);
+    assert.deepEqual([v[0], v[3], v[4]], [cmp.venues[id][0], cmp.venues[id][3], cmp.venues[id][4]], `${id} y unchanged`);
+  }
+  // the hatched cells of a river center at 3 km, and where the rule changes most
+  assert.ok(crossOutPath(recs.get(ASIATIQUE).x, {radius: 3000}).length > 0, 'Asiatique loses cells across the river at 3 km');
+  assert.ok(recs.get(ASIATIQUE).res.n[1] < 0.8 * residents(ASIATIQUE).n[1], 'Asiatique: a quarter of the straight-line 3 km is across the river beyond 3 km');
+});
+
+test('crossing names: ferries and metro lines by name, a bridge by its name or the road it carries, a footbridge', () => {
+  assert.deepEqual(crossingName([0, 0, 'ferry', 'เรือข้ามฟากราชวงศ์-ท่าดินแดง', 'Rachawongse-Tha Din Daeng Ferry', 899]), {th: 'เรือข้ามฟากราชวงศ์-ท่าดินแดง', en: 'Rachawongse-Tha Din Daeng Ferry', keep: false});
+  assert.deepEqual(crossingName([0, 0, 'bridge', 'สะพานพระปกเกล้า', '', 1400]), {th: 'สะพานพระปกเกล้า', en: '', keep: true});
+  const road = crossingName([0, 0, 'bridge', 'ถนนพระรามที่ 3', 'Rama III Road', 1092]);
+  assert.equal(road.th, 'สะพาน ถนนพระรามที่ 3');
+  assert.equal(road.en, 'the bridge of Rama III Road');
+  assert.deepEqual(crossingName([0, 0, 'foot', '', '', 1136]), {th: 'สะพานคนเดิน', en: 'a footbridge', keep: false});
+  assert.deepEqual(crossingName([0, 0, 'metro', 'รถไฟฟ้ามหานคร สายสีน้ำเงิน', '', 662]), {th: 'รถไฟฟ้ามหานคร สายสีน้ำเงิน', en: '', keep: true});
+});
+
+test('crossing: once a center’s record loads, the section reads under the rule — figures, ranks, the river line, the fold, hatched cells, boundary words; straight words without it', async () => {
+  reset();
+  await loadCrossingMeta({fetchImpl: localFetch});
+  for (const id of [CHINATOWN, ASIATIQUE]) {
+    await loadCrossing(id, {shards: xmeta.shards, fetchImpl: localFetch});
+    await loadLocaleFacts(id, {shards: meta.shards, fetchImpl: localFetch});
+    await loadResidents(id, {shards: rmeta.shards, fetchImpl: localFetch});
+    await loadVisitors(id, {shards: vmeta.shards, fetchImpl: localFetch});
+    await loadWork(id, {shards: wmeta.shards, fetchImpl: localFetch});
+  }
+  const x = crossingOf(CHINATOWN);
+  const facts = cachedLocaleFacts(CHINATOWN, meta.shards), res = cachedResidents(CHINATOWN, rmeta.shards);
+  const vis = cachedVisitors(CHINATOWN, vmeta.shards), work = cachedWork(CHINATOWN, wmeta.shards);
+  assert.equal(facts.rule, 'crossing');
+  assert.equal(cachedLocaleFacts(CHINATOWN, meta.shards), facts, 'the same object while nothing changes');
+  assert.deepEqual(facts.ring.restaurants.n, x.ring.restaurants.n);
+  assert.deepEqual(facts.ring.restaurants.straight.n, shard('facts', CHINATOWN).ring.restaurants.n);
+  assert.deepEqual(facts.ring.hotel.p, x.p.ring.hotel, 'every ring takes its rank under the rule');
+  assert.deepEqual([res.n, res.p, res.straight.n], [x.res.n, x.p.res, residents(CHINATOWN).n]);
+  assert.deepEqual([vis.n, work.n, work.w], [x.vis.n, x.work.n, x.work.w]);
+  const row = byId.get(CHINATOWN);
+  const args = {residentsMeta: rmeta, residents: res, residentsState: 'ready', visitorsMeta: vmeta, visitors: vis, visitorsState: 'ready', workMeta: wmeta, work, workState: 'ready'};
+  // the tiles read the figures under the rule
+  const tiles = glanceModel(meta, row, facts, args);
+  assert.deepEqual(tiles.map(t => t.count), [x.res.n[1], x.work.n[1], x.vis.n[1], facts.ring.shopping.n[1]]);
+  const html = glanceHTML(meta, row, facts, args);
+  const note = /<p class="glance-river">(.*?)<\/p>/.exec(html)?.[1] || '';
+  assert.match(note.replace(/<[^>]+>/g, ''), /^อีกฝั่งแม่น้ำเจ้าพระยา 30% ของคนใน 3 กม\. · ข้ามที่เรือข้ามฟากสวัสดี-วัดทองธรรมชาติ \(709 ม\.\)$/);
+  assert.match(note, /data-en="Across the Chao Phraya River:"/);
+  assert.match(note, /data-en="30% of the people within 3 km"/);
+  assert.match(html, /<details class="locale-details glance-cross" data-locale-open="cross">/);
+  assert.match(html, /ผ่านทางข้าม<\/span><\/th><th scope="col"><span data-en="Straight line">เส้นตรง/);
+  assert.match(html, /<p class="hint glance-source">.*รัศมีจากจุดของศูนย์ ข้ามแม่น้ำนับผ่านทางข้าม.*<\/p>/);
+  assert.doesNotMatch(glanceHTML(meta, row, facts, args, {where: 'head'}), /glance-river|glance-cross/, 'the venue head keeps its four tiles only');
+  assert.doesNotMatch(visible(html), CAVEAT, 'no caveat on screen');
+  // the whole section: heading, maps, data lines, method — every Thai text with its English, no caveat on screen
+  const decode = s => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const missing = new Set();
+  registerLocaleDictionary(meta);
+  for (const id of [CHINATOWN, ASIATIQUE]) for (const radius of RADII) {
+    reset(); setLocaleOption('radius', radius); setLocaleOption('open', {cross: true, res: true, restable: true, vis: true, vistable: true, work: true, worktable: true, cmp: true});
+    const r = byId.get(id), f = cachedLocaleFacts(id, meta.shards);
+    const a = {residentsMeta: rmeta, residents: cachedResidents(id, rmeta.shards), residentsState: 'ready', visitorsMeta: vmeta, visitors: cachedVisitors(id, vmeta.shards), visitorsState: 'ready', workMeta: wmeta, work: cachedWork(id, wmeta.shards), workState: 'ready'};
+    registerLocaleNames(f);
+    const section = renderLocale(r, {meta, facts: f, metaState: 'ready', factsState: 'ready', ...a, compare: read(`${CROSSING_PATH}/compare.json`), compareState: 'ready', venueOf, residentsMap: mapOf(id)});
+    assert.match(section, /<span class="hint"><span data-en="Across rivers via a crossing">ข้ามแม่น้ำนับผ่านทางข้าม<\/span><\/span>/);
+    assert.doesNotMatch(section, /รัศมีเส้นตรงจากจุดของศูนย์/, `${id} ${radius}: no straight-line boundary under the rule`);
+    assert.doesNotMatch(section, /undefined|NaN|\bnull\b/);
+    assert.doesNotMatch(visible(section).replace(/<span lang="th" translate="no">[^<]*<\/span>/g, ''), CAVEAT, `${id} ${radius}: no caveat on screen`);
+    const withEn = section.replace(/<(\w+)[^>]*\sdata-en="([^"]+)"[^>]*>([^<>]*)<\/\1>/g, (all, tag, en) => { assert.doesNotMatch(en, THAI, en); return ''; })
+      .replace(/<span lang="th" translate="no">[^<>]*<\/span>/g, '');
+    for (const m of withEn.matchAll(/>([^<>]+)</g)) {
+      const s = decode(m[1]).replace(/\s+/g, ' ').trim();
+      if (THAI.test(s) && translate(s) == null) missing.add(s);
+    }
+  }
+  assert.deepEqual([...missing].slice(0, 20), []);
+  // the maps: hatched cells and the crossings, with their key items
+  reset();
+  const ares = cachedResidents(ASIATIQUE, rmeta.shards);
+  const map = residentsMapHTML(byId.get(ASIATIQUE), ares, rmeta, 3000, residentsMapModel(ares, rmeta), mapOf(ASIATIQUE));
+  assert.match(map, /<pattern id="res-SC-C0039-x"[^>]*><path class="res-cross-line"/);
+  assert.match(map, /<path class="res-cross-out" d="(M-?\d+ -?\d+h1v1h-1z)+" fill="url\(#res-SC-C0039-x\)"\/>/);
+  assert.match(map, /<g class="res-crossings">(<path class="res-cross" d="[^"]+"\/>)+<\/g>/);
+  const key = residentsOverlayKey({lines: true, empty: ['ไม่มีอาคารที่นับ', 'No counted building'], outline: true, cross: ares.cross, radius: 3000});
+  assert.match(key, /อีกฝั่งแม่น้ำ เกินรัศมีนี้เมื่อนับผ่านทางข้าม/);
+  assert.match(key, /ทางข้ามแม่น้ำ/);
+  // the map as a table: cells across the river read their distance through the crossing
+  const straight = residentsSectors(residents(ASIATIQUE), rmeta), ruled = residentsSectors(ares, rmeta);
+  assert.ok(ruled.total < straight.total, 'cells beyond 5 km through the crossing leave the 5 km table');
+  // no river within 5 km: the figures and the words stay straight-line, only the ranks follow the rule
+  const far = set.find(r => r.located && !crossingOf(r.id).x);
+  await loadCrossing(far.id, {shards: xmeta.shards, fetchImpl: localFetch});
+  await loadLocaleFacts(far.id, {shards: meta.shards, fetchImpl: localFetch});
+  const ff = cachedLocaleFacts(far.id, meta.shards);
+  assert.deepEqual(ff.ring.restaurants.n, shard('facts', far.id).ring.restaurants.n);
+  assert.equal(crossingHTML(meta, far, ff, {}), null, 'no river line');
+  // a center whose crossing record has not loaded reads straight-line, and says so
+  const other = set.find(r => r.located && crossingShardPath(r.id, xmeta.shards) !== crossingShardPath(CHINATOWN, xmeta.shards) && crossingShardPath(r.id, xmeta.shards) !== crossingShardPath(ASIATIQUE, xmeta.shards) && crossingShardPath(r.id, xmeta.shards) !== crossingShardPath(far.id, xmeta.shards));
+  await loadLocaleFacts(other.id, {shards: meta.shards, fetchImpl: localFetch});
+  const of = cachedLocaleFacts(other.id, meta.shards);
+  assert.equal(of.rule, undefined);
+  assert.match(glanceHTML(meta, other, of, {}), /รัศมีเส้นตรงจากจุดของศูนย์/);
+  reset();
+});

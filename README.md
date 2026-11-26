@@ -171,6 +171,17 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
+## 0.12.0 - ข้ามแม่น้ำนับผ่านทางข้ามที่ใกล้ที่สุด (`20261126-r2`)
+
+เจ้าของ (VERBATIM) 26 พ.ย. 2569 14:12 พร้อมภาพหน้าจอแอม ไชน่าทาวน์: “รัศมี 1,3,5km ถ้ากรณีคร่อมไปคนละฝั่งแม่น้ำ หรือมี physical barrier ขวางแบบนี้เราควรนับคน/จุด/context ฝั่งตรงข้ามยังไงครับ ช่วยแนะนำหน่อยแล้วปรับให้ได้ค่าที่มีคุณภาพสูงขึ้น” · เลือก “อ้อมผ่านทางข้าม (Recommended)” และ “ดาวน์โหลดผ่าน Chrome (Recommended)” (D70)
+
+- **กติกา:** ฝั่งเดียวกับศูนย์วัดเส้นตรงเหมือนเดิม · คน อาคาร และสถานที่อีกฝั่งแม่น้ำนับเมื่อระยะ ศูนย์ → ทางข้ามที่ใกล้ที่สุด → จุด อยู่ในรัศมี 1 · 3 · 5 กม. · ใช้กับทุกตัวเลขของรอบศูนย์นี้ และคิดอันดับใหม่ทั้งชุดอ้างอิง 488 ศูนย์ · ไม่ใช่เวลาเดินทาง
+- **แม่น้ำและทางข้าม:** OpenStreetMap ไฟล์ประเทศไทยของ Geofabrik ข้อมูลถึง 24 พ.ย. 2569 (ไฟล์อยู่นอก repo) · แม่น้ำที่ชื่อขึ้นต้นด้วย “แม่น้ำ” · ทางข้าม 3,411 จุด: สะพานและถนนทุกระดับ สะพานคนเดิน รถไฟฟ้า และเรือข้ามฟาก
+- **ผล:** 261 จาก 519 ศูนย์มีพื้นที่อีกฝั่งแม่น้ำใน 5 กม. · คนที่มีชื่อในทะเบียนบ้านใน 3 กม. ลด 10% ขึ้นไปที่ 11 ศูนย์ (เทอร์มินอล 21 พระราม 3 −38.1% · เอเชียทีค −26.8%) · แอม ไชน่าทาวน์ −0.6% เพราะเรือข้ามฟากสองสายข้ามแม่น้ำห่างศูนย์ไม่ถึง 1 กม.
+- **หน้าเว็บ:** บรรทัดใต้สี่ช่องบอกสัดส่วนคนอีกฝั่งและทางข้ามหลัก · ส่วนที่พับไว้ “ข้ามแม่น้ำ: เทียบกับนับแบบเส้นตรง” · แผนที่ลายเส้นทแยงบนช่องอีกฝั่งที่เกินรัศมี และวาดทางข้าม
+- **ไฟล์:** `data/crossing/` สร้างด้วย `python3 -I scripts/build-crossing.py --bundle <dir>` จากชุดไฟล์ภายนอก `02-CityMETER__venue-locale-crossing-bundle__v1__2026-11-26` · ไฟล์เดิมของรอบศูนย์นี้ไม่เปลี่ยน · วิธีละเอียด [DATA_METHOD §32](DATA_METHOD.md#river-crossings)
+- **ยังไม่ได้ทำ:** เวลาเดินทางจริง · เวลาให้บริการของเรือ · คลอง ทางด่วน และทางรถไฟเป็นสิ่งกั้น · กลุ่มคน ช่วงเวลา และราคาแถวนี้ยังอ่านจากจำนวนแบบเส้นตรง
+
 ## 0.11.0 - ศูนย์และตลาดใหม่จากรอบวิจัย VR-2026-11-24 (`20261126-r1`)
 
 เจ้าของ (VERBATIM ส่งต่อโดยแชท “Shopping center venue research”) 25 พ.ย. 2569: 01:11 “ฝากดู shopping center แห่งใหม่ๆที่ ChatGPT เพิ่งเพิ่มเข้ามาใน google sheet ด้วย … นำไปอัพเดทเวบเดโมไปพร้อมกันเลย” · 21:57 “ลุยเลยครับ ให้ ChatGPT ช่วยด้วยได้เพราะจะได้ update google sheet ให้ตรงกับหน้า web demo และ Yolk MCP ด้วย”
