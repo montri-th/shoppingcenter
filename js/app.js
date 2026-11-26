@@ -74,7 +74,7 @@ import {formatDensity, rampLegendHTML} from './scales.js';
 import {cueSVG} from './cues.js';
 import {mirrorMapCredits} from './map-credits.js';
 import {lookLinks, lookTarget, lookBBox, streetViewView, createLookReader} from './look-around.js';
-import {renderLocale, renderLocalePriors, renderLocaleResidents, renderLocaleGlance, setLocaleShopList, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors, renderLocaleWork, loadWorkMeta, cachedWorkMeta, loadWork, cachedWork} from './venue-locale.js';
+import {renderLocale, renderLocalePriors, renderLocaleResidents, renderLocaleGlance, setLocaleShopList, mountLocaleChart, loadLocaleMeta, cachedLocaleMeta, loadLocaleFacts, cachedLocaleFacts, loadLocalePriors, cachedLocalePriors, cachedLocaleSignals, loadResidentsMeta, cachedResidentsMeta, loadResidents, cachedResidents, loadCompare, cachedCompare, setLocaleOption, localeOptions, inLocaleSet, km, loadResidentsMapMeta, cachedResidentsMapMeta, loadResidentsMap, cachedResidentsMap, renderLocaleVisitors, loadVisitorsMeta, cachedVisitorsMeta, loadVisitors, cachedVisitors, renderLocaleWork, loadWorkMeta, cachedWorkMeta, loadWork, cachedWork, loadCrossingMeta, loadCrossing} from './venue-locale.js';
 import {registerLocaleDictionary, registerLocaleNames, registerLocaleSignalNames} from './venue-locale-i18n.js';
 
 const $ = id => document.getElementById(id);
@@ -526,6 +526,20 @@ function openVenueDetail(id) {
 const localeShards = () => cachedLocaleMeta()?.shards || 64;
 const localeOpen = id => state.panel.mode === 'venue' && state.panel.id === id;
 
+/**
+ * The center's record of data/crossing (0.12.0, across a river through the nearest crossing): one promise per center that
+ * never rejects (a failure is said with PARTIAL and the figures stay straight-line); the facts, the residents and the two
+ * places files wait for it, so a figure never changes after it is drawn.
+ */
+function ensureCrossing(id) {
+  const L = state.locale;
+  if (L.crossId === id && L.crossP) return L.crossP;
+  L.crossId = id;
+  L.crossP = loadCrossingMeta().then(meta => loadCrossing(id, {shards: meta.shards}))
+    .catch(e => { console.warn('Venue locale crossing', e); partial('data/crossing'); if (L.crossId === id) L.crossP = null; return null; });
+  return L.crossP;
+}
+
 /** Load meta (once) and the facts shard of a venue of the centre set (inLocaleSet); re-draw the section when they arrive. */
 function ensureLocale(id) {
   const row = state.byId.get(id);
@@ -533,8 +547,9 @@ function ensureLocale(id) {
   const L = state.locale;
   if (L.factsId !== id) { L.factsId = id; L.factsState = 'idle'; }
   if (L.priorsId !== id) { L.priorsId = id; L.priorsState = cachedLocalePriors(id, localeShards()) && cachedLocaleSignals(id, localeShards()) ? 'ready' : 'idle'; }
+  const crossing = row.located ? ensureCrossing(id) : Promise.resolve(null);
   const cachedMeta = cachedLocaleMeta();
-  if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards)) {
+  if (cachedMeta && cachedLocaleFacts(id, cachedMeta.shards) && (!row.located || cachedLocaleFacts(id, cachedMeta.shards).rule === 'crossing' || L.crossP == null)) {
     L.metaState = 'ready'; L.factsState = 'ready';
     ensureLocalePriors(id);
     ensureLocaleResidents(id);
@@ -543,9 +558,8 @@ function ensureLocale(id) {
   if (L.metaState !== 'ready') L.metaState = 'loading';
   loadLocaleMeta().then(meta => {
     L.metaState = 'ready';
-    if (cachedLocaleFacts(id, meta.shards)) { L.factsState = 'ready'; return null; }
     L.factsState = 'loading';
-    return loadLocaleFacts(id, {shards: meta.shards}).then(f => { if (L.factsId === id) L.factsState = f ? 'ready' : 'empty'; });
+    return Promise.all([loadLocaleFacts(id, {shards: meta.shards}), crossing]).then(([f]) => { if (L.factsId === id) L.factsState = f ? 'ready' : 'empty'; });
   }).catch(e => {
     console.warn('Venue locale', e);
     partial('data/locale');
@@ -567,10 +581,11 @@ function ensureLocaleResidents(id, {focus = ''} = {}) {
   ensureLocaleVisitors(id);
   ensureLocaleWork(id);
   const rmeta = cachedResidentsMeta();
-  if (rmeta && cachedResidents(id, rmeta.shards)) { L.resState = 'ready'; return; }
+  const ruled = rec => rec && (rec.rule === 'crossing' || !L.crossP); // drawn once, under the rule when it loads
+  if (rmeta && ruled(cachedResidents(id, rmeta.shards))) { L.resState = 'ready'; return; }
   if (L.resState === 'loading' || L.resState === 'ready' || L.resState === 'empty') return;
   L.resState = 'loading';
-  loadResidentsMeta().then(meta => loadResidents(id, {shards: meta.shards})).then(rec => { if (L.resId === id) L.resState = rec ? 'ready' : 'empty'; })
+  loadResidentsMeta().then(meta => Promise.all([loadResidents(id, {shards: meta.shards}), ensureCrossing(id)])).then(([rec]) => { if (L.resId === id) L.resState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale residents', e); partial('data/residents'); if (L.resId === id) L.resState = 'error'; })
     .finally(() => { if (localeOpen(id)) { refreshLocaleResidents({focus}); refreshLocaleVisitors(); refreshLocaleWork(); } });
 }
@@ -584,10 +599,10 @@ function ensureLocaleVisitors(id, {focus = ''} = {}) {
   const L = state.locale;
   if (L.visId !== id) { L.visId = id; L.visState = 'idle'; }
   const vm = cachedVisitorsMeta();
-  if (vm && cachedVisitors(id, vm.shards)) { L.visState = 'ready'; return; }
+  if (vm && (r => r && (r.rule === 'crossing' || !L.crossP))(cachedVisitors(id, vm.shards))) { L.visState = 'ready'; return; }
   if (L.visState !== 'idle') return; // after an error, only the retry button asks again
   L.visState = 'loading';
-  loadVisitorsMeta().then(meta => loadVisitors(id, {shards: meta.shards})).then(rec => { if (L.visId === id) L.visState = rec ? 'ready' : 'empty'; })
+  loadVisitorsMeta().then(meta => Promise.all([loadVisitors(id, {shards: meta.shards}), ensureCrossing(id)])).then(([rec]) => { if (L.visId === id) L.visState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale visitors', e); partial('data/visitors-map'); if (L.visId === id) L.visState = 'error'; })
     .finally(() => { if (localeOpen(id)) refreshLocaleVisitors({focus}); });
 }
@@ -646,10 +661,10 @@ function ensureLocaleWork(id, {focus = ''} = {}) {
   const L = state.locale;
   if (L.workId !== id) { L.workId = id; L.workState = 'idle'; }
   const wm = cachedWorkMeta();
-  if (wm && cachedWork(id, wm.shards)) { L.workState = 'ready'; return; }
+  if (wm && (r => r && (r.rule === 'crossing' || !L.crossP))(cachedWork(id, wm.shards))) { L.workState = 'ready'; return; }
   if (L.workState !== 'idle') return; // after an error, only the retry button asks again
   L.workState = 'loading';
-  loadWorkMeta().then(meta => loadWork(id, {shards: meta.shards})).then(rec => { if (L.workId === id) L.workState = rec ? 'ready' : 'empty'; })
+  loadWorkMeta().then(meta => Promise.all([loadWork(id, {shards: meta.shards}), ensureCrossing(id)])).then(([rec]) => { if (L.workId === id) L.workState = rec ? 'ready' : 'empty'; })
     .catch(e => { console.warn('Venue locale work and study', e); partial('data/work-study-map'); if (L.workId === id) L.workState = 'error'; })
     .finally(() => { if (localeOpen(id)) refreshLocaleWork({focus}); });
 }
@@ -2014,6 +2029,7 @@ const PARTIAL = {
   'data/residents-map': ['ถนนและสถานีบนแผนที่คนรอบศูนย์', 'แผนที่คนรอบศูนย์แสดงเฉพาะช่องสี ไม่มีถนน ราง แม่น้ำ และชื่อสถานี', 'Roads and stations on the residents map', 'The residents map shows its coloured cells only, without roads, rail, rivers or station names'],
   'data/visitors-map': ['สถานที่ที่ผู้มาเยือนใช้รอบศูนย์', 'รอบศูนย์นี้ไม่มีแผนที่ จำนวน และอันดับของสถานที่ที่ผู้มาเยือนใช้', 'Places visitors use around the center', 'The section has no map, count or rank of the places visitors use'],
   'data/work-study-map': ['สถานที่ที่คนมาทำงานและเรียนรอบศูนย์', 'รอบศูนย์นี้ไม่มีแผนที่ จำนวน และอันดับของสถานที่ทำงานและสถานศึกษา', 'Places people come to work and study around the center', 'The section has no map, count or rank of the places of work and study'],
+  'data/crossing': ['ระยะข้ามแม่น้ำผ่านทางข้าม', 'ตัวเลขรอบศูนย์นับแบบเส้นตรง ฝั่งตรงข้ามแม่น้ำนับรวมโดยไม่อ้อมไปที่สะพานหรือเรือข้ามฟาก', 'Distances across rivers through a crossing', 'The figures around the center are counted in a straight line: the far bank of a river counts without going round to a bridge or ferry'],
 };
 function partial(key) {
   const words = PARTIAL[key];
