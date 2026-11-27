@@ -26,9 +26,10 @@ Inputs (both outside this repository):
 Published per center (shardOf(id, SHARDS), FNV-1a as js/details.js; one record per located center of the set):
   n     residents within 1 · 3 · 5 km (3 decimals, as ring and own: every figure the page rounds reads as from the
         bundle's own value, which the build checks)
-  p     mid-rank percentile among the 488 located centers of bundle v1 [all], and among those of the same type [type],
-        per radius: the rank reference is fixed (owner 2026-11-20 11:57, “อันดับแบบแนะนำ”), so a center placed later is
-        ranked against the 488 and moves no one else's rank
+  p     mid-rank percentile among the reference [all], and among those of the same type [type], per radius: the 488
+        located centers of bundle v1 less those the registry no longer counts (477 since 0.13.0). The reference is
+        fixed otherwise (owner 2026-11-20 11:57, “อันดับแบบแนะนำ”): a center placed later is ranked against it and
+        moves no one else's rank
   age   shares 0–14 · 15–59 · 60+ per radius (the subdistricts' age structure weighted by the residents inside)
   b     buildings counted per radius · sd subdistricts with a counted building per radius
   ring  [residents, residents per km²] of the rings 0–1 · 1–3 · 3–5 km
@@ -58,7 +59,12 @@ RINGS = ('0-1000', '1000-3000', '3000-5000')
 GROUPS = ('mall', 'community', 'outlet')
 CELL_M, HALF = 250, 20  # cells -20..19 on both axes: 40 × 40 around the center
 OUTLINE_UNIT_M, SNAP_M, SIMPLIFY_M = 25, 40, 60
-RELEASE = 'venue-locale-residents-519-20261125-v3'
+RELEASE = 'venue-locale-residents-505-20261127-v4'
+# 0.13.0 (owner 2026-11-27 about 09:00, “ตัดแถวซ้ำ เหลือ 477 (Recommended)”): the registry of 27 Nov no longer counts 14 centres
+# of the bundle (13 held as possible duplicates, one review closed unconfirmed). They are left out; the 11 of them in the
+# bundle's reference leave it, so ranks are recounted among the 477 left (the bundle's stored ranks, against its own 488,
+# are still checked first). Every other value is the bundle's own.
+REFERENCE_LEFT_ON = '2026-11-26'
 BUNDLE = '02-CityMETER__venue-locale-residents-519-venues-bundle__v3__2026-11-25'
 RESULTS = 'results/residents_519.json'
 
@@ -199,36 +205,57 @@ def main():
     T = json.loads(args.outlines.read_text(encoding='utf-8'))
 
     located = located_set()
-    venues = R['venues']
-    if set(venues) != set(located):
-        fail(f'bundle centers {len(venues)} vs located centers of the set {len(located)}: '
-             f'only in bundle {sorted(set(venues) - set(located))[:5]}, only in the set {sorted(set(located) - set(venues))[:5]}')
-    if set(V) != set(venues) or set(G['venues']) != set(venues):
+    bundled = R['venues']
+    if set(V) != set(bundled) or set(G['venues']) != set(bundled):
         fail('venues.json, grids and results list different centers')
+    if set(located) - set(bundled):
+        fail(f'located centers of the set without a record in the bundle: {sorted(set(located) - set(bundled))[:5]}')
+    # centres of the bundle the registry no longer counts: held (a count hold) or gone from the core (review closed)
+    rows = {r['id']: r for r in json.loads((ROOT / 'data' / 'venues.json').read_text(encoding='utf-8'))['rows']}
+    left = []
+    for vid in sorted(set(bundled) - set(located)):
+        r = rows.get(vid)
+        if r is not None and (r.get('countable') or not r.get('countHold')):
+            fail(f'{vid}: in the bundle, not in the located set, and the registry neither holds nor drops it')
+        left.append({'id': vid, 'reason': f"count hold: {r['countHold']}" if r is not None else 'not qualified: review closed unconfirmed'})
     for vid, row in located.items():
         if V[vid]['group'] != row['group']:
             fail(f'{vid}: type {V[vid]["group"]} in the bundle, {row["group"]} in data/venues.json')
         if abs(V[vid]['lon'] - row['lon']) > 1e-6 or abs(V[vid]['lat'] - row['lat']) > 1e-6:
             fail(f'{vid}: the point moved since the bundle ({V[vid]["lon"]},{V[vid]["lat"]} → {row["lon"]},{row["lat"]})')
-    added = sorted(R['meta']['added']['venues'])
-    reference = sorted(set(venues) - set(added))
-    if len(reference) != 488 or set(added) - set(venues):
-        fail(f'rank reference of {len(reference)} centers, added {added}')
-    counts = {'all': len(reference), **{g: sum(1 for i in reference if located[i]['group'] == g) for g in GROUPS}}
-    if R['meta']['universes'] != counts:
-        fail(f'universes {R["meta"]["universes"]} vs recount of the reference {counts}')
+    bundle_added = sorted(R['meta']['added']['venues'])
+    bundle_reference = sorted(set(bundled) - set(bundle_added))
+    if len(bundle_reference) != 488 or set(bundle_added) - set(bundled):
+        fail(f'bundle rank reference of {len(bundle_reference)} centers, added {bundle_added}')
+    group_of = {vid: V[vid]['group'] for vid in bundled}
+    bundle_counts = {'all': len(bundle_reference), **{g: sum(1 for i in bundle_reference if group_of[i] == g) for g in GROUPS}}
+    if R['meta']['universes'] != bundle_counts:
+        fail(f'universes {R["meta"]["universes"]} vs recount of the bundle reference {bundle_counts}')
     if G.get('cell_m') != CELL_M:
         fail(f'grid cell {G.get("cell_m")} m, expected {CELL_M}')
+    # the bundle's own percentiles, against its own reference: the input is what it says it is
+    for r in RADII:
+        allv = [bundled[i]['radii'][r]['residents'] for i in bundle_reference]
+        by_type = {g: [bundled[i]['radii'][r]['residents'] for i in bundle_reference if group_of[i] == g] for g in GROUPS}
+        for vid, rec in bundled.items():
+            x = rec['radii'][r]['residents']
+            for key, pool in (('pct_all', allv), ('pct_type', by_type[group_of[vid]])):
+                if abs(rec['radii'][r][key] - mid_pct(x, pool)) > 1e-9:
+                    fail(f'{vid} {r} {key}: stored {rec["radii"][r][key]} vs recount {mid_pct(x, pool)}')
 
-    # percentiles recounted from the residents themselves (all, and the same type), against the fixed reference
+    venues = {vid: rec for vid, rec in bundled.items() if vid in located}
+    added = [vid for vid in bundle_added if vid in located]
+    reference = sorted(set(venues) - set(added))
+    removed = sorted(set(bundle_reference) - set(reference))
+    counts = {'all': len(reference), **{g: sum(1 for i in reference if located[i]['group'] == g) for g in GROUPS}}
+    # percentiles recounted from the residents themselves (all, and the same type), against the reference of the set
+    pcts = {}
     for r in RADII:
         allv = [venues[i]['radii'][r]['residents'] for i in reference]
         by_type = {g: [venues[i]['radii'][r]['residents'] for i in reference if located[i]['group'] == g] for g in GROUPS}
         for vid, rec in venues.items():
             x = rec['radii'][r]['residents']
-            for key, pool in (('pct_all', allv), ('pct_type', by_type[located[vid]['group']])):
-                if abs(rec['radii'][r][key] - mid_pct(x, pool)) > 1e-9:
-                    fail(f'{vid} {r} {key}: stored {rec["radii"][r][key]} vs recount {mid_pct(x, pool)}')
+            pcts[(vid, r)] = (mid_pct(x, allv), mid_pct(x, by_type[located[vid]['group']]))
 
     by_venue = {}
     for sid, s in T.items():
@@ -271,7 +298,7 @@ def main():
             fail(f'{vid}: outlines for {len(by_venue.get(vid, []))} subdistricts, {rec["touched_subdistricts"]} touched, {len(missing)} without geometry')
         out = {
             'n': [round(x['residents'], 3) for x in radii],
-            'p': [[round(x['pct_all'], 4) for x in radii], [round(x['pct_type'], 4) for x in radii]],
+            'p': [[round(pcts[(vid, r)][0], 4) for r in RADII], [round(pcts[(vid, r)][1], 4) for r in RADII]],
             'age': [[round(x['age_share'][k], 6) for k in ('0_14', '15_59', '60p')] for x in radii],
             'b': [x['buildings'] for x in radii],
             'sd': [x['subdistricts'] for x in radii],
@@ -288,7 +315,7 @@ def main():
             + ([about(own)] if own is not None else []))
         true = {'n': [x['residents'] for x in radii], 'ring': [[k['residents'], k['per_km2']] for k in rings],
                 'age': [[x['age_share'][k] for k in ('0_14', '15_59', '60p')] for x in radii],
-                'p': [[x['pct_all'] for x in radii], [x['pct_type'] for x in radii]]}
+                'p': [[pcts[(vid, r)][0] for r in RADII], [pcts[(vid, r)][1] for r in RADII]]}
         if shown(out, out['n'][2], out.get('own', [0, None])[1]) != shown(true, true['n'][2], rec['own_building_residents'] if rec['own_buildings'] else None):
             fail(f'{vid}: a figure reads differently once stored (raise the precision)')
         shards.setdefault(shard_of(vid), {})[vid] = out
@@ -303,7 +330,7 @@ def main():
     meta = {
         'schema': 'shoppingcenter-residents/1',
         'release': RELEASE,
-        'asOf': '2026-11-25',
+        'asOf': '2026-11-27',
         # the day the 488 centres of bundle v1 were read from production; a centre placed later was read on the day
         # reference.addedOn names for it (js/venue-locale.js residentsReadOn)
         'readOn': '2026-11-20',
@@ -313,7 +340,9 @@ def main():
         'venues': len(venues),
         'universes': counts,
         'reference': {'n': len(reference), 'bundle': '02-CityMETER__venue-locale-residents-488-venues-bundle__v1__2026-11-20',
-                      'added': added, 'addedOn': R['meta']['added']['placedOn']},
+                      'added': added, 'addedOn': {d: ids for d, ids in ((d, [i for i in ids if i in venues]) for d, ids in R['meta']['added']['placedOn'].items()) if ids},
+                      'removed': removed, 'removedOn': REFERENCE_LEFT_ON},
+        'leftOut': left,
         'radii': [int(r) for r in RADII],
         'rings': [[int(a) for a in k.split('-')] for k in RINGS],
         'cell': {'m': CELL_M, 'n': 2 * HALF, 'first': [-HALF, HALF - 1],

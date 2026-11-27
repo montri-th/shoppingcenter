@@ -2,11 +2,11 @@
  "meta": {
   "schemaVersion": "1",
   "kit": "citymeter-logos 1.1.0",
-  "checkedOn": "2026-11-26",
+  "checkedOn": "2026-11-27",
   "rule": "A venue the research registry (data/venue-logos.json) leaves without a logo takes the logo another CityMETER demo links to the same venue id (a Camera Shops or Luxury Brands centre externalId, a Fitness venue scId): one artwork with one role, else none; never by name or distance",
   "rights": "โลโก้ใช้ระบุชื่อศูนย์บนจอ ไม่เปลี่ยนการนับร้านหรือข้อมูลศูนย์ การรวบรวมไฟล์ไม่ใช่ใบอนุญาตเครื่องหมายการค้า สิทธิ์ยังเป็นของเจ้าของ",
   "inputs": {
-   "venuesSha256": "300f172e24088cdc8d6db5dda5e094ec31c2e542c1847682509d7842769de695",
+   "venuesSha256": "ea22d6d7cc58e71592afc6656e3fa581365dc5532cf14d50fd889d87cfca2f7a",
    "registrySha256": "a05b7637874d5f2bfd915abd9162712ae53a193c3befb0cec7f12ab450f064df"
   },
   "pool": {
@@ -15,7 +15,7 @@
    "venues": 163,
    "sources": {
     "shoppingcenter": {
-     "commit": "4eb07f0f6e6a12a41a165ffbffa04c7a5ccf9184",
+     "commit": "f35ff09ae84e992ffe5dea85fe142ef5b77d864e",
      "files": 113,
      "links": 118,
      "issues": 0
@@ -53,7 +53,7 @@
    }
   },
   "counts": {
-   "venues": 6694,
+   "venues": 6693,
    "withOwnLogo": 113,
    "added": 45,
    "byDemo": {
@@ -66,7 +66,7 @@
    },
    "ambiguous": 0,
    "roleConflict": 0,
-   "none": 6536
+   "none": 6535
   },
   "filesRemoved": []
  },

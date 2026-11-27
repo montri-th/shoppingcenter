@@ -15,7 +15,8 @@ road bridges and tunnels of every class, footbridges, metro lines and cross-rive
 says how each is chosen). Not walking or driving time: a distance that goes round the river, nothing more.
 
 Inputs (outside this repository):
-  --bundle  02-CityMETER__venue-locale-crossing-bundle__v1__2026-11-26 (checked against its SHA256SUMS):
+  --bundle  02-CityMETER__venue-locale-crossing-bundle__v2__2026-11-27 (checked against its SHA256SUMS; v2 = v1 with the
+            shopping point set of release 0.2.5 recounted and the 7 river centres the registry no longer counts left out):
             results/places_via.json     per center a river comes within 5 km of: every ring of the locale release
                                         (n, sub, m, near) counted straight (must equal data/locale) and through the
                                         crossings; the places of the two maps (sums of their datasets); the modelled
@@ -38,7 +39,7 @@ Published:
   NNN.json    per located center (shardOf(id, 128), FNV-1a as js/details.js):
     p      the ranks under the rule — res, vis, work: mid-rank percentiles (4 decimals) [all, type] × 1 · 3 · 5 km;
            ring: {dataset: [[all], [type]]} whole percentiles as data/locale. Every center has them: when a river center
-           loses residents or places, the others' ranks among the 488 move a little.
+           loses residents or places, the others' ranks among the reference (477 since 0.13.0) move a little.
     res    {n, ring, age, b, sd} under the rule (as data/residents), only where a figure differs from the straight one
     vis    {n} · work {n, w} (as the maps' files), only where they differ
     ring   {dataset: {n, sub, m, near}} (as data/locale facts), only the datasets that differ
@@ -72,8 +73,8 @@ SHARDS = 128
 RADII = (1000, 3000, 5000)
 RINGS = ((0, 1000), (1000, 3000), (3000, 5000))
 GROUPS = ('mall', 'community', 'outlet')
-RELEASE = 'venue-locale-crossing-519-20261126-v1'
-BUNDLE = '02-CityMETER__venue-locale-crossing-bundle__v1__2026-11-26'
+RELEASE = 'venue-locale-crossing-505-20261127-v2'
+BUNDLE = '02-CityMETER__venue-locale-crossing-bundle__v2__2026-11-27'
 OWNER = ('2026-11-26 14:12 (VERBATIM): “รัศมี 1,3,5km ถ้ากรณีคร่อมไปคนละฝั่งแม่น้ำ หรือมี physical barrier ขวางแบบนี้เราควรนับคน/จุด/context '
          'ฝั่งตรงข้ามยังไงครับ ช่วยแนะนำหน่อยแล้วปรับให้ได้ค่าที่มีคุณภาพสูงขึ้น”; answers: “อ้อมผ่านทางข้าม (Recommended)” · '
          '“ดาวน์โหลดผ่าน Chrome (Recommended)”')

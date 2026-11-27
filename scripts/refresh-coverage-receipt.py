@@ -34,6 +34,13 @@ venues whose non-accounting fields changed (NON_ACCOUNTING_FIELDS: the operation
 since release 0.11.0 the venue's own logo key from 10_VENUE_LOGOS; neither counts a source record, host link or published
 item). The registry's row count before and after is written beside them
 (rows the core leaves out as not qualified are in that count too). Anything else stops, as before.
+
+  python3 -I scripts/refresh-coverage-receipt.py --previous <core> --hierarchy ID,… --removed ID,… --decision "<owner decision>"
+
+--removed names venues that left the core because the registry no longer qualifies them (release 0.13.0, 27 Nov 2026:
+the review of VN-1c297c786a5e91 closed unconfirmed, so it reads as quiet context and never enters a number). A removed
+venue must have no item in the roster (the shards must still hash to publicRosterSha256); it is listed under
+ownerRefresh.removed with its name and group, and the next private audit reads the core without it.
 """
 import argparse
 import hashlib
@@ -45,8 +52,13 @@ ROOT = Path(__file__).resolve().parent.parent
 POINT_FIELDS = frozenset({'lat', 'lon', 'located', 'provinceCode', 'districtCode'})
 HIERARCHY_FIELDS = frozenset({'parentId', 'children', 'countRole', 'countable', 'countHold', 'countBasis', 'group', 'groupBasis'})
 # fields of the venue core that no part of the coverage accounting reads (source records, host links, published items):
-# the operation group (0.9.1) and the venue's own logo key, a link to 10_VENUE_LOGOS (0.11.0)
-NON_ACCOUNTING_FIELDS = frozenset({'operationGroup', 'logoKey'})
+# the operation group (0.9.1), the venue's own logo key, a link to 10_VENUE_LOGOS (0.11.0), and the alternate names
+# 09_RELATIONSHIPS records for search (former_or_alternate_name, 0.13.0)
+NON_ACCOUNTING_FIELDS = frozenset({'operationGroup', 'logoKey', 'aliases'})
+# A count hold the registry writes into the qualification status (definition_supported_named_property_duplicate_count_held,
+# 0.13.0) also moves the tier the row reads and drops an owner rule: for a --hierarchy venue that is no longer countable
+# these two may change with the hierarchy fields (the row still enters no number).
+HOLD_FIELDS = frozenset({'tier', 'ownerRule'})
 
 
 def sha256_bytes(raw):
@@ -62,11 +74,13 @@ def main():
     ap.add_argument('--decision', default='', help='the owner decision behind --hierarchy, --added or --changed (required with them)')
     ap.add_argument('--added', default='', help='comma-separated venue ids new to the core: registry rows added after the audit (owner decision)')
     ap.add_argument('--changed', default='', help='comma-separated venue ids whose non-accounting fields changed (owner decision)')
+    ap.add_argument('--removed', default='', help='comma-separated venue ids that left the core: rows the registry no longer qualifies, '
+                                                  'none with a roster item (owner decision)')
     a = ap.parse_args()
     split = lambda text: {v.strip() for v in text.split(',') if v.strip()}
-    named, added_ids, changed_ids = split(a.hierarchy), split(a.added), split(a.changed)
-    if (named or added_ids or changed_ids) and not a.decision.strip():
-        raise SystemExit('--hierarchy, --added and --changed need --decision: the owner decision that changed these venues')
+    named, added_ids, changed_ids, removed_ids = split(a.hierarchy), split(a.added), split(a.changed), split(a.removed)
+    if (named or added_ids or changed_ids or removed_ids) and not a.decision.strip():
+        raise SystemExit('--hierarchy, --added, --changed and --removed need --decision: the owner decision that changed these venues')
     data = Path(a.data)
     receipt_path = data / 'tenant-coverage-audit.json'
     receipt = json.loads(receipt_path.read_text())
@@ -76,19 +90,23 @@ def main():
     if previous_sha != receipt['venueCoreSha256']:
         raise SystemExit(f'--previous is not the core the coverage receipt names ({previous_sha[:12]} != {receipt["venueCoreSha256"][:12]})')
 
-    digest = hashlib.sha256()
+    digest, rostered = hashlib.sha256(), set()
     for n in range(receipt['publicRosterShardCount']):
-        digest.update((data / 'tenants' / f'{n:02d}.json').read_bytes())
+        raw = (data / 'tenants' / f'{n:02d}.json').read_bytes()
+        digest.update(raw)
+        rostered |= {vid for vid, roster in json.loads(raw)['venues'].items() if roster.get('items')}
     if digest.hexdigest() != receipt['publicRosterSha256']:
         raise SystemExit('the roster shards changed since the audit: rerun scripts/audit-tenant-coverage.py with the private native snapshot')
 
     core_raw = (data / 'venues.json').read_bytes()
     old = {r['id']: r for r in json.loads(previous_raw)['rows']}
     new = {r['id']: r for r in json.loads(core_raw)['rows']}
-    if set(old) - set(new) or set(new) - set(old) != added_ids:
-        raise SystemExit(f'venue ids changed (+{sorted(set(new) - set(old))[:5]} -{sorted(set(old) - set(new))[:5]}) and --added names '
-                         f'{sorted(added_ids)}: only venues new to the core, all of them named in --added, may be added; '
-                         'otherwise rerun the private audit')
+    if set(old) - set(new) != removed_ids or set(new) - set(old) != added_ids:
+        raise SystemExit(f'venue ids changed (+{sorted(set(new) - set(old))[:5]} -{sorted(set(old) - set(new))[:5]}), --added names '
+                         f'{sorted(added_ids)} and --removed {sorted(removed_ids)}: only venues new to the core, all of them named in '
+                         '--added, may be added, and only venues named in --removed may leave; otherwise rerun the private audit')
+    if removed_ids & rostered:
+        raise SystemExit(f'venues with roster items left the core: {sorted(removed_ids & rostered)} — rerun the private audit')
     unknown = sorted((named | changed_ids) - set(old))
     if unknown:
         raise SystemExit(f'--hierarchy or --changed names venues that are not in the previous core: {unknown}')
@@ -100,11 +118,12 @@ def main():
         diff = {f for f in set(old[vid]) | set(new[vid]) if old[vid].get(f) != new[vid].get(f)}
         fields |= diff
         allowed = (POINT_FIELDS | (HIERARCHY_FIELDS if vid in named else frozenset())
+                   | (HOLD_FIELDS if vid in named and not new[vid].get('countable') else frozenset())
                    | (NON_ACCOUNTING_FIELDS if vid in changed_ids else frozenset()))
         if diff - allowed:
             problems.append(f'{vid}: {sorted(diff - allowed)}')
         if diff & HIERARCHY_FIELDS:
-            hierarchy[vid] = sorted(diff & HIERARCHY_FIELDS)
+            hierarchy[vid] = sorted(diff & (HIERARCHY_FIELDS | HOLD_FIELDS))
         if vid in changed_ids and diff & NON_ACCOUNTING_FIELDS:
             owner_changed[vid] = sorted(diff & NON_ACCOUNTING_FIELDS)
     if problems:
@@ -128,6 +147,7 @@ def main():
         'coreSha256': new_sha,
         'rowsChanged': changed,
         **({'rowsAdded': len(added_ids)} if added_ids else {}),
+        **({'rowsRemoved': len(removed_ids)} if removed_ids else {}),
         'fieldsChanged': sorted(fields),
         'rosterUnchanged': True,
         **({'hierarchyChange': {
@@ -144,10 +164,13 @@ def main():
                        'status': new[vid].get('status'), 'storeCount': new[vid].get('storeCount')} for vid in sorted(added_ids)],
             'changed': [{'venueId': vid, 'fieldsChanged': owner_changed[vid], **{f: new[vid].get(f) for f in owner_changed[vid]}}
                         for vid in sorted(owner_changed)],
+            **({'removed': [{'venueId': vid, 'name': old[vid].get('name'), 'group': old[vid].get('group'), 'countable': old[vid].get('countable')}
+                            for vid in sorted(removed_ids)]} if removed_ids else {}),
             'registryRows': {'previous': (old_meta.get('counts') or {}).get('registry'), 'now': (new_meta.get('counts') or {}).get('registry')},
-            'note': 'rows the registry gained after the audit asOf and fields no part of the accounting reads; the coverage '
-                    'counts above are still the audit\'s own (asOf), and the next private audit reads these rows'}}
-           if (added_ids or owner_changed) else {}),
+            'note': 'rows the registry gained after the audit asOf' + (', rows it no longer qualifies' if removed_ids else '') +
+                    ' and fields no part of the accounting reads; the coverage counts above are still the audit\'s own (asOf), '
+                    'and the next private audit reads these rows'}}
+           if (added_ids or owner_changed or removed_ids) else {}),
         'history': earlier.get('history', []) + ([{k: earlier[k] for k in ('on', 'previousCoreSha256', 'coreSha256', 'rowsChanged') if k in earlier}]
                                                  if earlier else []),
     }

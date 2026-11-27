@@ -47,12 +47,16 @@ print(f"\nsnapshot {m['asOf']}: registry {c['registry']:,} · qualified {c['qual
 print(f"owner rules (qualified): {c.get('ownerRules', {})}")
 a = m['checks']['aha']
 print(f"first finding: {a['province']} {a['districts']} {a['count']}/{a['total']}")
+named = r.get('districtFromRegistryNames', [])
+print(f"district from registry names (pin inside no district): {sum('refused' not in x for x in named)} placed, "
+      f"{sum('refused' in x for x in named)} refused")
 fallback = [v for v in r['qualificationVocabulary'] if v['rule'] == 'fallback']
 roles = [v for v in r.get('countRoleVocabulary', []) if v['kind'] == 'fallback']
 keyword = [t for t in r['keywordMappedTypes'] if t['qualified']]
 for title, items in (('status values read by the fallback rule', fallback),
                      ('count roles of qualified rows not classified (not counted)', roles),
-                     ('qualified venue types placed by keyword', keyword)):
+                     ('qualified venue types placed by keyword', keyword),
+                     ('pins inside no district whose registry names gave no district', [x for x in named if 'refused' in x])):
     if items:
         print(f"REVIEW {title}:")
         for i in items:

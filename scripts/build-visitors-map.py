@@ -130,14 +130,14 @@ def office_version(path):
 MAPS = {
     'visitors': {
         'out': 'visitors-map', 'uses': ('visit', 'retail'), 'skip': (),
-        'release': 'venue-locale-visitors-519-20261126-v2', 'schema': 'shoppingcenter-visitors-map/1',
+        'release': 'venue-locale-visitors-505-20261127-v3', 'schema': 'shoppingcenter-visitors-map/1',
         'owner': '2026-11-20, answer to the data question: infer/imply จากจุดกิจกรรมต่างๆได้มั้ย เช่น POI จาก datasets ต่างๆที่เชื่อมโยงกับ registry sheet สามารถในหน่วยอะไรก็ได้ที่สามารถบอกเชิงปริมาณได้',
         'what': 'places visitors use (stays, retail and services) per 250 m cell within 5 km of each located center: listed places, not people or visits',
         'dataMethod': 'DATA_METHOD.md#visitor-places',
     },
     'workstudy': {
         'out': 'work-study-map', 'uses': ('work', 'live'), 'skip': ('transit',),
-        'release': 'venue-locale-work-study-519-20261126-v3', 'schema': 'shoppingcenter-work-study-map/1', 'officeWorkers': True,
+        'release': 'venue-locale-work-study-505-20261127-v4', 'schema': 'shoppingcenter-work-study-map/1', 'officeWorkers': True,
         'owner': '2026-11-20 20:33: นอกจากสถานที่พัก ก็ยังมีสถานศึกษา ที่ทำงาน โรงงาน ร้านค้า ร้านอาหาร กิจกรรมต่างๆที่คนต้องเดินทางออกจากบ้านมาใช้บริการด้วย จากจุดที่เรามีมากพอสมควร น่าจะใช้ infer/imply ได้ดีพอสมควรมั้ย; answers: แยกเป็นแผนที่ที่สอง · นับแห่ง + บอกจำนวนคนประกอบ',
         'what': 'places people come to work and study (offices, government offices, factories, industrial estates, universities, health facilities, schools) per 250 m cell within 5 km of each located center: listed places, not people or trips; rail stations are drawn on the map, not counted',
         'dataMethod': 'DATA_METHOD.md#work-study-places',

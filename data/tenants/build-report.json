@@ -2859,7 +2859,7 @@
     "Venue core rows and aggregate store counts are not rewritten by this build."
   ],
   "inputSha256": "8d3b37a7fc696b645483e16b27969402704a4c6fd390fce96e04b998af937ba7",
-  "venueCoreSha256": "300f172e24088cdc8d6db5dda5e094ec31c2e542c1847682509d7842769de695",
+  "venueCoreSha256": "ea22d6d7cc58e71592afc6656e3fa581365dc5532cf14d50fd889d87cfca2f7a",
   "logoManifestSha256": "e10f5e1f28e7d9ddfa4883942296e97e77b899ede47568b2d073d4dfb5583785",
   "linkedDatasets": {
     "research.TH.fitness": {
@@ -3276,16 +3276,16 @@
     }
   },
   "venueCoreRefresh": {
-    "on": "2026-11-25",
+    "on": "2026-11-27",
     "by": "scripts/refresh-tenant-receipt.py",
-    "reason": "full refresh of the venue core from a new export of the Research Master; the roster is unchanged",
+    "reason": "full export of the Research Master of 27 Nov 2026: 13 rows held as possible duplicates, one review closed unconfirmed (it leaves the core), four points outside every district placed by their registry names; the roster is unchanged",
     "coreAsOf": "2026-11-25",
-    "export01VenuesSha256": "15fd2c71ee37ad2fee5910043335924b04e818ee21c3163b96ca818be93faf10",
-    "previousCoreSha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9",
+    "export01VenuesSha256": "63ce321d96b7df6dec83548eb035a2a94458ef248dc61c3eaa3095a6da4c0fce",
+    "previousCoreSha256": "300f172e24088cdc8d6db5dda5e094ec31c2e542c1847682509d7842769de695",
     "rosterBuiltOnCoreSha256": "07f99419b7e4399e00dc7d879a09eb0eca05c71f1dbb1cdd318d50fb40173387",
-    "rowsAdded": 428,
-    "rowsRemoved": 0,
-    "rowsChanged": 11,
+    "rowsAdded": 0,
+    "rowsRemoved": 1,
+    "rowsChanged": 19,
     "awaitingRoster": [
       {
         "venueId": "VN-046d66b0dd4f83",
@@ -3570,6 +3570,15 @@
         "rowsAdded": 1,
         "rowsRemoved": 0,
         "rowsChanged": 2
+      },
+      {
+        "on": "2026-11-25",
+        "coreAsOf": "2026-11-25",
+        "export01VenuesSha256": "15fd2c71ee37ad2fee5910043335924b04e818ee21c3163b96ca818be93faf10",
+        "previousCoreSha256": "c951d31c800d9b194ab0922624ae101f9fc0d92ff130130ff3c52a4fc2e472c9",
+        "rowsAdded": 428,
+        "rowsRemoved": 0,
+        "rowsChanged": 11
       }
     ]
   },
