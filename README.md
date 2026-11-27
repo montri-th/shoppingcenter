@@ -171,7 +171,7 @@ Owner 5 November 2026 08:34, on a phone: “หน้าแรก เปิด�
 - **Camera:** the zoom-in to 13.1 now applies only when the whole-district fit is within 0.4 zoom of it, around the middle of the free box (desktop unchanged). A portrait phone frames the three districts whole, north up at pitch 40° (`cityPortrait` in `js/camera.js`): every district vertex inside the free box at 390 and 430 px.
 - **Map credit:** the vendor stylesheet placed the credit at the bottom of the map, behind the bottom bar; it now sits above the bar. On a phone the legend and card stay above its live height while it is open (as CityMETER · Hotel) and drop back once it folds to its (i) button; on wider screens it wraps on the right of the legend. Cache tag `20261105-r20`.
 
-## 0.13.0 - แถวซ้ำที่ทะเบียนพักไว้ ตลาดริมทะเลชลบุรี และชุดอ้างอิง 477 ศูนย์ (`20261127-r1`)
+## 0.13.0 - แถวซ้ำที่ทะเบียนพักไว้ ตลาดริมทะเลชลบุรี และชุดอ้างอิง 477 ศูนย์ (`20261127-r2`)
 
 คำขอที่แชท Project “02 CityMETER” ส่งต่อ 27 พ.ย. 2569 08:47 ภายใต้คำของเจ้าของ 26 พ.ย. 2569 18:46 “ลุยต่อเลยครับ” (VERBATIM บางส่วน): “พัก 14 รหัสไม่ให้นับ … export ทะเบียนใหม่ แล้ว rebuild ตามขั้นตอนเดิม” · “ให้ใช้รหัสจากชื่อจังหวัดและอำเภอในทะเบียนเมื่อหมุดไม่ตกในรูปเขตใด พร้อมเทสต์” · เจ้าของตอบ 27 พ.ย. 2569 ราว 09:00 น.: “อนุญาต (Recommended)” และ “ตัดแถวซ้ำ เหลือ 477 (Recommended)”
 
