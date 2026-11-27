@@ -83,7 +83,15 @@ test('overview: the venues in districts and the ones no district holds add up to
   const country = buildOverviewModel({rows: supply, scopeRows: supply, areas: []});
   const inDistricts = supply.filter(r => hasPoint(r) && r.districtCode).length;
   assert.equal(inDistricts + country.unlocated.length, supply.length);
-  assert.ok(country.unlocated.some(r => hasPoint(r)), 'fixture: a point outside the boundary lines is in this snapshot');
+  // Since the export of 27 Nov 2026 a point inside no boundary line takes the district its registry row names
+  // (owner 2026-11-27, meta.checks.districtFromRegistryNames), so the line counts rows without a point; a model
+  // row with a point outside every line still lands in it.
+  assert.ok(country.unlocated.length > 0, 'fixture: rows without a point are in this snapshot');
+  const stray = {...supply.find(r => hasPoint(r) && r.districtCode), id: 'TEST-OUTSIDE'};
+  delete stray.districtCode;
+  delete stray.provinceCode;
+  assert.ok(buildOverviewModel({rows: [...supply, stray], scopeRows: [...supply, stray], areas: []}).unlocated.some(r => r.id === 'TEST-OUTSIDE'),
+    'a point outside every boundary line is named in the not-placed line');
   const html = renderOverview({insight: summarizeAreaInsight(supply, districts), model: country, focusMode: 'none', asOf});
   assert.ok(html.includes(`อีก ${country.unlocated.length.toLocaleString('th-TH')} แห่งยังระบุเขต/อำเภอไม่ได้`));
   // Bangkok: the panel's denominator and the not-placed line cover the province's rows.

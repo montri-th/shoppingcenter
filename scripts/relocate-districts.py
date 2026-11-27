@@ -42,17 +42,26 @@ def main():
     districts_geojson, district_meta, district_geoms, prod_provinces, problems, remapped = build.load_boundaries(a.boundaries, a.production)
     if problems:
         raise SystemExit('boundary problems: ' + '; '.join(problems))
-    locator = build.Locator(district_meta, district_geoms)
+    locator = build.Locator(district_meta, district_geoms, prod_provinces)
     prov_area = Counter()
     for d in district_meta:
         prov_area[d['province']] += d['areaKm2']
 
-    def place(lon, lat):
-        area = locator.locate(lon, lat)
-        return (area['province'], area['code']) if area else (None, None)
-
     venues = json.loads((data / 'venues.json').read_text())
     meta = venues['meta']
+    # Owner 2026-11-27 (build-data.py NAME_FALLBACK_MAX_M): a point inside no district takes the district the registry
+    # names — the venue row's own address fields, or for a context record the names the build recorded.
+    recorded = {x['id']: x for x in meta.get('checks', {}).get('districtFromRegistryNames', [])}
+    by_name = []
+
+    def place(lon, lat, rid=None, province=None, district=None):
+        area = locator.locate(lon, lat)
+        if not area and rid is not None:
+            names = recorded.get(rid, {})
+            area, rec = locator.locate_by_name(province or names.get('province'), district or names.get('district'), lon, lat)
+            by_name.append({'id': rid, **rec})
+        return (area['province'], area['code']) if area else (None, None)
+
     if not all(isinstance(r, dict) for r in venues['rows']):
         raise SystemExit('data/venues.json rows are not objects (build-data.py writes compact dict rows)')
     rows = venues['rows']
@@ -60,7 +69,7 @@ def main():
     for r in rows:
         if not r.get('located') or r.get('lat') is None or r.get('lon') is None:
             continue
-        prov, code = place(r['lon'], r['lat'])
+        prov, code = place(r['lon'], r['lat'], r['id'], r.get('addrProvince'), r.get('addrDistrict'))
         if prov is None:
             outside[r.get('tier')] += 1
         if (prov, code) != (r.get('provinceCode'), r.get('districtCode')):
@@ -94,7 +103,7 @@ def main():
     pending = json.loads((data / 'pending.json').read_text())
     pending_changes = 0
     for rec in pending['rows']:
-        prov, code = place(rec[2], rec[3]) if rec[2] is not None and rec[3] is not None else (rec[4], rec[5])
+        prov, code = place(rec[2], rec[3], rec[0]) if rec[2] is not None and rec[3] is not None else (rec[4], rec[5])
         if rec[2] is not None and prov is None:
             outside['unconfirmed' if len(rec) > 7 and rec[7] == 'reviewed' else 'pending'] += 1
         if (prov, code) != (rec[4], rec[5]):
@@ -112,7 +121,8 @@ def main():
         'locatedOutsideBoundaries': dict(outside), 'groups': dict(Counter(r['group'] for r in located_supply)),
     })
     old_aha = meta['checks']['aha']
-    meta['checks'].update({'aha': aha, 'problems': problems, 'districtCodeRemaps': remapped})
+    meta['checks'].update({'aha': aha, 'problems': problems, 'districtCodeRemaps': remapped,
+                           'districtFromRegistryNames': sorted(by_name, key=lambda x: x['id'])})
     meta['boundary'] = build.BOUNDARY
     digest = build.sha256(Path(a.boundaries) / 'districts.geojson')
     meta['inputs']['districts'] = {'file': 'RTSD districts.geojson (scripts/build-boundaries.py)', 'sha256': digest}

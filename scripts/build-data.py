@@ -645,9 +645,33 @@ def load_boundaries(boundaries_dir, production_dir):
     return districts, feats, geoms, lv0['provinceInfos'], problems, remapped
 
 
+# Owner, 27 Nov 2026 08:47 (relayed from the Project chat): three seaside markets (SC-003768, SC-003859, SC-003887)
+# had no provinceCode or districtCode because their pins sit just off the district polygons, while the registry names
+# their province, district and subdistrict as the source does — "ให้ใช้รหัสจากชื่อจังหวัดและอำเภอในทะเบียนเมื่อหมุด
+# ไม่ตกในรูปเขตใด". Only a pin inside no polygon takes the district named by the registry's province and district; the
+# named district must be the only one of that name in that province and lie within NAME_FALLBACK_MAX_M of the pin
+# (a guard against a wrong name or a pin far out at sea). Every row placed this way is listed in
+# meta.checks.districtFromRegistryNames; a refused one stays without an area and is listed with the reason.
+NAME_FALLBACK_MAX_M = 5000
+
+
+def _province_key(name):
+    s = re.sub(r'\s+', '', str(name or ''))
+    return re.sub(r'^(จังหวัด|จ\.)', '', s)
+
+
+def _district_key(name):
+    s = re.sub(r'\s+', '', str(name or ''))
+    return re.sub(r'^(อำเภอ|เขต|อ\.)', '', s)
+
+
 class Locator:
-    def __init__(self, feats, geoms):
+    def __init__(self, feats, geoms, provinces=()):
         self.feats, self.geoms, self.tree = feats, geoms, STRtree(geoms)
+        self.province_abbr = {_province_key(p['nameTh']): p['abbrEn'] for p in provinces}
+        self.by_name = defaultdict(list)
+        for i, f in enumerate(feats):
+            self.by_name[(f['province'], _district_key(f['th']))].append(i)
 
     def locate(self, lon, lat):
         pt = Point(lon, lat)
@@ -655,6 +679,25 @@ class Locator:
         if not hits:
             return None
         return min((self.feats[i] for i in hits), key=lambda d: d['code'])
+
+    def locate_by_name(self, province_th, district_th, lon, lat):
+        """The district the registry names, for a pin inside no polygon: (feature or None, record for the checks)."""
+        rec = {'province': str(province_th or ''), 'district': str(district_th or '')}
+        abbr = self.province_abbr.get(_province_key(province_th))
+        if not abbr:
+            return None, {**rec, 'refused': 'province name not in production lv0'}
+        hits = self.by_name.get((abbr, _district_key(district_th)), [])
+        if len(hits) != 1:
+            return None, {**rec, 'refused': f'{len(hits)} districts of that name in {abbr}'}
+        geom, feat = self.geoms[hits[0]], self.feats[hits[0]]
+        near = geom.exterior if geom.geom_type == 'Polygon' else min(
+            (g.exterior for g in geom.geoms), key=lambda e: e.distance(Point(lon, lat)))
+        q = near.interpolate(near.project(Point(lon, lat)))
+        dist = round(haversine_m(lat, lon, q.y, q.x))
+        rec.update({'provinceCode': feat['province'], 'districtCode': feat['code'], 'metresOutside': dist})
+        if dist > NAME_FALLBACK_MAX_M:
+            return None, {**rec, 'refused': f'named district {dist} m away (limit {NAME_FALLBACK_MAX_M} m)'}
+        return feat, rec
 
 
 def simplify(districts_geojson, district_meta, mapshaper, percent):
@@ -835,7 +878,7 @@ def main():
         sys.exit('duplicate venue_id in 01_VENUES')
 
     districts_geojson, district_meta, district_geoms, prod_provinces, problems, remapped = load_boundaries(args.boundaries, args.production)
-    locator = Locator(district_meta, district_geoms)
+    locator = Locator(district_meta, district_geoms, prod_provinces)
     prov_area = defaultdict(float)
     for d in district_meta:
         prov_area[d['province']] += d['areaKm2']
@@ -853,6 +896,7 @@ def main():
     identity = {}  # D36: venue_id → (group, reason) of the component-typed rows
     unmapped_types, vocab, coord_vocab, role_vocab = Counter(), Counter(), Counter(), Counter()
     outside = Counter()
+    by_name = []  # pins inside no district that take the district the registry names (NAME_FALLBACK_MAX_M)
     as_of = args.as_of
     for _, r in df.iterrows():
         tier, rule = qualification_rule(r['venue_qualification_status'])
@@ -865,6 +909,9 @@ def main():
         located = is_located(r)
         lat, lon = coord(r['latitude']), coord(r['longitude'])
         area = locator.locate(lon, lat) if located else None
+        if located and not area and tier != 'excluded':
+            area, placed = locator.locate_by_name(r['province'], r['district'], lon, lat)
+            by_name.append({'id': r['venue_id'], 'tier': tier, **placed})
         if located and not area:
             outside[tier] += 1
         name_th, name_en = text(r['name_th']), text(r['name_en'])
@@ -1173,6 +1220,7 @@ def main():
                                           for (q, t, g), n in sorted(unmapped_types.items(), key=lambda x: (not x[0][0], x[0][1]))],
                    'componentsWithoutParent': orphans, 'componentsRegrouped': regrouped, 'groupsFromSubAreas': subarea_groups,
                    'geometryLinksWithoutFeature': sorted(missing_geom),
+                   'districtFromRegistryNames': sorted(by_name, key=lambda x: x['id']),
                    'qualificationFallback': [{'status': st, 'rows': n} for (st, tier, rule), n in sorted(vocab.items()) if rule == 'fallback'],
                    'countRoleFallback': [{'role': role, 'rows': n} for (role, kind), n in sorted(role_vocab.items()) if kind == 'fallback']},
         'release': 'research snapshot published as a demo by the owner; registry release_status remains on hold per row '
@@ -1246,8 +1294,11 @@ def main():
         'componentsRegrouped': regrouped,
         'groupsFromSubAreas': subarea_groups,
         'geometryLinksWithoutFeature': sorted(missing_geom),
+        'districtFromRegistryNames': meta['checks']['districtFromRegistryNames'],
         'review': [
             'qualificationVocabulary rule "fallback": new status values; add them to qualification_rule() before publishing.',
+            'districtFromRegistryNames: located rows whose point lies inside no district polygon take the district the '
+            'registry names (owner 2026-11-27); an entry with "refused" stays without an area: check its point or names.',
             'countRoleVocabulary kind "fallback": new count_role values of qualified rows (not counted); classify them in '
             'COUNTED_ROLES, COMPONENT_ROLES or HELD_ROLES before publishing.',
             'keywordMappedTypes with qualified=true: add the venue_type to TYPE_TO_GROUP so the group basis is "evidence".',
