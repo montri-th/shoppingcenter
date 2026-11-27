@@ -1,15 +1,35 @@
 {
  "asOf": "2026-11-12",
+ "carried": {
+  "from": "2558de43984d1afb45552d458820c2f45a86cfbb6f415b1e60125fffa646c41a",
+  "left": [
+   "SC-001695",
+   "SC-002206",
+   "SC-C0073",
+   "SC-C0118",
+   "SC-C0126",
+   "SC-C0213",
+   "SC-C0259",
+   "SC-C0342",
+   "SC-C0447",
+   "SC-C0584",
+   "SC-C3320",
+   "VN-1c297c786a5e91",
+   "VN-1efe77f9a2804e",
+   "VN-6a4b407272c014"
+  ],
+  "reason": "centers that left the set (count holds and a review closed in the registry of 27 Nov 2026); the records of the others are the previous build's, from the same extract"
+ },
  "counts": {
   "labels": {
-   "river": 388,
-   "road": 1843,
-   "station": 712
+   "river": 378,
+   "road": 1798,
+   "station": 696
   },
-  "withRail": 424,
-  "withRiver": 480,
-  "withRoad": 519,
-  "withStations": 285
+  "withRail": 413,
+  "withRiver": 467,
+  "withRoad": 505,
+  "withStations": 277
  },
  "labels": {
   "fittedOnPx": 360,
@@ -21,7 +41,7 @@
  "owner": "2026-11-20 16:35: heatmap วงกลมอันนี้ดี แต่ยังดูยากอยู่ … อย่างน้อยควรแสดงแนวถนน overlay ใน heatmap ด้วย",
  "points": {
   "of": "id,lon,lat of each located center (7 decimals), one line each, sorted by id",
-  "sha256": "2558de43984d1afb45552d458820c2f45a86cfbb6f415b1e60125fffa646c41a"
+  "sha256": "9842d11275cb4474549186ad88736d521b9df37fb1c79e6fe50689f74831d6da"
  },
  "radius_m": 5000,
  "rail": [
@@ -57,9 +77,9 @@
   },
   "venues": {
    "file": "data/venues.json",
-   "sha256": "300f172e24088cdc8d6db5dda5e094ec31c2e542c1847682509d7842769de695"
+   "sha256": "ea22d6d7cc58e71592afc6656e3fa581365dc5532cf14d50fd889d87cfca2f7a"
   }
  },
  "unit_m": 25,
- "venues": 519
+ "venues": 505
 }

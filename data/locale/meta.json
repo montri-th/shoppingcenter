@@ -1,12 +1,12 @@
 {
  "schema": "citymeter-venue-locale-serving/1",
- "bundleId": "venue-locale-shopping-20261125-v0.2.4-rc1-web",
- "createdAt": "2026-11-25T16:39:10Z",
- "asOf": "2026-11-25",
+ "bundleId": "venue-locale-shopping-20261127-v0.2.5-rc1-web",
+ "createdAt": "2026-11-27T02:33:16Z",
+ "asOf": "2026-11-27",
  "release": {
-  "id": "venue-locale-shopping-20261125-v0.2.4-rc1",
+  "id": "venue-locale-shopping-20261127-v0.2.5-rc1",
   "status": "release_candidate",
-  "manifestSha256": "921348090376a795e58eb993edc99c860a412f60f5c8ed5245696d2b0458c35e",
+  "manifestSha256": "a82449e46d0dc43792d25ed2fe0e5be9180beb6a0d3761963efc2c322f66ad13",
   "schema": "venue_locale_schema_v1",
   "blockingIssues": 25
  },
@@ -18,32 +18,32 @@
   5000
  ],
  "defaultRadius": 3000,
- "venues": 539,
- "located": 519,
+ "venues": 525,
+ "located": 505,
  "universes": {
   "all": {
-   "n": 488,
+   "n": 477,
    "th": "ศูนย์ชุดอ้างอิงที่มีพิกัด",
    "en": "located centres of the reference set"
   },
   "outlet": {
-   "n": 13,
+   "n": 11,
    "th": "เอาท์เล็ตชุดอ้างอิงที่มีพิกัด",
    "en": "located outlets of the reference set"
   },
   "mall": {
-   "n": 288,
+   "n": 285,
    "th": "ศูนย์การค้าชุดอ้างอิงที่มีพิกัด",
    "en": "located shopping malls of the reference set"
   },
   "community": {
-   "n": 187,
+   "n": 181,
    "th": "คอมมูนิตี้มอลล์ชุดอ้างอิงที่มีพิกัด",
    "en": "located community malls of the reference set"
   }
  },
  "reference": {
-  "n": 488,
+  "n": 477,
   "release": "venue-locale-shopping-20261118-v0.2.0-rc1",
   "asOf": "2026-11-18",
   "added": [
@@ -54,16 +54,13 @@
    "SC-007246",
    "SC-013547",
    "SC-C2326",
-   "VN-1c297c786a5e91",
    "VN-1d8328e8ae05f9",
-   "VN-1efe77f9a2804e",
    "VN-4089b7d2e1a2f8",
    "VN-41a5a5b1b7128e",
    "VN-45e17824a92a07",
    "VN-46f66c8590444b",
    "VN-47d3dd6e85fb39",
    "VN-48d70e075c99ea",
-   "VN-6a4b407272c014",
    "VN-6adcac70ce9604",
    "VN-76eac912c12818",
    "VN-7980871440c61b",
@@ -93,16 +90,13 @@
     "SC-007246",
     "SC-013547",
     "SC-C2326",
-    "VN-1c297c786a5e91",
     "VN-1d8328e8ae05f9",
-    "VN-1efe77f9a2804e",
     "VN-4089b7d2e1a2f8",
     "VN-41a5a5b1b7128e",
     "VN-45e17824a92a07",
     "VN-46f66c8590444b",
     "VN-47d3dd6e85fb39",
     "VN-48d70e075c99ea",
-    "VN-6a4b407272c014",
     "VN-6adcac70ce9604",
     "VN-76eac912c12818",
     "VN-7980871440c61b",
@@ -116,8 +110,22 @@
     "VN-fd7b9819ea03de"
    ]
   },
-  "th": "ชุดอ้างอิงคือศูนย์ที่มีพิกัด 488 แห่งในรุ่น 18 พ.ย. 2569 ศูนย์ที่ได้พิกัดภายหลังเทียบกับชุดนี้ และไม่ทำให้อันดับของศูนย์อื่นเปลี่ยน",
-  "en": "The reference set is the 488 centres located in the release of 18 Nov 2026. A centre placed later is ranked against this set and does not move the rank of any other centre."
+  "removed": [
+   "SC-001695",
+   "SC-002206",
+   "SC-C0073",
+   "SC-C0118",
+   "SC-C0126",
+   "SC-C0213",
+   "SC-C0259",
+   "SC-C0342",
+   "SC-C0447",
+   "SC-C0584",
+   "SC-C3320"
+  ],
+  "removedOn": "2026-11-26",
+  "th": "ชุดอ้างอิงคือศูนย์ที่มีพิกัด 477 แห่ง: 488 แห่งในรุ่น 18 พ.ย. 2569 ลบ 11 แห่งที่ทะเบียนพักไว้เป็นแถวซ้ำเมื่อ 26 พ.ย. 2569 ศูนย์ที่ได้พิกัดภายหลังเทียบกับชุดนี้ และไม่ทำให้อันดับของศูนย์อื่นเปลี่ยน",
+  "en": "The reference set is 477 located centres: the 488 of the release of 18 Nov 2026 less the 11 the registry held as duplicate rows on 26 Nov 2026. A centre placed later is ranked against this set and does not move the rank of any other centre."
  },
  "ringGroups": [
   {
@@ -2145,7 +2153,7 @@
     "CityMETER Shopping Center",
     "CityMETER Shopping Center"
    ],
-   "sourceRef": "montri-th/shoppingcenter@1b33c4f6c9e58c740961b415f4fd3c8cceaab41f:data/venues.json",
+   "sourceRef": "montri-th/shoppingcenter@f35ff09ae84e992ffe5dea85fe142ef5b77d864e:data/venues.json",
    "sourceKind": "demo",
    "link": "https://citymeter.pages.dev/shoppingcenter/",
    "date": "2026-11-25",
@@ -2154,8 +2162,8 @@
     "countable retail places the source still lists as operating (malls, markets, stores and fuel stations with shops)"
    ],
    "brands": null,
-   "eligible": 6537,
-   "located": 6268,
+   "eligible": 6523,
+   "located": 6254,
    "unlocatedByProvince": {
     "_unknown_province": 269
    },

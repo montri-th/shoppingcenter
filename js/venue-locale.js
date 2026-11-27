@@ -15,7 +15,7 @@
  *
  * Reading rules: a ring count is the number of records a source lists within the straight-line radius of the venue's
  * reference point (not walking or driving distance, not footfall). 0 is a measured zero; a dataset without accepted
- * points is never shown as 0. Percentiles are mid-rank among the 488 located venues (or the same type); area counts are
+ * points is never shown as 0. Percentiles are mid-rank among the reference venues (488; 477 since 0.13.0) or the same type; area counts are
  * ranked per km² of their unit. Priors are hypotheses to test, drawn in neutral tones (no data colour), with what to check:
  * four groups with a spending-power signal read from observed prices (never income or willingness to pay), hypothesis
  * phrases, and a 7×24 grid relative to the center's own busiest hour (never footfall).
@@ -60,7 +60,7 @@ export function thaiDay(iso) {
 
 export const LOCALE_PATH = 'data/locale';
 /** The release covers the countable shopping centers, community malls and outlets that the registry lists as supply (499 until
- * 0.10.2, 539 since 0.11.0). */
+ * 0.10.2, 539 since 0.11.0, 525 since 0.13.0). */
 export const LOCALE_GROUPS = Object.freeze(['mall', 'community', 'outlet']);
 export const inLocaleSet = row => Boolean(row?.countable) && row?.status === 'supply' && LOCALE_GROUPS.includes(row?.group);
 export const RADII = Object.freeze([1000, 3000, 5000]);

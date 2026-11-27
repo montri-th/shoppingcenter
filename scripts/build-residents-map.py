@@ -29,6 +29,15 @@ same frame as the subdistrict outlines `o` of data/residents):
 
 Lines are simplified to SIMPLIFY_M before rounding to the 25 m grid. These are lines to read the map by, not a
 network to measure on. Writing the same inputs again gives the same bytes.
+
+  python3 -I scripts/build-residents-map.py --carry <the data/venues.json of the previous build>
+
+When centers only leave the set (release 0.13.0: the registry of 27 Nov 2026 holds 13 rows as possible duplicates and
+closes one review), the records of the centers that stay are kept from the previous build: a record depends only on its
+own center's point, the OpenStreetMap extract and the stations, so it equals a rebuild from the same extract. It stops
+unless the previous build's point hash recounts from the previous core (its meta.source.venues), every center that stays
+has the same point today and no center came, and the stations are the same file; meta.carried names the previous hash
+and who left.
 """
 import argparse
 import hashlib
@@ -330,11 +339,62 @@ def build_venue(v, ways_idx, ways, stations, tf_factory):
     }
 
 
+def carry(previous):
+    """Keep the previous records of the centers still in the set; see the module docstring."""
+    old = json.loads((OUT / 'meta.json').read_text(encoding='utf-8'))
+    if sha256(previous) != old['source']['venues']['sha256']:
+        fail(f'{previous} is not the core the previous build read ({old["source"]["venues"]["sha256"][:12]})')
+    prev_rows = json.loads(previous.read_text(encoding='utf-8'))['rows']
+    P = {r['id']: r for r in prev_rows if r.get('countable') and r.get('status') == 'supply' and r.get('group') in GROUPS and r.get('located')}
+    if points_sha(P) != old['points']['sha256']:
+        fail('the previous point hash does not recount from the previous core')
+    recs = {}
+    for k in range(old['shards']):
+        recs.update(json.loads((OUT / f'{k:03d}.json').read_text(encoding='utf-8'))['venues'])
+    V = located_set()
+    if set(V) - set(recs):
+        fail(f'centers without a previous record (they came or moved in): {sorted(set(V) - set(recs))[:5]}')
+    left = sorted(set(recs) - set(V))
+    if set(recs) != set(P) or set(V) - set(P):
+        fail('the previous records are not the previous core\'s centers, or a center came: run with --osm')
+    moved = [vid for vid in V if (f'{V[vid]["lon"]:.7f}', f'{V[vid]["lat"]:.7f}') != (f'{P[vid]["lon"]:.7f}', f'{P[vid]["lat"]:.7f}')]
+    if moved:
+        fail(f'centers moved since the previous build: {moved[:5]}; run with --osm')
+    if sha256(ROOT / 'data' / 'stations.json') != old['source']['stations']['sha256']:
+        fail('data/stations.json changed since the previous build: run with --osm')
+    counts = {'withRoad': 0, 'withRail': 0, 'withRiver': 0, 'withStations': 0, 'labels': {'road': 0, 'river': 0, 'station': 0}}
+    shards = {}
+    for vid in sorted(V):
+        rec = recs[vid]
+        counts['withRoad'] += 1 if any(rec['r']) else 0
+        counts['withRail'] += 1 if rec['t'] else 0
+        counts['withRiver'] += 1 if rec['w'] else 0
+        counts['withStations'] += 1 if rec['s'] else 0
+        for lab in rec['L']:
+            counts['labels'][lab[0]] += 1
+        shards.setdefault(shard_of(vid), {})[vid] = rec
+    dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(',', ':'), sort_keys=True)
+    for k in range(SHARDS):
+        (OUT / f'{k:03d}.json').write_text(dump({'venues': shards.get(k, {})}), encoding='utf-8')
+    meta = dict(old)
+    meta.update({'venues': len(V), 'points': {**old['points'], 'sha256': points_sha(V)}, 'counts': counts,
+                 'carried': {'from': old['points']['sha256'], 'left': left,
+                             'reason': 'centers that left the set (count holds and a review closed in the registry of 27 Nov 2026); '
+                                       'the records of the others are the previous build\'s, from the same extract'}})
+    meta['source'] = {**old['source'], 'venues': {'file': 'data/venues.json', 'sha256': sha256(ROOT / 'data' / 'venues.json')}}
+    (OUT / 'meta.json').write_text(json.dumps(meta, ensure_ascii=False, indent=1, sort_keys=True) + '\n', encoding='utf-8')
+    print(f'{OUT.relative_to(ROOT)}: {len(V)} centers carried from the build of {old["source"]["osm"]["timestamp"]}; {len(left)} left: {left}')
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    ap.add_argument('--osm', required=True, type=Path)
+    ap.add_argument('--osm', type=Path)
+    ap.add_argument('--carry', type=Path, metavar='PREVIOUS_VENUES_JSON',
+                    help='keep the previous records of the centers still in the set (centers only left it); the data/venues.json the previous build read')
     args = ap.parse_args()
-    if not args.osm.is_file():
+    if args.carry:
+        return carry(args.carry)
+    if not args.osm or not args.osm.is_file():
         fail(f'{args.osm}: not found')
     import osmium
     from pyproj import Transformer

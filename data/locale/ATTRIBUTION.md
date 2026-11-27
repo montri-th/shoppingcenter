@@ -1,6 +1,6 @@
 # Attribution — Venue Locale Insight (CityMETER Shopping Centers demo)
 
-Serving derivative of canonical release `venue-locale-shopping-20261125-v0.2.4-rc1` (manifest SHA-256 `921348090376a795e58eb993edc99c860a412f60f5c8ed5245696d2b0458c35e`). Not canonical; rebuildable.
+Serving derivative of canonical release `venue-locale-shopping-20261127-v0.2.5-rc1` (manifest SHA-256 `a82449e46d0dc43792d25ed2fe0e5be9180beb6a0d3761963efc2c322f66ad13`). Not canonical; rebuildable.
 
 ## Ring counts (straight-line rings of 1, 3 and 5 km)
 
